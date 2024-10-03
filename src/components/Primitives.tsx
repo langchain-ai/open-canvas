@@ -282,7 +282,7 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
 };
 
 interface AssistantActionBarProps {
-  onCopy: () => void;
+  onCopy?: () => void;
 }
 
 const MyAssistantActionBar: FC<AssistantActionBarProps> = (
