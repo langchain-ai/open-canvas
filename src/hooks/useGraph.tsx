@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { BaseMessage } from "@langchain/core/messages";
+import { DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
   messages: Record<string, any>[];
 }
 
 export function useGraph() {
-  const [messages, setMessages] = useState<BaseMessage[]>([]);
+  const [messages, setMessages] = useState<BaseMessage[]>(DEFAULT_MESSAGES);
 
   async function* streamMessage(params: GraphInput) {
     const { messages } = params;
