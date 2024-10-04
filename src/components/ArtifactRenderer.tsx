@@ -26,6 +26,8 @@ interface SelectionBox {
 }
 
 export function ArtifactRenderer(props: ArtifactRendererProps) {
+  const markdownRef = useRef<HTMLDivElement>(null);
+  const highlightLayerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const selectionBoxRef = useRef<HTMLDivElement>(null);
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
@@ -122,6 +124,44 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     };
   }, [handleMouseUp, handleDocumentMouseDown]);
 
+  useEffect(() => {
+    if (markdownRef.current && highlightLayerRef.current) {
+      const content = markdownRef.current;
+      const highlightLayer = highlightLayerRef.current;
+
+      // Clear existing highlights
+      highlightLayer.innerHTML = "";
+
+      if (isSelectionActive && selectionBox) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+
+          if (content.contains(range.commonAncestorContainer)) {
+            const rects = range.getClientRects();
+            const layerRect = highlightLayer.getBoundingClientRect();
+
+            for (let i = 0; i < rects.length; i++) {
+              const rect = rects[i];
+              const highlightEl = document.createElement("div");
+              highlightEl.className =
+                "absolute bg-[#3597934d] pointer-events-none";
+
+              // Adjust the positioning and size
+              const verticalPadding = 3; // Adjust this value as needed
+              highlightEl.style.left = `${rect.left - layerRect.left}px`;
+              highlightEl.style.top = `${rect.top - layerRect.top - verticalPadding}px`;
+              highlightEl.style.width = `${rect.width}px`;
+              highlightEl.style.height = `${rect.height + verticalPadding * 2}px`;
+
+              highlightLayer.appendChild(highlightEl);
+            }
+          }
+        }
+      }
+    }
+  }, [isSelectionActive, selectionBox]);
+
   if (!props.artifact) {
     return <div className="w-full h-full"></div>;
   }
@@ -140,10 +180,16 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       </div>
 
       <div ref={contentRef} className="flex justify-center h-full pt-[10%]">
-        <div className="max-w-3xl w-full px-4">
-          <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {props.artifact.content}
-          </Markdown>
+        <div className="max-w-3xl w-full px-4 relative">
+          <div ref={markdownRef}>
+            <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {props.artifact.content}
+            </Markdown>
+          </div>
+          <div
+            ref={highlightLayerRef}
+            className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          />
         </div>
         {selectionBox && isSelectionActive && (
           <div
