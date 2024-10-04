@@ -1,12 +1,20 @@
+import { v4 as uuidv4 } from "uuid";
 import Markdown from "react-markdown";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { CircleArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Artifact } from "@/types";
+import { GraphInput } from "@/hooks/useGraph";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { convertToOpenAIFormat } from "@/lib/convert_messages";
 
 export interface ArtifactRendererProps {
-  content: string;
+  artifact: Artifact | undefined;
+  streamMessage: (input: GraphInput) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
+  messages: BaseMessage[];
 }
 
 interface SelectionBox {
@@ -21,6 +29,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isInputVisible, setIsInputVisible] = useState(false);
   const [isSelectionActive, setIsSelectionActive] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const handleMouseUp = useCallback(() => {
     const selection = window.getSelection();
@@ -72,6 +81,32 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     event.stopPropagation();
   }, []);
 
+  const handleSubmit = async () => {
+    if (selectionBox && props.artifact) {
+      const fullContent = props.artifact.content;
+      const selectedText = selectionBox.text;
+
+      const startIndex = fullContent.indexOf(selectedText);
+      const endIndex = startIndex + selectedText.length;
+      const humanMessage = new HumanMessage({
+        content: inputValue,
+        id: uuidv4(),
+      });
+
+      const currentConversation = [...props.messages, humanMessage];
+      props.setMessages((prevMessages) => [...prevMessages, humanMessage]);
+
+      await props.streamMessage({
+        messages: currentConversation.map(convertToOpenAIFormat),
+        highlighted: {
+          id: props.artifact.id,
+          startCharIndex: startIndex,
+          endCharIndex: endIndex,
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     document.addEventListener("mouseup", handleMouseUp);
     document.addEventListener("mousedown", handleDocumentMouseDown);
@@ -82,47 +117,65 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     };
   }, [handleMouseUp, handleDocumentMouseDown]);
 
+  if (!props.artifact) {
+    return null;
+  }
+
   return (
-    <div
-      ref={contentRef}
-      className="text-left px-[10%] pt-[5%] leading-relaxed artifact-content relative"
-    >
-      <Markdown>{props.content}</Markdown>
-      {selectionBox && isSelectionActive && (
-        <div
-          ref={selectionBoxRef}
-          className={cn(
-            "absolute bg-white border border-gray-200 shadow-md p-2 flex gap-2",
-            isInputVisible ? "rounded-3xl" : "rounded-md"
-          )}
-          style={{
-            top: `${selectionBox.top + 10}px`,
-            left: `${selectionBox.left}px`,
-            width: isInputVisible ? "400px" : "250px",
-            marginLeft: isInputVisible ? "0" : "150px",
-          }}
-          onMouseDown={handleSelectionBoxMouseDown}
-        >
-          {isInputVisible ? (
-            <div className="relative w-full overflow-hidden flex flex-row items-center gap-1">
-              <Input
-                className="w-full transition-all duration-300 focus:ring-0 ease-in-out p-1 focus:outline-none border-0 focus-visible:ring-0"
-                placeholder="Ask Open Canvas..."
-                autoFocus
-              />
-              <CircleArrowUp fill="black" stroke="white" size={30} />
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={() => setIsInputVisible(true)}
-              className="transition-all duration-300 ease-in-out w-full"
-            >
-              Ask Open Canvas
-            </Button>
-          )}
+    <div className="relative w-full h-full">
+      <h1 className="text-xl font-bold absolute top-4 left-4">
+        {props.artifact.title}
+      </h1>
+      <div ref={contentRef} className="flex justify-center h-full pt-[10%]">
+        <div className="max-w-3xl w-full px-4">
+          <Markdown className="text-left leading-relaxed">
+            {props.artifact.content}
+          </Markdown>
         </div>
-      )}
+        {selectionBox && isSelectionActive && (
+          <div
+            ref={selectionBoxRef}
+            className={cn(
+              "absolute bg-white border border-gray-200 shadow-md p-2 flex gap-2",
+              isInputVisible ? "rounded-3xl" : "rounded-md"
+            )}
+            style={{
+              top: `${selectionBox.top + 10}px`,
+              left: `${selectionBox.left}px`,
+              width: isInputVisible ? "400px" : "250px",
+              marginLeft: isInputVisible ? "0" : "150px",
+            }}
+            onMouseDown={handleSelectionBoxMouseDown}
+          >
+            {isInputVisible ? (
+              <div className="relative w-full overflow-hidden flex flex-row items-center gap-1">
+                <Input
+                  className="w-full transition-all duration-300 focus:ring-0 ease-in-out p-1 focus:outline-none border-0 focus-visible:ring-0"
+                  placeholder="Ask Open Canvas..."
+                  autoFocus
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                />
+                <CircleArrowUp
+                  className="cursor-pointer"
+                  onClick={handleSubmit}
+                  fill="black"
+                  stroke="white"
+                  size={30}
+                />
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => setIsInputVisible(true)}
+                className="transition-all duration-300 ease-in-out w-full"
+              >
+                Ask Open Canvas
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

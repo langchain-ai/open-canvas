@@ -6,9 +6,8 @@ import {
   START,
   StateGraph,
 } from "@langchain/langgraph";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 import {
   FOLLOWUP_ARTIFACT_PROMPT,
   NEW_ARTIFACT_PROMPT,
@@ -16,12 +15,7 @@ import {
   UPDATE_ENTIRE_ARTIFACT_PROMPT,
   UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT,
 } from "./prompts";
-
-interface Artifact {
-  id: string;
-  content: string;
-  title: string;
-}
+import { Artifact } from "../types";
 
 interface Highlight {
   /**
@@ -72,8 +66,8 @@ const formatArtifacts = (messages: Artifact[], truncate?: boolean): string =>
  * Generate responses to questions. Does not generate artifacts.
  */
 const respondToQuery = async (state: typeof GraphAnnotation.State) => {
-  const smallModel = new ChatAnthropic({
-    model: "claude-3-haiku-20240307",
+  const smallModel = new ChatOpenAI({
+    model: "gpt-4o",
     temperature: 0.5,
   });
 
@@ -107,8 +101,8 @@ The user has generated artifacts in the past. Use the following artifacts as con
  */
 const updateArtifact = async (state: typeof GraphAnnotation.State) => {
   console.log("Updating artifact", state.selectedArtifactId);
-  const smallModel = new ChatAnthropic({
-    model: "claude-3-haiku-20240307",
+  const smallModel = new ChatOpenAI({
+    model: "gpt-4o",
     temperature: 0.5,
   });
 
@@ -218,37 +212,38 @@ const updateArtifact = async (state: typeof GraphAnnotation.State) => {
  * Generate a new artifact based on the user's query.
  */
 const generateArtifact = async (state: typeof GraphAnnotation.State) => {
-  const smallModel = new ChatAnthropic({
-    model: "claude-3-haiku-20240307",
+  const smallModel = new ChatOpenAI({
+    model: "gpt-4o",
     temperature: 0.5,
   });
 
-  const modelWithArtifactTool = smallModel
-    .withStructuredOutput(
-      z.object({
-        artifact: z
-          .string()
-          .describe("The content of the artifact to generate."),
-        title: z
-          .string()
-          .describe(
-            "A short title to give to the artifact. Should be less than 5 words."
-          ),
-      }),
+  const modelWithArtifactTool = smallModel.bindTools(
+    [
       {
         name: "generate_artifact",
-      }
-    )
-    .withConfig({ runName: "generate_artifact" });
+        schema: z.object({
+          artifact: z
+            .string()
+            .describe("The content of the artifact to generate."),
+          title: z
+            .string()
+            .describe(
+              "A short title to give to the artifact. Should be less than 5 words."
+            ),
+        }),
+      },
+    ],
+    { tool_choice: "generate_artifact" }
+  );
 
-  const response = await modelWithArtifactTool.invoke([
-    { role: "system", content: NEW_ARTIFACT_PROMPT },
-    ...state.messages,
-  ]);
+  const response = await modelWithArtifactTool.invoke(
+    [{ role: "system", content: NEW_ARTIFACT_PROMPT }, ...state.messages],
+    { runName: "generate_artifact" }
+  );
   const newArtifact = {
-    id: uuidv4(),
-    content: response.artifact,
-    title: response.title,
+    id: response.id,
+    content: response.tool_calls?.[0]?.args.artifact,
+    title: response.tool_calls?.[0]?.args.title,
   };
 
   return {
@@ -260,8 +255,8 @@ const generateArtifact = async (state: typeof GraphAnnotation.State) => {
  * Generate a followup message after generating or updating an artifact.
  */
 const generateFollowup = async (state: typeof GraphAnnotation.State) => {
-  const smallModel = new ChatAnthropic({
-    model: "claude-3-haiku-20240307",
+  const smallModel = new ChatOpenAI({
+    model: "gpt-4o-mini",
     temperature: 0.5,
     maxTokens: 250,
   });
@@ -300,9 +295,9 @@ const routeQuery = async (state: typeof GraphAnnotation.State) => {
       .join("\n\n")
   ).replace("{artifacts}", formatArtifacts(state.artifacts, true));
 
-  const modelWithTool = new ChatAnthropic({
-    model: "claude-3-haiku-20240307",
-    temperature: 0.5,
+  const modelWithTool = new ChatOpenAI({
+    model: "gpt-4o-mini",
+    temperature: 0,
   }).withStructuredOutput(
     z.object({
       route: z.enum(["updateArtifact", "respondToQuery", "generateArtifact"]),

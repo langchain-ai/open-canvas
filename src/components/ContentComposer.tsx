@@ -8,41 +8,35 @@ import {
 } from "@assistant-ui/react";
 import { v4 as uuidv4 } from "uuid";
 import { MyThread } from "./Primitives";
-import { concat } from "@langchain/core/utils/stream";
 import { useExternalMessageConverter } from "@assistant-ui/react";
-import {
-  AIMessageChunk,
-  BaseMessage,
-  HumanMessage,
-} from "@langchain/core/messages";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
 import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
+import { Artifact } from "@/types";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
-  streamMessage: (input: GraphInput) => Promise<
-    | AsyncGenerator<
-        {
-          event: string;
-          data: any;
-        },
-        any,
-        unknown
-      >
-    | undefined
-  >;
+  streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
+  setArtifacts: React.Dispatch<React.SetStateAction<Artifact[]>>;
 }
+
+const realNewline = `
+`;
 
 export function ContentComposerChatInterface(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
   const { messages, setMessages, streamMessage } = props;
   const [isRunning, setIsRunning] = useState(false);
+  const [generationData, setGenerationData] = useState({
+    artifactId: "",
+    fullArtifactGenerationStr: "",
+  });
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content[0]?.type !== "text") {
@@ -59,45 +53,9 @@ export function ContentComposerChatInterface(
       const currentConversation = [...messages, humanMessage];
       setMessages((prevMessages) => [...prevMessages, humanMessage]);
 
-      const stream = await streamMessage({
+      await streamMessage({
         messages: currentConversation.map(convertToOpenAIFormat),
       });
-
-      if (!stream) {
-        return;
-      }
-
-      // Use for...of instead of for await...of for better readability
-      for await (const chunk of stream) {
-        console.log("new chunk", chunk);
-        const aiMessageChunk = new AIMessageChunk({
-          content: "",
-          id: uuidv4(),
-          // content: chunk.kwargs.content,
-          // id: chunk.kwargs.id,
-          // tool_calls: chunk.kwargs.tool_calls,
-          // tool_call_chunks: chunk.kwargs.tool_call_chunks,
-        });
-
-        setMessages((prevMessages) => {
-          const lastMessage = prevMessages[prevMessages.length - 1];
-
-          // Simplified condition for adding a new message
-          if (
-            !lastMessage ||
-            lastMessage._getType() !== "ai" ||
-            lastMessage.id !== aiMessageChunk.id
-          ) {
-            return [...prevMessages, aiMessageChunk];
-          }
-
-          // Concat and replace the last message
-          return [
-            ...prevMessages.slice(0, -1),
-            concat(lastMessage as AIMessageChunk, aiMessageChunk),
-          ];
-        });
-      }
     } catch (error) {
       console.error("Error running message:", error);
     } finally {

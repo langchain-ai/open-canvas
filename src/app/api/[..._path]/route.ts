@@ -30,18 +30,29 @@ async function handleRequest(req: NextRequest, method: string) {
       options.body = await req.text();
     }
 
-    const apiUrl = "http://localhost:55463";
+    const apiUrl = "http://localhost:51754";
     const res = await fetch(`${apiUrl}/${path}${queryString}`, options);
-    console.log("res", res);
-    return new NextResponse(res.body, {
+
+    const headers = new Headers({
+      ...getCorsHeaders(),
+    });
+    // Safely add headers from the original response
+    res.headers.forEach((value, key) => {
+      try {
+        headers.set(key, value);
+      } catch (error) {
+        console.warn(`Failed to set header: ${key}`, error);
+      }
+    });
+
+    return new Response(res.body, {
       status: res.status,
       statusText: res.statusText,
-      headers: {
-        ...res.headers,
-        ...getCorsHeaders(),
-      },
+      headers,
     });
   } catch (e: any) {
+    console.error("err");
+    console.log(e);
     return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
   }
 }

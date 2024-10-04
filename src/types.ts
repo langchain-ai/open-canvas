@@ -19,3 +19,15 @@ export type UserRules = {
   styleRules: string[];
   contentRules: string[];
 };
+
+export interface Artifact {
+  id: string;
+  content: string;
+  title: string;
+}
+
+export type Highlight = {
+  id: string;
+  startCharIndex: number;
+  endCharIndex: number;
+};

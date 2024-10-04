@@ -23,11 +23,12 @@ Here is the current content of the artifact:
 
 Please update the artifact based on the user's request. You should respond with the ENTIRE updated artifact, with no additional text before and after. Do not wrap it in any tags.`;
 
-export const ROUTE_QUERY_PROMPT = `You are an assistant tasked with routing the users query based on their most recent input, and a piece of the chat history.
+export const ROUTE_QUERY_PROMPT = `You are an assistant tasked with routing the users query based on their most recent message.
+You should look at this message in isolation and determine where to best route there query.
 Your options are as follows:
 
 - 'updateArtifact': The user has requested some sort of change or edit to an existing artifact. Use their recent message and the currently selected artifact (if any) to determine what to do.
-- 'respondToQuery': The user has asked a question which requires a response, but does not require updating or generating an entirely new artifact. This should be general responses to questions.
+- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.
 - 'generateArtifact': The user has inputted a request which requires generating an entirely new artifact.
 
 If you believe the user wants to update an existing artifact, you MUST also supply the ID of the artifact they are referring to.
