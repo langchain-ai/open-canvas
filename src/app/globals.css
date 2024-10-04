@@ -101,3 +101,24 @@ a {
     @apply bg-background text-foreground;
   }
 }
+
+/* Change highlight color */
+::selection {
+  background-color: rgba(53, 151, 147, 0.3);
+}
+
+::-moz-selection {
+  background-color: rgba(53, 151, 147, 0.3);
+}
+
+@layer utilities {
+  .shadow-inner-right {
+    box-shadow: inset -9px 0 6px -1px rgb(0 0 0 / 0.02);
+  }
+}
+
+.artifact-content {
+  line-height: calc(
+    1.625em + 2px
+  ); /* Adjust the base value (1.625em) if needed */
+}

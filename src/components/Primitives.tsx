@@ -15,6 +15,7 @@ import {
   useMessage,
   useMessageStore,
   useThreadActions,
+  useThreadRuntime,
 } from "@assistant-ui/react";
 import { useCallback, useEffect, useRef, useState, type FC } from "react";
 
@@ -42,7 +43,7 @@ export interface MyThreadProps extends MyAssistantMessageProps {}
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   return (
-    <ThreadPrimitive.Root className="bg-background h-full">
+    <ThreadPrimitive.Root className="h-full">
       <ThreadPrimitive.Viewport className="flex h-full flex-col items-center overflow-y-scroll scroll-smooth bg-inherit px-4 pt-8">
         <MyThreadWelcome />
 
@@ -159,18 +160,16 @@ const MyUserActionBar: FC = () => {
   );
 };
 
-const MyComposerSend = (props: {
-  setInfoDialogOpen: (open: boolean) => void;
-}) => {
+const MyComposerSend = () => {
   const messageStore = useMessageStore();
   const composerStore = useComposerStore();
-  const threadActions = useThreadActions();
+  const threadRuntime = useThreadRuntime();
 
   const handleSend = () => {
     const composerState = composerStore.getState();
     const { parentId, message } = messageStore.getState();
 
-    threadActions.append({
+    threadRuntime.append({
       parentId,
       role: message.role,
       content: [{ type: "text", text: composerState.text }],
@@ -178,57 +177,14 @@ const MyComposerSend = (props: {
     composerState.cancel();
   };
 
-  return (
-    <TooltipProvider>
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <Button onClick={handleSend}>Save</Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>
-            Will trigger rule generation (
-            <a
-              onClick={() => props.setInfoDialogOpen(true)}
-              className="text-blue-400 underline underline-offset-2 cursor-pointer"
-            >
-              whats this?
-            </a>
-            )
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+  return <Button onClick={handleSend}>Save</Button>;
 };
 
 const MyEditComposer: FC = () => {
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-  const cancelEdit = useComposerCancel();
-  const isLast = useMessage((m) => m.isLast);
-  const wasLast = useRef(isLast);
-  const send = useComposerSend();
-
-  useEffect(() => {
-    if (!wasLast.current || isLast) return;
-    // if the message was the last one - cancel the edit whenever it stops being the last one
-    cancelEdit?.();
-  }, [cancelEdit, isLast]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter") {
-      if ((e.metaKey || e.ctrlKey) && send) {
-        // Only submit on `CMD + Enter` or `CTRL + Enter`
-        e.preventDefault();
-        send();
-      }
-    }
-  };
-
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-full max-w-2xl flex-col gap-2 rounded-xl">
       <ComposerPrimitive.Input
         className="text-foreground flex h-8 w-full resize-none border-none bg-transparent p-4 pb-0 outline-none focus:ring-0"
-        onKeyDown={handleKeyDown}
         // Don't submit on `Enter`, instead add a newline.
         submitOnEnter={false}
       />
@@ -237,9 +193,8 @@ const MyEditComposer: FC = () => {
         <ComposerPrimitive.Cancel asChild>
           <Button variant="ghost">Cancel</Button>
         </ComposerPrimitive.Cancel>
-        <MyComposerSend setInfoDialogOpen={setInfoDialogOpen} />
+        <MyComposerSend />
       </div>
-      <RuleInfoDialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen} />
     </ComposerPrimitive.Root>
   );
 };
@@ -266,8 +221,18 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
     edit();
   }, [edit, isDone, isLast]);
 
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim() !== "") {
+      console.log("Highlighted text:", selection.toString());
+    }
+  };
+
   return (
-    <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
+    <MessagePrimitive.Root
+      className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4"
+      onMouseUp={handleMouseUp}
+    >
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
         <AvatarFallback>A</AvatarFallback>
       </Avatar>
@@ -298,27 +263,12 @@ const MyAssistantActionBar: FC<AssistantActionBarProps> = (
       className="text-muted-foreground data-[floating]:bg-background col-start-3 row-start-2 -ml-1 flex gap-1 data-[floating]:absolute data-[floating]:rounded-md data-[floating]:border data-[floating]:p-1 data-[floating]:shadow-sm"
     >
       <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit" className="w-10 h-10">
+        <TooltipIconButton tooltip="Edit" className="w-6 h-6">
           <PencilIcon size={24} />
         </TooltipIconButton>
       </ActionBarPrimitive.Edit>
       <ActionBarPrimitive.Copy onClick={props.onCopy} asChild>
-        <TooltipIconButton
-          delayDuration={0}
-          tooltip={
-            <p>
-              Will trigger rule generation (
-              <a
-                onClick={() => setInfoDialogOpen(true)}
-                className="text-blue-400 underline underline-offset-2 cursor-pointer"
-              >
-                whats this?
-              </a>
-              )
-            </p>
-          }
-          className="w-10 h-10"
-        >
+        <TooltipIconButton tooltip="Copy" className="w-6 h-6">
           <MessagePrimitive.If copied>
             <CheckIcon size={24} />
           </MessagePrimitive.If>
