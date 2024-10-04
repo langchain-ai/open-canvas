@@ -46,11 +46,10 @@ export function ContentComposerChatInterface(
         id: uuidv4(),
       });
 
-      const currentConversation = [...messages, humanMessage];
       setMessages((prevMessages) => [...prevMessages, humanMessage]);
 
       await streamMessage({
-        messages: currentConversation.map(convertToOpenAIFormat),
+        messages: [convertToOpenAIFormat(humanMessage)],
       });
     } catch (error) {
       console.error("Error running message:", error);

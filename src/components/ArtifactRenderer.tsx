@@ -95,7 +95,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         id: uuidv4(),
       });
 
-      const currentConversation = [...props.messages, humanMessage];
       props.setMessages((prevMessages) => [...prevMessages, humanMessage]);
 
       setIsInputVisible(false);
@@ -103,7 +102,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       setSelectionBox(null);
 
       await props.streamMessage({
-        messages: currentConversation.map(convertToOpenAIFormat),
+        messages: [convertToOpenAIFormat(humanMessage)],
         highlighted: {
           id: props.artifact.id,
           startCharIndex: startIndex,
@@ -154,7 +153,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               isInputVisible ? "rounded-3xl" : "rounded-md"
             )}
             style={{
-              top: `${selectionBox.top + 10}px`,
+              top: `${selectionBox.top + 60}px`,
               left: `${selectionBox.left}px`,
               width: isInputVisible ? "400px" : "250px",
               marginLeft: isInputVisible ? "0" : "150px",
