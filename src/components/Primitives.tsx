@@ -9,12 +9,9 @@ import {
   ThreadAssistantMessage,
   ThreadPrimitive,
   useActionBarEdit,
-  useComposerCancel,
-  useComposerSend,
   useComposerStore,
   useMessage,
   useMessageStore,
-  useThreadActions,
   useThreadRuntime,
 } from "@assistant-ui/react";
 import { useCallback, useEffect, useRef, useState, type FC } from "react";
@@ -30,13 +27,6 @@ import {
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
-import { RuleInfoDialog } from "./RuleInfoDialog";
 import { BaseMessage } from "@langchain/core/messages";
 
 export interface MyThreadProps extends MyAssistantMessageProps {}
@@ -253,8 +243,6 @@ interface AssistantActionBarProps {
 const MyAssistantActionBar: FC<AssistantActionBarProps> = (
   props: AssistantActionBarProps
 ) => {
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-
   return (
     <ActionBarPrimitive.Root
       hideWhenRunning
@@ -277,7 +265,6 @@ const MyAssistantActionBar: FC<AssistantActionBarProps> = (
           </MessagePrimitive.If>
         </TooltipIconButton>
       </ActionBarPrimitive.Copy>
-      <RuleInfoDialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen} />
     </ActionBarPrimitive.Root>
   );
 };
