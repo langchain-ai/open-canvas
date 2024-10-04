@@ -24,7 +24,17 @@ import { Toaster } from "./ui/toaster";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
-  streamMessage: (params: GraphInput) => AsyncGenerator<any, void, unknown>;
+  streamMessage: (input: GraphInput) => Promise<
+    | AsyncGenerator<
+        {
+          event: string;
+          data: any;
+        },
+        any,
+        unknown
+      >
+    | undefined
+  >;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 }
 
@@ -49,15 +59,24 @@ export function ContentComposerChatInterface(
       const currentConversation = [...messages, humanMessage];
       setMessages((prevMessages) => [...prevMessages, humanMessage]);
 
-      // Use for...of instead of for await...of for better readability
-      for await (const chunk of streamMessage({
+      const stream = await streamMessage({
         messages: currentConversation.map(convertToOpenAIFormat),
-      })) {
+      });
+
+      if (!stream) {
+        return;
+      }
+
+      // Use for...of instead of for await...of for better readability
+      for await (const chunk of stream) {
+        console.log("new chunk", chunk);
         const aiMessageChunk = new AIMessageChunk({
-          content: chunk.kwargs.content,
-          id: chunk.kwargs.id,
-          tool_calls: chunk.kwargs.tool_calls,
-          tool_call_chunks: chunk.kwargs.tool_call_chunks,
+          content: "",
+          id: uuidv4(),
+          // content: chunk.kwargs.content,
+          // id: chunk.kwargs.id,
+          // tool_calls: chunk.kwargs.tool_calls,
+          // tool_call_chunks: chunk.kwargs.tool_call_chunks,
         });
 
         setMessages((prevMessages) => {

@@ -1,42 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BaseMessage } from "@langchain/core/messages";
 import { DEFAULT_MESSAGES } from "@/lib/dummy";
+import { useToast } from "./use-toast";
+import { createClient } from "./utils";
 
 export interface GraphInput {
   messages: Record<string, any>[];
 }
 
 export function useGraph() {
-  const [messages, setMessages] = useState<BaseMessage[]>(DEFAULT_MESSAGES);
+  const { toast } = useToast();
+  const [messages, setMessages] = useState<BaseMessage[]>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
 
-  async function* streamMessage(params: GraphInput) {
+  useEffect(() => {
+    if (threadId || typeof window === "undefined") return;
+    createThread();
+  }, []);
+
+  const createThread = async () => {
+    const client = createClient();
+    console.log("Before req");
+    const thread = await client.threads.create();
+    console.log("After req");
+    setThreadId(thread.thread_id);
+    return thread;
+  };
+
+  const streamMessage = async (params: GraphInput) => {
     const { messages } = params;
+    if (!threadId) {
+      toast({
+        title: "Error",
+        description: "Thread ID not found",
+      });
+      return undefined;
+    }
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      body: JSON.stringify({ messages }),
+    const client = createClient();
+    const input = { messages };
+    return client.runs.stream(threadId, "agent", {
+      input,
+      streamMode: "events",
     });
-
-    if (!response.body) {
-      throw new Error("No response body");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      try {
-        const chunk = decoder.decode(value);
-        const parsed = JSON.parse(chunk);
-        yield parsed;
-      } catch (e) {
-        // no-op
-      }
-    }
-  }
+  };
 
   return {
     messages,

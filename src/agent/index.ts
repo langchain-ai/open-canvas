@@ -1,25 +1,27 @@
 import {
   Annotation,
+  END,
   MessagesAnnotation,
+  Send,
   START,
   StateGraph,
 } from "@langchain/langgraph";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { z } from "zod";
-import {
-  AIMessage,
-  BaseMessage,
-  RemoveMessage,
-} from "@langchain/core/messages";
 import { v4 as uuidv4 } from "uuid";
 import {
   FOLLOWUP_ARTIFACT_PROMPT,
-  GENERATE_ARTIFACT_METADATA_PROMPT,
   NEW_ARTIFACT_PROMPT,
   ROUTE_QUERY_PROMPT,
   UPDATE_ENTIRE_ARTIFACT_PROMPT,
   UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT,
 } from "./prompts";
+
+interface Artifact {
+  id: string;
+  content: string;
+  title: string;
+}
 
 interface Highlight {
   /**
@@ -47,16 +49,22 @@ const GraphAnnotation = Annotation.Root({
    * to determine which artifact the highlight belongs to.
    */
   highlighted: Annotation<Highlight>,
+  /**
+   * The artifacts that have been generated in the conversation.
+   */
+  artifacts: Annotation<Artifact[]>({
+    reducer: (_state, update) => update,
+    default: () => [],
+  }),
 });
 
-const formatArtifacts = (messages: BaseMessage[], truncate?: boolean): string =>
+const formatArtifacts = (messages: Artifact[], truncate?: boolean): string =>
   messages
-    .filter((msg) => msg.response_metadata.isArtifact)
     .map((artifact) => {
       const content = truncate
         ? `${artifact.content.slice(0, 500)}${artifact.content.length > 500 ? "..." : ""}`
         : artifact.content;
-      return `Title: ${artifact.response_metadata.title}\nContent: ${content}`;
+      return `Title: ${artifact.title}\nID: ${artifact.id}\nContent: ${content}`;
     })
     .join("\n\n");
 
@@ -79,7 +87,7 @@ The user has generated artifacts in the past. Use the following artifacts as con
 
   const formattedPrompt = prompt.replace(
     "{artifacts}",
-    formatArtifacts(state.messages)
+    formatArtifacts(state.artifacts)
   );
 
   const response = await smallModel.invoke([
@@ -94,78 +102,28 @@ The user has generated artifacts in the past. Use the following artifacts as con
 
 /**
  * Update an existing artifact based on the user's query.
+ *
+ * TODO: break into two nodes, one for updating and one for regenerating.
  */
 const updateArtifact = async (state: typeof GraphAnnotation.State) => {
+  console.log("Updating artifact", state.selectedArtifactId);
   const smallModel = new ChatAnthropic({
     model: "claude-3-haiku-20240307",
     temperature: 0.5,
   });
 
-  const selectedArtifact = state.messages.find(
-    (msg) => msg.id === state.selectedArtifactId
+  const selectedArtifact = state.artifacts.find(
+    (artifact) => artifact.id === state.selectedArtifactId
   );
   if (!selectedArtifact) {
     throw new Error("No artifact found with the selected ID");
   }
 
-  if (state.highlighted) {
-    const start = Math.max(0, state.highlighted.startCharIndex - 500);
-    const end = Math.min(
-      selectedArtifact.content.length,
-      state.highlighted.endCharIndex + 500
-    );
-
-    const beforeHighlight = selectedArtifact.content.slice(
-      start,
-      state.highlighted.startCharIndex
-    ) as string;
-    const highlightedText = selectedArtifact.content.slice(
-      state.highlighted.startCharIndex,
-      state.highlighted.endCharIndex
-    ) as string;
-    const afterHighlight = selectedArtifact.content.slice(
-      state.highlighted.endCharIndex,
-      end
-    ) as string;
-
-    const formattedPrompt = UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT.replace(
-      "{highlightedText}",
-      highlightedText
-    )
-      .replace("{beforeHighlight}", beforeHighlight)
-      .replace("{afterHighlight}", afterHighlight);
-
-    const recentHumanMessage = state.messages.findLast(
-      (message) => message._getType() === "human"
-    );
-    if (!recentHumanMessage) {
-      throw new Error("No recent human message found");
-    }
-    const updatedArtifact = await smallModel.invoke([
-      { role: "system", content: formattedPrompt },
-      recentHumanMessage,
-    ]);
-
-    // Return a `RemoveMessage` to delete the original artifact message from the history.
-    const removeMessage = new RemoveMessage({ id: selectedArtifact.id ?? "" });
-
-    const entireTextBefore = selectedArtifact.content.slice(
-      0,
-      state.highlighted.startCharIndex
-    );
-    const entireTextAfter = selectedArtifact.content.slice(
-      state.highlighted.endCharIndex
-    );
-    const entireUpdatedContent = `${entireTextBefore}${updatedArtifact.content}${entireTextAfter}`;
-    updatedArtifact.content = entireUpdatedContent;
-    updatedArtifact.response_metadata.isArtifact = true;
-    return {
-      messages: [removeMessage, updatedArtifact],
-    };
-  } else {
+  if (!state.highlighted) {
+    // No highlighted text is present, so we need to update the entire artifact.
     const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
       "{artifactContent}",
-      selectedArtifact.content as string
+      selectedArtifact.content
     );
 
     const recentHumanMessage = state.messages.findLast(
@@ -178,14 +136,82 @@ const updateArtifact = async (state: typeof GraphAnnotation.State) => {
       { role: "system", content: formattedPrompt },
       recentHumanMessage,
     ]);
-    newArtifact.response_metadata.isArtifact = true;
 
     // Remove the original artifact message from the history.
-    const removeMessage = new RemoveMessage({ id: selectedArtifact.id ?? "" });
+    const newArtifacts = [
+      ...state.artifacts.filter(
+        (artifact) => artifact.id !== selectedArtifact.id
+      ),
+      {
+        ...selectedArtifact,
+        content: newArtifact.content,
+      },
+    ];
+
     return {
-      messages: [removeMessage, newArtifact],
+      artifacts: newArtifacts,
     };
   }
+
+  // Highlighted text is present, so we need to update the highlighted text.
+  const start = Math.max(0, state.highlighted.startCharIndex - 500);
+  const end = Math.min(
+    selectedArtifact.content.length,
+    state.highlighted.endCharIndex + 500
+  );
+
+  const beforeHighlight = selectedArtifact.content.slice(
+    start,
+    state.highlighted.startCharIndex
+  ) as string;
+  const highlightedText = selectedArtifact.content.slice(
+    state.highlighted.startCharIndex,
+    state.highlighted.endCharIndex
+  ) as string;
+  const afterHighlight = selectedArtifact.content.slice(
+    state.highlighted.endCharIndex,
+    end
+  ) as string;
+
+  const formattedPrompt = UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT.replace(
+    "{highlightedText}",
+    highlightedText
+  )
+    .replace("{beforeHighlight}", beforeHighlight)
+    .replace("{afterHighlight}", afterHighlight);
+
+  const recentHumanMessage = state.messages.findLast(
+    (message) => message._getType() === "human"
+  );
+  if (!recentHumanMessage) {
+    throw new Error("No recent human message found");
+  }
+  const updatedArtifact = await smallModel.invoke([
+    { role: "system", content: formattedPrompt },
+    recentHumanMessage,
+  ]);
+
+  const entireTextBefore = selectedArtifact.content.slice(
+    0,
+    state.highlighted.startCharIndex
+  );
+  const entireTextAfter = selectedArtifact.content.slice(
+    state.highlighted.endCharIndex
+  );
+  const entireUpdatedContent = `${entireTextBefore}${updatedArtifact.content}${entireTextAfter}`;
+  const newArtifacts = [
+    ...state.artifacts.filter(
+      (artifact) => artifact.id !== selectedArtifact.id
+    ),
+    {
+      ...selectedArtifact,
+      content: entireUpdatedContent,
+    },
+  ];
+
+  return {
+    artifacts: newArtifacts,
+  };
 };
 
 /**
@@ -197,46 +223,36 @@ const generateArtifact = async (state: typeof GraphAnnotation.State) => {
     temperature: 0.5,
   });
 
-  const response = await smallModel.invoke([
+  const modelWithArtifactTool = smallModel
+    .withStructuredOutput(
+      z.object({
+        artifact: z
+          .string()
+          .describe("The content of the artifact to generate."),
+        title: z
+          .string()
+          .describe(
+            "A short title to give to the artifact. Should be less than 5 words."
+          ),
+      }),
+      {
+        name: "generate_artifact",
+      }
+    )
+    .withConfig({ runName: "generate_artifact" });
+
+  const response = await modelWithArtifactTool.invoke([
     { role: "system", content: NEW_ARTIFACT_PROMPT },
     ...state.messages,
   ]);
-
-  const formattedPrompt = GENERATE_ARTIFACT_METADATA_PROMPT.replace(
-    "{artifactContent}",
-    response.content as string
-  );
-  const modelWithTool = smallModel.withStructuredOutput(
-    z.object({
-      followup: z.string(),
-      title: z
-        .string()
-        .describe(
-          "A short title to give to the artifact. Ensure this is less than 5 words."
-        ),
-    }),
-    {
-      name: "generate_artifact_metadata",
-    }
-  );
-
-  const artifactMetadataRes = await modelWithTool.invoke([
-    {
-      role: "user",
-      content: formattedPrompt,
-    },
-  ]);
-
-  // This is used on the frontend to render the artifact, and prevent it from being rendered in the chat window.
-  response.response_metadata.isArtifact = true;
-  response.response_metadata.title = artifactMetadataRes.title;
-
-  const followupMessage = new AIMessage({
-    content: artifactMetadataRes.followup,
+  const newArtifact = {
     id: uuidv4(),
-  });
+    content: response.artifact,
+    title: response.title,
+  };
+
   return {
-    messages: [response, followupMessage],
+    artifacts: [...(state.artifacts ?? []), newArtifact],
   };
 };
 
@@ -247,12 +263,16 @@ const generateFollowup = async (state: typeof GraphAnnotation.State) => {
   const smallModel = new ChatAnthropic({
     model: "claude-3-haiku-20240307",
     temperature: 0.5,
+    maxTokens: 250,
   });
 
-  const recentMessages = state.messages.slice(-3);
+  const recentArtifact = state.artifacts[state.artifacts.length - 1];
+  const formattedPrompt = FOLLOWUP_ARTIFACT_PROMPT.replace(
+    "{artifactContent}",
+    recentArtifact.content
+  );
   const response = await smallModel.invoke([
-    { role: "system", content: FOLLOWUP_ARTIFACT_PROMPT },
-    ...recentMessages,
+    { role: "user", content: formattedPrompt },
   ]);
 
   return {
@@ -263,9 +283,7 @@ const generateFollowup = async (state: typeof GraphAnnotation.State) => {
 /**
  * Routes to the proper node in the graph based on the user's query.
  */
-const routeQuery = async (
-  state: typeof GraphAnnotation.State
-): Promise<"updateArtifact" | "respondToQuery" | "generateArtifact"> => {
+const routeQuery = async (state: typeof GraphAnnotation.State) => {
   if (state.highlighted) {
     return "updateArtifact";
   }
@@ -277,7 +295,7 @@ const routeQuery = async (
       .slice(-3)
       .map((message) => `${message._getType()}: ${message.content}`)
       .join("\n\n")
-  ).replace("{artifacts}", formatArtifacts(state.messages, true));
+  ).replace("{artifacts}", formatArtifacts(state.artifacts, true));
 
   const modelWithTool = new ChatAnthropic({
     model: "claude-3-haiku-20240307",
@@ -303,7 +321,15 @@ const routeQuery = async (
       content: formattedPrompt,
     },
   ]);
-  return result.route;
+
+  if (result.route === "updateArtifact") {
+    return new Send("updateArtifact", {
+      ...state,
+      selectedArtifactId: result.artifactId,
+    });
+  } else {
+    return result.route;
+  }
 };
 
 const builder = new StateGraph(GraphAnnotation)
@@ -316,6 +342,9 @@ const builder = new StateGraph(GraphAnnotation)
     "respondToQuery",
     "generateArtifact",
   ])
-  .addEdge("updateArtifact", "generateFollowup");
+  .addEdge("generateArtifact", "generateFollowup")
+  .addEdge("updateArtifact", "generateFollowup")
+  .addEdge("respondToQuery", END)
+  .addEdge("generateFollowup", END);
 
 export const graph = builder.compile();
