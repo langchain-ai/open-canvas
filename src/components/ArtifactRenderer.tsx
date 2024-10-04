@@ -9,11 +9,13 @@ import { Artifact } from "@/types";
 import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
+import { X } from "lucide-react";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
+  setSelectedArtifactById: (id: string | undefined) => void;
   messages: BaseMessage[];
 }
 
@@ -122,14 +124,22 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [handleMouseUp, handleDocumentMouseDown]);
 
   if (!props.artifact) {
-    return null;
+    return <div className="w-full h-full"></div>;
   }
 
   return (
     <div className="relative w-full h-full overflow-auto">
-      <h1 className="text-xl font-bold absolute top-4 left-4">
-        {props.artifact.title}
-      </h1>
+      <div className="pl-4 pt-4 flex flex-row gap-4 items-center justify-start">
+        <Button
+          onClick={() => props.setSelectedArtifactById(undefined)}
+          variant="outline"
+          size="icon"
+        >
+          <X />
+        </Button>
+        <h1 className="text-xl font-medium">{props.artifact.title}</h1>
+      </div>
+
       <div ref={contentRef} className="flex justify-center h-full pt-[10%]">
         <div className="max-w-3xl w-full px-4">
           <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">

@@ -107,7 +107,6 @@ The user has generated artifacts in the past. Use the following artifacts as con
 const updateArtifact = async (
   state: typeof GraphAnnotation.State
 ): Promise<GraphReturnType> => {
-  console.log("Updating artifact", state.selectedArtifactId);
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,

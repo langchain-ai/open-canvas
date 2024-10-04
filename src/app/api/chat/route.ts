@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
   const readable = new ReadableStream({
     async start(controller) {
       for await (const chunk of stream) {
-        console.log("Encoding ", chunk);
         const bytes = encoder.encode(JSON.stringify(chunk));
         controller.enqueue(bytes);
       }

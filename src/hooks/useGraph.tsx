@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
@@ -22,6 +22,10 @@ export function useGraph() {
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [threadId, setThreadId] = useState<string | null>(null);
+  // Default to the last artifact in the list
+  const [selectedArtifactId, setSelectedArtifactId] = useState<
+    string | undefined
+  >();
 
   useEffect(() => {
     if (threadId || typeof window === "undefined") return;
@@ -45,11 +49,26 @@ export function useGraph() {
     }
 
     const client = createClient();
+
     const input = {
       // Ensure we remove this from the state, unless it's included in the params.
-      highlighted: undefined,
-      ...params,
+      highlighted: params.highlighted ?? undefined,
+      messages: params.messages.filter((msg) => {
+        if (msg.role !== "assistant") {
+          return true;
+        }
+        const aiMsg = msg as AIMessage;
+        // Filter our artifact ui tool calls from going to the server.
+        if (
+          aiMsg.tool_calls &&
+          aiMsg.tool_calls.some((tc) => tc.name === "artifact_ui")
+        ) {
+          return false;
+        }
+        return true;
+      }),
     };
+
     const stream = client.runs.stream(threadId, "agent", {
       input,
       streamMode: "events",
@@ -57,6 +76,7 @@ export function useGraph() {
 
     let fullArtifactGenerationStr = "";
     let artifactId = "";
+    let artifactTitle = "";
     let updatingArtifactId = "";
     let newArtifactText = "";
 
@@ -75,6 +95,7 @@ export function useGraph() {
             chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
           try {
             const artifact = parsePartialJson(fullArtifactGenerationStr);
+            artifactTitle = artifact.title;
             if (artifact.artifact && artifactId) {
               setArtifacts((prev) => {
                 const allWithoutCurrent = prev.filter(
@@ -84,11 +105,14 @@ export function useGraph() {
                   ...allWithoutCurrent,
                   {
                     id: artifactId,
-                    title: artifact.title ?? "",
+                    title: artifactTitle,
                     content: cleanContent(artifact.artifact),
                   },
                 ];
               });
+              if (!selectedArtifactId) {
+                setSelectedArtifactId(artifactId);
+              }
             }
           } catch (e) {
             // no-op
@@ -118,11 +142,6 @@ export function useGraph() {
               );
               updatedArtifactRestContent =
                 originalArtifact.content.slice(endCharIndex);
-              console.log({
-                original: originalArtifact.content,
-                updatedArtifactStartContent,
-                updatedArtifactRestContent,
-              });
             } else {
               // One of the above have been populated, now we can update the start to contain the new text.
               updatedArtifactStartContent += partialUpdatedContent;
@@ -141,6 +160,9 @@ export function useGraph() {
                 return artifact;
               })
             );
+            if (!selectedArtifactId) {
+              setSelectedArtifactId(updatingArtifactId);
+            }
           } else if (updatingArtifactId) {
             newArtifactText += chunk.data.data.chunk[1].content;
 
@@ -156,6 +178,9 @@ export function useGraph() {
                 return artifact;
               });
             });
+            if (!selectedArtifactId) {
+              setSelectedArtifactId(updatingArtifactId);
+            }
           }
         } else if (chunk.data.metadata.langgraph_node === "generateFollowup") {
           const message = chunk.data.data.chunk[1];
@@ -219,11 +244,59 @@ export function useGraph() {
         }
       }
     }
+
+    // Check to see if there is an AIMessage with a tool call that contains the same artifact ID. If not, add one to render the tool.
+    // Only do this if we have the title.
+    if (artifactId && artifactTitle) {
+      const hasArtifactToolCall = messages.some((msg) => {
+        if (msg._getType() !== "ai") return false;
+        const aiMsg = msg as AIMessage;
+        if (!aiMsg.tool_calls) return false;
+        return aiMsg.tool_calls.some((tc) => tc.id === artifactId);
+      });
+      if (!hasArtifactToolCall) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          new AIMessage({
+            content: "",
+            tool_calls: [
+              {
+                id: artifactId,
+                args: { title: artifactTitle },
+                name: "artifact_ui",
+              },
+            ],
+          }),
+        ]);
+      }
+    }
   };
+
+  const setSelectedArtifactById = useCallback(
+    (id: string | undefined) => {
+      if (!id) {
+        setSelectedArtifactId(undefined);
+        return;
+      }
+
+      const selectedArtifact = artifacts.find((a) => a.id === id);
+      if (!selectedArtifact) {
+        toast({
+          title: "Error",
+          description: "Selected artifact not found",
+        });
+        return;
+      }
+      setSelectedArtifactId(selectedArtifact.id);
+    },
+    [artifacts, toast, setSelectedArtifactId]
+  );
 
   return {
     artifacts,
+    selectedArtifactId,
     messages,
+    setSelectedArtifact: setSelectedArtifactById,
     setArtifacts,
     setMessages,
     streamMessage,

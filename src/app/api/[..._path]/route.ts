@@ -51,8 +51,6 @@ async function handleRequest(req: NextRequest, method: string) {
       headers,
     });
   } catch (e: any) {
-    console.error("err");
-    console.log(e);
     return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
   }
 }
