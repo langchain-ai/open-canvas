@@ -285,7 +285,10 @@ const generateFollowup = async (state: typeof GraphAnnotation.State) => {
  */
 const routeQuery = async (state: typeof GraphAnnotation.State) => {
   if (state.highlighted) {
-    return "updateArtifact";
+    return new Send("updateArtifact", {
+      ...state,
+      selectedArtifactId: state.highlighted.id,
+    });
   }
 
   // Call model and decide if we need to respond to a users query, or generate a new artifact

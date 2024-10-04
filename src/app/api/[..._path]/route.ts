@@ -30,9 +30,9 @@ async function handleRequest(req: NextRequest, method: string) {
       options.body = await req.text();
     }
 
-    const apiUrl = "http://localhost:65281";
+    const apiUrl = "http://localhost:55463";
     const res = await fetch(`${apiUrl}/${path}${queryString}`, options);
-
+    console.log("res", res);
     return new NextResponse(res.body, {
       status: res.status,
       statusText: res.statusText,

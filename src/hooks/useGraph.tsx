@@ -20,9 +20,7 @@ export function useGraph() {
 
   const createThread = async () => {
     const client = createClient();
-    console.log("Before req");
     const thread = await client.threads.create();
-    console.log("After req");
     setThreadId(thread.thread_id);
     return thread;
   };
