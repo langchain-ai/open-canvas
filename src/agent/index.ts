@@ -16,6 +16,7 @@ import {
   UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT,
 } from "./prompts";
 import { Artifact } from "../types";
+import { v4 as uuidv4 } from "uuid";
 
 interface Highlight {
   /**
@@ -42,7 +43,7 @@ const GraphAnnotation = Annotation.Root({
    * The part of the artifact the user highlighted. Use the `selectedArtifactId`
    * to determine which artifact the highlight belongs to.
    */
-  highlighted: Annotation<Highlight>,
+  highlighted: Annotation<Highlight | undefined>,
   /**
    * The artifacts that have been generated in the conversation.
    */
@@ -51,6 +52,8 @@ const GraphAnnotation = Annotation.Root({
     default: () => [],
   }),
 });
+
+type GraphReturnType = Partial<typeof GraphAnnotation.State>;
 
 const formatArtifacts = (messages: Artifact[], truncate?: boolean): string =>
   messages
@@ -65,7 +68,9 @@ const formatArtifacts = (messages: Artifact[], truncate?: boolean): string =>
 /**
  * Generate responses to questions. Does not generate artifacts.
  */
-const respondToQuery = async (state: typeof GraphAnnotation.State) => {
+const respondToQuery = async (
+  state: typeof GraphAnnotation.State
+): Promise<GraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,
@@ -99,7 +104,9 @@ The user has generated artifacts in the past. Use the following artifacts as con
  *
  * TODO: break into two nodes, one for updating and one for regenerating.
  */
-const updateArtifact = async (state: typeof GraphAnnotation.State) => {
+const updateArtifact = async (
+  state: typeof GraphAnnotation.State
+): Promise<GraphReturnType> => {
   console.log("Updating artifact", state.selectedArtifactId);
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
@@ -132,18 +139,19 @@ const updateArtifact = async (state: typeof GraphAnnotation.State) => {
     ]);
 
     // Remove the original artifact message from the history.
-    const newArtifacts = [
+    const newArtifacts: Artifact[] = [
       ...state.artifacts.filter(
         (artifact) => artifact.id !== selectedArtifact.id
       ),
       {
         ...selectedArtifact,
-        content: newArtifact.content,
+        content: newArtifact.content as string,
       },
     ];
 
     return {
       artifacts: newArtifacts,
+      highlighted: undefined,
     };
   }
 
@@ -211,7 +219,9 @@ const updateArtifact = async (state: typeof GraphAnnotation.State) => {
 /**
  * Generate a new artifact based on the user's query.
  */
-const generateArtifact = async (state: typeof GraphAnnotation.State) => {
+const generateArtifact = async (
+  state: typeof GraphAnnotation.State
+): Promise<GraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,
@@ -240,8 +250,8 @@ const generateArtifact = async (state: typeof GraphAnnotation.State) => {
     [{ role: "system", content: NEW_ARTIFACT_PROMPT }, ...state.messages],
     { runName: "generate_artifact" }
   );
-  const newArtifact = {
-    id: response.id,
+  const newArtifact: Artifact = {
+    id: response.id ?? uuidv4(),
     content: response.tool_calls?.[0]?.args.artifact,
     title: response.tool_calls?.[0]?.args.title,
   };
@@ -254,7 +264,9 @@ const generateArtifact = async (state: typeof GraphAnnotation.State) => {
 /**
  * Generate a followup message after generating or updating an artifact.
  */
-const generateFollowup = async (state: typeof GraphAnnotation.State) => {
+const generateFollowup = async (
+  state: typeof GraphAnnotation.State
+): Promise<GraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o-mini",
     temperature: 0.5,

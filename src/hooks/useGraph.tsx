@@ -13,6 +13,10 @@ export interface GraphInput {
 const realNewline = `
 `;
 
+const cleanContent = (content: string): string => {
+  return content.replaceAll("\n", realNewline);
+};
+
 export function useGraph() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
@@ -31,23 +35,6 @@ export function useGraph() {
     return thread;
   };
 
-  const streamMessagev2 = async (params: GraphInput) => {
-    if (!threadId) {
-      toast({
-        title: "Error",
-        description: "Thread ID not found",
-      });
-      return undefined;
-    }
-
-    const client = createClient();
-    const input = { ...params };
-    return client.runs.stream(threadId, "agent", {
-      input,
-      streamMode: "events",
-    });
-  };
-
   const streamMessage = async (params: GraphInput) => {
     if (!threadId) {
       toast({
@@ -58,7 +45,11 @@ export function useGraph() {
     }
 
     const client = createClient();
-    const input = { ...params };
+    const input = {
+      // Ensure we remove this from the state, unless it's included in the params.
+      highlighted: undefined,
+      ...params,
+    };
     const stream = client.runs.stream(threadId, "agent", {
       input,
       streamMode: "events",
@@ -68,8 +59,11 @@ export function useGraph() {
     let artifactId = "";
     let updatingArtifactId = "";
     let newArtifactText = "";
-    let originalArtifactContent = "";
-    let updatedContent = "";
+
+    // All the text up until the startCharIndex
+    let updatedArtifactStartContent: string | undefined = undefined;
+    // All the text after the endCharIndex
+    let updatedArtifactRestContent: string | undefined = undefined;
 
     for await (const chunk of stream) {
       if (chunk.data.event === "on_chat_model_stream") {
@@ -91,7 +85,7 @@ export function useGraph() {
                   {
                     id: artifactId,
                     title: artifact.title ?? "",
-                    content: artifact.artifact.replaceAll("\n", realNewline),
+                    content: cleanContent(artifact.artifact),
                   },
                 ];
               });
@@ -100,19 +94,63 @@ export function useGraph() {
             // no-op
           }
         } else if (chunk.data.metadata.langgraph_node === "updateArtifact") {
-          newArtifactText += chunk.data.data.chunk[1].content;
+          if (params.highlighted && updatingArtifactId) {
+            const partialUpdatedContent = chunk.data.data.chunk[1].content;
+            const { startCharIndex, endCharIndex } = params.highlighted;
 
-          if (params.highlighted) {
-            // instead of re-writing the whole artifact, just replace the updated content
-          }
+            if (
+              updatedArtifactStartContent === undefined &&
+              updatedArtifactRestContent === undefined
+            ) {
+              const originalArtifact = artifacts.find(
+                (a) => a.id === updatingArtifactId
+              );
+              if (!originalArtifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                });
+                return;
+              }
+              updatedArtifactStartContent = originalArtifact.content.slice(
+                0,
+                startCharIndex
+              );
+              updatedArtifactRestContent =
+                originalArtifact.content.slice(endCharIndex);
+              console.log({
+                original: originalArtifact.content,
+                updatedArtifactStartContent,
+                updatedArtifactRestContent,
+              });
+            } else {
+              // One of the above have been populated, now we can update the start to contain the new text.
+              updatedArtifactStartContent += partialUpdatedContent;
+            }
 
-          if (updatingArtifactId) {
+            setArtifacts((prev) =>
+              prev.map((artifact) => {
+                if (artifact.id === updatingArtifactId) {
+                  return {
+                    ...artifact,
+                    content: cleanContent(
+                      `${updatedArtifactStartContent}${updatedArtifactRestContent}`
+                    ),
+                  };
+                }
+                return artifact;
+              })
+            );
+          } else if (updatingArtifactId) {
+            newArtifactText += chunk.data.data.chunk[1].content;
+
+            // If no highlight, update the entire content as before
             setArtifacts((prev) => {
               return prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
                   return {
                     ...artifact,
-                    content: newArtifactText.replaceAll("\n", realNewline),
+                    content: cleanContent(newArtifactText),
                   };
                 }
                 return artifact;

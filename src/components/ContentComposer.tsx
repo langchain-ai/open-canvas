@@ -33,10 +33,6 @@ export function ContentComposerChatInterface(
 ): React.ReactElement {
   const { messages, setMessages, streamMessage } = props;
   const [isRunning, setIsRunning] = useState(false);
-  const [generationData, setGenerationData] = useState({
-    artifactId: "",
-    fullArtifactGenerationStr: "",
-  });
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content[0]?.type !== "text") {

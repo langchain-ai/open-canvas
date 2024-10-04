@@ -96,6 +96,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       const currentConversation = [...props.messages, humanMessage];
       props.setMessages((prevMessages) => [...prevMessages, humanMessage]);
 
+      setIsInputVisible(false);
+      setInputValue("");
+      setSelectionBox(null);
+
       await props.streamMessage({
         messages: currentConversation.map(convertToOpenAIFormat),
         highlighted: {
@@ -122,13 +126,13 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-auto">
       <h1 className="text-xl font-bold absolute top-4 left-4">
         {props.artifact.title}
       </h1>
       <div ref={contentRef} className="flex justify-center h-full pt-[10%]">
         <div className="max-w-3xl w-full px-4">
-          <Markdown className="text-left leading-relaxed">
+          <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {props.artifact.content}
           </Markdown>
         </div>
@@ -148,7 +152,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             onMouseDown={handleSelectionBoxMouseDown}
           >
             {isInputVisible ? (
-              <div className="relative w-full overflow-hidden flex flex-row items-center gap-1">
+              <form className="relative w-full overflow-hidden flex flex-row items-center gap-1">
                 <Input
                   className="w-full transition-all duration-300 focus:ring-0 ease-in-out p-1 focus:outline-none border-0 focus-visible:ring-0"
                   placeholder="Ask Open Canvas..."
@@ -156,14 +160,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                 />
-                <CircleArrowUp
-                  className="cursor-pointer"
+                <Button
                   onClick={handleSubmit}
-                  fill="black"
-                  stroke="white"
-                  size={30}
-                />
-              </div>
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                >
+                  <CircleArrowUp
+                    className="cursor-pointer"
+                    fill="black"
+                    stroke="white"
+                    size={30}
+                  />
+                </Button>
+              </form>
             ) : (
               <Button
                 variant="ghost"

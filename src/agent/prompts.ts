@@ -1,4 +1,5 @@
 export const NEW_ARTIFACT_PROMPT = `You are an AI assistant tasked with generating a new artifact based on the users request.
+Ensure you use markdown syntax when appropriate, as the text you generate will be rendered in markdown.
   
 Use the full chat history as context when generating the artifact.`;
 
@@ -8,8 +9,19 @@ Here is the relevant part of the artifact, with the highlighted text between <hi
 
 {beforeHighlight}<highlight>{highlightedText}</highlight>{afterHighlight}
 
+
 Please update the highlighted text based on the user's request.
-ONLY respond with the updated text, not the entire artifact. Do not include the <highlight> tags, or extra content in your response.
+
+Follow these rules and guidelines:
+
+<rules-guidelines>
+- ONLY respond with the updated text, not the entire artifact.
+- Do not include the <highlight> tags, or extra content in your response.
+- Do not wrap it in any XML tags you see in this prompt.
+- Do NOT wrap in markdown blocks (e.g triple backticks) unless the highlighted text ALREADY contains markdown syntax.
+  If you insert markdown blocks inside the highlighted text when they are already defined outside the text, you will break the markdown formatting.
+- You should use proper markdown syntax when appropriate, as the text you generate will be rendered in markdown.
+</rules-guidelines>
 
 Use the user's recent message below to make the edit.`;
 
@@ -21,7 +33,16 @@ Here is the current content of the artifact:
 {artifactContent}
 </artifact>
 
-Please update the artifact based on the user's request. You should respond with the ENTIRE updated artifact, with no additional text before and after. Do not wrap it in any tags.`;
+Please update the artifact based on the user's request.
+
+Follow these rules and guidelines:
+
+<rules-guidelines>
+- You should respond with the ENTIRE updated artifact, with no additional text before and after.
+- Do not wrap it in any XML tags you see in this prompt.
+- You should use proper markdown syntax when appropriate, as the text you generate will be rendered in markdown.
+</rules-guidelines>
+`;
 
 export const ROUTE_QUERY_PROMPT = `You are an assistant tasked with routing the users query based on their most recent message.
 You should look at this message in isolation and determine where to best route there query.
