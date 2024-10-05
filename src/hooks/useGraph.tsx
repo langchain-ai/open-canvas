@@ -256,9 +256,11 @@ export function useGraph() {
         return aiMsg.tool_calls.some((tc) => tc.id === artifactId);
       });
       if (!hasArtifactToolCall) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          new AIMessage({
+        setMessages((prevMessages) => {
+          const lastHumanIndex = prevMessages.findLastIndex(
+            (msg) => msg._getType() === "human"
+          );
+          const newMessage = new AIMessage({
             content: "",
             tool_calls: [
               {
@@ -267,8 +269,20 @@ export function useGraph() {
                 name: "artifact_ui",
               },
             ],
-          }),
-        ]);
+          });
+
+          if (lastHumanIndex === -1) {
+            // If no human message found, add to the end
+            return [...prevMessages, newMessage];
+          } else {
+            // Insert after the last human message
+            return [
+              ...prevMessages.slice(0, lastHumanIndex + 1),
+              newMessage,
+              ...prevMessages.slice(lastHumanIndex + 1),
+            ];
+          }
+        });
       }
     }
   };
