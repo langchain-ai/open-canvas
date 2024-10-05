@@ -9,6 +9,11 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import {
+  ADD_EMOJIS_TO_ARTIFACT_PROMPT,
+  CHANGE_ARTIFACT_LANGUAGE_PROMPT,
+  CHANGE_ARTIFACT_LENGTH_PROMPT,
+  CHANGE_ARTIFACT_READING_LEVEL_PROMPT,
+  CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
   FOLLOWUP_ARTIFACT_PROMPT,
   NEW_ARTIFACT_PROMPT,
   ROUTE_QUERY_PROMPT,
@@ -20,12 +25,7 @@ import { v4 as uuidv4 } from "uuid";
 
 type LanguageOptions = "english" | "mandarin" | "spanish" | "french" | "hindi";
 
-type ArtifactLengthOptions =
-  | "shortest"
-  | "short"
-  | "current"
-  | "long"
-  | "longest";
+type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
 
 type ReadingLevelOptions = "pirate" | "child" | "teenager" | "college" | "phd";
 
@@ -230,11 +230,68 @@ const rewriteArtifact = async (
     throw new Error("No artifact found with the selected ID");
   }
 
-  // No highlighted text is present, so we need to update the entire artifact.
-  const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
-    "{artifactContent}",
-    selectedArtifact.content
-  );
+  let formattedPrompt = "";
+  if (state.language) {
+    formattedPrompt = CHANGE_ARTIFACT_LANGUAGE_PROMPT.replace(
+      "{newLanguage}",
+      state.language
+    ).replace("{artifactContent}", selectedArtifact.content);
+  } else if (state.readingLevel && state.readingLevel !== "pirate") {
+    let newReadingLevel = "";
+    switch (state.readingLevel) {
+      case "child":
+        newReadingLevel = "elementary school student";
+        break;
+      case "teenager":
+        newReadingLevel = "high school student";
+        break;
+      case "college":
+        newReadingLevel = "college student";
+        break;
+      case "phd":
+        newReadingLevel = "PhD student";
+        break;
+    }
+    formattedPrompt = CHANGE_ARTIFACT_READING_LEVEL_PROMPT.replace(
+      "{newReadingLevel}",
+      ""
+    ).replace("{artifactContent}", selectedArtifact.content);
+  } else if (state.readingLevel && state.readingLevel === "pirate") {
+    formattedPrompt = CHANGE_ARTIFACT_TO_PIRATE_PROMPT.replace(
+      "{artifactContent}",
+      selectedArtifact.content
+    );
+  } else if (state.artifactLength) {
+    let newLength = "";
+    switch (state.artifactLength) {
+      case "shortest":
+        newLength = "much shorter than it currently is";
+        break;
+      case "short":
+        newLength = "slightly shorter than it currently is";
+        break;
+      case "long":
+        newLength = "slightly longer than it currently is";
+        break;
+      case "longest":
+        newLength = "much longer than it currently is";
+        break;
+    }
+    formattedPrompt = CHANGE_ARTIFACT_LENGTH_PROMPT.replace(
+      "{newLength}",
+      newLength
+    ).replace("{artifactContent}", selectedArtifact.content);
+  } else if (state.regenerateWithEmojis) {
+    formattedPrompt = ADD_EMOJIS_TO_ARTIFACT_PROMPT.replace(
+      "{artifactContent}",
+      selectedArtifact.content
+    );
+  } else {
+    formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
+      "{artifactContent}",
+      selectedArtifact.content
+    );
+  }
 
   const recentHumanMessage = state.messages.findLast(
     (message) => message._getType() === "human"
@@ -261,6 +318,10 @@ const rewriteArtifact = async (
   return {
     artifacts: newArtifacts,
     highlighted: undefined,
+    language: undefined,
+    artifactLength: undefined,
+    regenerateWithEmojis: undefined,
+    readingLevel: undefined,
   };
 };
 
@@ -346,6 +407,17 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
     };
   }
 
+  if (
+    state.language ||
+    state.artifactLength ||
+    state.regenerateWithEmojis ||
+    state.readingLevel
+  ) {
+    return {
+      next: "rewriteArtifact",
+    };
+  }
+
   // Call model and decide if we need to respond to a users query, or generate a new artifact
   const formattedPrompt = ROUTE_QUERY_PROMPT.replace(
     "{recentMessages}",
@@ -387,7 +459,7 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
     };
   } else {
     return {
-      next: "result.route",
+      next: result.route,
     };
   }
 };
