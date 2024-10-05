@@ -132,8 +132,6 @@ The user has generated artifacts in the past. Use the following artifacts as con
 
 /**
  * Update an existing artifact based on the user's query.
- *
- * TODO: break into two nodes, one for updating and one for regenerating.
  */
 const updateArtifact = async (
   state: typeof GraphAnnotation.State
@@ -151,38 +149,9 @@ const updateArtifact = async (
   }
 
   if (!state.highlighted) {
-    // No highlighted text is present, so we need to update the entire artifact.
-    const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
-      "{artifactContent}",
-      selectedArtifact.content
+    throw new Error(
+      "Can not partially regenerate an artifact without a highlight"
     );
-
-    const recentHumanMessage = state.messages.findLast(
-      (message) => message._getType() === "human"
-    );
-    if (!recentHumanMessage) {
-      throw new Error("No recent human message found");
-    }
-    const newArtifact = await smallModel.invoke([
-      { role: "system", content: formattedPrompt },
-      recentHumanMessage,
-    ]);
-
-    // Remove the original artifact message from the history.
-    const newArtifacts: Artifact[] = [
-      ...state.artifacts.filter(
-        (artifact) => artifact.id !== selectedArtifact.id
-      ),
-      {
-        ...selectedArtifact,
-        content: newArtifact.content as string,
-      },
-    ];
-
-    return {
-      artifacts: newArtifacts,
-      highlighted: undefined,
-    };
   }
 
   // Highlighted text is present, so we need to update the highlighted text.
@@ -243,6 +212,55 @@ const updateArtifact = async (
 
   return {
     artifacts: newArtifacts,
+  };
+};
+
+const rewriteArtifact = async (
+  state: typeof GraphAnnotation.State
+): Promise<GraphReturnType> => {
+  const smallModel = new ChatOpenAI({
+    model: "gpt-4o",
+    temperature: 0.5,
+  });
+
+  const selectedArtifact = state.artifacts.find(
+    (artifact) => artifact.id === state.selectedArtifactId
+  );
+  if (!selectedArtifact) {
+    throw new Error("No artifact found with the selected ID");
+  }
+
+  // No highlighted text is present, so we need to update the entire artifact.
+  const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
+    "{artifactContent}",
+    selectedArtifact.content
+  );
+
+  const recentHumanMessage = state.messages.findLast(
+    (message) => message._getType() === "human"
+  );
+  if (!recentHumanMessage) {
+    throw new Error("No recent human message found");
+  }
+  const newArtifact = await smallModel.invoke([
+    { role: "system", content: formattedPrompt },
+    recentHumanMessage,
+  ]);
+
+  // Remove the original artifact message from the history.
+  const newArtifacts: Artifact[] = [
+    ...state.artifacts.filter(
+      (artifact) => artifact.id !== selectedArtifact.id
+    ),
+    {
+      ...selectedArtifact,
+      content: newArtifact.content as string,
+    },
+  ];
+
+  return {
+    artifacts: newArtifacts,
+    highlighted: undefined,
   };
 };
 
@@ -362,7 +380,9 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
 
   if (result.route === "updateArtifact") {
     return {
-      next: "updateArtifact",
+      // Only route to the `updateArtifact` node if highlighted text is present.
+      // Otherwise we need to rewrite the entire artifact.
+      next: "rewriteArtifact",
       selectedArtifactId: result.artifactId,
     };
   } else {
@@ -376,6 +396,7 @@ const routeNode = (state: typeof GraphAnnotation.State) => {
   if (!state.next) {
     throw new Error("'next' state field not set.");
   }
+
   return new Send(state.next, {
     ...state,
   });
@@ -386,11 +407,13 @@ const builder = new StateGraph(GraphAnnotation)
   .addEdge(START, "generatePath")
   .addConditionalEdges("generatePath", routeNode)
   .addNode("respondToQuery", respondToQuery)
+  .addNode("rewriteArtifact", rewriteArtifact)
   .addNode("updateArtifact", updateArtifact)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
+  .addEdge("rewriteArtifact", "generateFollowup")
   .addEdge("respondToQuery", END)
   .addEdge("generateFollowup", END);
 
