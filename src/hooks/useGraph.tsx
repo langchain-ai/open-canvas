@@ -2,12 +2,23 @@ import { useCallback, useEffect, useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
-import { Artifact, Highlight } from "@/types";
+import {
+  Artifact,
+  ArtifactLengthOptions,
+  Highlight,
+  LanguageOptions,
+  ReadingLevelOptions,
+} from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
-  messages: Record<string, any>[];
+  selectedArtifactId?: string;
+  regenerateWithEmojis?: boolean;
+  readingLevel?: ReadingLevelOptions;
+  artifactLength?: ArtifactLengthOptions;
+  language?: LanguageOptions;
+  messages?: Record<string, any>[];
   highlighted?: Highlight;
 }
 
@@ -54,7 +65,7 @@ export function useGraph() {
     const input = {
       // Ensure we remove this from the state, unless it's included in the params.
       highlighted: params.highlighted ?? undefined,
-      messages: params.messages.filter((msg) => {
+      messages: params.messages?.filter((msg) => {
         if (msg.role !== "assistant") {
           return true;
         }
@@ -68,6 +79,7 @@ export function useGraph() {
         }
         return true;
       }),
+      ...params,
     };
 
     const stream = client.runs.stream(threadId, "agent", {
@@ -164,7 +176,13 @@ export function useGraph() {
             if (!selectedArtifactId) {
               setSelectedArtifactId(updatingArtifactId);
             }
-          } else if (updatingArtifactId) {
+          }
+        } else if (
+          ["rewriteArtifact", "rewriteArtifactTheme"].includes(
+            chunk.data.metadata.langgraph_node
+          )
+        ) {
+          if (updatingArtifactId) {
             newArtifactText += chunk.data.data.chunk[1].content;
 
             // If no highlight, update the entire content as before
@@ -235,7 +253,13 @@ export function useGraph() {
           });
         }
       } else if (chunk.data.event === "on_chain_start") {
-        if (chunk.data.metadata.langgraph_node === "updateArtifact") {
+        if (
+          [
+            "rewriteArtifact",
+            "rewriteArtifactTheme",
+            "updateArtifact",
+          ].includes(chunk.data.metadata.langgraph_node)
+        ) {
           if (
             chunk.data.data?.input?.selectedArtifactId &&
             !updatingArtifactId

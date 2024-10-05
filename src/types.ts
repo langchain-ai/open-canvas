@@ -31,3 +31,19 @@ export type Highlight = {
   startCharIndex: number;
   endCharIndex: number;
 };
+
+export type LanguageOptions =
+  | "english"
+  | "mandarin"
+  | "spanish"
+  | "french"
+  | "hindi";
+
+export type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
+
+export type ReadingLevelOptions =
+  | "pirate"
+  | "child"
+  | "teenager"
+  | "college"
+  | "phd";

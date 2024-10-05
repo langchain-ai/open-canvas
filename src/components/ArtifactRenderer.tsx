@@ -242,7 +242,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
-      <ActionsToolbar />
+      <ActionsToolbar
+        selectedArtifactId={props.artifact.id}
+        streamMessage={props.streamMessage}
+      />
     </div>
   );
 }

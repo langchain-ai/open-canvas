@@ -20,14 +20,13 @@ import {
   UPDATE_ENTIRE_ARTIFACT_PROMPT,
   UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT,
 } from "./prompts";
-import { Artifact } from "../types";
+import {
+  Artifact,
+  ArtifactLengthOptions,
+  LanguageOptions,
+  ReadingLevelOptions,
+} from "../types";
 import { v4 as uuidv4 } from "uuid";
-
-type LanguageOptions = "english" | "mandarin" | "spanish" | "french" | "hindi";
-
-type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
-
-type ReadingLevelOptions = "pirate" | "child" | "teenager" | "college" | "phd";
 
 interface Highlight {
   /**
@@ -230,6 +229,59 @@ const rewriteArtifact = async (
     throw new Error("No artifact found with the selected ID");
   }
 
+  const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
+    "{artifactContent}",
+    selectedArtifact.content
+  );
+
+  const recentHumanMessage = state.messages.findLast(
+    (message) => message._getType() === "human"
+  );
+  if (!recentHumanMessage) {
+    throw new Error("No recent human message found");
+  }
+  const newArtifact = await smallModel.invoke([
+    { role: "system", content: formattedPrompt },
+    recentHumanMessage,
+  ]);
+
+  // Remove the original artifact message from the history.
+  const newArtifacts: Artifact[] = [
+    ...state.artifacts.filter(
+      (artifact) => artifact.id !== selectedArtifact.id
+    ),
+    {
+      ...selectedArtifact,
+      content: newArtifact.content as string,
+    },
+  ];
+
+  return {
+    artifacts: newArtifacts,
+    selectedArtifactId: undefined,
+    highlighted: undefined,
+    language: undefined,
+    artifactLength: undefined,
+    regenerateWithEmojis: undefined,
+    readingLevel: undefined,
+  };
+};
+
+const rewriteArtifactTheme = async (
+  state: typeof GraphAnnotation.State
+): Promise<GraphReturnType> => {
+  const smallModel = new ChatOpenAI({
+    model: "gpt-4o",
+    temperature: 0.5,
+  });
+
+  const selectedArtifact = state.artifacts.find(
+    (artifact) => artifact.id === state.selectedArtifactId
+  );
+  if (!selectedArtifact) {
+    throw new Error("No artifact found with the selected ID");
+  }
+
   let formattedPrompt = "";
   if (state.language) {
     formattedPrompt = CHANGE_ARTIFACT_LANGUAGE_PROMPT.replace(
@@ -287,21 +339,11 @@ const rewriteArtifact = async (
       selectedArtifact.content
     );
   } else {
-    formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
-      "{artifactContent}",
-      selectedArtifact.content
-    );
+    throw new Error("No theme selected");
   }
 
-  const recentHumanMessage = state.messages.findLast(
-    (message) => message._getType() === "human"
-  );
-  if (!recentHumanMessage) {
-    throw new Error("No recent human message found");
-  }
   const newArtifact = await smallModel.invoke([
-    { role: "system", content: formattedPrompt },
-    recentHumanMessage,
+    { role: "user", content: formattedPrompt },
   ]);
 
   // Remove the original artifact message from the history.
@@ -317,6 +359,7 @@ const rewriteArtifact = async (
 
   return {
     artifacts: newArtifacts,
+    selectedArtifactId: undefined,
     highlighted: undefined,
     language: undefined,
     artifactLength: undefined,
@@ -414,7 +457,7 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
     state.readingLevel
   ) {
     return {
-      next: "rewriteArtifact",
+      next: "rewriteArtifactTheme",
     };
   }
 
@@ -480,12 +523,14 @@ const builder = new StateGraph(GraphAnnotation)
   .addConditionalEdges("generatePath", routeNode)
   .addNode("respondToQuery", respondToQuery)
   .addNode("rewriteArtifact", rewriteArtifact)
+  .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
   .addNode("updateArtifact", updateArtifact)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
   .addEdge("rewriteArtifact", "generateFollowup")
+  .addEdge("rewriteArtifactTheme", "generateFollowup")
   .addEdge("respondToQuery", END)
   .addEdge("generateFollowup", END);
 
