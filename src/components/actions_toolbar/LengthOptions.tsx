@@ -7,6 +7,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { GraphInput } from "@/hooks/useGraph";
+import { ArtifactLengthOptions } from "@/types";
+
+export interface LengthOptionsProps {
+  selectedArtifactId: string | undefined;
+  streamMessage: (input: GraphInput) => Promise<void>;
+  handleClose: () => void;
+}
 
 const lengthOptions = [
   { value: 1, label: "Shortest" },
@@ -16,9 +24,20 @@ const lengthOptions = [
   { value: 5, label: "Longest" },
 ];
 
-export function LengthOptions() {
+export function LengthOptions(props: LengthOptionsProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState([3]);
+
+  const handleSubmit = async (artifactLength: ArtifactLengthOptions) => {
+    if (!props.selectedArtifactId) {
+      return;
+    }
+    props.handleClose();
+    await props.streamMessage({
+      selectedArtifactId: props.selectedArtifactId,
+      artifactLength,
+    });
+  };
 
   return (
     <div className="h-[200px] flex items-center justify-center px-4">
@@ -35,10 +54,25 @@ export function LengthOptions() {
                 setValue(newValue);
                 setOpen(true);
               }}
-              onValueCommit={(v) => {
-                // TODO: event handler goes here
-                console.log("Released", v);
+              onValueCommit={async (v) => {
                 setOpen(false);
+                switch (v[0]) {
+                  case 1:
+                    await handleSubmit("shortest");
+                    break;
+                  case 2:
+                    await handleSubmit("short");
+                    break;
+                  case 3:
+                    // Same length, do nothing.
+                    break;
+                  case 4:
+                    await handleSubmit("long");
+                    break;
+                  case 5:
+                    await handleSubmit("longest");
+                    break;
+                }
               }}
               orientation="vertical"
               color="black"

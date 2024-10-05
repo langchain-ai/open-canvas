@@ -11,32 +11,42 @@ import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { LengthOptions } from "./LengthOptions";
+import { GraphInput } from "@/hooks/useGraph";
+
+type SharedComponentProps = ActionsToolbarProps & { handleClose: () => void };
 
 type ToolbarOption = {
   id: string;
   tooltip: string;
   icon: React.ReactNode;
-  component: React.ReactNode;
+  component: ((props: SharedComponentProps) => React.ReactNode) | null;
 };
+
+export interface ActionsToolbarProps {
+  selectedArtifactId: string | undefined;
+  streamMessage: (input: GraphInput) => Promise<void>;
+}
 
 const toolbarOptions: ToolbarOption[] = [
   {
     id: "translate",
     tooltip: "Translate",
     icon: <Languages className="w-[26px] h-[26px]" />,
-    component: <TranslateOptions />,
+    component: (props: SharedComponentProps) => <TranslateOptions {...props} />,
   },
   {
     id: "readingLevel",
     tooltip: "Reading level",
     icon: <BookOpen className="w-[26px] h-[26px]" />,
-    component: <ReadingLevelOptions />,
+    component: (props: SharedComponentProps) => (
+      <ReadingLevelOptions {...props} />
+    ),
   },
   {
     id: "adjustLength",
     tooltip: "Adjust the length",
     icon: <SlidersVertical className="w-[26px] h-[26px]" />,
-    component: <LengthOptions />,
+    component: (props: SharedComponentProps) => <LengthOptions {...props} />,
   },
   {
     id: "addEmojis",
@@ -46,7 +56,7 @@ const toolbarOptions: ToolbarOption[] = [
   },
 ];
 
-export function ActionsToolbar() {
+export function ActionsToolbar(props: ActionsToolbarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -74,16 +84,31 @@ export function ActionsToolbar() {
     setActiveOption(null);
   };
 
-  const handleOptionClick = (event: React.MouseEvent, optionId: string) => {
+  const handleOptionClick = async (
+    event: React.MouseEvent,
+    optionId: string
+  ) => {
     event.stopPropagation();
     if (optionId === "addEmojis") {
-      console.log("emoji");
       setIsExpanded(false);
       setActiveOption(null);
+      await props.streamMessage({
+        selectedArtifactId: props.selectedArtifactId,
+        regenerateWithEmojis: true,
+      });
     } else {
       setActiveOption(optionId);
     }
   };
+
+  const handleClose = () => {
+    setIsExpanded(false);
+    setActiveOption(null);
+  };
+
+  if (!props.selectedArtifactId) {
+    return null;
+  }
 
   return (
     <div
@@ -99,8 +124,12 @@ export function ActionsToolbar() {
       {isExpanded ? (
         <div className="flex flex-col gap-3 items-center w-full border-[1px] border-gray-200 rounded-3xl py-4 px-3">
           {activeOption && activeOption !== "addEmojis"
-            ? toolbarOptions.find((option) => option.id === activeOption)
-                ?.component
+            ? toolbarOptions
+                .find((option) => option.id === activeOption)
+                ?.component?.({
+                  ...props,
+                  handleClose,
+                })
             : toolbarOptions.map((option) => (
                 <TooltipIconButton
                   key={option.id}
@@ -108,7 +137,7 @@ export function ActionsToolbar() {
                   variant="ghost"
                   className="transition-colors w-[36px] h-[36px]"
                   delayDuration={400}
-                  onClick={(e) => handleOptionClick(e, option.id)}
+                  onClick={async (e) => await handleOptionClick(e, option.id)}
                 >
                   {option.icon}
                 </TooltipIconButton>

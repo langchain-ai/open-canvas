@@ -6,8 +6,27 @@ import {
   Swords,
 } from "lucide-react";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { GraphInput } from "@/hooks/useGraph";
+import { ReadingLevelOptions as ReadingLevelOptionsType } from "@/types";
 
-export function ReadingLevelOptions() {
+export interface ReadingLevelOptionsProps {
+  selectedArtifactId: string | undefined;
+  streamMessage: (input: GraphInput) => Promise<void>;
+  handleClose: () => void;
+}
+
+export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
+  const handleSubmit = async (readingLevel: ReadingLevelOptionsType) => {
+    if (!props.selectedArtifactId) {
+      return;
+    }
+    props.handleClose();
+    await props.streamMessage({
+      selectedArtifactId: props.selectedArtifactId,
+      readingLevel,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-3 items-center w-full">
       <TooltipIconButton
@@ -15,6 +34,7 @@ export function ReadingLevelOptions() {
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
+        onClick={async () => await handleSubmit("phd")}
       >
         <GraduationCap />
       </TooltipIconButton>
@@ -23,6 +43,7 @@ export function ReadingLevelOptions() {
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
+        onClick={async () => await handleSubmit("college")}
       >
         <School />
       </TooltipIconButton>
@@ -31,6 +52,7 @@ export function ReadingLevelOptions() {
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
+        onClick={async () => await handleSubmit("teenager")}
       >
         <PersonStanding />
       </TooltipIconButton>
@@ -39,6 +61,7 @@ export function ReadingLevelOptions() {
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
+        onClick={async () => await handleSubmit("child")}
       >
         <Baby />
       </TooltipIconButton>
@@ -47,6 +70,7 @@ export function ReadingLevelOptions() {
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
+        onClick={async () => await handleSubmit("pirate")}
       >
         <Swords />
       </TooltipIconButton>
