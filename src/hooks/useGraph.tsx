@@ -4,6 +4,7 @@ import { useToast } from "./use-toast";
 import { createClient } from "./utils";
 import { Artifact, Highlight } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
+// import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
   messages: Record<string, any>[];

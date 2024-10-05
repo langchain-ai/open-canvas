@@ -1,7 +1,7 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { v4 as uuidv4 } from "uuid";
 
-const defaultAIMessage = `Here is a short story for you:
+const defaultContent = `Here is a short story for you:
 
 The Unexpected Journey
 
@@ -22,7 +22,27 @@ Little did Emily know, this chance meeting was the start of an adventure that wo
 export const DEFAULT_MESSAGES = [
   new HumanMessage({ content: "Hello", id: uuidv4() }),
   new AIMessage({
-    content: defaultAIMessage,
+    content: "",
+    tool_calls: [
+      {
+        name: "artifact_ui",
+        args: {
+          title: "The Unexpected Journey",
+        },
+        id: "Dummy_id_123",
+      },
+    ],
+  }),
+  new AIMessage({
+    content: "I hope this suspenseful story is to your liking.",
     id: uuidv4(),
   }),
+];
+
+export const DEFAULT_ARTIFACTS = [
+  {
+    id: "Dummy_id_123",
+    content: defaultContent,
+    title: "The Unexpected Journey",
+  },
 ];

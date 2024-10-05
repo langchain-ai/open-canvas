@@ -10,6 +10,7 @@ import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { X } from "lucide-react";
+import { ActionsToolbar } from "./actions_toolbar";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -241,6 +242,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
+      <ActionsToolbar />
     </div>
   );
 }
