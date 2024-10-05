@@ -18,6 +18,17 @@ import {
 import { Artifact } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
+type LanguageOptions = "english" | "mandarin" | "spanish" | "french" | "hindi";
+
+type ArtifactLengthOptions =
+  | "shortest"
+  | "short"
+  | "current"
+  | "long"
+  | "longest";
+
+type ReadingLevelOptions = "pirate" | "child" | "teenager" | "college" | "phd";
+
 interface Highlight {
   /**
    * The id of the artifact the highlighted text belongs to
@@ -51,6 +62,26 @@ const GraphAnnotation = Annotation.Root({
     reducer: (_state, update) => update,
     default: () => [],
   }),
+  /**
+   * The next node to route to. Only used for the first routing node/conditional edge.
+   */
+  next: Annotation<string | undefined>,
+  /**
+   * The language to translate the artifact to.
+   */
+  language: Annotation<LanguageOptions | undefined>,
+  /**
+   * The length of the artifact to regenerate to.
+   */
+  artifactLength: Annotation<ArtifactLengthOptions | undefined>,
+  /**
+   * Whether or not to regenerate with emojis.
+   */
+  regenerateWithEmojis: Annotation<boolean | undefined>,
+  /**
+   * The reading level to adjust the artifact to.
+   */
+  readingLevel: Annotation<ReadingLevelOptions | undefined>,
 });
 
 type GraphReturnType = Partial<typeof GraphAnnotation.State>;
@@ -289,12 +320,12 @@ const generateFollowup = async (
 /**
  * Routes to the proper node in the graph based on the user's query.
  */
-const routeQuery = async (state: typeof GraphAnnotation.State) => {
+const generatePath = async (state: typeof GraphAnnotation.State) => {
   if (state.highlighted) {
-    return new Send("updateArtifact", {
-      ...state,
+    return {
+      next: "updateArtifact",
       selectedArtifactId: state.highlighted.id,
-    });
+    };
   }
 
   // Call model and decide if we need to respond to a users query, or generate a new artifact
@@ -312,8 +343,6 @@ const routeQuery = async (state: typeof GraphAnnotation.State) => {
   }).withStructuredOutput(
     z.object({
       route: z.enum(["updateArtifact", "respondToQuery", "generateArtifact"]),
-      // TODO: HOW TO PASS THIS THROUGH TO NEXT NODE.
-      // maybe `send`?
       artifactId: z
         .string()
         .optional()
@@ -332,25 +361,34 @@ const routeQuery = async (state: typeof GraphAnnotation.State) => {
   ]);
 
   if (result.route === "updateArtifact") {
-    return new Send("updateArtifact", {
-      ...state,
+    return {
+      next: "updateArtifact",
       selectedArtifactId: result.artifactId,
-    });
+    };
   } else {
-    return result.route;
+    return {
+      next: "result.route",
+    };
   }
 };
 
+const routeNode = (state: typeof GraphAnnotation.State) => {
+  if (!state.next) {
+    throw new Error("'next' state field not set.");
+  }
+  return new Send(state.next, {
+    ...state,
+  });
+};
+
 const builder = new StateGraph(GraphAnnotation)
+  .addNode("generatePath", generatePath)
+  .addEdge(START, "generatePath")
+  .addConditionalEdges("generatePath", routeNode)
   .addNode("respondToQuery", respondToQuery)
   .addNode("updateArtifact", updateArtifact)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
-  .addConditionalEdges(START, routeQuery, [
-    "updateArtifact",
-    "respondToQuery",
-    "generateArtifact",
-  ])
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
   .addEdge("respondToQuery", END)
