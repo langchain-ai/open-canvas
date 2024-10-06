@@ -461,6 +461,13 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
     };
   }
 
+  // Use either the currently selected artifact, or the most recent artifact if no artifact is selected.
+  const selectedArtifact = state.selectedArtifactId
+    ? state.artifacts.find(
+        (artifact) => artifact.id === state.selectedArtifactId
+      )
+    : state.artifacts[state.artifacts.length - 1];
+
   // Call model and decide if we need to respond to a users query, or generate a new artifact
   const formattedPrompt = ROUTE_QUERY_PROMPT.replace(
     "{recentMessages}",
@@ -468,7 +475,12 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
       .slice(-3)
       .map((message) => `${message._getType()}: ${message.content}`)
       .join("\n\n")
-  ).replace("{artifacts}", formatArtifacts(state.artifacts, true));
+  ).replace(
+    "{artifacts}",
+    selectedArtifact
+      ? formatArtifacts([selectedArtifact], true)
+      : "No artifacts found."
+  );
 
   const modelWithTool = new ChatOpenAI({
     model: "gpt-4o-mini",
