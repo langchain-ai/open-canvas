@@ -9,9 +9,9 @@ import {
 import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { LengthOptions } from "./LengthOptions";
 import { GraphInput } from "@/hooks/useGraph";
+import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 
 type SharedComponentProps = ActionsToolbarProps & { handleClose: () => void };
 

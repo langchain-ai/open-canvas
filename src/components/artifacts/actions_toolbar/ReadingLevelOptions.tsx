@@ -1,78 +1,78 @@
-import { GraphInput } from "@/hooks/useGraph";
 import {
-  UsaFlag,
-  ChinaFlag,
-  IndiaFlag,
-  SpanishFlag,
-  FrenchFlag,
-} from "../icons/flags";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { LanguageOptions } from "@/types";
+  Baby,
+  GraduationCap,
+  PersonStanding,
+  School,
+  Swords,
+} from "lucide-react";
+import { GraphInput } from "@/hooks/useGraph";
+import { ReadingLevelOptions as ReadingLevelOptionsType } from "@/types";
+import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 
-export interface TranslateOptionsProps {
+export interface ReadingLevelOptionsProps {
   selectedArtifactId: string | undefined;
   streamMessage: (input: GraphInput) => Promise<void>;
   handleClose: () => void;
 }
 
-export function TranslateOptions(props: TranslateOptionsProps) {
-  const handleSubmit = async (language: LanguageOptions) => {
+export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
+  const handleSubmit = async (readingLevel: ReadingLevelOptionsType) => {
     if (!props.selectedArtifactId) {
       return;
     }
     props.handleClose();
     await props.streamMessage({
       selectedArtifactId: props.selectedArtifactId,
-      language,
+      readingLevel,
     });
   };
 
   return (
     <div className="flex flex-col gap-3 items-center w-full">
       <TooltipIconButton
-        tooltip="English"
+        tooltip="PhD"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
-        onClick={async () => await handleSubmit("english")}
+        onClick={async () => await handleSubmit("phd")}
       >
-        <UsaFlag />
+        <GraduationCap />
       </TooltipIconButton>
       <TooltipIconButton
-        tooltip="Mandarin"
+        tooltip="College"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
-        onClick={async () => await handleSubmit("mandarin")}
+        onClick={async () => await handleSubmit("college")}
       >
-        <ChinaFlag />
+        <School />
       </TooltipIconButton>
       <TooltipIconButton
-        tooltip="Hindi"
+        tooltip="Teenager"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
-        onClick={async () => await handleSubmit("hindi")}
+        onClick={async () => await handleSubmit("teenager")}
       >
-        <IndiaFlag />
+        <PersonStanding />
       </TooltipIconButton>
       <TooltipIconButton
-        tooltip="Spanish"
+        tooltip="Child"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
-        onClick={async () => await handleSubmit("spanish")}
+        onClick={async () => await handleSubmit("child")}
       >
-        <SpanishFlag />
+        <Baby />
       </TooltipIconButton>
       <TooltipIconButton
-        tooltip="French"
+        tooltip="Pirate"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
         delayDuration={400}
-        onClick={async () => await handleSubmit("french")}
+        onClick={async () => await handleSubmit("pirate")}
       >
-        <FrenchFlag />
+        <Swords />
       </TooltipIconButton>
     </div>
   );

@@ -1,3 +1,4 @@
+import { Artifact } from "@/types";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { v4 as uuidv4 } from "uuid";
 
@@ -19,6 +20,47 @@ By the time Emily reached her apartment, she had made up her mind. She would tak
 
 Little did Emily know, this chance meeting was the start of an adventure that would change both of their lives forever.`;
 
+const dummyCodeContent = `import React, { useState } from 'react';
+
+function TodoApp() {
+  const [todos, setTodos] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+
+  const addTodo = () => {
+    if (inputValue.trim()) {
+      setTodos([...todos, inputValue.trim()]);
+      setInputValue('');
+    }
+  };
+
+  const removeTodo = (index) => {
+    const newTodos = todos.filter((_, i) => i !== index);
+    setTodos(newTodos);
+  };
+
+  return (
+    <div>
+      <h1>Todo List</h1>
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Add a new todo"
+      />
+      <button onClick={addTodo}>Add</button>
+      <ul>
+        {todos.map((todo, index) => (
+          <li key={index}>
+            {todo} <button onClick={() => removeTodo(index)}>Remove</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default TodoApp;`;
+
 export const DEFAULT_MESSAGES = [
   new HumanMessage({ content: "Hello", id: uuidv4() }),
   new AIMessage({
@@ -37,12 +79,38 @@ export const DEFAULT_MESSAGES = [
     content: "I hope this suspenseful story is to your liking.",
     id: uuidv4(),
   }),
+  new HumanMessage({ content: "Write me a react todo app", id: uuidv4() }),
+  new AIMessage({
+    content: "",
+    tool_calls: [
+      {
+        name: "artifact_ui",
+        args: {
+          title: "React Todo App",
+        },
+        id: "dummy_code_123",
+      },
+    ],
+  }),
+  new AIMessage({
+    content: "Boom! You're ready to raise a seed round now!",
+    id: uuidv4(),
+  }),
 ];
 
-export const DEFAULT_ARTIFACTS = [
+export const DEFAULT_ARTIFACTS: Artifact[] = [
   {
     id: "Dummy_id_123",
     content: defaultContent,
     title: "The Unexpected Journey",
+    language: "english",
+    type: "text",
+  },
+  {
+    id: "dummy_code_123",
+    content: dummyCodeContent,
+    title: "React Todo App",
+    language: "javascript",
+    type: "code",
   },
 ];

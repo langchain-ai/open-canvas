@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
-import Markdown from "react-markdown";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { CircleArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Artifact } from "@/types";
@@ -11,6 +10,8 @@ import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { X } from "lucide-react";
 import { ActionsToolbar } from "./actions_toolbar";
+import { TextRenderer } from "./TextRenderer";
+import { CodeRenderer } from "./CodeRenderer";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -108,7 +109,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         messages: [convertToOpenAIFormat(humanMessage)],
         highlighted: {
           id: props.artifact.id,
-          startCharIndex: startIndex,
+          startCharIndex: startIndex === -1 ? 0 : startIndex,
           endCharIndex: endIndex,
         },
       });
@@ -180,12 +181,28 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         <h1 className="text-xl font-medium">{props.artifact.title}</h1>
       </div>
 
-      <div ref={contentRef} className="flex justify-center h-full pt-[10%]">
-        <div className="max-w-3xl w-full px-4 relative">
+      <div
+        ref={contentRef}
+        className={cn(
+          "flex justify-center h-full",
+          props.artifact.type === "code" ? "pt-[10px]" : "pt-[10%]"
+        )}
+      >
+        <div
+          className={cn(
+            "relative",
+            props.artifact.type === "code"
+              ? "min-w-full min-h-full"
+              : "max-w-3xl w-full px-4"
+          )}
+        >
           <div ref={markdownRef}>
-            <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              {props.artifact.content}
-            </Markdown>
+            {props.artifact.type === "text" ? (
+              <TextRenderer artifact={props.artifact} />
+            ) : null}
+            {props.artifact.type === "code" ? (
+              <CodeRenderer artifact={props.artifact} />
+            ) : null}
           </div>
           <div
             ref={highlightLayerRef}

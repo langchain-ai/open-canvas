@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils";
-import { Slider } from "../ui/slider";
 import { useState } from "react";
+import { GraphInput } from "@/hooks/useGraph";
+import { ArtifactLengthOptions } from "@/types";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../ui/tooltip";
-import { GraphInput } from "@/hooks/useGraph";
-import { ArtifactLengthOptions } from "@/types";
+} from "@/components/ui/tooltip";
+import { Slider } from "@/components/ui/slider";
 
 export interface LengthOptionsProps {
   selectedArtifactId: string | undefined;

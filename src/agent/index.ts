@@ -28,6 +28,16 @@ import {
 } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
+const defaultInputs = {
+  selectedArtifactId: undefined,
+  highlighted: undefined,
+  next: undefined,
+  language: undefined,
+  artifactLength: undefined,
+  regenerateWithEmojis: undefined,
+  readingLevel: undefined,
+};
+
 interface Highlight {
   /**
    * The id of the artifact the highlighted text belongs to
@@ -48,12 +58,18 @@ const GraphAnnotation = Annotation.Root({
   /**
    * The ID of the artifact to perform some action on.
    */
-  selectedArtifactId: Annotation<string>,
+  selectedArtifactId: Annotation<string | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
   /**
    * The part of the artifact the user highlighted. Use the `selectedArtifactId`
    * to determine which artifact the highlight belongs to.
    */
-  highlighted: Annotation<Highlight | undefined>,
+  highlighted: Annotation<Highlight | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
   /**
    * The artifacts that have been generated in the conversation.
    */
@@ -64,23 +80,38 @@ const GraphAnnotation = Annotation.Root({
   /**
    * The next node to route to. Only used for the first routing node/conditional edge.
    */
-  next: Annotation<string | undefined>,
+  next: Annotation<string | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
   /**
    * The language to translate the artifact to.
    */
-  language: Annotation<LanguageOptions | undefined>,
+  language: Annotation<LanguageOptions | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
   /**
    * The length of the artifact to regenerate to.
    */
-  artifactLength: Annotation<ArtifactLengthOptions | undefined>,
+  artifactLength: Annotation<ArtifactLengthOptions | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
   /**
    * Whether or not to regenerate with emojis.
    */
-  regenerateWithEmojis: Annotation<boolean | undefined>,
+  regenerateWithEmojis: Annotation<boolean | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
   /**
    * The reading level to adjust the artifact to.
    */
-  readingLevel: Annotation<ReadingLevelOptions | undefined>,
+  readingLevel: Annotation<ReadingLevelOptions | undefined>({
+    reducer: (_state, update) => update,
+    default: () => undefined,
+  }),
 });
 
 type GraphReturnType = Partial<typeof GraphAnnotation.State>;
@@ -384,6 +415,14 @@ const generateArtifact = async (
       {
         name: "generate_artifact",
         schema: z.object({
+          type: z
+            .enum(["code", "text"])
+            .describe("The content type of the artifact generated."),
+          language: z
+            .string()
+            .describe(
+              "The language of the artifact to generate. If generating code, it should be the programming language."
+            ),
           artifact: z
             .string()
             .describe("The content of the artifact to generate."),
@@ -406,6 +445,8 @@ const generateArtifact = async (
     id: response.id ?? uuidv4(),
     content: response.tool_calls?.[0]?.args.artifact,
     title: response.tool_calls?.[0]?.args.title,
+    type: response.tool_calls?.[0]?.args.type,
+    language: response.tool_calls?.[0]?.args.language,
   };
 
   return {
@@ -539,6 +580,12 @@ const routeNode = (state: typeof GraphAnnotation.State) => {
   });
 };
 
+const cleanState = (_: typeof GraphAnnotation.State) => {
+  return {
+    ...defaultInputs,
+  };
+};
+
 const builder = new StateGraph(GraphAnnotation)
   .addNode("generatePath", generatePath)
   .addEdge(START, "generatePath")
@@ -549,11 +596,13 @@ const builder = new StateGraph(GraphAnnotation)
   .addNode("updateArtifact", updateArtifact)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
+  .addNode("cleanState", cleanState)
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
   .addEdge("rewriteArtifact", "generateFollowup")
   .addEdge("rewriteArtifactTheme", "generateFollowup")
-  .addEdge("respondToQuery", END)
-  .addEdge("generateFollowup", END);
+  .addEdge("respondToQuery", "cleanState")
+  .addEdge("generateFollowup", "cleanState")
+  .addEdge("cleanState", END);
 
 export const graph = builder.compile();

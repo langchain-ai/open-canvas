@@ -24,6 +24,8 @@ export interface Artifact {
   id: string;
   content: string;
   title: string;
+  type: "code" | "text";
+  language: string;
 }
 
 export type Highlight = {

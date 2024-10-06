@@ -1,5 +1,5 @@
 "use client";
-import { ArtifactRenderer } from "@/components/ArtifactRenderer";
+import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useGraph } from "@/hooks/useGraph";
 

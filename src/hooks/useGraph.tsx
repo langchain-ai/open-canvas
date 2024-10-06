@@ -26,7 +26,7 @@ const realNewline = `
 `;
 
 const cleanContent = (content: string): string => {
-  return content.replaceAll("\n", realNewline);
+  return content ? content.replaceAll("\n", realNewline) : "";
 };
 
 export function useGraph() {
@@ -101,6 +101,7 @@ export function useGraph() {
     let fullArtifactGenerationStr = "";
     let artifactId = "";
     let artifactTitle = "";
+    let artifactType = "";
     let updatingArtifactId = "";
     let newArtifactText = "";
 
@@ -120,7 +121,11 @@ export function useGraph() {
           try {
             const artifact = parsePartialJson(fullArtifactGenerationStr);
             artifactTitle = artifact.title;
-            if (artifact.artifact && artifactId) {
+            artifactType = artifact.type;
+            if (
+              (artifact.artifact && artifactId && artifactType === "text") ||
+              artifactType === "code"
+            ) {
               setArtifacts((prev) => {
                 const allWithoutCurrent = prev.filter(
                   (a) => a.id !== artifactId
@@ -131,6 +136,8 @@ export function useGraph() {
                     id: artifactId,
                     title: artifactTitle,
                     content: cleanContent(artifact.artifact),
+                    type: artifactType as Artifact["type"],
+                    language: artifact.language,
                   },
                 ];
               });
