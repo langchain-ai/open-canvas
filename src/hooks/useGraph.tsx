@@ -62,9 +62,19 @@ export function useGraph() {
 
     const client = createClient();
 
+    const defaultInputs = {
+      selectedArtifactId: undefined,
+      highlighted: undefined,
+      next: undefined,
+      language: undefined,
+      artifactLength: undefined,
+      regenerateWithEmojis: undefined,
+      readingLevel: undefined,
+    };
+
     const input = {
-      // Ensure we remove this from the state, unless it's included in the params.
-      highlighted: params.highlighted ?? undefined,
+      // Ensure we set all existing values (except `artifacts` and `messages`) to undefined by default.
+      ...defaultInputs,
       messages: params.messages?.filter((msg) => {
         if (msg.role !== "assistant") {
           return true;
@@ -123,7 +133,8 @@ export function useGraph() {
                   },
                 ];
               });
-              if (!selectedArtifactId) {
+              // Ensure the newest generated artifact is selected when generating.
+              if (!selectedArtifactId || selectedArtifactId !== artifactId) {
                 setSelectedArtifactId(artifactId);
               }
             }

@@ -110,9 +110,10 @@ export const ROUTE_QUERY_PROMPT = `You are an assistant tasked with routing the 
 You should look at this message in isolation and determine where to best route there query.
 Your options are as follows:
 
-- 'updateArtifact': The user has requested some sort of change or edit to an existing artifact. Use their recent message and the currently selected artifact (if any) to determine what to do.
+- 'updateArtifact': The user has requested some sort of change or edit to an existing artifact. Use their recent message and the currently selected artifact (if any) to determine what to do. You should ONLY select this if the user has clearly requested a change to the artifact, otherwise you should lean towards either generating a new artifact or responding to their query.
+  It is very important you do not edit the artifact unless clearly requested by the user.
 - 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.
-- 'generateArtifact': The user has inputted a request which requires generating an entirely new artifact.
+- 'generateArtifact': The user has inputted a request which requires generating a new artifact.
 
 If you believe the user wants to update an existing artifact, you MUST also supply the ID of the artifact they are referring to.
 
