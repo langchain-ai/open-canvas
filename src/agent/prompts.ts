@@ -122,10 +122,15 @@ A few of the recent messages in the chat history are:
 {recentMessages}
 </recent-messages>
 
-The artifacts in the chat history are:
+The following contains every artifact the user has generated in the chat history:
 <artifacts>
 {artifacts}
-</artifacts>`;
+</artifacts>
+
+This artifact is the one the user is currently viewing. You should weigh this artifact more heavily compared to the others when determining the route.
+<selected-artifact>
+{selectedArtifact}
+</selected-artifact>`;
 
 export const FOLLOWUP_ARTIFACT_PROMPT = `You are an AI assistant tasked with generating a followup to the artifact the user just generated.
 The context is you're having a conversation with the user, and you've just generated an artifact for them. Now you should follow up with a message that notifies them you're done. Make this message creative!

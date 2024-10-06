@@ -63,7 +63,8 @@ export function useGraph() {
     const client = createClient();
 
     const defaultInputs = {
-      selectedArtifactId: undefined,
+      // We should always pass the currently selected artifact ID to the server.
+      selectedArtifactId,
       highlighted: undefined,
       next: undefined,
       language: undefined,
