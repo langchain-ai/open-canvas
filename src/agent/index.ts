@@ -467,6 +467,9 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
         (artifact) => artifact.id === state.selectedArtifactId
       )
     : state.artifacts[state.artifacts.length - 1];
+  const allArtifactsButSelected = state.artifacts.filter(
+    (a) => a.id !== state.selectedArtifactId
+  );
 
   // Call model and decide if we need to respond to a users query, or generate a new artifact
   const formattedPrompt = ROUTE_QUERY_PROMPT.replace(
@@ -475,12 +478,19 @@ const generatePath = async (state: typeof GraphAnnotation.State) => {
       .slice(-3)
       .map((message) => `${message._getType()}: ${message.content}`)
       .join("\n\n")
-  ).replace(
-    "{artifacts}",
-    selectedArtifact
-      ? formatArtifacts([selectedArtifact], true)
-      : "No artifacts found."
-  );
+  )
+    .replace(
+      "{artifacts}",
+      allArtifactsButSelected.length
+        ? formatArtifacts(allArtifactsButSelected, true)
+        : "No artifacts found."
+    )
+    .replace(
+      "{selectedArtifact}",
+      selectedArtifact
+        ? formatArtifacts([selectedArtifact], true)
+        : "No artifacts found."
+    );
 
   const modelWithTool = new ChatOpenAI({
     model: "gpt-4o-mini",
