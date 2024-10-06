@@ -306,7 +306,7 @@ const rewriteArtifactTheme = async (
     }
     formattedPrompt = CHANGE_ARTIFACT_READING_LEVEL_PROMPT.replace(
       "{newReadingLevel}",
-      ""
+      newReadingLevel
     ).replace("{artifactContent}", selectedArtifact.content);
   } else if (state.readingLevel && state.readingLevel === "pirate") {
     formattedPrompt = CHANGE_ARTIFACT_TO_PIRATE_PROMPT.replace(
