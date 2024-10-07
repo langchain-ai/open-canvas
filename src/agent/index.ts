@@ -58,18 +58,12 @@ const GraphAnnotation = Annotation.Root({
   /**
    * The ID of the artifact to perform some action on.
    */
-  selectedArtifactId: Annotation<string | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  selectedArtifactId: Annotation<string | undefined>,
   /**
    * The part of the artifact the user highlighted. Use the `selectedArtifactId`
    * to determine which artifact the highlight belongs to.
    */
-  highlighted: Annotation<Highlight | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  highlighted: Annotation<Highlight | undefined>,
   /**
    * The artifacts that have been generated in the conversation.
    */
@@ -80,38 +74,23 @@ const GraphAnnotation = Annotation.Root({
   /**
    * The next node to route to. Only used for the first routing node/conditional edge.
    */
-  next: Annotation<string | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  next: Annotation<string | undefined>,
   /**
    * The language to translate the artifact to.
    */
-  language: Annotation<LanguageOptions | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  language: Annotation<LanguageOptions | undefined>,
   /**
    * The length of the artifact to regenerate to.
    */
-  artifactLength: Annotation<ArtifactLengthOptions | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  artifactLength: Annotation<ArtifactLengthOptions | undefined>,
   /**
    * Whether or not to regenerate with emojis.
    */
-  regenerateWithEmojis: Annotation<boolean | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  regenerateWithEmojis: Annotation<boolean | undefined>,
   /**
    * The reading level to adjust the artifact to.
    */
-  readingLevel: Annotation<ReadingLevelOptions | undefined>({
-    reducer: (_state, update) => update,
-    default: () => undefined,
-  }),
+  readingLevel: Annotation<ReadingLevelOptions | undefined>,
 });
 
 type GraphReturnType = Partial<typeof GraphAnnotation.State>;
