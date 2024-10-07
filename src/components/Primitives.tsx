@@ -17,21 +17,56 @@ import {
   ExternalLink,
   SendHorizontalIcon,
   SquarePen,
+  Code,
+  NotebookPen,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
 import { LangSmithSVG } from "./icons/langsmith";
+import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
 
 export interface MyThreadProps {
   setSelectedArtifact: (artifactId: string) => void;
   createThread: () => Promise<Thread>;
+  showNewThreadButton: boolean;
+  handleQuickStart: (type: "text" | "code") => void;
 }
+
+interface QuickStartButtonsProps {
+  handleQuickStart: (type: "text" | "code") => void;
+}
+
+const QuickStartButtons = (props: QuickStartButtonsProps) => {
+  return (
+    <div className="flex flex-row gap-1 items-center">
+      <TooltipIconButton
+        tooltip="Quickstart: text"
+        variant="ghost"
+        className="transition-colors w-[36px] h-[36px] text-gray-600"
+        delayDuration={400}
+        onClick={() => props.handleQuickStart("text")}
+      >
+        <NotebookPen />
+      </TooltipIconButton>
+      <TooltipIconButton
+        tooltip="Quickstart: code"
+        variant="ghost"
+        className="transition-colors w-[36px] h-[36px] text-gray-600"
+        delayDuration={400}
+        onClick={() => props.handleQuickStart("code")}
+      >
+        <Code />
+      </TooltipIconButton>
+    </div>
+  );
+};
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   const { setSelectedArtifact } = props;
   useArtifactToolUI({ setSelectedArtifact });
+  useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
     await props.createThread();
@@ -41,15 +76,19 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
     <ThreadPrimitive.Root className="flex flex-col h-full">
       <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between">
         <p className="text-xl text-gray-600">Open Canvas</p>
-        <TooltipIconButton
-          tooltip="New chat"
-          variant="ghost"
-          className="transition-colors w-[36px] h-[36px] text-gray-600"
-          delayDuration={400}
-          onClick={handleCreateThread}
-        >
-          <SquarePen />
-        </TooltipIconButton>
+        {props.showNewThreadButton ? (
+          <TooltipIconButton
+            tooltip="New chat"
+            variant="ghost"
+            className="transition-colors w-[36px] h-[36px] text-gray-600"
+            delayDuration={400}
+            onClick={handleCreateThread}
+          >
+            <SquarePen />
+          </TooltipIconButton>
+        ) : (
+          <QuickStartButtons handleQuickStart={props.handleQuickStart} />
+        )}
       </div>
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
         <MyThreadWelcome />

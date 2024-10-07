@@ -257,7 +257,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             "relative",
             props.artifact.type === "code"
               ? "min-w-full min-h-full"
-              : "max-w-3xl w-full px-4"
+              : "w-full min-h-full px-4"
           )}
         >
           <div ref={markdownRef}>
