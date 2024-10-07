@@ -1,36 +1,28 @@
 "use client";
 
 import {
-  ActionBarPrimitive,
-  AssistantMessageContentProps,
   ComposerPrimitive,
-  getExternalStoreMessage,
   MessagePrimitive,
-  ThreadAssistantMessage,
   ThreadPrimitive,
-  useActionBarEdit,
   useComposerStore,
-  useMessage,
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { useCallback, useEffect, useRef, type FC } from "react";
+import { useState, type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   ArrowDownIcon,
-  CheckIcon,
-  CopyIcon,
-  PencilIcon,
+  ExternalLink,
   SendHorizontalIcon,
   SquarePen,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { BaseMessage } from "@langchain/core/messages";
 import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
+import { LangSmithSVG } from "./icons/langsmith";
 
 export interface MyThreadProps {
   setSelectedArtifact: (artifactId: string) => void;
@@ -192,22 +184,7 @@ const MyEditComposer: FC = () => {
 };
 
 const MyAssistantMessage: FC = () => {
-  const edit = useActionBarEdit();
-  const isDone = useMessage(
-    (m) => (m.message as ThreadAssistantMessage).status?.type !== "running"
-  );
-  const isNew = useRef(!isDone);
-  const isLast = useMessage((m) => m.isLast);
-  const messageStore = useMessageStore();
-
-  useEffect(() => {
-    if (!isNew.current || !isLast || !isDone || !edit) return;
-    const message = messageStore.getState().message;
-    const lcMessage = getExternalStoreMessage<BaseMessage[]>(message)?.[0];
-    if (!lcMessage?.response_metadata.contentGenerated) return;
-
-    edit();
-  }, [edit, isDone, isLast]);
+  const [sharedRunURL, setSharedRunURL] = useState<string>();
 
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
@@ -218,6 +195,20 @@ const MyAssistantMessage: FC = () => {
       <div className="text-foreground col-span-2 col-start-2 row-start-1 my-1.5 max-w-xl break-words leading-7">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
       </div>
+      {sharedRunURL ? (
+        <TooltipIconButton
+          tooltip="View in LangSmith"
+          variant="ghost"
+          className="transition-colors w-4 h-3 ml-3"
+          delayDuration={400}
+          onClick={() => window.open(sharedRunURL, "_blank")}
+        >
+          <span className="flex flex-row items-center gap-1 w-11 h-7">
+            <ExternalLink />
+            <LangSmithSVG className="text-[#CA632B] hover:text-[#CA632B]/95" />
+          </span>
+        </TooltipIconButton>
+      ) : null}
     </MessagePrimitive.Root>
   );
 };
