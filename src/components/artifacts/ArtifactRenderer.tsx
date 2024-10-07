@@ -9,7 +9,7 @@ import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { X } from "lucide-react";
-import { ActionsToolbar } from "./actions_toolbar";
+import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { TextRenderer } from "./TextRenderer";
 import { CodeRenderer } from "./CodeRenderer";
 
@@ -260,10 +260,18 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
-      <ActionsToolbar
-        selectedArtifactId={props.artifact.id}
-        streamMessage={props.streamMessage}
-      />
+      {props.artifact.type === "text" ? (
+        <ActionsToolbar
+          selectedArtifactId={props.artifact.id}
+          streamMessage={props.streamMessage}
+        />
+      ) : null}
+      {props.artifact.type === "code" ? (
+        <CodeToolBar
+          selectedArtifactId={props.artifact.id}
+          streamMessage={props.streamMessage}
+        />
+      ) : null}
     </div>
   );
 }

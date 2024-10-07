@@ -41,6 +41,14 @@ export type LanguageOptions =
   | "french"
   | "hindi";
 
+export type ProgrammingLanguageOptions =
+  | "typescript"
+  | "javascript"
+  | "cpp"
+  | "java"
+  | "php"
+  | "python";
+
 export type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
 
 export type ReadingLevelOptions =

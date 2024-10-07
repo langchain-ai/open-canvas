@@ -7,6 +7,7 @@ import {
   ArtifactLengthOptions,
   Highlight,
   LanguageOptions,
+  ProgrammingLanguageOptions,
   ReadingLevelOptions,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
@@ -20,6 +21,10 @@ export interface GraphInput {
   language?: LanguageOptions;
   messages?: Record<string, any>[];
   highlighted?: Highlight;
+  addComments?: boolean;
+  addLogs?: boolean;
+  portLanguage?: ProgrammingLanguageOptions;
+  fixBugs?: boolean;
 }
 
 const realNewline = `
