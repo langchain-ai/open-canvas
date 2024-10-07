@@ -30,5 +30,5 @@ export const useArtifactToolUI = ({
         );
       },
       [setSelectedArtifact]
-    ), // Add setSelectedArtifact to the dependency array
+    ),
   });

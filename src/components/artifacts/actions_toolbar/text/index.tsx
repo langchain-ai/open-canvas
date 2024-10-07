@@ -12,6 +12,7 @@ import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
 import { GraphInput } from "@/hooks/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
+import { MagicPencilSVG } from "@/components/icons/magic_pencil";
 
 type SharedComponentProps = ActionsToolbarProps & { handleClose: () => void };
 
@@ -150,7 +151,7 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
           className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
           delayDuration={400}
         >
-          <Plus className="w-[26px] h-[26px]" />
+          <MagicPencilSVG className="w-[26px] h-[26px]" />
         </TooltipIconButton>
       )}
     </div>
