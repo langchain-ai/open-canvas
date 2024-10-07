@@ -74,9 +74,11 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
           }}
         />
       </ThreadPrimitive.Viewport>
-      <div className="mt-4 flex w-full max-w-2xl flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
+      <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
         <MyThreadScrollToBottom />
-        <MyComposer />
+        <div className="w-full max-w-2xl">
+          <MyComposer />
+        </div>
       </div>
     </ThreadPrimitive.Root>
   );

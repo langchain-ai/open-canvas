@@ -25,6 +25,7 @@ export interface ContentComposerChatInterfaceProps {
   setArtifacts: React.Dispatch<React.SetStateAction<Artifact[]>>;
   setSelectedArtifact: (artifactId: string) => void;
   createThread: () => Promise<Thread>;
+  setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const realNewline = `
@@ -40,6 +41,7 @@ export function ContentComposerChatInterface(
     if (message.content[0]?.type !== "text") {
       throw new Error("Only text messages are supported");
     }
+    props.setChatStarted(true);
     setIsRunning(true);
 
     try {
