@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { CircleArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Artifact } from "@/types";
+import { Artifact, ProgrammingLanguageOptions } from "@/types";
 import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
@@ -12,6 +12,7 @@ import { X } from "lucide-react";
 import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { TextRenderer } from "./TextRenderer";
 import { CodeRenderer } from "./CodeRenderer";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -171,15 +172,16 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
   return (
     <div className="relative w-full h-full overflow-auto">
-      <div className="pl-[6px] pt-4 flex flex-row gap-4 items-center justify-start">
-        <Button
-          onClick={() => props.setSelectedArtifactById(undefined)}
+      <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
+        <TooltipIconButton
+          tooltip="Close canvas"
           variant="ghost"
-          size="icon"
-          className="w-[24px] h-[24px]"
+          className="w-[36px] h-[36px]"
+          delayDuration={400}
+          onClick={() => props.setSelectedArtifactById(undefined)}
         >
           <X />
-        </Button>
+        </TooltipIconButton>
         <h1 className="text-xl font-medium">{props.artifact.title}</h1>
       </div>
 
@@ -269,6 +271,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       ) : null}
       {props.artifact.type === "code" ? (
         <CodeToolBar
+          language={props.artifact.language as ProgrammingLanguageOptions}
           selectedArtifactId={props.artifact.id}
           streamMessage={props.streamMessage}
         />

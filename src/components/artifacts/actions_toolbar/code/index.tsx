@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { GraphInput } from "@/hooks/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { PortToLanguageOptions } from "./PortToLanguage";
+import { ProgrammingLanguageOptions } from "@/types";
 
 type SharedComponentProps = CodeToolbarProps & { handleClose: () => void };
 
@@ -24,6 +25,7 @@ type ToolbarOption = {
 
 export interface CodeToolbarProps {
   selectedArtifactId: string | undefined;
+  language: ProgrammingLanguageOptions;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
 
@@ -44,9 +46,9 @@ const toolbarOptions: ToolbarOption[] = [
     id: "portLanguage",
     tooltip: "Port language",
     icon: <BookA className="w-[26px] h-[26px]" />,
-    component: (props: SharedComponentProps) => (
-      <PortToLanguageOptions {...props} />
-    ),
+    component: (
+      props: SharedComponentProps & { language: ProgrammingLanguageOptions }
+    ) => <PortToLanguageOptions {...props} />,
   },
   {
     id: "fixBugs",
@@ -95,6 +97,8 @@ export function CodeToolBar(props: CodeToolbarProps) {
       return;
     }
 
+    setIsExpanded(false);
+    setActiveOption(null);
     if (optionId === "addComments") {
       await props.streamMessage({
         selectedArtifactId: props.selectedArtifactId,
@@ -111,9 +115,6 @@ export function CodeToolBar(props: CodeToolbarProps) {
         fixBugs: true,
       });
     }
-
-    setIsExpanded(false);
-    setActiveOption(null);
   };
 
   const handleClose = () => {
@@ -160,7 +161,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
         <TooltipIconButton
           tooltip="Writing tools"
           variant="ghost"
-          className="transition-colors w-[36px] h-[36px] p-0 rounded-full"
+          className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
           delayDuration={400}
         >
           <Code className="w-[26px] h-[26px]" />

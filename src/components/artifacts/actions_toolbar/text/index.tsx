@@ -146,8 +146,8 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
       ) : (
         <TooltipIconButton
           tooltip="Writing tools"
-          variant="ghost"
-          className="transition-colors w-[36px] h-[36px] p-0 rounded-full"
+          variant="outline"
+          className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
           delayDuration={400}
         >
           <Plus className="w-[26px] h-[26px]" />
