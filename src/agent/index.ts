@@ -7,8 +7,12 @@ import { rewriteArtifact } from "./nodes/rewriteArtifact";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
+import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 
-const defaultInputs = {
+const defaultInputs: Omit<
+  typeof GraphAnnotation.State,
+  "messages" | "artifacts"
+> = {
   selectedArtifactId: undefined,
   highlighted: undefined,
   next: undefined,
@@ -16,6 +20,10 @@ const defaultInputs = {
   artifactLength: undefined,
   regenerateWithEmojis: undefined,
   readingLevel: undefined,
+  addComments: undefined,
+  addLogs: undefined,
+  fixBugs: undefined,
+  portLanguage: undefined,
 };
 
 const routeNode = (state: typeof GraphAnnotation.State) => {
@@ -44,6 +52,7 @@ const builder = new StateGraph(GraphAnnotation)
   .addNode("respondToQuery", respondToQuery)
   .addNode("rewriteArtifact", rewriteArtifact)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
+  .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
   .addNode("updateArtifact", updateArtifact)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
@@ -53,6 +62,7 @@ const builder = new StateGraph(GraphAnnotation)
   .addEdge("updateArtifact", "generateFollowup")
   .addEdge("rewriteArtifact", "generateFollowup")
   .addEdge("rewriteArtifactTheme", "generateFollowup")
+  .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   // End edges
   .addEdge("respondToQuery", "cleanState")
   .addEdge("generateFollowup", "cleanState")

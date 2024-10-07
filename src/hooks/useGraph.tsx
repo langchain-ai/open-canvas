@@ -11,7 +11,7 @@ import {
   ReadingLevelOptions,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
-import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
+// import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
   selectedArtifactId?: string;
@@ -34,10 +34,26 @@ const cleanContent = (content: string): string => {
   return content ? content.replaceAll("\n", realNewline) : "";
 };
 
+function removeCodeBlockFormatting(text: string): string {
+  // Regular expression to match code blocks
+  const codeBlockRegex = /^```[\w-]*\n([\s\S]*?)\n```$/;
+
+  // Check if the text matches the code block pattern
+  const match = text.match(codeBlockRegex);
+
+  if (match) {
+    // If it matches, return the content inside the code block
+    return match[1].trim();
+  } else {
+    // If it doesn't match, return the original text
+    return text;
+  }
+}
+
 export function useGraph() {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<BaseMessage[]>(DEFAULT_MESSAGES);
-  const [artifacts, setArtifacts] = useState<Artifact[]>(DEFAULT_ARTIFACTS);
+  const [messages, setMessages] = useState<BaseMessage[]>([]);
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [threadId, setThreadId] = useState<string | null>(null);
   // Default to the last artifact in the list
   const [selectedArtifactId, setSelectedArtifactId] = useState<
@@ -124,12 +140,17 @@ export function useGraph() {
                 const allWithoutCurrent = prev.filter(
                   (a) => a.id !== artifactId
                 );
+                let content = cleanContent(artifact.artifact);
+                if (artifactType === "code") {
+                  content = removeCodeBlockFormatting(content);
+                }
+
                 return [
                   ...allWithoutCurrent,
                   {
                     id: artifactId,
                     title: artifactTitle,
-                    content: cleanContent(artifact.artifact),
+                    content,
                     type: artifactType as Artifact["type"],
                     language: artifact.language,
                   },
@@ -176,11 +197,16 @@ export function useGraph() {
             setArtifacts((prev) =>
               prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
+                  let content = cleanContent(
+                    `${updatedArtifactStartContent}${updatedArtifactRestContent}`
+                  );
+                  if (artifactType === "code") {
+                    content = removeCodeBlockFormatting(content);
+                  }
+
                   return {
                     ...artifact,
-                    content: cleanContent(
-                      `${updatedArtifactStartContent}${updatedArtifactRestContent}`
-                    ),
+                    content,
                   };
                 }
                 return artifact;
@@ -191,20 +217,31 @@ export function useGraph() {
             }
           }
         } else if (
-          ["rewriteArtifact", "rewriteArtifactTheme"].includes(
-            chunk.data.metadata.langgraph_node
-          )
+          [
+            "rewriteArtifact",
+            "rewriteArtifactTheme",
+            "rewriteCodeArtifactTheme",
+          ].includes(chunk.data.metadata.langgraph_node)
         ) {
           if (updatingArtifactId) {
             newArtifactText += chunk.data.data.chunk[1].content;
+
+            // Ensure we have the language to update the artifact with
+            let artifactLanguage = params.portLanguage || undefined;
 
             // If no highlight, update the entire content as before
             setArtifacts((prev) => {
               return prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
+                  let content = cleanContent(newArtifactText);
+                  if (artifactType === "code") {
+                    content = removeCodeBlockFormatting(content);
+                  }
+
                   return {
                     ...artifact,
-                    content: cleanContent(newArtifactText),
+                    language: artifactLanguage ?? artifact.language,
+                    content,
                   };
                 }
                 return artifact;
@@ -270,6 +307,7 @@ export function useGraph() {
           [
             "rewriteArtifact",
             "rewriteArtifactTheme",
+            "rewriteCodeArtifactTheme",
             "updateArtifact",
           ].includes(chunk.data.metadata.langgraph_node)
         ) {
