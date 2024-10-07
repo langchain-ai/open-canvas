@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  Languages,
-  Plus,
-  BookOpen,
-  SlidersVertical,
-  SmilePlus,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ReadingLevelOptions } from "./ReadingLevelOptions";
-import { TranslateOptions } from "./TranslateOptions";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { LengthOptions } from "./LengthOptions";
-import { GraphInput } from "@/hooks/useGraph";
+/**
+ * Add comments
+ * Add logs
+ * Fix bugs
+ * Port to a lang
+ * Code review (p1)
+ */
 
-type SharedComponentProps = ActionsToolbarProps & { handleClose: () => void };
+import { useEffect, useRef, useState } from "react";
+import { MessageCircleCode, Code, ScrollText, Bug, BookA } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { GraphInput } from "@/hooks/useGraph";
+import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
+import { PortToLanguageOptions } from "./PortToLanguage";
+import { ProgrammingLanguageOptions } from "@/types";
+
+type SharedComponentProps = CodeToolbarProps & { handleClose: () => void };
 
 type ToolbarOption = {
   id: string;
@@ -22,41 +23,42 @@ type ToolbarOption = {
   component: ((props: SharedComponentProps) => React.ReactNode) | null;
 };
 
-export interface ActionsToolbarProps {
+export interface CodeToolbarProps {
   selectedArtifactId: string | undefined;
+  language: ProgrammingLanguageOptions;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
 
 const toolbarOptions: ToolbarOption[] = [
   {
-    id: "translate",
-    tooltip: "Translate",
-    icon: <Languages className="w-[26px] h-[26px]" />,
-    component: (props: SharedComponentProps) => <TranslateOptions {...props} />,
+    id: "addComments",
+    tooltip: "Add comments",
+    icon: <MessageCircleCode className="w-[26px] h-[26px]" />,
+    component: null,
   },
   {
-    id: "readingLevel",
-    tooltip: "Reading level",
-    icon: <BookOpen className="w-[26px] h-[26px]" />,
-    component: (props: SharedComponentProps) => (
-      <ReadingLevelOptions {...props} />
-    ),
+    id: "addLogs",
+    tooltip: "Add logs",
+    icon: <ScrollText className="w-[26px] h-[26px]" />,
+    component: null,
   },
   {
-    id: "adjustLength",
-    tooltip: "Adjust the length",
-    icon: <SlidersVertical className="w-[26px] h-[26px]" />,
-    component: (props: SharedComponentProps) => <LengthOptions {...props} />,
+    id: "portLanguage",
+    tooltip: "Port language",
+    icon: <BookA className="w-[26px] h-[26px]" />,
+    component: (
+      props: SharedComponentProps & { language: ProgrammingLanguageOptions }
+    ) => <PortToLanguageOptions {...props} />,
   },
   {
-    id: "addEmojis",
-    tooltip: "Add emojis",
-    icon: <SmilePlus className="w-[26px] h-[26px]" />,
+    id: "fixBugs",
+    tooltip: "Fix bugs",
+    icon: <Bug className="w-[26px] h-[26px]" />,
     component: null,
   },
 ];
 
-export function ActionsToolbar(props: ActionsToolbarProps) {
+export function CodeToolBar(props: CodeToolbarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -89,15 +91,29 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     optionId: string
   ) => {
     event.stopPropagation();
-    if (optionId === "addEmojis") {
-      setIsExpanded(false);
-      setActiveOption(null);
+
+    if (optionId === "portLanguage") {
+      setActiveOption(optionId);
+      return;
+    }
+
+    setIsExpanded(false);
+    setActiveOption(null);
+    if (optionId === "addComments") {
       await props.streamMessage({
         selectedArtifactId: props.selectedArtifactId,
-        regenerateWithEmojis: true,
+        addComments: true,
       });
-    } else {
-      setActiveOption(optionId);
+    } else if (optionId === "addLogs") {
+      await props.streamMessage({
+        selectedArtifactId: props.selectedArtifactId,
+        addLogs: true,
+      });
+    } else if (optionId === "fixBugs") {
+      await props.streamMessage({
+        selectedArtifactId: props.selectedArtifactId,
+        fixBugs: true,
+      });
     }
   };
 
@@ -115,9 +131,7 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
       ref={toolbarRef}
       className={cn(
         "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center",
-        isExpanded
-          ? "w-fit-content min-h-fit rounded-3xl"
-          : "w-12 h-12 rounded-full"
+        isExpanded ? "w-26 min-h-fit rounded-3xl" : "w-12 h-12 rounded-full"
       )}
       onClick={toggleExpand}
     >
@@ -147,10 +161,10 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
         <TooltipIconButton
           tooltip="Writing tools"
           variant="ghost"
-          className="transition-colors w-[36px] h-[36px] p-0 rounded-full"
+          className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
           delayDuration={400}
         >
-          <Plus className="w-[26px] h-[26px]" />
+          <Code className="w-[26px] h-[26px]" />
         </TooltipIconButton>
       )}
     </div>

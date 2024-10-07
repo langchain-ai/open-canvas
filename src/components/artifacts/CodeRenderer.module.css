@@ -1,0 +1,42 @@
+/* .codeMirrorCustom :global(.cm-focused) {
+  outline: none !important;
+}
+
+.codeMirrorCustom :global(.cm-editor) {
+  border: none !important;
+}
+
+.codeMirrorCustom :global(.cm-focused) {
+  outline: none !important;
+}
+
+.codeMirrorCustom :global(.cm-editor) {
+  border: none !important;
+}
+
+.codeMirrorCustom :global(.cm-gutters) {
+  border-right: none !important;
+} */
+
+.codeMirrorCustom {
+  height: 100vh !important;
+  overflow: hidden;
+}
+
+.codeMirrorCustom :global(.cm-editor) {
+  height: 100% !important;
+  border: none !important;
+}
+
+.codeMirrorCustom :global(.cm-scroller) {
+  overflow: auto;
+}
+
+.codeMirrorCustom :global(.cm-gutters) {
+  height: 100% !important;
+  border-right: none !important;
+}
+
+.codeMirrorCustom :global(.cm-focused) {
+  outline: none !important;
+}

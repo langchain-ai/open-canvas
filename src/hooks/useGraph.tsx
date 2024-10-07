@@ -7,6 +7,7 @@ import {
   ArtifactLengthOptions,
   Highlight,
   LanguageOptions,
+  ProgrammingLanguageOptions,
   ReadingLevelOptions,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
@@ -20,14 +21,34 @@ export interface GraphInput {
   language?: LanguageOptions;
   messages?: Record<string, any>[];
   highlighted?: Highlight;
+  addComments?: boolean;
+  addLogs?: boolean;
+  portLanguage?: ProgrammingLanguageOptions;
+  fixBugs?: boolean;
 }
 
 const realNewline = `
 `;
 
 const cleanContent = (content: string): string => {
-  return content.replaceAll("\n", realNewline);
+  return content ? content.replaceAll("\n", realNewline) : "";
 };
+
+function removeCodeBlockFormatting(text: string): string {
+  // Regular expression to match code blocks
+  const codeBlockRegex = /^```[\w-]*\n([\s\S]*?)\n```$/;
+
+  // Check if the text matches the code block pattern
+  const match = text.match(codeBlockRegex);
+
+  if (match) {
+    // If it matches, return the content inside the code block
+    return match[1].trim();
+  } else {
+    // If it doesn't match, return the original text
+    return text;
+  }
+}
 
 export function useGraph() {
   const { toast } = useToast();
@@ -45,6 +66,9 @@ export function useGraph() {
   }, []);
 
   const createThread = async () => {
+    setMessages([]);
+    setArtifacts([]);
+    setSelectedArtifactId(undefined);
     const client = createClient();
     const thread = await client.threads.create();
     setThreadId(thread.thread_id);
@@ -62,20 +86,9 @@ export function useGraph() {
 
     const client = createClient();
 
-    const defaultInputs = {
-      // We should always pass the currently selected artifact ID to the server.
-      selectedArtifactId,
-      highlighted: undefined,
-      next: undefined,
-      language: undefined,
-      artifactLength: undefined,
-      regenerateWithEmojis: undefined,
-      readingLevel: undefined,
-    };
-
     const input = {
       // Ensure we set all existing values (except `artifacts` and `messages`) to undefined by default.
-      ...defaultInputs,
+      selectedArtifactId,
       messages: params.messages?.filter((msg) => {
         if (msg.role !== "assistant") {
           return true;
@@ -101,6 +114,7 @@ export function useGraph() {
     let fullArtifactGenerationStr = "";
     let artifactId = "";
     let artifactTitle = "";
+    let artifactType = "";
     let updatingArtifactId = "";
     let newArtifactText = "";
 
@@ -120,17 +134,28 @@ export function useGraph() {
           try {
             const artifact = parsePartialJson(fullArtifactGenerationStr);
             artifactTitle = artifact.title;
-            if (artifact.artifact && artifactId) {
+            artifactType = artifact.type;
+            if (
+              (artifact.artifact && artifactId && artifactType === "text") ||
+              artifactType === "code"
+            ) {
               setArtifacts((prev) => {
                 const allWithoutCurrent = prev.filter(
                   (a) => a.id !== artifactId
                 );
+                let content = cleanContent(artifact.artifact);
+                if (artifactType === "code") {
+                  content = removeCodeBlockFormatting(content);
+                }
+
                 return [
                   ...allWithoutCurrent,
                   {
                     id: artifactId,
                     title: artifactTitle,
-                    content: cleanContent(artifact.artifact),
+                    content,
+                    type: artifactType as Artifact["type"],
+                    language: artifact.language,
                   },
                 ];
               });
@@ -175,11 +200,16 @@ export function useGraph() {
             setArtifacts((prev) =>
               prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
+                  let content = cleanContent(
+                    `${updatedArtifactStartContent}${updatedArtifactRestContent}`
+                  );
+                  if (artifactType === "code") {
+                    content = removeCodeBlockFormatting(content);
+                  }
+
                   return {
                     ...artifact,
-                    content: cleanContent(
-                      `${updatedArtifactStartContent}${updatedArtifactRestContent}`
-                    ),
+                    content,
                   };
                 }
                 return artifact;
@@ -190,20 +220,31 @@ export function useGraph() {
             }
           }
         } else if (
-          ["rewriteArtifact", "rewriteArtifactTheme"].includes(
-            chunk.data.metadata.langgraph_node
-          )
+          [
+            "rewriteArtifact",
+            "rewriteArtifactTheme",
+            "rewriteCodeArtifactTheme",
+          ].includes(chunk.data.metadata.langgraph_node)
         ) {
           if (updatingArtifactId) {
             newArtifactText += chunk.data.data.chunk[1].content;
+
+            // Ensure we have the language to update the artifact with
+            let artifactLanguage = params.portLanguage || undefined;
 
             // If no highlight, update the entire content as before
             setArtifacts((prev) => {
               return prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
+                  let content = cleanContent(newArtifactText);
+                  if (artifactType === "code") {
+                    content = removeCodeBlockFormatting(content);
+                  }
+
                   return {
                     ...artifact,
-                    content: cleanContent(newArtifactText),
+                    language: artifactLanguage ?? artifact.language,
+                    content,
                   };
                 }
                 return artifact;
@@ -269,6 +310,7 @@ export function useGraph() {
           [
             "rewriteArtifact",
             "rewriteArtifactTheme",
+            "rewriteCodeArtifactTheme",
             "updateArtifact",
           ].includes(chunk.data.metadata.langgraph_node)
         ) {
@@ -351,5 +393,6 @@ export function useGraph() {
     setArtifacts,
     setMessages,
     streamMessage,
+    createThread,
   };
 }

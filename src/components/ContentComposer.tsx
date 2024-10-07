@@ -17,12 +17,15 @@ import {
 import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
 import { Artifact } from "@/types";
+import { Thread } from "@langchain/langgraph-sdk";
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   setArtifacts: React.Dispatch<React.SetStateAction<Artifact[]>>;
   setSelectedArtifact: (artifactId: string) => void;
+  createThread: () => Promise<Thread>;
+  setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const realNewline = `
@@ -38,6 +41,7 @@ export function ContentComposerChatInterface(
     if (message.content[0]?.type !== "text") {
       throw new Error("Only text messages are supported");
     }
+    props.setChatStarted(true);
     setIsRunning(true);
 
     try {
@@ -73,7 +77,10 @@ export function ContentComposerChatInterface(
   return (
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
-        <MyThread setSelectedArtifact={props.setSelectedArtifact} />
+        <MyThread
+          createThread={props.createThread}
+          setSelectedArtifact={props.setSelectedArtifact}
+        />
       </AssistantRuntimeProvider>
       <Toaster />
     </div>

@@ -24,41 +24,57 @@ import {
   CopyIcon,
   PencilIcon,
   SendHorizontalIcon,
+  SquarePen,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { BaseMessage } from "@langchain/core/messages";
 import { useArtifactToolUI } from "./ArtifactToolUI";
+import { Thread } from "@langchain/langgraph-sdk";
 
-export interface MyThreadProps extends MyAssistantMessageProps {
+export interface MyThreadProps {
   setSelectedArtifact: (artifactId: string) => void;
+  createThread: () => Promise<Thread>;
 }
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   const { setSelectedArtifact } = props;
   useArtifactToolUI({ setSelectedArtifact });
 
+  const handleCreateThread = async () => {
+    await props.createThread();
+  };
+
   return (
-    <ThreadPrimitive.Root className="h-full">
-      <ThreadPrimitive.Viewport className="flex h-full flex-col items-center overflow-y-scroll scroll-smooth bg-inherit px-4 pt-8">
+    <ThreadPrimitive.Root className="flex flex-col h-full">
+      <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between">
+        <p className="text-xl text-gray-600">Open Canvas</p>
+        <TooltipIconButton
+          tooltip="New chat"
+          variant="ghost"
+          className="transition-colors w-[36px] h-[36px] text-gray-600"
+          delayDuration={400}
+          onClick={handleCreateThread}
+        >
+          <SquarePen />
+        </TooltipIconButton>
+      </div>
+      <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
         <MyThreadWelcome />
         <ThreadPrimitive.Messages
           components={{
             UserMessage: MyUserMessage,
             EditComposer: MyEditComposer,
-            AssistantMessage: useCallback(
-              (messageProps: AssistantMessageContentProps) => (
-                <MyAssistantMessage {...messageProps} onCopy={props.onCopy} />
-              ),
-              [props.onCopy]
-            ),
+            AssistantMessage: MyAssistantMessage,
           }}
         />
-        <div className="sticky bottom-0 mt-4 flex w-full max-w-2xl flex-grow flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
-          <MyThreadScrollToBottom />
+      </ThreadPrimitive.Viewport>
+      <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
+        <MyThreadScrollToBottom />
+        <div className="w-full max-w-2xl">
           <MyComposer />
         </div>
-      </ThreadPrimitive.Viewport>
+      </div>
     </ThreadPrimitive.Root>
   );
 };
@@ -129,28 +145,10 @@ const MyComposer: FC = () => {
 const MyUserMessage: FC = () => {
   return (
     <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-4">
-      <MyUserActionBar />
-
       <div className="bg-muted text-foreground col-start-2 row-start-1 max-w-xl break-words rounded-3xl px-5 py-2.5">
         <MessagePrimitive.Content />
       </div>
     </MessagePrimitive.Root>
-  );
-};
-
-const MyUserActionBar: FC = () => {
-  return (
-    <ActionBarPrimitive.Root
-      hideWhenRunning
-      autohide="not-last"
-      className="col-start-1 mr-3 mt-2.5 flex flex-col items-end"
-    >
-      <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit">
-          <PencilIcon />
-        </TooltipIconButton>
-      </ActionBarPrimitive.Edit>
-    </ActionBarPrimitive.Root>
   );
 };
 
@@ -193,11 +191,7 @@ const MyEditComposer: FC = () => {
   );
 };
 
-interface MyAssistantMessageProps extends AssistantActionBarProps {}
-
-const MyAssistantMessage: FC<MyAssistantMessageProps> = (
-  props: MyAssistantMessageProps
-) => {
+const MyAssistantMessage: FC = () => {
   const edit = useActionBarEdit();
   const isDone = useMessage(
     (m) => (m.message as ThreadAssistantMessage).status?.type !== "running"
@@ -224,42 +218,7 @@ const MyAssistantMessage: FC<MyAssistantMessageProps> = (
       <div className="text-foreground col-span-2 col-start-2 row-start-1 my-1.5 max-w-xl break-words leading-7">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
       </div>
-
-      <MyAssistantActionBar onCopy={props.onCopy} />
     </MessagePrimitive.Root>
-  );
-};
-
-interface AssistantActionBarProps {
-  onCopy?: () => void;
-}
-
-const MyAssistantActionBar: FC<AssistantActionBarProps> = (
-  props: AssistantActionBarProps
-) => {
-  return (
-    <ActionBarPrimitive.Root
-      hideWhenRunning
-      autohide="not-last"
-      autohideFloat="single-branch"
-      className="text-muted-foreground data-[floating]:bg-background col-start-3 row-start-2 -ml-1 flex gap-1 data-[floating]:absolute data-[floating]:rounded-md data-[floating]:border data-[floating]:p-1 data-[floating]:shadow-sm"
-    >
-      <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit" className="w-6 h-6">
-          <PencilIcon size={24} />
-        </TooltipIconButton>
-      </ActionBarPrimitive.Edit>
-      <ActionBarPrimitive.Copy onClick={props.onCopy} asChild>
-        <TooltipIconButton tooltip="Copy" className="w-6 h-6">
-          <MessagePrimitive.If copied>
-            <CheckIcon size={24} />
-          </MessagePrimitive.If>
-          <MessagePrimitive.If copied={false}>
-            <CopyIcon size={24} />
-          </MessagePrimitive.If>
-        </TooltipIconButton>
-      </ActionBarPrimitive.Copy>
-    </ActionBarPrimitive.Root>
   );
 };
 

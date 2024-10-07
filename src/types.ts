@@ -24,6 +24,8 @@ export interface Artifact {
   id: string;
   content: string;
   title: string;
+  type: "code" | "text";
+  language: string;
 }
 
 export type Highlight = {
@@ -38,6 +40,14 @@ export type LanguageOptions =
   | "spanish"
   | "french"
   | "hindi";
+
+export type ProgrammingLanguageOptions =
+  | "typescript"
+  | "javascript"
+  | "cpp"
+  | "java"
+  | "php"
+  | "python";
 
 export type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
 

@@ -1,16 +1,18 @@
 import { v4 as uuidv4 } from "uuid";
-import Markdown from "react-markdown";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { CircleArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Artifact } from "@/types";
+import { Artifact, ProgrammingLanguageOptions } from "@/types";
 import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { X } from "lucide-react";
-import { ActionsToolbar } from "./actions_toolbar";
+import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
+import { TextRenderer } from "./TextRenderer";
+import { CodeRenderer } from "./CodeRenderer";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -77,6 +79,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         setIsSelectionActive(false);
         setSelectionBox(null);
         setIsInputVisible(false);
+        setInputValue("");
       }
     },
     [isSelectionActive]
@@ -108,7 +111,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         messages: [convertToOpenAIFormat(humanMessage)],
         highlighted: {
           id: props.artifact.id,
-          startCharIndex: startIndex,
+          startCharIndex: startIndex === -1 ? 0 : startIndex,
           endCharIndex: endIndex,
         },
       });
@@ -169,23 +172,41 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
   return (
     <div className="relative w-full h-full overflow-auto">
-      <div className="pl-4 pt-4 flex flex-row gap-4 items-center justify-start">
-        <Button
+      <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
+        <TooltipIconButton
+          tooltip="Close canvas"
+          variant="ghost"
+          className="w-[36px] h-[36px]"
+          delayDuration={400}
           onClick={() => props.setSelectedArtifactById(undefined)}
-          variant="outline"
-          size="icon"
         >
           <X />
-        </Button>
+        </TooltipIconButton>
         <h1 className="text-xl font-medium">{props.artifact.title}</h1>
       </div>
 
-      <div ref={contentRef} className="flex justify-center h-full pt-[10%]">
-        <div className="max-w-3xl w-full px-4 relative">
+      <div
+        ref={contentRef}
+        className={cn(
+          "flex justify-center h-full",
+          props.artifact.type === "code" ? "pt-[10px]" : "pt-[10%]"
+        )}
+      >
+        <div
+          className={cn(
+            "relative",
+            props.artifact.type === "code"
+              ? "min-w-full min-h-full"
+              : "max-w-3xl w-full px-4"
+          )}
+        >
           <div ref={markdownRef}>
-            <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              {props.artifact.content}
-            </Markdown>
+            {props.artifact.type === "text" ? (
+              <TextRenderer artifact={props.artifact} />
+            ) : null}
+            {props.artifact.type === "code" ? (
+              <CodeRenderer artifact={props.artifact} />
+            ) : null}
           </div>
           <div
             ref={highlightLayerRef}
@@ -242,10 +263,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
-      <ActionsToolbar
-        selectedArtifactId={props.artifact.id}
-        streamMessage={props.streamMessage}
-      />
+      {props.artifact.type === "text" ? (
+        <ActionsToolbar
+          selectedArtifactId={props.artifact.id}
+          streamMessage={props.streamMessage}
+        />
+      ) : null}
+      {props.artifact.type === "code" ? (
+        <CodeToolBar
+          language={props.artifact.language as ProgrammingLanguageOptions}
+          selectedArtifactId={props.artifact.id}
+          streamMessage={props.streamMessage}
+        />
+      ) : null}
     </div>
   );
 }
