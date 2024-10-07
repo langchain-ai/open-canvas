@@ -29,6 +29,8 @@ Follow these rules and guidelines:
 - Do NOT wrap in markdown blocks (e.g triple backticks) unless the highlighted text ALREADY contains markdown syntax.
   If you insert markdown blocks inside the highlighted text when they are already defined outside the text, you will break the markdown formatting.
 - You should use proper markdown syntax when appropriate, as the text you generate will be rendered in markdown.
+- NEVER generate content that is not included in the highlighted text. Whether the highlighted text be a single character, split a single word,
+  an incomplete sentence, or an entire paragraph, you should ONLY generate content that is within the highlighted text.
 ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>
 
