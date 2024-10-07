@@ -130,9 +130,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
       ref={toolbarRef}
       className={cn(
         "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center",
-        isExpanded
-          ? "w-fit-content min-h-fit rounded-3xl"
-          : "w-12 h-12 rounded-full"
+        isExpanded ? "w-26 min-h-fit rounded-3xl" : "w-12 h-12 rounded-full"
       )}
       onClick={toggleExpand}
     >

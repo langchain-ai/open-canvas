@@ -171,11 +171,12 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
   return (
     <div className="relative w-full h-full overflow-auto">
-      <div className="pl-4 pt-4 flex flex-row gap-4 items-center justify-start">
+      <div className="pl-[6px] pt-4 flex flex-row gap-4 items-center justify-start">
         <Button
           onClick={() => props.setSelectedArtifactById(undefined)}
-          variant="outline"
+          variant="ghost"
           size="icon"
+          className="w-[24px] h-[24px]"
         >
           <X />
         </Button>

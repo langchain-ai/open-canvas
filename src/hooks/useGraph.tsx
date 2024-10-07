@@ -11,7 +11,7 @@ import {
   ReadingLevelOptions,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
-// import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
+import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
   selectedArtifactId?: string;
@@ -36,8 +36,8 @@ const cleanContent = (content: string): string => {
 
 export function useGraph() {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<BaseMessage[]>([]);
-  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [messages, setMessages] = useState<BaseMessage[]>(DEFAULT_MESSAGES);
+  const [artifacts, setArtifacts] = useState<Artifact[]>(DEFAULT_ARTIFACTS);
   const [threadId, setThreadId] = useState<string | null>(null);
   // Default to the last artifact in the list
   const [selectedArtifactId, setSelectedArtifactId] = useState<

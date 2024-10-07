@@ -24,6 +24,7 @@ import {
   CopyIcon,
   PencilIcon,
   SendHorizontalIcon,
+  SquarePen,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
@@ -39,8 +40,19 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   useArtifactToolUI({ setSelectedArtifact });
 
   return (
-    <ThreadPrimitive.Root className="h-full">
-      <ThreadPrimitive.Viewport className="flex h-full flex-col items-center overflow-y-scroll scroll-smooth bg-inherit px-4 pt-8">
+    <ThreadPrimitive.Root className="flex flex-col h-full">
+      <div className="pr-3 pl-6 pt-3 flex flex-row gap-4 items-center justify-between">
+        <p className="text-xl text-gray-600">Open Canvas</p>
+        <TooltipIconButton
+          tooltip="New chat"
+          variant="ghost"
+          className="transition-colors w-[36px] h-[36px] text-gray-600"
+          delayDuration={400}
+        >
+          <SquarePen />
+        </TooltipIconButton>
+      </div>
+      <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
         <MyThreadWelcome />
         <ThreadPrimitive.Messages
           components={{
@@ -54,11 +66,11 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
             ),
           }}
         />
-        <div className="sticky bottom-0 mt-4 flex w-full max-w-2xl flex-grow flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
-          <MyThreadScrollToBottom />
-          <MyComposer />
-        </div>
       </ThreadPrimitive.Viewport>
+      <div className="mt-4 flex w-full max-w-2xl flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
+        <MyThreadScrollToBottom />
+        <MyComposer />
+      </div>
     </ThreadPrimitive.Root>
   );
 };
