@@ -8,6 +8,7 @@ Use the full chat history as context when generating the artifact.
 Follow these rules and guidelines:
 <rules-guidelines>
 - Do not wrap it in any XML tags you see in this prompt.
+- If writing code, do not add inline comments unless the user has specifically requested them. This is very important as we don't want to clutter the code.
 ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>`;
 

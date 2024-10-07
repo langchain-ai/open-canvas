@@ -66,6 +66,9 @@ export function useGraph() {
   }, []);
 
   const createThread = async () => {
+    setMessages([]);
+    setArtifacts([]);
+    setSelectedArtifactId(undefined);
     const client = createClient();
     const thread = await client.threads.create();
     setThreadId(thread.thread_id);
@@ -390,5 +393,6 @@ export function useGraph() {
     setArtifacts,
     setMessages,
     streamMessage,
+    createThread,
   };
 }

@@ -30,14 +30,20 @@ import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { BaseMessage } from "@langchain/core/messages";
 import { useArtifactToolUI } from "./ArtifactToolUI";
+import { Thread } from "@langchain/langgraph-sdk";
 
 export interface MyThreadProps extends MyAssistantMessageProps {
   setSelectedArtifact: (artifactId: string) => void;
+  createThread: () => Promise<Thread>;
 }
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   const { setSelectedArtifact } = props;
   useArtifactToolUI({ setSelectedArtifact });
+
+  const handleCreateThread = async () => {
+    await props.createThread();
+  };
 
   return (
     <ThreadPrimitive.Root className="flex flex-col h-full">
@@ -48,6 +54,7 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
           variant="ghost"
           className="transition-colors w-[36px] h-[36px] text-gray-600"
           delayDuration={400}
+          onClick={handleCreateThread}
         >
           <SquarePen />
         </TooltipIconButton>

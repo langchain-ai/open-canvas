@@ -12,6 +12,7 @@ export default function Home() {
     messages,
     setSelectedArtifact,
     selectedArtifactId,
+    createThread,
   } = useGraph();
 
   return (
@@ -23,6 +24,7 @@ export default function Home() {
           setArtifacts={setArtifacts}
           messages={messages}
           setMessages={setMessages}
+          createThread={createThread}
         />
       </div>
       <div className="w-full ml-auto">
