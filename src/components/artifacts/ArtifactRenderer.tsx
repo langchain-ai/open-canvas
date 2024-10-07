@@ -78,6 +78,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         setIsSelectionActive(false);
         setSelectionBox(null);
         setIsInputVisible(false);
+        setInputValue("");
       }
     },
     [isSelectionActive]
