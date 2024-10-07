@@ -28,9 +28,6 @@ export interface ContentComposerChatInterfaceProps {
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const realNewline = `
-`;
-
 export function ContentComposerChatInterface(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
@@ -55,8 +52,6 @@ export function ContentComposerChatInterface(
       await streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
       });
-    } catch (error) {
-      console.error("Error running message:", error);
     } finally {
       setIsRunning(false);
     }
