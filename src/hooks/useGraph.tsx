@@ -11,6 +11,7 @@ import {
   ReadingLevelOptions,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
+import { useRuns } from "./useRuns";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
@@ -52,6 +53,7 @@ function removeCodeBlockFormatting(text: string): string {
 
 export function useGraph() {
   const { toast } = useToast();
+  const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [threadId, setThreadId] = useState<string | null>(null);
@@ -123,7 +125,14 @@ export function useGraph() {
     // All the text after the endCharIndex
     let updatedArtifactRestContent: string | undefined = undefined;
 
+    let messageId: string | undefined = undefined;
+    let runId: string | undefined = undefined;
+
     for await (const chunk of stream) {
+      if (!runId && chunk.data?.metadata?.run_id) {
+        runId = chunk.data.metadata.run_id;
+      }
+
       if (chunk.data.event === "on_chat_model_stream") {
         if (chunk.data.metadata.langgraph_node === "generateArtifact") {
           if (!artifactId && chunk.data.data.chunk[1].id) {
@@ -256,6 +265,7 @@ export function useGraph() {
           }
         } else if (chunk.data.metadata.langgraph_node === "generateFollowup") {
           const message = chunk.data.data.chunk[1];
+          messageId = message.id;
           setMessages((prevMessages) => {
             const existingMessageIndex = prevMessages.findIndex(
               (msg) => msg.id === message.id
@@ -281,6 +291,7 @@ export function useGraph() {
           });
         } else if (chunk.data.metadata.langgraph_node === "respondToQuery") {
           const message = chunk.data.data.chunk[1];
+          messageId = message.id;
           setMessages((prevMessages) => {
             const existingMessageIndex = prevMessages.findIndex(
               (msg) => msg.id === message.id
@@ -322,6 +333,21 @@ export function useGraph() {
           }
         }
       }
+    }
+
+    if (runId) {
+      // Chain `.then` to not block the stream
+      shareRun(runId).then((sharedRunURL) => {
+        setMessages((prevMessages) => {
+          return prevMessages.map((msg) => {
+            if (msg.id === messageId) {
+              msg.response_metadata.sharedRunURL = sharedRunURL;
+              return msg;
+            }
+            return msg;
+          });
+        });
+      });
     }
 
     // Check to see if there is an AIMessage with a tool call that contains the same artifact ID. If not, add one to render the tool.
