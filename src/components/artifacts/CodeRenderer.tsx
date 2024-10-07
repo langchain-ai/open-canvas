@@ -7,7 +7,6 @@ import { java } from "@codemirror/lang-java";
 import { php } from "@codemirror/lang-php";
 import { python } from "@codemirror/lang-python";
 
-// Add this import for styling
 import styles from "./CodeRenderer.module.css";
 
 export interface CodeRendererProps {
@@ -17,13 +16,20 @@ export interface CodeRendererProps {
 export function CodeRenderer(props: CodeRendererProps) {
   const [code, setCode] = useState("");
 
-  const extensions = [
-    javascript({ jsx: true, typescript: true }),
-    cpp(),
-    java(),
-    php(),
-    python(),
-  ];
+  let extensions: any[] = [];
+  if (props.artifact.language === "javascript") {
+    extensions = [javascript({ jsx: true, typescript: false })];
+  } else if (props.artifact.language === "typescript") {
+    extensions = [javascript({ jsx: true, typescript: true })];
+  } else if (props.artifact.language === "cpp") {
+    extensions = [cpp()];
+  } else if (props.artifact.language === "java") {
+    extensions = [java()];
+  } else if (props.artifact.language === "php") {
+    extensions = [php()];
+  } else if (props.artifact.language === "python") {
+    extensions = [python()];
+  }
 
   if (!props.artifact.content) {
     return null;

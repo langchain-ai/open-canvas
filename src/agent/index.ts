@@ -400,7 +400,10 @@ const generateArtifact = async (
           language: z
             .string()
             .describe(
-              "The language of the artifact to generate. If generating code, it should be the programming language."
+              "The language of the artifact to generate. " +
+                " If generating code, it should be the programming language. " +
+                "For programming languages, ensure it's one of the following" +
+                "'javascript' | 'typescript' | 'cpp' | 'java' | 'php' | 'python' | 'other'"
             ),
           artifact: z
             .string()
