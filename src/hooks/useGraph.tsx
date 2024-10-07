@@ -62,20 +62,9 @@ export function useGraph() {
 
     const client = createClient();
 
-    const defaultInputs = {
-      // We should always pass the currently selected artifact ID to the server.
-      selectedArtifactId,
-      highlighted: undefined,
-      next: undefined,
-      language: undefined,
-      artifactLength: undefined,
-      regenerateWithEmojis: undefined,
-      readingLevel: undefined,
-    };
-
     const input = {
       // Ensure we set all existing values (except `artifacts` and `messages`) to undefined by default.
-      ...defaultInputs,
+      selectedArtifactId,
       messages: params.messages?.filter((msg) => {
         if (msg.role !== "assistant") {
           return true;
