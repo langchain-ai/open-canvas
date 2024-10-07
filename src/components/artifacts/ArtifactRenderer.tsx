@@ -13,6 +13,8 @@ import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { TextRenderer } from "./TextRenderer";
 import { CodeRenderer } from "./CodeRenderer";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { useToast } from "@/hooks/use-toast";
+import { EditorView } from "@codemirror/view";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -29,11 +31,17 @@ interface SelectionBox {
 }
 
 export function ArtifactRenderer(props: ArtifactRendererProps) {
+  const { toast } = useToast();
+  const editorRef = useRef<EditorView | null>(null);
   const markdownRef = useRef<HTMLDivElement>(null);
   const highlightLayerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const selectionBoxRef = useRef<HTMLDivElement>(null);
-  const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
+  const [selectionBox, setSelectionBox] = useState<SelectionBox>();
+  const [selectionIndexes, setSelectionIndexes] = useState<{
+    start: number;
+    end: number;
+  }>();
   const [isInputVisible, setIsInputVisible] = useState(false);
   const [isSelectionActive, setIsSelectionActive] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -77,9 +85,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         !selectionBoxRef.current.contains(event.target as Node)
       ) {
         setIsSelectionActive(false);
-        setSelectionBox(null);
+        setSelectionBox(undefined);
         setIsInputVisible(false);
         setInputValue("");
+        setSelectionIndexes(undefined);
       }
     },
     [isSelectionActive]
@@ -90,12 +99,17 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, []);
 
   const handleSubmit = async () => {
-    if (selectionBox && props.artifact) {
-      const fullContent = props.artifact.content;
-      const selectedText = selectionBox.text;
+    if (!selectionIndexes) {
+      toast({
+        title: "Selection error",
+        description:
+          "Failed to get start/end indexes of the selected text. Please try again.",
+        duration: 5000,
+      });
+      return;
+    }
 
-      const startIndex = fullContent.indexOf(selectedText);
-      const endIndex = startIndex + selectedText.length;
+    if (selectionBox && props.artifact) {
       const humanMessage = new HumanMessage({
         content: inputValue,
         id: uuidv4(),
@@ -105,14 +119,15 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
       setIsInputVisible(false);
       setInputValue("");
-      setSelectionBox(null);
+      setSelectionBox(undefined);
+      setSelectionIndexes(undefined);
 
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
         highlighted: {
           id: props.artifact.id,
-          startCharIndex: startIndex === -1 ? 0 : startIndex,
-          endCharIndex: endIndex,
+          startCharIndex: selectionIndexes.start,
+          endCharIndex: selectionIndexes.end,
         },
       });
     }
@@ -145,6 +160,51 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             const rects = range.getClientRects();
             const layerRect = highlightLayer.getBoundingClientRect();
 
+            // Calculate start and end indexes
+            let startIndex, endIndex;
+
+            if (props.artifact?.type === "code" && editorRef.current) {
+              const from = editorRef.current.posAtDOM(
+                range.startContainer,
+                range.startOffset
+              );
+              const to = editorRef.current.posAtDOM(
+                range.endContainer,
+                range.endOffset
+              );
+              startIndex = from;
+              endIndex = to;
+            } else {
+              // Calculate start and end indexes
+              const startContainer = range.startContainer;
+              const endContainer = range.endContainer;
+              startIndex = range.startOffset;
+              endIndex = range.endOffset;
+
+              // Traverse up to find the common ancestor
+              let node: Node | null = startContainer;
+              while (node && node !== content) {
+                if (node.previousSibling) {
+                  node = node.previousSibling;
+                  startIndex += node.textContent?.length || 0;
+                } else {
+                  node = node.parentNode;
+                }
+              }
+
+              node = endContainer;
+              while (node && node !== content) {
+                if (node.previousSibling) {
+                  node = node.previousSibling;
+                  endIndex += node.textContent?.length || 0;
+                } else {
+                  node = node.parentNode;
+                }
+              }
+            }
+
+            setSelectionIndexes({ start: startIndex, end: endIndex });
+
             for (let i = 0; i < rects.length; i++) {
               const rect = rects[i];
               const highlightEl = document.createElement("div");
@@ -152,7 +212,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                 "absolute bg-[#3597934d] pointer-events-none";
 
               // Adjust the positioning and size
-              const verticalPadding = 3; // Adjust this value as needed
+              const verticalPadding = 3;
               highlightEl.style.left = `${rect.left - layerRect.left}px`;
               highlightEl.style.top = `${rect.top - layerRect.top - verticalPadding}px`;
               highlightEl.style.width = `${rect.width}px`;
@@ -164,7 +224,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         }
       }
     }
-  }, [isSelectionActive, selectionBox]);
+  }, [isSelectionActive, selectionBox, props.artifact?.type]);
 
   if (!props.artifact) {
     return <div className="w-full h-full"></div>;
@@ -205,7 +265,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               <TextRenderer artifact={props.artifact} />
             ) : null}
             {props.artifact.type === "code" ? (
-              <CodeRenderer artifact={props.artifact} />
+              <CodeRenderer editorRef={editorRef} artifact={props.artifact} />
             ) : null}
           </div>
           <div

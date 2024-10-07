@@ -1,6 +1,6 @@
 import { Artifact } from "@/types";
-import { useState } from "react";
-import CodeMirror from "@uiw/react-codemirror";
+import { MutableRefObject, useState } from "react";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
@@ -11,6 +11,7 @@ import styles from "./CodeRenderer.module.css";
 
 export interface CodeRendererProps {
   artifact: Artifact;
+  editorRef: MutableRefObject<EditorView | null>;
 }
 
 export function CodeRenderer(props: CodeRendererProps) {
@@ -37,11 +38,15 @@ export function CodeRenderer(props: CodeRendererProps) {
 
   return (
     <CodeMirror
+      editable={false}
       className={`w-full min-h-full ${styles.codeMirrorCustom}`}
       value={props.artifact.content}
       height="800px"
       extensions={extensions}
       onChange={(c) => setCode(c)}
+      onCreateEditor={(view) => {
+        props.editorRef.current = view;
+      }}
     />
   );
 }
