@@ -55,6 +55,8 @@ ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>
 `;
 
+// ----- Text modification prompts -----
+
 export const CHANGE_ARTIFACT_LANGUAGE_PROMPT = `You are tasked with changing the language of the following artifact to {newLanguage}.
 
 Here is the current content of the artifact:
@@ -127,14 +129,17 @@ Rules and guidelines:
 - Do not wrap it in any XML tags you see in this prompt. Ensure it's just the updated artifact.
 </rules-guidelines>`;
 
+// ----- End text modification prompts -----
+
 export const ROUTE_QUERY_PROMPT = `You are an assistant tasked with routing the users query based on their most recent message.
 You should look at this message in isolation and determine where to best route there query.
 Your options are as follows:
 
 - 'updateArtifact': The user has requested some sort of change or edit to an existing artifact. Use their recent message and the currently selected artifact (if any) to determine what to do. You should ONLY select this if the user has clearly requested a change to the artifact, otherwise you should lean towards either generating a new artifact or responding to their query.
   It is very important you do not edit the artifact unless clearly requested by the user.
-- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.
 - 'generateArtifact': The user has inputted a request which requires generating a new artifact.
+  Artifacts can be any sort of writing content, code, or other creative works. Think of artifacts as content you might find on a blog, google doc, or other writing platform.
+- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.
 
 If you believe the user wants to update an existing artifact, you MUST also supply the ID of the artifact they are referring to.
 
