@@ -12,6 +12,7 @@ import {
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
+import { reverseCleanContent } from "@/lib/normalize_string";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
@@ -27,13 +28,6 @@ export interface GraphInput {
   portLanguage?: ProgrammingLanguageOptions;
   fixBugs?: boolean;
 }
-
-const realNewline = `
-`;
-
-const cleanContent = (content: string): string => {
-  return content ? content.replaceAll("\n", realNewline) : "";
-};
 
 function removeCodeBlockFormatting(text: string): string {
   // Regular expression to match code blocks
@@ -153,7 +147,7 @@ export function useGraph() {
                 const allWithoutCurrent = prev.filter(
                   (a) => a.id !== artifactId
                 );
-                let content = cleanContent(artifact.artifact);
+                let content = artifact.artifact;
                 if (artifactType === "code") {
                   content = removeCodeBlockFormatting(content);
                 }
@@ -210,9 +204,7 @@ export function useGraph() {
             setArtifacts((prev) =>
               prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
-                  let content = cleanContent(
-                    `${updatedArtifactStartContent}${updatedArtifactRestContent}`
-                  );
+                  let content = `${updatedArtifactStartContent}${updatedArtifactRestContent}`;
                   if (artifactType === "code") {
                     content = removeCodeBlockFormatting(content);
                   }
@@ -246,7 +238,7 @@ export function useGraph() {
             setArtifacts((prev) => {
               return prev.map((artifact) => {
                 if (artifact.id === updatingArtifactId) {
-                  let content = cleanContent(newArtifactText);
+                  let content = newArtifactText;
                   if (artifactType === "code") {
                     content = removeCodeBlockFormatting(content);
                   }
@@ -442,7 +434,7 @@ export function useGraph() {
         if (artifact.id === id) {
           return {
             ...artifact,
-            content,
+            content: reverseCleanContent(content),
           };
         }
         return artifact;

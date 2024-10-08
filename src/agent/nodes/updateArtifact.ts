@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { GraphAnnotation, GraphReturnType } from "../state";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
+import { newlineToCarriageReturn } from "@/lib/normalize_string";
 
 /**
  * Update an existing artifact based on the user's query.
@@ -26,22 +27,24 @@ export const updateArtifact = async (
     );
   }
 
+  const normalizedString = newlineToCarriageReturn(selectedArtifact.content);
+
   // Highlighted text is present, so we need to update the highlighted text.
   const start = Math.max(0, state.highlighted.startCharIndex - 500);
   const end = Math.min(
-    selectedArtifact.content.length,
+    normalizedString.length,
     state.highlighted.endCharIndex + 500
   );
 
-  const beforeHighlight = selectedArtifact.content.slice(
+  const beforeHighlight = normalizedString.slice(
     start,
     state.highlighted.startCharIndex
   ) as string;
-  const highlightedText = selectedArtifact.content.slice(
+  const highlightedText = normalizedString.slice(
     state.highlighted.startCharIndex,
     state.highlighted.endCharIndex
   ) as string;
-  const afterHighlight = selectedArtifact.content.slice(
+  const afterHighlight = normalizedString.slice(
     state.highlighted.endCharIndex,
     end
   ) as string;
