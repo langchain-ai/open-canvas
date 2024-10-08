@@ -266,13 +266,13 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         ref={contentRef}
         className={cn(
           "flex justify-center h-full",
-          props.artifact.type === "code" ? "pt-[10px]" : "pt-[0px]"
+          props.artifact.type === "code" ? "pt-[10px]" : ""
         )}
       >
         <div
           className={cn(
             "relative min-h-full",
-            props.artifact.type === "code" ? "min-w-full" : "w-full px-4"
+            props.artifact.type === "code" ? "min-w-full" : "min-w-full px-4"
           )}
         >
           <div className="h-[85%]" ref={markdownRef}>

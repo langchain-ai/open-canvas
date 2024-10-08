@@ -33,7 +33,10 @@ export interface MyThreadProps {
   setSelectedArtifact: (artifactId: string) => void;
   createThread: () => Promise<Thread>;
   showNewThreadButton: boolean;
-  handleQuickStart: (type: "text" | "code") => void;
+  handleQuickStart: (
+    type: "text" | "code",
+    language?: ProgrammingLanguageOptions
+  ) => void;
 }
 
 interface QuickStartButtonsProps {
@@ -263,8 +266,6 @@ const MyEditComposer: FC = () => {
 };
 
 const MyAssistantMessage: FC = () => {
-  const [sharedRunURL, setSharedRunURL] = useState<string>();
-
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
@@ -274,20 +275,6 @@ const MyAssistantMessage: FC = () => {
       <div className="text-foreground col-span-2 col-start-2 row-start-1 my-1.5 max-w-xl break-words leading-7">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
       </div>
-      {sharedRunURL ? (
-        <TooltipIconButton
-          tooltip="View in LangSmith"
-          variant="ghost"
-          className="transition-colors w-4 h-3 ml-3"
-          delayDuration={400}
-          onClick={() => window.open(sharedRunURL, "_blank")}
-        >
-          <span className="flex flex-row items-center gap-1 w-11 h-7">
-            <ExternalLink />
-            <LangSmithSVG className="text-[#CA632B] hover:text-[#CA632B]/95" />
-          </span>
-        </TooltipIconButton>
-      ) : null}
     </MessagePrimitive.Root>
   );
 };

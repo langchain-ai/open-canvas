@@ -10,7 +10,7 @@ export const useLangSmithLinkToolUI = () =>
     render: useCallback((input) => {
       return (
         <TooltipIconButton
-          tooltip="View in LangSmith"
+          tooltip="View run in LangSmith"
           variant="ghost"
           className="transition-colors w-4 h-3 ml-3"
           delayDuration={400}
