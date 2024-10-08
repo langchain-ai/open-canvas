@@ -4,23 +4,24 @@ import {
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
+  Highlight,
 } from "../types";
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
-interface Highlight {
-  /**
-   * The id of the artifact the highlighted text belongs to
-   */
-  id: string;
-  /**
-   * The index of the first character of the highlighted text
-   */
-  startCharIndex: number;
-  /**
-   * The index of the last character of the highlighted text
-   */
-  endCharIndex: number;
-}
+/**
+ * Concatenates the current state with the update.
+ * It removes duplicates, prioritizing the update by `artifact.id`
+ * @param {Artifact[]} state - The current state
+ * @param {Artifact[]} update - The update to apply
+ * @returns {Artifact[]} The updated state, removing duplicates.
+ */
+const artifactsReducer = (
+  state: Artifact[],
+  update: Artifact[]
+): Artifact[] => {
+  const updatedIds = new Set(update.map((a) => a.id));
+  return state.filter((a) => !updatedIds.has(a.id)).concat(update);
+};
 
 export const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -37,7 +38,7 @@ export const GraphAnnotation = Annotation.Root({
    * The artifacts that have been generated in the conversation.
    */
   artifacts: Annotation<Artifact[]>({
-    reducer: (_state, update) => update,
+    reducer: artifactsReducer,
     default: () => [],
   }),
   /**

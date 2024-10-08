@@ -91,6 +91,7 @@ export function useGraph() {
     const input = {
       // Ensure we set all existing values (except `artifacts` and `messages`) to undefined by default.
       selectedArtifactId,
+      artifacts,
       messages: params.messages?.filter((msg) => {
         if (msg.role !== "assistant") {
           return true;
@@ -339,13 +340,32 @@ export function useGraph() {
       // Chain `.then` to not block the stream
       shareRun(runId).then((sharedRunURL) => {
         setMessages((prevMessages) => {
-          return prevMessages.map((msg) => {
-            if (msg.id === messageId) {
-              msg.response_metadata.sharedRunURL = sharedRunURL;
-              return msg;
+          const newMsgs = prevMessages.map((msg) => {
+            if (
+              msg.id === messageId &&
+              !(msg as AIMessage).tool_calls?.find(
+                (tc) => tc.name === "langsmith_tool_ui"
+              )
+            ) {
+              const toolCall = {
+                name: "langsmith_tool_ui",
+                args: { sharedRunURL },
+                id: sharedRunURL
+                  ?.split("https://smith.langchain.com/public/")[1]
+                  .split("/")[0],
+              };
+
+              let castMsg = msg as AIMessage;
+              if (!castMsg.tool_calls) {
+                castMsg.tool_calls = [toolCall];
+              } else {
+                castMsg.tool_calls.push(toolCall);
+              }
+              return castMsg;
             }
             return msg;
           });
+          return newMsgs;
         });
       });
     }
@@ -400,16 +420,35 @@ export function useGraph() {
 
       const selectedArtifact = artifacts.find((a) => a.id === id);
       if (!selectedArtifact) {
-        toast({
-          title: "Error",
-          description: "Selected artifact not found",
-        });
-        return;
+        if (!selectedArtifactId && artifacts.length) {
+          setSelectedArtifactId(artifacts[artifacts.length - 1].id);
+          return;
+        } else {
+          toast({
+            title: "Error",
+            description: "Selected artifact not found",
+          });
+          return;
+        }
       }
       setSelectedArtifactId(selectedArtifact.id);
     },
     [artifacts, toast, setSelectedArtifactId]
   );
+
+  const setArtifactContent = (id: string, content: string) => {
+    setArtifacts((prev) => {
+      return prev.map((artifact) => {
+        if (artifact.id === id) {
+          return {
+            ...artifact,
+            content,
+          };
+        }
+        return artifact;
+      });
+    });
+  };
 
   return {
     artifacts,
@@ -420,5 +459,6 @@ export function useGraph() {
     setMessages,
     streamMessage,
     createThread,
+    setArtifactContent,
   };
 }

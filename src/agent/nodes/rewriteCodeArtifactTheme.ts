@@ -66,25 +66,19 @@ export const rewriteCodeArtifactTheme = async (
     selectedArtifact.content
   );
 
-  const newArtifact = await smallModel.invoke([
+  const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);
 
-  // Remove the original artifact message from the history.
-  const newArtifacts: Artifact[] = [
-    ...state.artifacts.filter(
-      (artifact) => artifact.id !== selectedArtifact.id
-    ),
-    {
-      ...selectedArtifact,
-      // Ensure the new artifact's language is updated, if necessary
-      language: state.portLanguage || selectedArtifact.language,
-      content: newArtifact.content as string,
-    },
-  ];
+  const newArtifact = {
+    ...selectedArtifact,
+    // Ensure the new artifact's language is updated, if necessary
+    language: state.portLanguage || selectedArtifact.language,
+    content: newArtifactValues.content as string,
+  };
 
   return {
-    artifacts: newArtifacts,
+    artifacts: [newArtifact],
     selectedArtifactId: undefined,
     highlighted: undefined,
     language: undefined,

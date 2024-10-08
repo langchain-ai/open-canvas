@@ -29,24 +29,18 @@ export const rewriteArtifact = async (
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
   }
-  const newArtifact = await smallModel.invoke([
+  const newArtifactValues = await smallModel.invoke([
     { role: "system", content: formattedPrompt },
     recentHumanMessage,
   ]);
 
-  // Remove the original artifact message from the history.
-  const newArtifacts: Artifact[] = [
-    ...state.artifacts.filter(
-      (artifact) => artifact.id !== selectedArtifact.id
-    ),
-    {
-      ...selectedArtifact,
-      content: newArtifact.content as string,
-    },
-  ];
+  const newArtifact = {
+    ...selectedArtifact,
+    content: newArtifactValues.content as string,
+  };
 
   return {
-    artifacts: newArtifacts,
+    artifacts: [newArtifact],
     selectedArtifactId: undefined,
     highlighted: undefined,
     language: undefined,

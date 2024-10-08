@@ -36,6 +36,7 @@
     "@supabase/supabase-js": "^2.45.4",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/react-codemirror": "^4.23.5",
+    "@uiw/react-md-editor": "^4.0.4",
     "@vercel/kv": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

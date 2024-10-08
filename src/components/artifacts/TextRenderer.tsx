@@ -1,14 +1,28 @@
-import Markdown from "react-markdown";
 import { Artifact } from "@/types";
+import MDEditor from "@uiw/react-md-editor";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
-export interface TextRendererProps {
+import styles from "./TextRenderer.module.css";
+
+export interface TextRenderer {
   artifact: Artifact;
+  isEditing: boolean;
+  setIsEditing: Dispatch<SetStateAction<boolean>>;
+  setArtifactContent: (id: string, content: string) => void;
 }
 
-export function TextRenderer(props: TextRendererProps) {
+export function TextRenderer(props: TextRenderer) {
   return (
-    <Markdown className="text-left leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-      {props.artifact.content}
-    </Markdown>
+    <div className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden">
+      <MDEditor
+        preview={props.isEditing ? "edit" : "preview"}
+        hideToolbar
+        visibleDragbar={false}
+        value={props.artifact.content}
+        onChange={(v) => props.setArtifactContent(props.artifact.id, v || "")}
+        className={`min-h-full border-none ${styles.mdEditorCustom} ${styles.fullHeightTextArea}`}
+        height="100%"
+      />
+    </div>
   );
 }

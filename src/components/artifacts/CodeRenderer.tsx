@@ -11,12 +11,11 @@ import styles from "./CodeRenderer.module.css";
 
 export interface CodeRendererProps {
   artifact: Artifact;
+  setArtifactContent: (id: string, content: string) => void;
   editorRef: MutableRefObject<EditorView | null>;
 }
 
 export function CodeRenderer(props: CodeRendererProps) {
-  const [code, setCode] = useState("");
-
   let extensions: any[] = [];
   if (props.artifact.language === "javascript") {
     extensions = [javascript({ jsx: true, typescript: false })];
@@ -38,12 +37,12 @@ export function CodeRenderer(props: CodeRendererProps) {
 
   return (
     <CodeMirror
-      editable={false}
+      editable={true}
       className={`w-full min-h-full ${styles.codeMirrorCustom}`}
       value={props.artifact.content}
       height="800px"
       extensions={extensions}
-      onChange={(c) => setCode(c)}
+      onChange={(c) => props.setArtifactContent(props.artifact.id, c)}
       onCreateEditor={(view) => {
         props.editorRef.current = view;
       }}

@@ -59,6 +59,6 @@ export const generateArtifact = async (
   };
 
   return {
-    artifacts: [...(state.artifacts ?? []), newArtifact],
+    artifacts: [newArtifact],
   };
 };

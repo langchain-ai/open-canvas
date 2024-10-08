@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { CircleArrowUp } from "lucide-react";
+import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions } from "@/types";
 import { GraphInput } from "@/hooks/useGraph";
@@ -18,10 +18,13 @@ import { EditorView } from "@codemirror/view";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
+  setArtifactContent: (id: string, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   setSelectedArtifactById: (id: string | undefined) => void;
   messages: BaseMessage[];
+  isEditing: boolean;
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface SelectionBox {
@@ -232,40 +235,61 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
   return (
     <div className="relative w-full h-full overflow-auto">
-      <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
-        <TooltipIconButton
-          tooltip="Close canvas"
-          variant="ghost"
-          className="w-[36px] h-[36px]"
-          delayDuration={400}
-          onClick={() => props.setSelectedArtifactById(undefined)}
-        >
-          <X />
-        </TooltipIconButton>
-        <h1 className="text-xl font-medium">{props.artifact.title}</h1>
+      <div className="flex flex-row items-center justify-between">
+        <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
+          <TooltipIconButton
+            tooltip="Close canvas"
+            variant="ghost"
+            className="w-[36px] h-[36px]"
+            delayDuration={400}
+            onClick={() => props.setSelectedArtifactById(undefined)}
+          >
+            <X />
+          </TooltipIconButton>
+          <h1 className="text-xl font-medium">{props.artifact.title}</h1>
+        </div>
+        {props.artifact.type === "text" ? (
+          <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
+            <TooltipIconButton
+              tooltip={props.isEditing ? "Preview" : "Edit"}
+              variant="ghost"
+              className="transition-colors w-fit h-fit"
+              delayDuration={400}
+              onClick={() => props.setIsEditing((v) => !v)}
+            >
+              {props.isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
+            </TooltipIconButton>
+          </div>
+        ) : null}
       </div>
-
       <div
         ref={contentRef}
         className={cn(
           "flex justify-center h-full",
-          props.artifact.type === "code" ? "pt-[10px]" : "pt-[10%]"
+          props.artifact.type === "code" ? "pt-[10px]" : ""
         )}
       >
         <div
           className={cn(
-            "relative",
-            props.artifact.type === "code"
-              ? "min-w-full min-h-full"
-              : "max-w-3xl w-full px-4"
+            "relative min-h-full",
+            props.artifact.type === "code" ? "min-w-full" : "min-w-full px-4"
           )}
         >
-          <div ref={markdownRef}>
+          <div className="h-[85%]" ref={markdownRef}>
             {props.artifact.type === "text" ? (
-              <TextRenderer artifact={props.artifact} />
+              <TextRenderer
+                isEditing={props.isEditing}
+                setIsEditing={props.setIsEditing}
+                artifact={props.artifact}
+                setArtifactContent={props.setArtifactContent}
+              />
             ) : null}
             {props.artifact.type === "code" ? (
-              <CodeRenderer editorRef={editorRef} artifact={props.artifact} />
+              <CodeRenderer
+                setArtifactContent={props.setArtifactContent}
+                editorRef={editorRef}
+                artifact={props.artifact}
+              />
             ) : null}
           </div>
           <div
