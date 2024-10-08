@@ -1,39 +1,42 @@
 import { Artifact } from "@/types";
 import MDEditor from "@uiw/react-md-editor";
-import { useCallback, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
-export interface TextRendererProps {
+import styles from "./TextRenderer.module.css";
+
+export function TextRenderer({
+  artifact,
+  isEditing,
+  setIsEditing,
+}: {
   artifact: Artifact;
-}
-
-export function TextRenderer(props: TextRendererProps) {
+  isEditing: boolean;
+  setIsEditing: Dispatch<SetStateAction<boolean>>;
+}) {
   const [value, setValue] = useState("");
+  const hasSetInitial = useRef(false);
 
   useEffect(() => {
-    setValue(props.artifact.content);
-  }, [props.artifact.content]);
-
-  const handleEdit = useCallback((event: React.FormEvent<HTMLDivElement>) => {
-    const newValue = event.currentTarget.innerText;
-    setValue(newValue);
-  }, []);
+    if (!hasSetInitial.current) {
+      if (artifact.title === "Quickstart text") {
+        setIsEditing(true);
+      } else {
+        setValue(artifact.content);
+      }
+      hasSetInitial.current = true;
+    }
+  }, [artifact.content]);
 
   return (
-    <div
-      className="w-full h-full"
-      contentEditable
-      onInput={handleEdit}
-      suppressContentEditableWarning
-    >
+    <div className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden">
       <MDEditor
-        value={value}
-        preview="preview"
+        preview={isEditing ? "edit" : "preview"}
         hideToolbar
-        previewOptions={{
-          components: {
-            p: "div",
-          },
-        }}
+        visibleDragbar={false}
+        value={value}
+        onChange={(v) => setValue(v || "")}
+        className={`min-h-full border-none ${styles.mdEditorCustom} ${styles.fullHeightTextArea}`}
+        height="100%"
       />
     </div>
   );

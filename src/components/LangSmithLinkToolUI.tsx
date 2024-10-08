@@ -8,7 +8,6 @@ export const useLangSmithLinkToolUI = () =>
   useAssistantToolUI({
     toolName: "langsmith_tool_ui",
     render: useCallback((input) => {
-
       return (
         <TooltipIconButton
           tooltip="View in LangSmith"

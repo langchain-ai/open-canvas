@@ -1,0 +1,35 @@
+.mdEditorCustom {
+  height: 100% !important;
+  overflow: hidden;
+}
+
+.mdEditorCustom :global(.w-md-editor) {
+  height: 100% !important;
+  border: none !important;
+}
+
+.mdEditorCustom :global(.w-md-editor-content) {
+  height: 100% !important;
+}
+
+.mdEditorCustom :global(.w-md-editor-text),
+.mdEditorCustom :global(.w-md-editor-text-pre),
+.mdEditorCustom :global(.w-md-editor-text-input) {
+  min-height: 100% !important;
+  height: 100% !important;
+}
+
+.mdEditorCustom :global(.w-md-editor-preview) {
+  box-shadow: none !important;
+  border-left: 1px solid #e0e0e0;
+}
+
+.mdEditorCustom :global(.w-md-editor-toolbar) {
+  border-bottom: none !important;
+}
+
+/* Force full height for text area */
+.fullHeightTextArea :global(.w-md-editor-text-input) {
+  min-height: 100vh !important;
+  height: 100% !important;
+}
