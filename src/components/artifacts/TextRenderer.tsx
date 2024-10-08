@@ -1,6 +1,7 @@
 import { Artifact } from "@/types";
 import MDEditor from "@uiw/react-md-editor";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
+import { cleanContent } from "@/lib/normalize_string";
 
 import styles from "./TextRenderer.module.css";
 
@@ -18,7 +19,7 @@ export function TextRenderer(props: TextRenderer) {
         preview={props.isEditing ? "edit" : "preview"}
         hideToolbar
         visibleDragbar={false}
-        value={props.artifact.content}
+        value={cleanContent(props.artifact.content)}
         onChange={(v) => props.setArtifactContent(props.artifact.id, v || "")}
         className={`min-h-full border-none ${styles.mdEditorCustom} ${styles.fullHeightTextArea}`}
         height="100%"

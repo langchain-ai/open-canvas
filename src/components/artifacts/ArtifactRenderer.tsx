@@ -15,6 +15,7 @@ import { CodeRenderer } from "./CodeRenderer";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
+import { newlineToCarriageReturn } from "@/lib/normalize_string";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -189,7 +190,9 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               while (node && node !== content) {
                 if (node.previousSibling) {
                   node = node.previousSibling;
-                  startIndex += node.textContent?.length || 0;
+                  startIndex += node.textContent
+                    ? newlineToCarriageReturn(node.textContent)?.length
+                    : 0;
                 } else {
                   node = node.parentNode;
                 }
@@ -199,7 +202,9 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               while (node && node !== content) {
                 if (node.previousSibling) {
                   node = node.previousSibling;
-                  endIndex += node.textContent?.length || 0;
+                  endIndex += node.textContent
+                    ? newlineToCarriageReturn(node.textContent)?.length
+                    : 0;
                 } else {
                   node = node.parentNode;
                 }

@@ -8,6 +8,7 @@ import { php } from "@codemirror/lang-php";
 import { python } from "@codemirror/lang-python";
 
 import styles from "./CodeRenderer.module.css";
+import { cleanContent } from "@/lib/normalize_string";
 
 export interface CodeRendererProps {
   artifact: Artifact;
@@ -39,7 +40,7 @@ export function CodeRenderer(props: CodeRendererProps) {
     <CodeMirror
       editable={true}
       className={`w-full min-h-full ${styles.codeMirrorCustom}`}
-      value={props.artifact.content}
+      value={cleanContent(props.artifact.content)}
       height="800px"
       extensions={extensions}
       onChange={(c) => props.setArtifactContent(props.artifact.id, c)}
