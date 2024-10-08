@@ -10,4 +10,5 @@ export const reverseCleanContent = (content: string): string => {
 };
 
 export const newlineToCarriageReturn = (str: string) =>
-  str.replace(actualNewline, "\r\n");
+  // str.replace(actualNewline, "\r\n");
+  str.replace(actualNewline, [actualNewline, actualNewline].join(""));

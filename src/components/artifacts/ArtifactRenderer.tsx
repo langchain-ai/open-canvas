@@ -17,12 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
 import { newlineToCarriageReturn } from "@/lib/normalize_string";
 
-const actualNewline = `
-`;
-
-const normalizeString = (str: string) =>
-  str.replace(actualNewline, [actualNewline, actualNewline].join(""));
-
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
   setArtifactContent: (id: string, content: string) => void;

@@ -30,7 +30,7 @@ async function handleRequest(req: NextRequest, method: string) {
       options.body = await req.text();
     }
 
-    const apiUrl = process.env.LANGGRAPH_API_URL ?? "http://localhost:56292";
+    const apiUrl = process.env.LANGGRAPH_API_URL ?? "http://localhost:57238";
     const res = await fetch(`${apiUrl}/${path}${queryString}`, options);
 
     const headers = new Headers({
