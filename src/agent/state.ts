@@ -22,6 +22,17 @@ interface Highlight {
   endCharIndex: number;
 }
 
+/**
+ * Concatenates the current state with the update. It removes duplicates, prioritizing the update by `artifact.id`
+ */
+const artifactsReducer = (
+  state: Artifact[],
+  update: Artifact[]
+): Artifact[] => {
+  const updatedIds = new Set(update.map((a) => a.id));
+  return state.filter((a) => !updatedIds.has(a.id)).concat(update);
+};
+
 export const GraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
   /**
@@ -37,7 +48,7 @@ export const GraphAnnotation = Annotation.Root({
    * The artifacts that have been generated in the conversation.
    */
   artifacts: Annotation<Artifact[]>({
-    reducer: (_state, update) => update,
+    reducer: artifactsReducer,
     default: () => [],
   }),
   /**

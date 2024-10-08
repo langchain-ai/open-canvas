@@ -72,17 +72,12 @@ export const updateArtifact = async (
     state.highlighted.endCharIndex
   );
   const entireUpdatedContent = `${entireTextBefore}${updatedArtifact.content}${entireTextAfter}`;
-  const newArtifacts = [
-    ...state.artifacts.filter(
-      (artifact) => artifact.id !== selectedArtifact.id
-    ),
-    {
-      ...selectedArtifact,
-      content: entireUpdatedContent,
-    },
-  ];
+  const newArtifact = {
+    ...selectedArtifact,
+    content: entireUpdatedContent,
+  };
 
   return {
-    artifacts: newArtifacts,
+    artifacts: [newArtifact],
   };
 };

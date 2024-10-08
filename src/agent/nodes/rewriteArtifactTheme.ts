@@ -84,23 +84,17 @@ export const rewriteArtifactTheme = async (
     throw new Error("No theme selected");
   }
 
-  const newArtifact = await smallModel.invoke([
+  const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);
 
-  // Remove the original artifact message from the history.
-  const newArtifacts: Artifact[] = [
-    ...state.artifacts.filter(
-      (artifact) => artifact.id !== selectedArtifact.id
-    ),
-    {
-      ...selectedArtifact,
-      content: newArtifact.content as string,
-    },
-  ];
+  const newArtifact = {
+    ...selectedArtifact,
+    content: newArtifactValues.content as string,
+  };
 
   return {
-    artifacts: newArtifacts,
+    artifacts: [newArtifact],
     selectedArtifactId: undefined,
     highlighted: undefined,
     language: undefined,
