@@ -23,6 +23,8 @@ export interface ArtifactRendererProps {
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   setSelectedArtifactById: (id: string | undefined) => void;
   messages: BaseMessage[];
+  isEditing: boolean;
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface SelectionBox {
@@ -46,7 +48,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   const [isInputVisible, setIsInputVisible] = useState(false);
   const [isSelectionActive, setIsSelectionActive] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
 
   const handleMouseUp = useCallback(() => {
     const selection = window.getSelection();
@@ -250,13 +251,13 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         {props.artifact.type === "text" ? (
           <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton
-              tooltip={isEditing ? "Preview" : "Edit"}
+              tooltip={props.isEditing ? "Preview" : "Edit"}
               variant="ghost"
               className="transition-colors w-fit h-fit"
               delayDuration={400}
-              onClick={() => setIsEditing((v) => !v)}
+              onClick={() => props.setIsEditing((v) => !v)}
             >
-              {isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
+              {props.isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
             </TooltipIconButton>
           </div>
         ) : null}
@@ -277,8 +278,8 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <div className="h-[85%]" ref={markdownRef}>
             {props.artifact.type === "text" ? (
               <TextRenderer
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
+                isEditing={props.isEditing}
+                setIsEditing={props.setIsEditing}
                 artifact={props.artifact}
                 setArtifactContent={props.setArtifactContent}
               />

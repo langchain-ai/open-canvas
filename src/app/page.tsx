@@ -16,6 +16,7 @@ export default function Home() {
   const [pendingArtifactSelection, setPendingArtifactSelection] = useState<
     string | null
   >(null);
+  const [isEditing, setIsEditing] = useState(false);
   const {
     streamMessage,
     setMessages,
@@ -51,7 +52,10 @@ export default function Home() {
     const artifact = {
       id: artifactId,
       title: `Quickstart ${type}`,
-      content: getLanguageTemplate(language ?? "javascript"),
+      content:
+        type === "code"
+          ? getLanguageTemplate(language ?? "javascript")
+          : "# Hello world",
       type,
       language: language ?? "english",
     };
@@ -69,6 +73,7 @@ export default function Home() {
       });
       return [...prevMessages, newMessage];
     });
+    setIsEditing(true);
     setPendingArtifactSelection(artifactId);
   };
 
@@ -103,6 +108,8 @@ export default function Home() {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            setIsEditing={setIsEditing}
+            isEditing={isEditing}
             setArtifactContent={setArtifactContent}
             setSelectedArtifactById={setSelectedArtifact}
             messages={messages}
