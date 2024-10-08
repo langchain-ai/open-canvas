@@ -28,11 +28,20 @@ export interface Artifact {
   language: string;
 }
 
-export type Highlight = {
+export interface Highlight {
+  /**
+   * The id of the artifact the highlighted text belongs to
+   */
   id: string;
+  /**
+   * The index of the first character of the highlighted text
+   */
   startCharIndex: number;
+  /**
+   * The index of the last character of the highlighted text
+   */
   endCharIndex: number;
-};
+}
 
 export type LanguageOptions =
   | "english"
