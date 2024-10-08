@@ -3,8 +3,10 @@ import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useToast } from "@/hooks/use-toast";
 import { useGraph } from "@/hooks/useGraph";
+import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
 import { ProgrammingLanguageOptions } from "@/types";
+import { AIMessage } from "@langchain/core/messages";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -23,6 +25,7 @@ export default function Home() {
     setSelectedArtifact,
     selectedArtifactId,
     createThread,
+    setArtifactContent,
   } = useGraph();
 
   const createThreadWithChatStarted = async () => {
@@ -45,16 +48,27 @@ export default function Home() {
     setChatStarted(true);
 
     const artifactId = uuidv4();
-    setArtifacts((prevArtifacts) => [
-      ...prevArtifacts,
-      {
-        id: artifactId,
-        title: `Quickstart ${type}`,
+    const artifact = {
+      id: artifactId,
+      title: `Quickstart ${type}`,
+      content: getLanguageTemplate(language ?? "javascript"),
+      type,
+      language: language ?? "english",
+    };
+    setArtifacts((prevArtifacts) => [...prevArtifacts, artifact]);
+    setMessages((prevMessages) => {
+      const newMessage = new AIMessage({
         content: "",
-        type,
-        language: language ?? "english",
-      },
-    ]);
+        tool_calls: [
+          {
+            id: artifactId,
+            args: { title: artifact.title },
+            name: "artifact_ui",
+          },
+        ],
+      });
+      return [...prevMessages, newMessage];
+    });
     setPendingArtifactSelection(artifactId);
   };
 
@@ -89,6 +103,7 @@ export default function Home() {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            setArtifactContent={setArtifactContent}
             setSelectedArtifactById={setSelectedArtifact}
             messages={messages}
             setMessages={setMessages}

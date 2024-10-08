@@ -18,6 +18,7 @@ import { EditorView } from "@codemirror/view";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
+  setArtifactContent: (id: string, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   setSelectedArtifactById: (id: string | undefined) => void;
@@ -279,10 +280,15 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                 isEditing={isEditing}
                 setIsEditing={setIsEditing}
                 artifact={props.artifact}
+                setArtifactContent={props.setArtifactContent}
               />
             ) : null}
             {props.artifact.type === "code" ? (
-              <CodeRenderer editorRef={editorRef} artifact={props.artifact} />
+              <CodeRenderer
+                setArtifactContent={props.setArtifactContent}
+                editorRef={editorRef}
+                artifact={props.artifact}
+              />
             ) : null}
           </div>
           <div

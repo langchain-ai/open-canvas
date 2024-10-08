@@ -8,7 +8,7 @@ import {
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
 import { LangSmithSVG } from "./icons/langsmith";
 import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
+import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
+import { ProgrammingLanguageOptions } from "@/types";
 
 export interface MyThreadProps {
   setSelectedArtifact: (artifactId: string) => void;
@@ -35,30 +37,68 @@ export interface MyThreadProps {
 }
 
 interface QuickStartButtonsProps {
-  handleQuickStart: (type: "text" | "code") => void;
+  handleQuickStart: (
+    type: "text" | "code",
+    language?: ProgrammingLanguageOptions
+  ) => void;
 }
 
 const QuickStartButtons = (props: QuickStartButtonsProps) => {
+  const [showLanguageList, setShowLanguageList] = useState(false);
+
+  const handleCodeClick = () => {
+    setShowLanguageList(true);
+  };
+
+  const handleLanguageSubmit = (language: ProgrammingLanguageOptions) => {
+    setShowLanguageList(false);
+    props.handleQuickStart("code", language);
+    return Promise.resolve();
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showLanguageList &&
+        !(event.target as Element).closest(".quickstart-buttons")
+      ) {
+        setShowLanguageList(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showLanguageList]);
+
   return (
-    <div className="flex flex-row gap-1 items-center">
-      <TooltipIconButton
-        tooltip="Quickstart: text"
-        variant="ghost"
-        className="transition-colors w-[36px] h-[36px] text-gray-600"
-        delayDuration={400}
-        onClick={() => props.handleQuickStart("text")}
-      >
-        <NotebookPen />
-      </TooltipIconButton>
-      <TooltipIconButton
-        tooltip="Quickstart: code"
-        variant="ghost"
-        className="transition-colors w-[36px] h-[36px] text-gray-600"
-        delayDuration={400}
-        onClick={() => props.handleQuickStart("code")}
-      >
-        <Code />
-      </TooltipIconButton>
+    <div className="flex flex-col items-end relative quickstart-buttons">
+      <div className="flex flex-row gap-1 items-center">
+        <TooltipIconButton
+          tooltip="Quickstart: text"
+          variant="ghost"
+          className="transition-colors w-[36px] h-[36px] text-gray-600"
+          delayDuration={400}
+          onClick={() => props.handleQuickStart("text")}
+        >
+          <NotebookPen />
+        </TooltipIconButton>
+        <TooltipIconButton
+          tooltip="Quickstart: code"
+          variant="ghost"
+          className="transition-colors w-[36px] h-[36px] text-gray-600"
+          delayDuration={400}
+          onClick={handleCodeClick}
+        >
+          <Code />
+        </TooltipIconButton>
+      </div>
+      {showLanguageList && (
+        <div className="absolute top-full right-0 mt-2 z-10">
+          <ProgrammingLanguageList handleSubmit={handleLanguageSubmit} />
+        </div>
+      )}
     </div>
   );
 };

@@ -91,6 +91,7 @@ export function useGraph() {
     const input = {
       // Ensure we set all existing values (except `artifacts` and `messages`) to undefined by default.
       selectedArtifactId,
+      artifacts,
       messages: params.messages?.filter((msg) => {
         if (msg.role !== "assistant") {
           return true;
@@ -435,6 +436,20 @@ export function useGraph() {
     [artifacts, toast, setSelectedArtifactId]
   );
 
+  const setArtifactContent = (id: string, content: string) => {
+    setArtifacts((prev) => {
+      return prev.map((artifact) => {
+        if (artifact.id === id) {
+          return {
+            ...artifact,
+            content,
+          };
+        }
+        return artifact;
+      });
+    });
+  };
+
   return {
     artifacts,
     selectedArtifactId,
@@ -444,5 +459,6 @@ export function useGraph() {
     setMessages,
     streamMessage,
     createThread,
+    setArtifactContent,
   };
 }
