@@ -30,6 +30,7 @@ export interface GraphInput {
 }
 
 function removeCodeBlockFormatting(text: string): string {
+  if (!text) return text;
   // Regular expression to match code blocks
   const codeBlockRegex = /^```[\w-]*\n([\s\S]*?)\n```$/;
 
