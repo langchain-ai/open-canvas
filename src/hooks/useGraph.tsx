@@ -15,6 +15,13 @@ import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
+interface ArtifactToolResponse {
+  artifact?: string;
+  title?: string;
+  language?: string;
+  type?: string;
+}
+
 export interface GraphInput {
   selectedArtifactId?: string;
   regenerateWithEmojis?: boolean;
@@ -137,9 +144,9 @@ export function useGraph() {
           fullArtifactGenerationStr +=
             chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
           try {
-            const artifact = parsePartialJson(fullArtifactGenerationStr);
-            artifactTitle = artifact.title;
-            artifactType = artifact.type;
+            const artifact: ArtifactToolResponse = parsePartialJson(fullArtifactGenerationStr);
+            artifactTitle = artifact.title ?? "";
+            artifactType = artifact.type ?? "";
             if (
               (artifact.artifact && artifactId && artifactType === "text") ||
               artifactType === "code"
@@ -150,7 +157,7 @@ export function useGraph() {
                 );
                 let content = artifact.artifact;
                 if (artifactType === "code") {
-                  content = removeCodeBlockFormatting(content);
+                  content = removeCodeBlockFormatting(content ?? "");
                 }
 
                 return [
@@ -158,9 +165,9 @@ export function useGraph() {
                   {
                     id: artifactId,
                     title: artifactTitle,
-                    content,
+                    content: content ?? "",
                     type: artifactType as Artifact["type"],
-                    language: artifact.language,
+                    language: artifact.language ?? "",
                   },
                 ];
               });
