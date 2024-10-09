@@ -356,14 +356,17 @@ export function useGraph() {
                   ?.split("https://smith.langchain.com/public/")[1]
                   .split("/")[0],
               };
-
               let castMsg = msg as AIMessage;
-              if (!castMsg.tool_calls) {
-                castMsg.tool_calls = [toolCall];
-              } else {
-                castMsg.tool_calls.push(toolCall);
-              }
-              return castMsg;
+              const newMessageWithToolCall = new AIMessage({
+                ...castMsg,
+                content: castMsg.content,
+                id: castMsg.id,
+                tool_calls: castMsg.tool_calls ? [
+                  ...castMsg.tool_calls,
+                  toolCall,
+                ] : [toolCall]
+              })
+              return newMessageWithToolCall;
             }
             return msg;
           });

@@ -5,9 +5,19 @@ import {
 } from "@assistant-ui/react";
 import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 
+// Not exposed by `@assistant-ui/react` package, but is
+// the required return type for this callback function.
+type Message = ThreadMessageLike | {
+  role: "tool";
+  toolCallId: string;
+  toolName?: string | undefined;
+  result: any;
+};
+
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
-> = (message) => {
+> = (message): Message | Message[] => {
+  console.log("conversion running", message);
   if (typeof message.content !== "string") {
     throw new Error("Only text messages are supported");
   }
