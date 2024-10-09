@@ -1,5 +1,5 @@
 import { Artifact } from "@/types";
-import { MutableRefObject, useState } from "react";
+import { MutableRefObject } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
