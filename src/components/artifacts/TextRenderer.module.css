@@ -33,3 +33,26 @@
   min-height: 100vh !important;
   height: 100% !important;
 }
+
+.lightModeOnly {
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-border-default: #d0d7de;
+  --color-border-muted: #d8dee4;
+  --color-neutral-muted: rgba(175, 184, 193, 0.2);
+  --color-accent-fg: #0969da;
+  --color-accent-emphasis: #0969da;
+  --color-attention-subtle: #fff8c5;
+  --color-danger-fg: #cf222e;
+}
+
+.lightModeOnly :global(.wmde-markdown),
+.lightModeOnly :global(.wmde-markdown-var) {
+  background-color: #ffffff;
+  color: #24292f;
+}
+
+.lightModeOnly :global(.w-md-editor-text-pre > code),
+.lightModeOnly :global(.w-md-editor-text-input) {
+  color: #24292f !important;
+}

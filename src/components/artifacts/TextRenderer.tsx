@@ -14,14 +14,17 @@ export interface TextRenderer {
 
 export function TextRenderer(props: TextRenderer) {
   return (
-    <div className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden">
+    <div
+      className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden"
+      data-color-mode="light"
+    >
       <MDEditor
         preview={props.isEditing ? "edit" : "preview"}
         hideToolbar
         visibleDragbar={false}
         value={cleanContent(props.artifact.content)}
         onChange={(v) => props.setArtifactContent(props.artifact.id, v || "")}
-        className={`min-h-full border-none ${styles.mdEditorCustom} ${styles.fullHeightTextArea}`}
+        className={`min-h-full border-none ${styles.mdEditorCustom} ${styles.fullHeightTextArea} ${styles.lightModeOnly}`}
         height="100%"
       />
     </div>
