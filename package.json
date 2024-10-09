@@ -40,6 +40,7 @@
     "@vercel/kv": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "dotenv": "^16.4.5",
     "js-cookie": "^3.0.5",
     "langsmith": "^0.1.61",
     "lucide-react": "^0.441.0",
