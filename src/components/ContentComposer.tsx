@@ -75,12 +75,12 @@ export function ContentComposerChatInterface(
   });
 
   useEffect(() => {
-    console.log("Thead message update", threadMessages)
-  }, [threadMessages])
+    console.log("Thead message update", threadMessages);
+  }, [threadMessages]);
 
   useEffect(() => {
-    console.log("___internal message update", messages)
-  }, [messages])
+    console.log("___internal message update", messages);
+  }, [messages]);
 
   return (
     <div className="h-full">

@@ -7,12 +7,14 @@ import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 
 // Not exposed by `@assistant-ui/react` package, but is
 // the required return type for this callback function.
-type Message = ThreadMessageLike | {
-  role: "tool";
-  toolCallId: string;
-  toolName?: string | undefined;
-  result: any;
-};
+type Message =
+  | ThreadMessageLike
+  | {
+      role: "tool";
+      toolCallId: string;
+      toolName?: string | undefined;
+      result: any;
+    };
 
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage

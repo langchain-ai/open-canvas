@@ -361,11 +361,10 @@ export function useGraph() {
                 ...castMsg,
                 content: castMsg.content,
                 id: castMsg.id,
-                tool_calls: castMsg.tool_calls ? [
-                  ...castMsg.tool_calls,
-                  toolCall,
-                ] : [toolCall]
-              })
+                tool_calls: castMsg.tool_calls
+                  ? [...castMsg.tool_calls, toolCall]
+                  : [toolCall],
+              });
               return newMessageWithToolCall;
             }
             return msg;
