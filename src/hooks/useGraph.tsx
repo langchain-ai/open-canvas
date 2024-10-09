@@ -144,7 +144,9 @@ export function useGraph() {
           fullArtifactGenerationStr +=
             chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
           try {
-            const artifact: ArtifactToolResponse = parsePartialJson(fullArtifactGenerationStr);
+            const artifact: ArtifactToolResponse = parsePartialJson(
+              fullArtifactGenerationStr
+            );
             artifactTitle = artifact.title ?? "";
             artifactType = artifact.type ?? "";
             if (
