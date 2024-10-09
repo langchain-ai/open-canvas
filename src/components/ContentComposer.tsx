@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   AppendMessage,
   AssistantRuntimeProvider,
@@ -73,14 +73,6 @@ export function ContentComposerChatInterface(
     isRunning,
     onNew,
   });
-
-  useEffect(() => {
-    console.log("Thead message update", threadMessages);
-  }, [threadMessages]);
-
-  useEffect(() => {
-    console.log("___internal message update", messages);
-  }, [messages]);
 
   return (
     <div className="h-full">

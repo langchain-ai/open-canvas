@@ -19,7 +19,6 @@ type Message =
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
 > = (message): Message | Message[] => {
-  console.log("conversion running", message);
   if (typeof message.content !== "string") {
     throw new Error("Only text messages are supported");
   }
