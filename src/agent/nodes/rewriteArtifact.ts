@@ -1,7 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { GraphAnnotation, GraphReturnType } from "../state";
 import { UPDATE_ENTIRE_ARTIFACT_PROMPT } from "../prompts";
-import { Artifact } from "../../types";
 
 export const rewriteArtifact = async (
   state: typeof GraphAnnotation.State

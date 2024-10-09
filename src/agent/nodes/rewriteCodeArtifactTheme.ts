@@ -6,7 +6,6 @@ import {
   FIX_BUGS_CODE_ARTIFACT_PROMPT,
   PORT_LANGUAGE_CODE_ARTIFACT_PROMPT,
 } from "../prompts";
-import { Artifact } from "../../types";
 
 export const rewriteCodeArtifactTheme = async (
   state: typeof GraphAnnotation.State

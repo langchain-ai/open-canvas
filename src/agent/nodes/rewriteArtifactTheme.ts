@@ -7,7 +7,6 @@ import {
   CHANGE_ARTIFACT_READING_LEVEL_PROMPT,
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
-import { Artifact } from "../../types";
 
 export const rewriteArtifactTheme = async (
   state: typeof GraphAnnotation.State

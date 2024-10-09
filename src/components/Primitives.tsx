@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   ArrowDownIcon,
-  ExternalLink,
   SendHorizontalIcon,
   SquarePen,
   Code,
@@ -24,7 +23,6 @@ import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
-import { LangSmithSVG } from "./icons/langsmith";
 import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
 import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
 import { ProgrammingLanguageOptions } from "@/types";

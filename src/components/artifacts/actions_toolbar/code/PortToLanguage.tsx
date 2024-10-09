@@ -1,5 +1,4 @@
 import { GraphInput } from "@/hooks/useGraph";
-import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { ProgrammingLanguageOptions } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageList } from "@/components/ProgrammingLanguageList";

@@ -178,7 +178,7 @@ export function useGraph() {
                 setSelectedArtifactId(artifactId);
               }
             }
-          } catch (e) {
+          } catch (_) {
             // no-op
           }
         } else if (chunk.data.metadata.langgraph_node === "updateArtifact") {
@@ -242,7 +242,7 @@ export function useGraph() {
             newArtifactText += chunk.data.data.chunk[1].content;
 
             // Ensure we have the language to update the artifact with
-            let artifactLanguage = params.portLanguage || undefined;
+            const artifactLanguage = params.portLanguage || undefined;
 
             // If no highlight, update the entire content as before
             setArtifacts((prev) => {
@@ -356,7 +356,7 @@ export function useGraph() {
                   ?.split("https://smith.langchain.com/public/")[1]
                   .split("/")[0],
               };
-              let castMsg = msg as AIMessage;
+              const castMsg = msg as AIMessage;
               const newMessageWithToolCall = new AIMessage({
                 ...castMsg,
                 content: castMsg.content,

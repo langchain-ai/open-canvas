@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Languages,
-  Plus,
   BookOpen,
   SlidersVertical,
   SmilePlus,
