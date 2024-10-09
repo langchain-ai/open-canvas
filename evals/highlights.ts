@@ -3,11 +3,13 @@ import { graph } from "../src/agent/index";
 import { evaluate, EvaluationResult } from "langsmith/evaluation";
 import "dotenv/config";
 
-const runGraph = async (input: Record<string, any>): Promise<Record<string, any>> => {
+const runGraph = async (
+  input: Record<string, any>
+): Promise<Record<string, any>> => {
   // Interrupt after updating the artifact
   graph.interruptAfter = ["updateArtifact"];
   return await graph.invoke(input);
-}
+};
 
 const evaluateHighlights = (run: Run, example?: Example): EvaluationResult => {
   if (!example) {
@@ -22,22 +24,26 @@ const evaluateHighlights = (run: Run, example?: Example): EvaluationResult => {
 
   const { expectedGeneration } = example.outputs;
   const { highlighted, artifacts } = example.inputs;
-  const expectedGenerationStart = artifacts[0].content.slice(0, highlighted.startCharIndex);
-  const expectedGenerationEnd = artifacts[0].content.slice(highlighted.endCharIndex);
+  const expectedGenerationStart = artifacts[0].content.slice(
+    0,
+    highlighted.startCharIndex
+  );
+  const expectedGenerationEnd = artifacts[0].content.slice(
+    highlighted.endCharIndex
+  );
   const fullExpectedArtifact = `${expectedGenerationStart}${expectedGeneration}${expectedGenerationEnd}`;
 
-  
   const generatedArtifact = run.outputs.artifacts[0].content;
   if (generatedArtifact !== fullExpectedArtifact) {
     return {
       key: "correct_generation",
       score: false,
-    }
+    };
   }
   return {
     key: "correct_generation",
     score: true,
-  }
+  };
 };
 
 async function runHighlightEval() {

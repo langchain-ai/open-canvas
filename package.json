@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --config .prettierrc --write \"src\"",
+    "format": "prettier --config .prettierrc --write \"src\" \"evals\"",
     "eval:highlights": "yarn tsx evals/highlights.ts"
   },
   "dependencies": {
