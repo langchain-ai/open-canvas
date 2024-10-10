@@ -8,6 +8,7 @@ import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
+import { reflect } from "../reflection";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
@@ -57,6 +58,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
+  .addNode("reflect", reflect)
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
@@ -65,7 +67,9 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   // End edges
   .addEdge("respondToQuery", "cleanState")
-  .addEdge("generateFollowup", "cleanState")
+  // Only reflect if an artifact was generated/updated.
+  .addEdge("generateFollowup", "reflect")
+  .addEdge("reflect", "cleanState")
   .addEdge("cleanState", END);
 
 export const graph = builder.compile();

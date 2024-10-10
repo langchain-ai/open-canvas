@@ -10,7 +10,12 @@ Follow these rules and guidelines:
 - Do not wrap it in any XML tags you see in this prompt.
 - If writing code, do not add inline comments unless the user has specifically requested them. This is very important as we don't want to clutter the code.
 ${DEFAULT_CODE_PROMPT_RULES}
-</rules-guidelines>`;
+</rules-guidelines>
+
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>`;
 
 export const UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT = `You are an AI assistant, and the user has requested you make an update to a specific part of an artifact you generated in the past.
 
@@ -34,6 +39,11 @@ Follow these rules and guidelines:
 ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>
 
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
+
 Use the user's recent message below to make the edit.`;
 
 export const UPDATE_ENTIRE_ARTIFACT_PROMPT = `You are an AI assistant, and the user has requested you make an update to an artifact you generated in the past.
@@ -43,6 +53,11 @@ Here is the current content of the artifact:
 <artifact>
 {artifactContent}
 </artifact>
+
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
 
 Please update the artifact based on the user's request.
 
@@ -64,6 +79,11 @@ Here is the current content of the artifact:
 {artifactContent}
 </artifact>
 
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
+
 Rules and guidelines:
 <rules-guidelines>
 - ONLY change the language and nothing else.
@@ -79,6 +99,11 @@ Here is the current content of the artifact:
 {artifactContent}
 </artifact>
 
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
+
 Rules and guidelines:
 <rules-guidelines>
 - Respond with ONLY the updated artifact, and no additional text before or after.
@@ -92,6 +117,11 @@ Here is the current content of the artifact:
 <artifact>
 {artifactContent}
 </artifact>
+
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
 
 Rules and guidelines:
 <rules-guidelines>
@@ -108,6 +138,11 @@ Here is the current content of the artifact:
 {artifactContent}
 </artifact>
 
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
+
 Rules and guidelines:
 </rules-guidelines>
 - Respond with ONLY the updated artifact, and no additional text before or after.
@@ -121,6 +156,11 @@ Here is the current content of the artifact:
 <artifact>
 {artifactContent}
 </artifact>
+
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
 
 Rules and guidelines:
 </rules-guidelines>
@@ -183,6 +223,11 @@ Here is the artifact you generated:
 <artifact>
 {artifactContent}
 </artifact>
+
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
 
 This message should be very short. Never generate more than 2-3 short sentences. Your tone should be somewhat formal, but still friendly. Remember, you're an AI assistant.
 

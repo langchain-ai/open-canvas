@@ -13,6 +13,7 @@ import {
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
+import { getCookie } from "@/lib/cookies";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -58,6 +59,7 @@ export function useGraph() {
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [assistantId, setAssistantId] = useState<string>();
   const [threadId, setThreadId] = useState<string | null>(null);
   // Default to the last artifact in the list
   const [selectedArtifactId, setSelectedArtifactId] = useState<
@@ -69,6 +71,11 @@ export function useGraph() {
     createThread();
   }, []);
 
+  useEffect(() => {
+    if (assistantId || typeof window === "undefined") return;
+    getOrCreateThread();
+  }, []);
+
   const createThread = async () => {
     setMessages([]);
     setArtifacts([]);
@@ -77,6 +84,19 @@ export function useGraph() {
     const thread = await client.threads.create();
     setThreadId(thread.thread_id);
     return thread;
+  };
+
+  const getOrCreateThread = async () => {
+    const assistantIdCookie = getCookie("oc_assistant_id");
+    if (assistantIdCookie) {
+      setAssistantId(assistantIdCookie);
+      return;
+    }
+    const client = createClient();
+    const assistant = await client.assistants.create({
+      graphId: "agent",
+    });
+    setAssistantId(assistant.assistant_id);
   };
 
   const streamMessage = async (params: GraphInput) => {
@@ -113,6 +133,11 @@ export function useGraph() {
 
     const stream = client.runs.stream(threadId, "agent", {
       input,
+      config: {
+        configurable: {
+          assistant_id: assistantId,
+        },
+      },
       streamMode: "events",
     });
 
