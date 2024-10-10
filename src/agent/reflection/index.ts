@@ -1,5 +1,10 @@
 import { ChatAnthropic } from "@langchain/anthropic";
-import { type LangGraphRunnableConfig, type BaseStore, StateGraph, START } from "@langchain/langgraph";
+import {
+  type LangGraphRunnableConfig,
+  type BaseStore,
+  StateGraph,
+  START,
+} from "@langchain/langgraph";
 import { ReflectionGraphAnnotation, ReflectionGraphReturnType } from "./state";
 import { Memory } from "../../types";
 import { REFLECT_SYSTEM_PROMPT } from "./prompts";
@@ -23,28 +28,33 @@ const formatMemories = (memories: Memory): string => {
 - ${memories.content.join("\n- ")}
 </user-facts>`;
 
-
   return styleString + "\n\n" + contentString;
-}
+};
 
 export const reflect = async (
   state: typeof ReflectionGraphAnnotation.State,
-  config: LangGraphRunnableConfig,
+  config: LangGraphRunnableConfig
 ): Promise<ReflectionGraphReturnType> => {
   const store = ensureStoreFromConfig(config);
   const assistantId = config.configurable?.assistant_id;
   if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");``
+    throw new Error("`assistant_id` not found in configurable");
   }
   const memoryNamespace = ["memories", assistantId];
   const memoryKey = "reflection";
   const memories = await store.get(memoryNamespace, memoryKey);
-  
-  const memoriesAsString = memories?.value ? formatMemories(memories.value as Memory) : "No memories found.";
+
+  const memoriesAsString = memories?.value
+    ? formatMemories(memories.value as Memory)
+    : "No memories found.";
 
   const generateReflectionsSchema = z.object({
-    styleRules: z.array(z.string()).describe("The complete new list of style rules and guidelines."),
-    content: z.array(z.string()).describe("The complete new list of memories/facts about the user.")
+    styleRules: z
+      .array(z.string())
+      .describe("The complete new list of style rules and guidelines."),
+    content: z
+      .array(z.string())
+      .describe("The complete new list of memories/facts about the user."),
   });
 
   const model = new ChatAnthropic({
@@ -52,16 +62,17 @@ export const reflect = async (
     temperature: 0,
   }).withStructuredOutput(generateReflectionsSchema, {
     name: "generate_reflections",
-  })
+  });
 
-  const formattedSystemPrompt = REFLECT_SYSTEM_PROMPT
-    .replace("{artifact}", state.artifact?.content ?? "No artifact found.")
-    .replace("{reflections}", memoriesAsString);
+  const formattedSystemPrompt = REFLECT_SYSTEM_PROMPT.replace(
+    "{artifact}",
+    state.artifact?.content ?? "No artifact found."
+  ).replace("{reflections}", memoriesAsString);
 
   const result = await model.invoke([
     {
       role: "system",
-      content: formattedSystemPrompt
+      content: formattedSystemPrompt,
     },
     ...state.messages,
   ]);
@@ -74,7 +85,7 @@ export const reflect = async (
   await store.put(memoryNamespace, memoryKey, newMemories);
 
   return {};
-}
+};
 
 const builder = new StateGraph(ReflectionGraphAnnotation)
   .addNode("reflect", reflect)

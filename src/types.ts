@@ -67,7 +67,6 @@ export type ReadingLevelOptions =
   | "college"
   | "phd";
 
-
 export interface Memory {
   /**
    * Style rules to follow for generating content.

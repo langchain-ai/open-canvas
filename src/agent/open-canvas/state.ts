@@ -79,4 +79,6 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
   fixBugs: Annotation<boolean | undefined>,
 });
 
-export type OpenCanvasGraphReturnType = Partial<typeof OpenCanvasGraphAnnotation.State>;
+export type OpenCanvasGraphReturnType = Partial<
+  typeof OpenCanvasGraphAnnotation.State
+>;

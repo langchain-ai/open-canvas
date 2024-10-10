@@ -7,7 +7,9 @@ import { z } from "zod";
 /**
  * Routes to the proper node in the graph based on the user's query.
  */
-export const generatePath = async (state: typeof OpenCanvasGraphAnnotation.State) => {
+export const generatePath = async (
+  state: typeof OpenCanvasGraphAnnotation.State
+) => {
   if (state.highlighted) {
     return {
       next: "updateArtifact",

@@ -9,7 +9,9 @@ export const ReflectionGraphAnnotation = Annotation.Root({
   /**
    * The artifact to reflect on.
    */
-  artifact: Annotation<Artifact | undefined>
+  artifact: Annotation<Artifact | undefined>,
 });
 
-export type ReflectionGraphReturnType = Partial<typeof ReflectionGraphAnnotation.State>;
+export type ReflectionGraphReturnType = Partial<
+  typeof ReflectionGraphAnnotation.State
+>;

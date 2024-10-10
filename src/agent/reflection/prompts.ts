@@ -27,4 +27,4 @@ Your job is to take all of the context and existing reflections and re-generate 
 - Your reflections should be very descriptive and detailed, ensuring they are clear and will not be misinterpreted.
 </system-guidelines>
 
-Finally, use the 'generate_reflections' tool to generate the new, full list of reflections.`
+Finally, use the 'generate_reflections' tool to generate the new, full list of reflections.`;

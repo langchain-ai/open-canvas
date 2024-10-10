@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Languages,
-  BookOpen,
-  SlidersVertical,
-  SmilePlus,
-} from "lucide-react";
+import { Languages, BookOpen, SlidersVertical, SmilePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
