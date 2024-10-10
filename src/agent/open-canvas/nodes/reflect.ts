@@ -8,6 +8,9 @@ export const reflectNode = async (
 ) => {
   const langGraphClient = new Client({
     apiUrl: `http://localhost:${process.env.PORT}`,
+    defaultHeaders: {
+      "X-API-KEY": process.env.LANGCHAIN_API_KEY,
+    },
   });
 
   const selectedArtifact = state.selectedArtifactId
