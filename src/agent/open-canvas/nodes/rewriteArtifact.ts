@@ -56,11 +56,5 @@ export const rewriteArtifact = async (
 
   return {
     artifacts: [newArtifact],
-    selectedArtifactId: undefined,
-    highlighted: undefined,
-    language: undefined,
-    artifactLength: undefined,
-    regenerateWithEmojis: undefined,
-    readingLevel: undefined,
   };
 };

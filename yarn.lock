@@ -497,10 +497,10 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.4"
 
-"@langchain/core@^0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.3.tgz#af12fd767ff2fcedb0a71bd79e6588d7dd52b6b6"
-  integrity sha512-WAtkmhbdl2T41qzimTzhb3pXCHQxO4onqxzPxgdf3KftQdTwLq0YYBDhozRMZLNAd/+cfH0ymZGaZSsnc9Ogsg==
+"@langchain/core@^0.3.9":
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.9.tgz#1fa75be84a22d951946277bc4ad3ea656c77fafc"
+  integrity sha512-Rttr9FuFwU+CWIoEyuLqQUPYg+3pKL1YpDgo3nvoDVhinoHqwGQ7aNGzZ/Sf+qASMi76sPSLm+75pHMJwwOiWg==
   dependencies:
     ansi-styles "^5.0.0"
     camelcase "6"

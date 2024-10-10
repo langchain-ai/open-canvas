@@ -78,11 +78,5 @@ export const rewriteCodeArtifactTheme = async (
 
   return {
     artifacts: [newArtifact],
-    selectedArtifactId: undefined,
-    highlighted: undefined,
-    language: undefined,
-    artifactLength: undefined,
-    regenerateWithEmojis: undefined,
-    readingLevel: undefined,
   };
 };

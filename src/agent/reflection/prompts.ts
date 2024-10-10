@@ -28,3 +28,7 @@ Your job is to take all of the context and existing reflections and re-generate 
 </system-guidelines>
 
 Finally, use the 'generate_reflections' tool to generate the new, full list of reflections.`;
+
+export const REFLECT_USER_PROMPT = `Here is my conversation:
+
+{conversation}`;

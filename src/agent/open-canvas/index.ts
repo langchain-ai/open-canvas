@@ -9,6 +9,7 @@ import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { reflect } from "../reflection";
+import { reflectNode } from "./nodes/reflect";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
@@ -58,7 +59,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
-  .addNode("reflect", reflect)
+  .addNode("reflect", reflectNode)
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")

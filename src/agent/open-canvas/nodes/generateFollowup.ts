@@ -36,6 +36,7 @@ export const generateFollowup = async (
     recentArtifact.content
   ).replace("{reflections}", memoriesAsString);
 
+  // TODO: Include the chat history as well.
   const response = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);

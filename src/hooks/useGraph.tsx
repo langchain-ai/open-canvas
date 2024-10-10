@@ -13,7 +13,7 @@ import {
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
-import { getCookie } from "@/lib/cookies";
+import { getCookie, setCookie } from "@/lib/cookies";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -97,6 +97,7 @@ export function useGraph() {
       graphId: "agent",
     });
     setAssistantId(assistant.assistant_id);
+    setCookie("oc_assistant_id", assistant.assistant_id);
   };
 
   const streamMessage = async (params: GraphInput) => {

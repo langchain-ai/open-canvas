@@ -6,7 +6,7 @@ import {
 } from "@langchain/langgraph";
 import { ReflectionGraphAnnotation, ReflectionGraphReturnType } from "./state";
 import { Reflections } from "../../types";
-import { REFLECT_SYSTEM_PROMPT } from "./prompts";
+import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts";
 import { z } from "zod";
 import { ensureStoreInConfig, formatReflections } from "../utils";
 
@@ -15,9 +15,9 @@ export const reflect = async (
   config: LangGraphRunnableConfig
 ): Promise<ReflectionGraphReturnType> => {
   const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.assistant_id;
+  const assistantId = config.configurable?.open_canvas_assistant_id;
   if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");
+    throw new Error("`open_canvas_assistant_id` not found in configurable");
   }
   const memoryNamespace = ["memories", assistantId];
   const memoryKey = "reflection";
@@ -48,12 +48,22 @@ export const reflect = async (
     state.artifact?.content ?? "No artifact found."
   ).replace("{reflections}", memoriesAsString);
 
+  const formattedUserPrompt = REFLECT_USER_PROMPT.replace(
+    "{conversation}",
+    state.messages
+      .map((msg) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
+      .join("\n\n")
+  );
+
   const result = await model.invoke([
     {
       role: "system",
       content: formattedSystemPrompt,
     },
-    ...state.messages,
+    {
+      role: "user",
+      content: formattedUserPrompt,
+    },
   ]);
 
   const newMemories = {
