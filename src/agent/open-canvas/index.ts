@@ -47,8 +47,6 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Start node & edge
   .addNode("generatePath", generatePath)
   .addEdge(START, "generatePath")
-  // Initial router
-  .addConditionalEdges("generatePath", routeNode)
   // Nodes
   .addNode("respondToQuery", respondToQuery)
   .addNode("rewriteArtifact", rewriteArtifact)
@@ -59,6 +57,15 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
   .addNode("reflect", reflectNode)
+  // Initial router
+  .addConditionalEdges("generatePath", routeNode, [
+    "updateArtifact",
+    "rewriteArtifactTheme",
+    "rewriteCodeArtifactTheme",
+    "respondToQuery",
+    "generateArtifact",
+    "rewriteArtifact",
+  ])
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
