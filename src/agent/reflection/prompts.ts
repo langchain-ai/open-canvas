@@ -22,9 +22,12 @@ Your job is to take all of the context and existing reflections and re-generate 
 - Remove duplicate reflections, or combine multiple reflections into one if they are duplicating content.
 - Do not remove reflections unless the conversation/artifact clearly demonstrates they should no longer be included.
   This does NOT mean remove reflections if you see no evidence of them in the conversation/artifact, but instead remove them if the user indicates they are no longer relevant.
-- Think of the deeper meaning behind a users messages, or artifact to generate content reflections that will be relevant and useful for future interactions.
+- Think of why a user said what they said when generating rules. This will help you generate more accurate reflections.
 - Keep the rules you list high signal-to-noise - don't include unnecessary reflections, but make sure the ones you do add are descriptive.
 - Your reflections should be very descriptive and detailed, ensuring they are clear and will not be misinterpreted.
+- Keep your style and user facts rule lists short. It's better to have individual rules be more detailed, than to have multiple rules that are too general.
+- Do NOT generate rules off of suspicions. Your rules should be based on cold hard facts from the conversation and artifact.
+  You must be able to provide evidence and sources for each rule you generate if asked, so don't make assumptions.
 </system-guidelines>
 
 Finally, use the 'generate_reflections' tool to generate the new, full list of reflections.`;

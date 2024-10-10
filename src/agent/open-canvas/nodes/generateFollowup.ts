@@ -4,6 +4,7 @@ import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
 import { Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { isHumanMessage } from "@langchain/core/messages";
 
 /**
  * Generate a followup message after generating or updating an artifact.
@@ -27,14 +28,25 @@ export const generateFollowup = async (
   const memoryKey = "reflection";
   const memories = await store.get(memoryNamespace, memoryKey);
   const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections)
+    ? formatReflections(memories.value as Reflections, {
+        onlyContent: true,
+      })
     : "No reflections found.";
 
   const recentArtifact = state.artifacts[state.artifacts.length - 1];
   const formattedPrompt = FOLLOWUP_ARTIFACT_PROMPT.replace(
     "{artifactContent}",
     recentArtifact.content
-  ).replace("{reflections}", memoriesAsString);
+  )
+    .replace("{reflections}", memoriesAsString)
+    .replace(
+      "{conversation}",
+      state.messages
+        .map(
+          (msg) => `<${msg._getType()}>\n${msg.content}\n</${msg._getType()}>`
+        )
+        .join("\n\n")
+    );
 
   // TODO: Include the chat history as well.
   const response = await smallModel.invoke([

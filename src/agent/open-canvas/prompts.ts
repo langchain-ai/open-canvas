@@ -224,10 +224,15 @@ Here is the artifact you generated:
 {artifactContent}
 </artifact>
 
-You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+You also have the following reflections on general memories/facts about the user to use when generating your response.
 <reflections>
 {reflections}
 </reflections>
+
+Finally, here is the chat history between you and the user:
+<conversation>
+{conversation}
+</conversation>
 
 This message should be very short. Never generate more than 2-3 short sentences. Your tone should be somewhat formal, but still friendly. Remember, you're an AI assistant.
 

@@ -9,7 +9,7 @@ export const reflectNode = async (
   const langGraphClient = new Client({
     apiUrl: `http://localhost:${process.env.PORT}`,
   });
-  console.log("reflectNode", state);
+
   const selectedArtifact = state.selectedArtifactId
     ? state.artifacts.find((art) => art.id === state.selectedArtifactId)
     : state.artifacts[state.artifacts.length - 1];
