@@ -8,7 +8,6 @@ import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
-import { reflect } from "../reflection";
 import { reflectNode } from "./nodes/reflect";
 
 const defaultInputs: Omit<
