@@ -1,4 +1,4 @@
-import { Artifact } from "../types";
+import { Artifact } from "../../types";
 
 export const formatArtifacts = (
   messages: Artifact[],

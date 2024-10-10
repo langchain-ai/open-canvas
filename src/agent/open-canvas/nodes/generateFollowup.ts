@@ -1,13 +1,13 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphAnnotation, GraphReturnType } from "../state";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 
 /**
  * Generate a followup message after generating or updating an artifact.
  */
 export const generateFollowup = async (
-  state: typeof GraphAnnotation.State
-): Promise<GraphReturnType> => {
+  state: typeof OpenCanvasGraphAnnotation.State
+): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o-mini",
     temperature: 0.5,

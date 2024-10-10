@@ -1,10 +1,10 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphAnnotation, GraphReturnType } from "../state";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { UPDATE_ENTIRE_ARTIFACT_PROMPT } from "../prompts";
 
 export const rewriteArtifact = async (
-  state: typeof GraphAnnotation.State
-): Promise<GraphReturnType> => {
+  state: typeof OpenCanvasGraphAnnotation.State
+): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,

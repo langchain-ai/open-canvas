@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphAnnotation, GraphReturnType } from "../state";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { NEW_ARTIFACT_PROMPT } from "../prompts";
-import { Artifact } from "../../types";
+import { Artifact } from "../../../types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
@@ -9,8 +9,8 @@ import { v4 as uuidv4 } from "uuid";
  * Generate a new artifact based on the user's query.
  */
 export const generateArtifact = async (
-  state: typeof GraphAnnotation.State
-): Promise<GraphReturnType> => {
+  state: typeof OpenCanvasGraphAnnotation.State
+): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,

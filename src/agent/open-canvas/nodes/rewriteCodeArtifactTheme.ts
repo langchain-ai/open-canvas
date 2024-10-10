@@ -1,5 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphAnnotation, GraphReturnType } from "../state";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import {
   ADD_COMMENTS_TO_CODE_ARTIFACT_PROMPT,
   ADD_LOGS_TO_CODE_ARTIFACT_PROMPT,
@@ -8,8 +8,8 @@ import {
 } from "../prompts";
 
 export const rewriteCodeArtifactTheme = async (
-  state: typeof GraphAnnotation.State
-): Promise<GraphReturnType> => {
+  state: typeof OpenCanvasGraphAnnotation.State
+): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,

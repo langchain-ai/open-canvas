@@ -487,10 +487,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@langchain/anthropic@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@langchain/anthropic/-/anthropic-0.3.1.tgz#7981e90e87566dedbd6cd5e4534a205cd618ec13"
-  integrity sha512-mE2zfv2IeogDgP53IYlfqZuXbmACkQDtBkg1Nriasrzvr1g+1Q85pfyUCnxc05p4S2IplbJhvoBtgdQUTGenqw==
+"@langchain/anthropic@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@langchain/anthropic/-/anthropic-0.3.3.tgz#68744efbebed581be45cd6fc85483de18511278c"
+  integrity sha512-OvnSV3Tjhb87n7CxWzIcJqcJEM4qoFDYYt6Rua7glQF/Ud5FBTurlzoMunLPTQeF5GdPiaOwP3nUw6I9gF7ppw==
   dependencies:
     "@anthropic-ai/sdk" "^0.27.3"
     fast-xml-parser "^4.4.1"

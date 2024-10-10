@@ -1,5 +1,5 @@
 import { END, Send, START, StateGraph } from "@langchain/langgraph";
-import { GraphAnnotation } from "./state";
+import { OpenCanvasGraphAnnotation } from "./state";
 import { generatePath } from "./nodes/generatePath";
 import { generateFollowup } from "./nodes/generateFollowup";
 import { generateArtifact } from "./nodes/generateArtifact";
@@ -10,7 +10,7 @@ import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 
 const defaultInputs: Omit<
-  typeof GraphAnnotation.State,
+  typeof OpenCanvasGraphAnnotation.State,
   "messages" | "artifacts"
 > = {
   selectedArtifactId: undefined,
@@ -26,7 +26,7 @@ const defaultInputs: Omit<
   portLanguage: undefined,
 };
 
-const routeNode = (state: typeof GraphAnnotation.State) => {
+const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
     throw new Error("'next' state field not set.");
   }
@@ -36,13 +36,13 @@ const routeNode = (state: typeof GraphAnnotation.State) => {
   });
 };
 
-const cleanState = (_: typeof GraphAnnotation.State) => {
+const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
   return {
     ...defaultInputs,
   };
 };
 
-const builder = new StateGraph(GraphAnnotation)
+const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Start node & edge
   .addNode("generatePath", generatePath)
   .addEdge(START, "generatePath")
