@@ -1,13 +1,15 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ROUTE_QUERY_PROMPT } from "../prompts";
-import { GraphAnnotation } from "../state";
+import { OpenCanvasGraphAnnotation } from "../state";
 import { formatArtifacts } from "../utils";
 import { z } from "zod";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
  */
-export const generatePath = async (state: typeof GraphAnnotation.State) => {
+export const generatePath = async (
+  state: typeof OpenCanvasGraphAnnotation.State
+) => {
   if (state.highlighted) {
     return {
       next: "updateArtifact",

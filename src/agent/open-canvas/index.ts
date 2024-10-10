@@ -1,5 +1,5 @@
 import { END, Send, START, StateGraph } from "@langchain/langgraph";
-import { GraphAnnotation } from "./state";
+import { OpenCanvasGraphAnnotation } from "./state";
 import { generatePath } from "./nodes/generatePath";
 import { generateFollowup } from "./nodes/generateFollowup";
 import { generateArtifact } from "./nodes/generateArtifact";
@@ -8,9 +8,10 @@ import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
+import { reflectNode } from "./nodes/reflect";
 
 const defaultInputs: Omit<
-  typeof GraphAnnotation.State,
+  typeof OpenCanvasGraphAnnotation.State,
   "messages" | "artifacts"
 > = {
   selectedArtifactId: undefined,
@@ -26,7 +27,7 @@ const defaultInputs: Omit<
   portLanguage: undefined,
 };
 
-const routeNode = (state: typeof GraphAnnotation.State) => {
+const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
     throw new Error("'next' state field not set.");
   }
@@ -36,13 +37,13 @@ const routeNode = (state: typeof GraphAnnotation.State) => {
   });
 };
 
-const cleanState = (_: typeof GraphAnnotation.State) => {
+const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
   return {
     ...defaultInputs,
   };
 };
 
-const builder = new StateGraph(GraphAnnotation)
+const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Start node & edge
   .addNode("generatePath", generatePath)
   .addEdge(START, "generatePath")
@@ -57,6 +58,7 @@ const builder = new StateGraph(GraphAnnotation)
   .addNode("generateArtifact", generateArtifact)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
+  .addNode("reflect", reflectNode)
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
@@ -65,7 +67,9 @@ const builder = new StateGraph(GraphAnnotation)
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   // End edges
   .addEdge("respondToQuery", "cleanState")
-  .addEdge("generateFollowup", "cleanState")
+  // Only reflect if an artifact was generated/updated.
+  .addEdge("generateFollowup", "reflect")
+  .addEdge("reflect", "cleanState")
   .addEdge("cleanState", END);
 
 export const graph = builder.compile();

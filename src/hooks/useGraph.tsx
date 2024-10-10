@@ -13,6 +13,7 @@ import {
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
+import { getCookie, setCookie } from "@/lib/cookies";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -58,6 +59,7 @@ export function useGraph() {
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [assistantId, setAssistantId] = useState<string>();
   const [threadId, setThreadId] = useState<string | null>(null);
   // Default to the last artifact in the list
   const [selectedArtifactId, setSelectedArtifactId] = useState<
@@ -67,6 +69,11 @@ export function useGraph() {
   useEffect(() => {
     if (threadId || typeof window === "undefined") return;
     createThread();
+  }, []);
+
+  useEffect(() => {
+    if (assistantId || typeof window === "undefined") return;
+    getOrCreateThread();
   }, []);
 
   const createThread = async () => {
@@ -79,11 +86,32 @@ export function useGraph() {
     return thread;
   };
 
+  const getOrCreateThread = async () => {
+    const assistantIdCookie = getCookie("oc_assistant_id");
+    if (assistantIdCookie) {
+      setAssistantId(assistantIdCookie);
+      return;
+    }
+    const client = createClient();
+    const assistant = await client.assistants.create({
+      graphId: "agent",
+    });
+    setAssistantId(assistant.assistant_id);
+    setCookie("oc_assistant_id", assistant.assistant_id);
+  };
+
   const streamMessage = async (params: GraphInput) => {
     if (!threadId) {
       toast({
         title: "Error",
         description: "Thread ID not found",
+      });
+      return undefined;
+    }
+    if (!assistantId) {
+      toast({
+        title: "Error",
+        description: "Assistant ID not found",
       });
       return undefined;
     }
@@ -111,7 +139,7 @@ export function useGraph() {
       ...params,
     };
 
-    const stream = client.runs.stream(threadId, "agent", {
+    const stream = client.runs.stream(threadId, assistantId, {
       input,
       streamMode: "events",
     });

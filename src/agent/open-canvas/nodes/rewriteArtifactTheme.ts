@@ -1,5 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphAnnotation, GraphReturnType } from "../state";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import {
   ADD_EMOJIS_TO_ARTIFACT_PROMPT,
   CHANGE_ARTIFACT_LANGUAGE_PROMPT,
@@ -7,14 +7,30 @@ import {
   CHANGE_ARTIFACT_READING_LEVEL_PROMPT,
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
+import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
+import { Reflections } from "../../../types";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 export const rewriteArtifactTheme = async (
-  state: typeof GraphAnnotation.State
-): Promise<GraphReturnType> => {
+  state: typeof OpenCanvasGraphAnnotation.State,
+  config: LangGraphRunnableConfig
+): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,
   });
+
+  const store = ensureStoreInConfig(config);
+  const assistantId = config.configurable?.assistant_id;
+  if (!assistantId) {
+    throw new Error("`assistant_id` not found in configurable");
+  }
+  const memoryNamespace = ["memories", assistantId];
+  const memoryKey = "reflection";
+  const memories = await store.get(memoryNamespace, memoryKey);
+  const memoriesAsString = memories?.value
+    ? formatReflections(memories.value as Reflections)
+    : "No reflections found.";
 
   const selectedArtifact = state.artifacts.find(
     (artifact) => artifact.id === state.selectedArtifactId
@@ -83,6 +99,8 @@ export const rewriteArtifactTheme = async (
     throw new Error("No theme selected");
   }
 
+  formattedPrompt = formattedPrompt.replace("{reflections}", memoriesAsString);
+
   const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);
@@ -94,11 +112,5 @@ export const rewriteArtifactTheme = async (
 
   return {
     artifacts: [newArtifact],
-    selectedArtifactId: undefined,
-    highlighted: undefined,
-    language: undefined,
-    artifactLength: undefined,
-    regenerateWithEmojis: undefined,
-    readingLevel: undefined,
   };
 };

@@ -487,20 +487,20 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@langchain/anthropic@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@langchain/anthropic/-/anthropic-0.3.1.tgz#7981e90e87566dedbd6cd5e4534a205cd618ec13"
-  integrity sha512-mE2zfv2IeogDgP53IYlfqZuXbmACkQDtBkg1Nriasrzvr1g+1Q85pfyUCnxc05p4S2IplbJhvoBtgdQUTGenqw==
+"@langchain/anthropic@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@langchain/anthropic/-/anthropic-0.3.3.tgz#68744efbebed581be45cd6fc85483de18511278c"
+  integrity sha512-OvnSV3Tjhb87n7CxWzIcJqcJEM4qoFDYYt6Rua7glQF/Ud5FBTurlzoMunLPTQeF5GdPiaOwP3nUw6I9gF7ppw==
   dependencies:
     "@anthropic-ai/sdk" "^0.27.3"
     fast-xml-parser "^4.4.1"
     zod "^3.22.4"
     zod-to-json-schema "^3.22.4"
 
-"@langchain/core@^0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.3.tgz#af12fd767ff2fcedb0a71bd79e6588d7dd52b6b6"
-  integrity sha512-WAtkmhbdl2T41qzimTzhb3pXCHQxO4onqxzPxgdf3KftQdTwLq0YYBDhozRMZLNAd/+cfH0ymZGaZSsnc9Ogsg==
+"@langchain/core@^0.3.9":
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.9.tgz#1fa75be84a22d951946277bc4ad3ea656c77fafc"
+  integrity sha512-Rttr9FuFwU+CWIoEyuLqQUPYg+3pKL1YpDgo3nvoDVhinoHqwGQ7aNGzZ/Sf+qASMi76sPSLm+75pHMJwwOiWg==
   dependencies:
     ansi-styles "^5.0.0"
     camelcase "6"
@@ -521,10 +521,10 @@
   dependencies:
     uuid "^10.0.0"
 
-"@langchain/langgraph-sdk@^0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.14.tgz#aae3495208f6bcc2438f7cd6616b21a0dfa91e6f"
-  integrity sha512-hDu5Q92px6M3frZbKPOg2jWb8cCxU83oEt+GtfOY0MzID60+XocjsHdwSv5EEj32X9yzINGq6jHlHg1EHqjZyA==
+"@langchain/langgraph-sdk@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.16.tgz#3dc415d78a912f13ab75d98c829cc736d55c978f"
+  integrity sha512-qbpImYeuDjRGZRno5HTaSbBQYa42wAI1Eeb3tZ+y5ek1rZxArqnyKCX8FH7Eje8NneSZWsGGZsudnOD6NXVwvA==
   dependencies:
     "@types/json-schema" "^7.0.15"
     p-queue "^6.6.2"

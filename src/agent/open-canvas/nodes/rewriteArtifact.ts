@@ -1,14 +1,30 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { GraphAnnotation, GraphReturnType } from "../state";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { UPDATE_ENTIRE_ARTIFACT_PROMPT } from "../prompts";
+import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
+import { Reflections } from "../../../types";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 export const rewriteArtifact = async (
-  state: typeof GraphAnnotation.State
-): Promise<GraphReturnType> => {
+  state: typeof OpenCanvasGraphAnnotation.State,
+  config: LangGraphRunnableConfig
+): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0.5,
   });
+
+  const store = ensureStoreInConfig(config);
+  const assistantId = config.configurable?.assistant_id;
+  if (!assistantId) {
+    throw new Error("`assistant_id` not found in configurable");
+  }
+  const memoryNamespace = ["memories", assistantId];
+  const memoryKey = "reflection";
+  const memories = await store.get(memoryNamespace, memoryKey);
+  const memoriesAsString = memories?.value
+    ? formatReflections(memories.value as Reflections)
+    : "No reflections found.";
 
   const selectedArtifact = state.artifacts.find(
     (artifact) => artifact.id === state.selectedArtifactId
@@ -20,7 +36,7 @@ export const rewriteArtifact = async (
   const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
     "{artifactContent}",
     selectedArtifact.content
-  );
+  ).replace("{reflections}", memoriesAsString);
 
   const recentHumanMessage = state.messages.findLast(
     (message) => message._getType() === "human"
@@ -40,11 +56,5 @@ export const rewriteArtifact = async (
 
   return {
     artifacts: [newArtifact],
-    selectedArtifactId: undefined,
-    highlighted: undefined,
-    language: undefined,
-    artifactLength: undefined,
-    regenerateWithEmojis: undefined,
-    readingLevel: undefined,
   };
 };

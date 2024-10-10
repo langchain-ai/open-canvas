@@ -5,7 +5,7 @@ import {
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
   Highlight,
-} from "../types";
+} from "../../types";
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
 /**
@@ -23,7 +23,7 @@ const artifactsReducer = (
   return state.filter((a) => !updatedIds.has(a.id)).concat(update);
 };
 
-export const GraphAnnotation = Annotation.Root({
+export const OpenCanvasGraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
   /**
    * The ID of the artifact to perform some action on.
@@ -79,4 +79,6 @@ export const GraphAnnotation = Annotation.Root({
   fixBugs: Annotation<boolean | undefined>,
 });
 
-export type GraphReturnType = Partial<typeof GraphAnnotation.State>;
+export type OpenCanvasGraphReturnType = Partial<
+  typeof OpenCanvasGraphAnnotation.State
+>;

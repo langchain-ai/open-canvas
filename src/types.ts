@@ -66,3 +66,14 @@ export type ReadingLevelOptions =
   | "teenager"
   | "college"
   | "phd";
+
+export interface Reflections {
+  /**
+   * Style rules to follow for generating content.
+   */
+  styleRules: string[];
+  /**
+   * Key content to remember about the user when generating content.
+   */
+  content: string[];
+}
