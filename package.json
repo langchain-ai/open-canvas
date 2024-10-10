@@ -1,6 +1,8 @@
 {
-  "name": "streaming_chat_frontend",
-  "version": "0.1.0",
+  "name": "open_canvas",
+  "author": "Brace Sproul",
+  "homepage": "https://open-canvas-lc.vercel.app",
+  "repository": "https://github.com/langchain-ai/open-canvas",
   "private": true,
   "scripts": {
     "dev": "next dev",
