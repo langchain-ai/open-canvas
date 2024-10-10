@@ -521,10 +521,10 @@
   dependencies:
     uuid "^10.0.0"
 
-"@langchain/langgraph-sdk@^0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.14.tgz#aae3495208f6bcc2438f7cd6616b21a0dfa91e6f"
-  integrity sha512-hDu5Q92px6M3frZbKPOg2jWb8cCxU83oEt+GtfOY0MzID60+XocjsHdwSv5EEj32X9yzINGq6jHlHg1EHqjZyA==
+"@langchain/langgraph-sdk@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.16.tgz#3dc415d78a912f13ab75d98c829cc736d55c978f"
+  integrity sha512-qbpImYeuDjRGZRno5HTaSbBQYa42wAI1Eeb3tZ+y5ek1rZxArqnyKCX8FH7Eje8NneSZWsGGZsudnOD6NXVwvA==
   dependencies:
     "@types/json-schema" "^7.0.15"
     p-queue "^6.6.2"

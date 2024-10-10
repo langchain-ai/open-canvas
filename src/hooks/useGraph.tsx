@@ -108,6 +108,13 @@ export function useGraph() {
       });
       return undefined;
     }
+    if (!assistantId) {
+      toast({
+        title: "Error",
+        description: "Assistant ID not found",
+      });
+      return undefined;
+    }
 
     const client = createClient();
 
@@ -132,13 +139,8 @@ export function useGraph() {
       ...params,
     };
 
-    const stream = client.runs.stream(threadId, "agent", {
+    const stream = client.runs.stream(threadId, assistantId, {
       input,
-      config: {
-        configurable: {
-          assistant_id: assistantId,
-        },
-      },
       streamMode: "events",
     });
 

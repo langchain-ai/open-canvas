@@ -4,7 +4,6 @@ import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
 import { Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { isHumanMessage } from "@langchain/core/messages";
 
 /**
  * Generate a followup message after generating or updating an artifact.
