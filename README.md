@@ -37,7 +37,7 @@ Then [install LangGraph Studio](https://studio.langchain.com/) which is required
 After that, copy the `.env.example` file contents into `.env` and set the required values:
 
 ```bash
-# LangSmith tracing (optional, but recomended.)
+# LangSmith tracing (optional, but recommended.)
 LANGCHAIN_TRACING_V2=true
 LANGCHAIN_API_KEY=
 
