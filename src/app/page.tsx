@@ -3,6 +3,7 @@ import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useToast } from "@/hooks/use-toast";
 import { useGraph } from "@/hooks/useGraph";
+import { useStore } from "@/hooks/useStore";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
 import { ProgrammingLanguageOptions } from "@/types";
@@ -27,7 +28,12 @@ export default function Home() {
     selectedArtifactId,
     createThread,
     setArtifactContent,
+    assistantId,
   } = useGraph();
+  const {
+    reflections,
+    deleteReflections
+  } = useStore(assistantId);
 
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);

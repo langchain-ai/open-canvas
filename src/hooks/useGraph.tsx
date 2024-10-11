@@ -486,6 +486,7 @@ export function useGraph() {
     artifacts,
     selectedArtifactId,
     messages,
+    assistantId,
     setSelectedArtifact: setSelectedArtifactById,
     setArtifacts,
     setMessages,
