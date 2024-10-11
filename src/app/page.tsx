@@ -30,8 +30,12 @@ export default function Home() {
     setArtifactContent,
     assistantId,
   } = useGraph();
-  const { reflections: _reflections, deleteReflections: _deleteReflections } =
-    useStore(assistantId);
+  const {
+    reflections,
+    deleteReflections,
+    getReflections,
+    isLoadingReflections,
+  } = useStore(assistantId);
 
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);
@@ -112,6 +116,10 @@ export default function Home() {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            handleGetReflections={getReflections}
+            handleDeleteReflections={deleteReflections}
+            reflections={reflections}
+            isLoadingReflections={isLoadingReflections}
             setIsEditing={setIsEditing}
             isEditing={isEditing}
             setArtifactContent={setArtifactContent}

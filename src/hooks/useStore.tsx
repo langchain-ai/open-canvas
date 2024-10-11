@@ -4,6 +4,7 @@ import { useToast } from "./use-toast";
 
 export function useStore(assistantId: string | undefined) {
   const { toast } = useToast();
+  const [isLoadingReflections, setIsLoadingReflections] = useState(false);
   const [reflections, setReflections] = useState<
     Reflections & { assistantId: string; updatedAt: Date }
   >();
@@ -24,6 +25,7 @@ export function useStore(assistantId: string | undefined) {
     if (!assistantId) {
       return;
     }
+    setIsLoadingReflections(true);
     const res = await fetch("/api/store/get", {
       method: "POST",
       body: JSON.stringify({ assistantId }),
@@ -38,7 +40,8 @@ export function useStore(assistantId: string | undefined) {
 
     const { item } = await res.json();
 
-    if (!item.value) {
+    if (!item?.value) {
+      setIsLoadingReflections(false);
       // No reflections found. Return early.
       return;
     }
@@ -48,6 +51,7 @@ export function useStore(assistantId: string | undefined) {
       updatedAt: new Date(item.updatedAt),
       assistantId,
     });
+    setIsLoadingReflections(false);
   };
 
   const deleteReflections = async (): Promise<boolean> => {
@@ -79,7 +83,9 @@ export function useStore(assistantId: string | undefined) {
   };
 
   return {
+    isLoadingReflections,
     reflections,
     deleteReflections,
+    getReflections,
   };
 }
