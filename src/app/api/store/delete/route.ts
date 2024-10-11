@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (_) {
     return new NextResponse(
       JSON.stringify({ error: "Failed to share run after multiple attempts." }),
       {

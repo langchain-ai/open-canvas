@@ -30,10 +30,8 @@ export default function Home() {
     setArtifactContent,
     assistantId,
   } = useGraph();
-  const {
-    reflections,
-    deleteReflections
-  } = useStore(assistantId);
+  const { reflections: _reflections, deleteReflections: _deleteReflections } =
+    useStore(assistantId);
 
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);

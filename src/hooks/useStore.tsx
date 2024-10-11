@@ -4,13 +4,19 @@ import { useToast } from "./use-toast";
 
 export function useStore(assistantId: string | undefined) {
   const { toast } = useToast();
-  const [reflections, setReflections] = useState<Reflections & { assistantId: string }>();
+  const [reflections, setReflections] = useState<
+    Reflections & { assistantId: string; updatedAt: Date }
+  >();
 
   useEffect(() => {
     if (!assistantId || typeof window === "undefined") return;
     // Don't re-fetch reflections if they already exist & are for the same assistant
-    if ((reflections?.content || reflections?.styleRules) && reflections.assistantId === assistantId) return;
-    
+    if (
+      (reflections?.content || reflections?.styleRules) &&
+      reflections.assistantId === assistantId
+    )
+      return;
+
     getReflections();
   }, [assistantId]);
 
@@ -30,9 +36,16 @@ export function useStore(assistantId: string | undefined) {
       return;
     }
 
-    const { memories } = await res.json();
+    const { item } = await res.json();
+
+    if (!item.value) {
+      // No reflections found. Return early.
+      return;
+    }
+
     setReflections({
-      ...memories,
+      ...item.value,
+      updatedAt: new Date(item.updatedAt),
       assistantId,
     });
   };
@@ -60,7 +73,7 @@ export function useStore(assistantId: string | undefined) {
       toast({
         title: "Failed to delete reflections",
         description: "Please try again later.",
-      })
+      });
     }
     return success;
   };

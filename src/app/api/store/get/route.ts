@@ -26,13 +26,13 @@ export async function POST(req: NextRequest) {
   const memoryKey = "reflection";
 
   try {
-    const memories = await lgClient.store.getItem(memoryNamespace, memoryKey);
+    const item = await lgClient.store.getItem(memoryNamespace, memoryKey);
 
-    return new NextResponse(JSON.stringify({ memories: memories?.value }), {
+    return new NextResponse(JSON.stringify({ item }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (_) {
     return new NextResponse(
       JSON.stringify({ error: "Failed to share run after multiple attempts." }),
       {

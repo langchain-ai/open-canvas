@@ -31,7 +31,10 @@ async function handleRequest(req: NextRequest, method: string) {
       options.body = await req.text();
     }
 
-    const res = await fetch(`${LANGGRAPH_API_URL}/${path}${queryString}`, options);
+    const res = await fetch(
+      `${LANGGRAPH_API_URL}/${path}${queryString}`,
+      options
+    );
 
     const headers = new Headers({
       ...getCorsHeaders(),
