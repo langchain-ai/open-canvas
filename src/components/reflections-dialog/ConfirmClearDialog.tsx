@@ -3,7 +3,6 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogTrigger,
 } from "../ui/dialog";
