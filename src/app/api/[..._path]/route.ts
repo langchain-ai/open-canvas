@@ -1,3 +1,4 @@
+import { LANGGRAPH_API_URL } from "../../../constants";
 import { NextRequest, NextResponse } from "next/server";
 
 function getCorsHeaders() {
@@ -30,8 +31,10 @@ async function handleRequest(req: NextRequest, method: string) {
       options.body = await req.text();
     }
 
-    const apiUrl = process.env.LANGGRAPH_API_URL ?? "http://localhost:58740";
-    const res = await fetch(`${apiUrl}/${path}${queryString}`, options);
+    const res = await fetch(
+      `${LANGGRAPH_API_URL}/${path}${queryString}`,
+      options
+    );
 
     const headers = new Headers({
       ...getCorsHeaders(),

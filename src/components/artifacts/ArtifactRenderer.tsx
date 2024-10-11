@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Artifact, ProgrammingLanguageOptions } from "@/types";
+import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
@@ -16,6 +16,7 @@ import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
 import { newlineToCarriageReturn } from "@/lib/normalize_string";
+import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -26,6 +27,10 @@ export interface ArtifactRendererProps {
   messages: BaseMessage[];
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  isLoadingReflections: boolean;
+  reflections: (Reflections & { updatedAt: Date }) | undefined;
+  handleDeleteReflections: () => Promise<boolean>;
+  handleGetReflections: () => Promise<void>;
 }
 
 interface SelectionBox {
@@ -253,6 +258,12 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </TooltipIconButton>
           <h1 className="text-xl font-medium">{props.artifact.title}</h1>
         </div>
+        <ReflectionsDialog
+          handleGetReflections={props.handleGetReflections}
+          isLoadingReflections={props.isLoadingReflections}
+          reflections={props.reflections}
+          handleDeleteReflections={props.handleDeleteReflections}
+        />
         {props.artifact.type === "text" ? (
           <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton
