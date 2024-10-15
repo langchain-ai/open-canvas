@@ -16,7 +16,7 @@ import {
 } from "@/lib/convert_messages";
 import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
-import { Artifact, ProgrammingLanguageOptions } from "@/types";
+import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { Thread } from "@langchain/langgraph-sdk";
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
@@ -31,6 +31,10 @@ export interface ContentComposerChatInterfaceProps {
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
+  isLoadingReflections: boolean;
+  reflections: (Reflections & { updatedAt: Date }) | undefined;
+  handleDeleteReflections: () => Promise<boolean>;
+  handleGetReflections: () => Promise<void>;
 }
 
 export function ContentComposerChatInterface(
@@ -78,6 +82,10 @@ export function ContentComposerChatInterface(
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <MyThread
+          handleGetReflections={props.handleGetReflections}
+          handleDeleteReflections={props.handleDeleteReflections}
+          reflections={props.reflections}
+          isLoadingReflections={props.isLoadingReflections}
           handleQuickStart={props.handleQuickStart}
           showNewThreadButton={props.showNewThreadButton}
           createThread={props.createThread}

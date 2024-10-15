@@ -258,12 +258,14 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </TooltipIconButton>
           <h1 className="text-xl font-medium">{props.artifact.title}</h1>
         </div>
-        <ReflectionsDialog
-          handleGetReflections={props.handleGetReflections}
-          isLoadingReflections={props.isLoadingReflections}
-          reflections={props.reflections}
-          handleDeleteReflections={props.handleDeleteReflections}
-        />
+        <div className="ml-auto mt-[10px] mr-[6px]">
+          <ReflectionsDialog
+            handleGetReflections={props.handleGetReflections}
+            isLoadingReflections={props.isLoadingReflections}
+            reflections={props.reflections}
+            handleDeleteReflections={props.handleDeleteReflections}
+          />
+        </div>
         {props.artifact.type === "text" ? (
           <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton

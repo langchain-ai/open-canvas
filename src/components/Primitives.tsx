@@ -25,7 +25,8 @@ import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
 import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
-import { ProgrammingLanguageOptions } from "@/types";
+import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 
 export interface MyThreadProps {
   setSelectedArtifact: (artifactId: string) => void;
@@ -35,6 +36,10 @@ export interface MyThreadProps {
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
+  isLoadingReflections: boolean;
+  reflections: (Reflections & { updatedAt: Date }) | undefined;
+  handleDeleteReflections: () => Promise<boolean>;
+  handleGetReflections: () => Promise<void>;
 }
 
 interface QuickStartButtonsProps {
@@ -128,7 +133,16 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
             <SquarePen />
           </TooltipIconButton>
         ) : (
-          <QuickStartButtons handleQuickStart={props.handleQuickStart} />
+          <div className="flex flex-row gap-2 items-center">
+            <ReflectionsDialog
+              handleGetReflections={props.handleGetReflections}
+              isLoadingReflections={props.isLoadingReflections}
+              reflections={props.reflections}
+              handleDeleteReflections={props.handleDeleteReflections}
+            />
+
+            <QuickStartButtons handleQuickStart={props.handleQuickStart} />
+          </div>
         )}
       </div>
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
