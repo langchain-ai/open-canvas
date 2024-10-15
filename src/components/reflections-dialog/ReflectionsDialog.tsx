@@ -21,8 +21,12 @@ export interface ReflectionsProps {
 
 function NoReflections(props: Pick<ReflectionsProps, "handleGetReflections">) {
   return (
-    <div className="flex flex-col items-center mt-6 mb-[-24px] gap-2">
+    <div className="flex flex-col items-center mt-6 mb-[-24px] gap-3">
       <p>No reflections have been generated yet.</p>
+      <p className="text-sm text-gray-500">
+        Reflections generate after 30s of inactivity. If none appear, try again
+        later.
+      </p>
       <Button
         onClick={props.handleGetReflections}
         variant="secondary"
@@ -53,7 +57,7 @@ export function ReflectionsDialog(props: ReflectionsProps) {
       <DialogTrigger asChild>
         <div
           onClick={() => setOpen(true)}
-          className="ml-auto mt-[10px] mr-[6px] bg-white hover:bg-gray-50 text-black border border-gray-300 px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
+          className="ml-auto bg-white hover:bg-gray-50 text-black border border-gray-300 px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
         >
           <p className="text-sm font-light">Reflections</p>
         </div>

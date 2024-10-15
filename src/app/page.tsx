@@ -102,6 +102,10 @@ export default function Home() {
         )}
       >
         <ContentComposerChatInterface
+          handleGetReflections={getReflections}
+          handleDeleteReflections={deleteReflections}
+          reflections={reflections}
+          isLoadingReflections={isLoadingReflections}
           setSelectedArtifact={setSelectedArtifact}
           streamMessage={streamMessage}
           setArtifacts={setArtifacts}
