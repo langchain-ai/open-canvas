@@ -1,5 +1,7 @@
 # Open Canvas
 
+[TRY IT OUT HERE](open-canvas-lc.vercel.app)
+
 ![Screenshot of app](./public/screenshot.jpg)
 
 Open Canvas is an open source web application for collaborating with agents to better write documents. It is inspired by [OpenAI's "Canvas"](https://openai.com/index/introducing-canvas/), but with a few key differences.
