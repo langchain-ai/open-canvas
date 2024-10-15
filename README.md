@@ -1,8 +1,8 @@
 # Open Canvas
 
-![Diagram of the Open Canvas graph](./public//lg_studio_graph_diagram.png)
+![Screenshot of app](./public/screenshot.jpg)
 
-Open Canvas is an open source web application with built in memory powered by dual agents. It is inspired by [OpenAI's "Canvas"](https://openai.com/index/introducing-canvas/), but with a few key differences.
+Open Canvas is an open source web application for collaborating with agents to better write documents. It is inspired by [OpenAI's "Canvas"](https://openai.com/index/introducing-canvas/), but with a few key differences.
 
 1. **Open Source**: All the code, from the frontend, to the content generation agent, to the reflection agent is open source and MIT licensed.
 2. **Built in memory**: Open Canvas ships out of the box with a [reflection agent](https://langchain-ai.github.io/langgraphjs/tutorials/reflection/reflection/) which stores style rules and user insights in a [shared memory store](https://langchain-ai.github.io/langgraphjs/concepts/memory/). This allows Open Canvas to remember facts about you across sessions.
@@ -15,6 +15,8 @@ You can use our deployed version for free by visiting [open-canvas-lc.vercel.app
 or
 
 You can clone this repository and run locally/deploy to your own cloud. See the next section for steps on how to do this.
+
+![Diagram of the Open Canvas graph](./public/lg_studio_graph_diagram.png)
 
 ## Development
 
