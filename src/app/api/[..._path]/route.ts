@@ -36,6 +36,14 @@ async function handleRequest(req: NextRequest, method: string) {
       options
     );
 
+    if (res.status >= 400) {
+      console.error("ERROR IN PROXY", res.status, res.statusText);
+      return new Response(res.body, {
+        status: res.status,
+        statusText: res.statusText,
+      });
+    }
+
     const headers = new Headers({
       ...getCorsHeaders(),
     });
@@ -54,6 +62,9 @@ async function handleRequest(req: NextRequest, method: string) {
       headers,
     });
   } catch (e: any) {
+    console.error("Error in proxy");
+    console.error(e);
+    console.error("\n\n\nEND ERROR\n\n");
     return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
   }
 }

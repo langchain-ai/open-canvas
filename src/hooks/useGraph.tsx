@@ -87,7 +87,7 @@ export function useGraph() {
   };
 
   const getOrCreateThread = async () => {
-    const assistantIdCookie = getCookie("oc_assistant_id");
+    const assistantIdCookie = getCookie("oc_assistant_id_v2");
     if (assistantIdCookie) {
       setAssistantId(assistantIdCookie);
       return;
@@ -97,7 +97,7 @@ export function useGraph() {
       graphId: "agent",
     });
     setAssistantId(assistant.assistant_id);
-    setCookie("oc_assistant_id", assistant.assistant_id);
+    setCookie("oc_assistant_id_v2", assistant.assistant_id);
   };
 
   const streamMessage = async (params: GraphInput) => {
