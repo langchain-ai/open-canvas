@@ -1,6 +1,6 @@
 # Open Canvas
 
-[TRY IT OUT HERE](open-canvas-lc.vercel.app)
+[TRY IT OUT HERE](https://open-canvas-lc.vercel.app)
 
 ![Screenshot of app](./public/screenshot.jpg)
 
