@@ -14,6 +14,7 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import { getCookie, setCookie } from "@/lib/cookies";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -87,7 +88,7 @@ export function useGraph() {
   };
 
   const getOrCreateThread = async () => {
-    const assistantIdCookie = getCookie("oc_assistant_id_v2");
+    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
     if (assistantIdCookie) {
       setAssistantId(assistantIdCookie);
       return;
@@ -97,7 +98,7 @@ export function useGraph() {
       graphId: "agent",
     });
     setAssistantId(assistant.assistant_id);
-    setCookie("oc_assistant_id_v2", assistant.assistant_id);
+    setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
   };
 
   const streamMessage = async (params: GraphInput) => {
