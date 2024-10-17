@@ -13,7 +13,7 @@ export const respondToQuery = async (
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     temperature: 0.5,
   });
 

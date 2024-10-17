@@ -79,4 +79,4 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("reflect", "cleanState")
   .addEdge("cleanState", END);
 
-export const graph = builder.compile();
+export const graph = builder.compile().withConfig({ runName: "open_canvas" });
