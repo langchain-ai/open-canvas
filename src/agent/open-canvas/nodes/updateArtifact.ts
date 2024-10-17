@@ -14,7 +14,7 @@ export const updateArtifact = async (
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
     model: "gpt-4o",
-    temperature: 0.5,
+    temperature: 0,
   });
 
   const store = ensureStoreInConfig(config);

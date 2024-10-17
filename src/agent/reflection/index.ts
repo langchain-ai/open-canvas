@@ -80,4 +80,4 @@ const builder = new StateGraph(ReflectionGraphAnnotation)
   .addNode("reflect", reflect)
   .addEdge(START, "reflect");
 
-export const graph = builder.compile();
+export const graph = builder.compile().withConfig({ runName: "reflection" });
