@@ -4,7 +4,12 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
+import {
+  Artifact,
+  ProgrammingLanguageOptions,
+  Reflections,
+  TextArtifactEditMode,
+} from "@/types";
 import { GraphInput } from "@/hooks/useGraph";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
@@ -17,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
 import { newlineToCarriageReturn } from "@/lib/normalize_string";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -25,8 +31,8 @@ export interface ArtifactRendererProps {
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   setSelectedArtifactById: (id: string | undefined) => void;
   messages: BaseMessage[];
-  isEditing: boolean;
-  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  editMode: TextArtifactEditMode;
+  setEditMode: React.Dispatch<React.SetStateAction<TextArtifactEditMode>>;
   isLoadingReflections: boolean;
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
@@ -268,15 +274,40 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         </div>
         {props.artifact.type === "text" ? (
           <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
-            <TooltipIconButton
-              tooltip={props.isEditing ? "Preview" : "Edit"}
-              variant="ghost"
-              className="transition-colors w-fit h-fit"
-              delayDuration={400}
-              onClick={() => props.setIsEditing((v) => !v)}
+            <ToggleGroup
+              size="sm"
+              variant="outline"
+              type="multiple"
+              value={props.editMode as unknown as string[]}
+              onValueChange={(values:TextArtifactEditMode )=>{
+                props.setEditMode(values.length<1 ? ['edit']:values)
+              }}
             >
-              {props.isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
-            </TooltipIconButton>
+              <ToggleGroupItem asChild value="edit" aria-label="Toggle Edit">
+                <TooltipIconButton
+                  variant="ghost"
+                  className="transition-colors w-fit h-fit"
+                  delayDuration={100}
+                  tooltip="EditPane"
+                >
+                  <PencilLine className="size-6" />
+                </TooltipIconButton>
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                asChild
+                value="preivew"
+                aria-label="Toggle Preview"
+              >
+                <TooltipIconButton
+                  variant="ghost"
+                  className="transition-colors w-fit h-fit"
+                  delayDuration={400}
+                  tooltip="PreviewPane"
+                >
+                  <Eye className="size-6" />
+                </TooltipIconButton>
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
         ) : null}
       </div>
@@ -296,8 +327,8 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <div className="h-[85%]" ref={markdownRef}>
             {props.artifact.type === "text" ? (
               <TextRenderer
-                isEditing={props.isEditing}
-                setIsEditing={props.setIsEditing}
+                editMode={props.editMode}
+                setEditMode={props.setEditMode}
                 artifact={props.artifact}
                 setArtifactContent={props.setArtifactContent}
               />

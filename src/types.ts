@@ -77,3 +77,5 @@ export interface Reflections {
    */
   content: string[];
 }
+
+export type TextArtifactEditMode = Array<"preivew" | "edit">
