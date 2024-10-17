@@ -13,8 +13,8 @@ export const updateArtifact = async (
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
-    temperature: 0.5,
+    model: "gpt-4o",
+    temperature: 0,
   });
 
   const store = ensureStoreInConfig(config);
