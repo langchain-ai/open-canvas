@@ -6,9 +6,9 @@ import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
 import { php } from "@codemirror/lang-php";
 import { python } from "@codemirror/lang-python";
-
 import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
+import { html } from "@codemirror/lang-html";
 
 export interface CodeRendererProps {
   artifact: Artifact;
@@ -16,7 +16,7 @@ export interface CodeRendererProps {
   editorRef: MutableRefObject<EditorView | null>;
 }
 
-export function CodeRenderer(props: CodeRendererProps) {
+export function CodeRenderer(props: Readonly<CodeRendererProps>) {
   let extensions: any[] = [];
   if (props.artifact.language === "javascript") {
     extensions = [javascript({ jsx: true, typescript: false })];
@@ -30,6 +30,8 @@ export function CodeRenderer(props: CodeRendererProps) {
     extensions = [php()];
   } else if (props.artifact.language === "python") {
     extensions = [python()];
+  } else if (props.artifact.language === "html") {
+    extensions = [html()];
   }
 
   if (!props.artifact.content) {
