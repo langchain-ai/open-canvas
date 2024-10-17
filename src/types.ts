@@ -56,7 +56,8 @@ export type ProgrammingLanguageOptions =
   | "cpp"
   | "java"
   | "php"
-  | "python";
+  | "python"
+  | "html";
 
 export type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
 
