@@ -1,5 +1,5 @@
-import { Artifact } from "@/types";
-import MDEditor from "@uiw/react-md-editor";
+import { Artifact, TextArtifactEditMode } from "@/types";
+import MDEditor, { PreviewType } from "@uiw/react-md-editor";
 import { Dispatch, SetStateAction } from "react";
 import { cleanContent } from "@/lib/normalize_string";
 
@@ -7,19 +7,32 @@ import styles from "./TextRenderer.module.css";
 
 export interface TextRenderer {
   artifact: Artifact;
-  isEditing: boolean;
-  setIsEditing: Dispatch<SetStateAction<boolean>>;
   setArtifactContent: (id: string, content: string) => void;
+  editMode: TextArtifactEditMode;
+  setEditMode: Dispatch<SetStateAction<TextArtifactEditMode>>;
+}
+
+function getEditMode(editMode: TextArtifactEditMode): PreviewType {
+  const hasPreview = editMode.includes("preivew")
+  const hasEdit = editMode.includes("edit")
+  if (hasPreview && hasEdit) {
+    return "live"
+  } else if (hasPreview) {
+    return "preview"
+  } 
+  return "edit"
 }
 
 export function TextRenderer(props: TextRenderer) {
+  const { editMode } = props;
+  // 同时存在preview/edit=>live
   return (
     <div
-      className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden"
+      className="w-full h-full mt-2 flex  flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden"
       data-color-mode="light"
     >
       <MDEditor
-        preview={props.isEditing ? "edit" : "preview"}
+        preview={getEditMode(editMode)}
         hideToolbar
         visibleDragbar={false}
         value={cleanContent(props.artifact.content)}

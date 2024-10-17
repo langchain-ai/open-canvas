@@ -6,7 +6,7 @@ import { useGraph } from "@/hooks/useGraph";
 import { useStore } from "@/hooks/useStore";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
-import { ProgrammingLanguageOptions } from "@/types";
+import { ProgrammingLanguageOptions, TextArtifactEditMode } from "@/types";
 import { AIMessage } from "@langchain/core/messages";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -17,7 +17,7 @@ export default function Home() {
   const [pendingArtifactSelection, setPendingArtifactSelection] = useState<
     string | null
   >(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editMode,setEditMode] = useState<TextArtifactEditMode>(["preivew"]);
   const {
     streamMessage,
     setMessages,
@@ -81,7 +81,7 @@ export default function Home() {
       });
       return [...prevMessages, newMessage];
     });
-    setIsEditing(true);
+    setEditMode(["edit","preivew"])
     setPendingArtifactSelection(artifactId);
   };
 
@@ -124,8 +124,8 @@ export default function Home() {
             handleDeleteReflections={deleteReflections}
             reflections={reflections}
             isLoadingReflections={isLoadingReflections}
-            setIsEditing={setIsEditing}
-            isEditing={isEditing}
+            editMode={editMode}
+            setEditMode={setEditMode}
             setArtifactContent={setArtifactContent}
             setSelectedArtifactById={setSelectedArtifact}
             messages={messages}
