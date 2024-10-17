@@ -31,6 +31,13 @@ echo "Hello, World!";
 
 if __name__ == "__main__":
     main()`;
+    case "html":
+      return `<!DOCTYPE html>
+<html>
+  <body>
+    <p>Hello, World!</p>
+  </body>
+</html>`;
     default:
       return "// No quickstart content available for this language";
   }

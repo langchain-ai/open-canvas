@@ -5,7 +5,9 @@ interface ProgrammingLanguageListProps {
   handleSubmit: (portLanguage: ProgrammingLanguageOptions) => Promise<void>;
 }
 
-export function ProgrammingLanguageList(props: ProgrammingLanguageListProps) {
+export function ProgrammingLanguageList(
+  props: Readonly<ProgrammingLanguageListProps>
+) {
   return (
     <div className="flex flex-col gap-3 items-center w-full text-left">
       <TooltipIconButton
@@ -61,6 +63,15 @@ export function ProgrammingLanguageList(props: ProgrammingLanguageListProps) {
         onClick={async () => await props.handleSubmit("python")}
       >
         <p>Python</p>
+      </TooltipIconButton>
+      <TooltipIconButton
+        tooltip="HTML"
+        variant="ghost"
+        className="transition-colors w-full h-fit"
+        delayDuration={400}
+        onClick={async () => await props.handleSubmit("html")}
+      >
+        <p>HTML</p>
       </TooltipIconButton>
     </div>
   );
