@@ -32,7 +32,7 @@ export async function addAssistantIdToUser(): Promise<void> {
     }
     // If successful, set cookie to true
     setCookie(HAS_ASSISTANT_COOKIE_BEEN_SET, "true");
-  } catch (e) {
+  } catch (_) {
     console.error("Failed to update user with reflection ID.");
   }
 }

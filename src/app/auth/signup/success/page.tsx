@@ -10,7 +10,7 @@ export default function Page() {
           redirect you to Open Canvas.
         </p>
         <p className="text-sm text-gray-500">
-          If you don't see the email, please check your spam folder.
+          If you don&apos;t see the email, please check your spam folder.
         </p>
       </div>
     </div>

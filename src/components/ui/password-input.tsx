@@ -52,3 +52,5 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
     );
   }
 );
+
+PasswordInput.displayName = "PasswordInput";
