@@ -874,6 +874,13 @@
   dependencies:
     "@radix-ui/react-use-layout-effect" "1.1.0"
 
+"@radix-ui/react-label@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-2.1.0.tgz#3aa2418d70bb242be37c51ff5e51a2adcbc372e3"
+  integrity sha512-peLblDlFw/ngk3UWq0VnYaOLy6agTZZ+MUO/WhVfm14vJGML+xH4FAl2XQGLqdefjNb7ApRg6Yn7U42ZhmYXdw==
+  dependencies:
+    "@radix-ui/react-primitive" "2.0.0"
+
 "@radix-ui/react-menu@2.1.1":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-menu/-/react-menu-2.1.1.tgz#bd623ace0e1ae1ac78023a505fec0541d59fb346"
@@ -1204,6 +1211,13 @@
     "@types/phoenix" "^1.5.4"
     "@types/ws" "^8.5.10"
     ws "^8.14.2"
+
+"@supabase/ssr@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@supabase/ssr/-/ssr-0.5.1.tgz#8fa07d7cc3548ad9fbf73e9e84a51413fefae892"
+  integrity sha512-+G94H/GZG0nErZ3FQV9yJmsC5Rj7dmcfCAwOt37hxeR1La+QTl8cE9whzYwPUrTJjMLGNXoO+1BMvVxwBAbz4g==
+  dependencies:
+    cookie "^0.6.0"
 
 "@supabase/storage-js@2.7.1":
   version "2.7.1"
@@ -2087,6 +2101,11 @@ concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==
+
+cookie@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.6.0.tgz#2798b04b071b0ecbff0dbb62a505a8efa4e19051"
+  integrity sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==
 
 crelt@^1.0.5:
   version "1.0.6"

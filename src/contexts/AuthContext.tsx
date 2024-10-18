@@ -1,10 +1,10 @@
-import { createSupabaseClient } from "@/lib/supabase";
 import React, { createContext, useState, useEffect, useContext } from "react";
 import {
   SignInWithPasswordCredentials,
   SignUpWithPasswordCredentials,
   User,
 } from "@supabase/supabase-js";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 interface AuthContextType {
   signUp: (data: SignUpWithPasswordCredentials) => Promise<any>;
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     getSupabaseUser();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_, session) => {
         setUser(session?.user);
         setLoading(false);
       }
