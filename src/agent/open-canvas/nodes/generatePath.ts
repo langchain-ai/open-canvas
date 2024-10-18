@@ -3,13 +3,16 @@ import { ROUTE_QUERY_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
 import { formatArtifacts } from "../utils";
 import { z } from "zod";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
  */
 export const generatePath = async (
-  state: typeof OpenCanvasGraphAnnotation.State
+  state: typeof OpenCanvasGraphAnnotation.State,
+  config: LangGraphRunnableConfig
 ) => {
+  console.log("config.configurable", config.configurable);
   if (state.highlighted) {
     return {
       next: "updateArtifact",
