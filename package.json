@@ -36,7 +36,7 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@supabase/supabase-js": "^2.45.4",
+    "@supabase/supabase-js": "^2.45.5",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/react-codemirror": "^4.23.5",
     "@uiw/react-md-editor": "^4.0.4",
