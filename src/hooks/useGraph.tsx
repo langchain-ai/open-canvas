@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
@@ -13,8 +13,6 @@ import {
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
-import { getCookie, setCookie } from "@/lib/cookies";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -55,61 +53,37 @@ function removeCodeBlockFormatting(text: string): string {
   }
 }
 
-export function useGraph() {
+interface UseGraphInput {
+  userId: string;
+  threadId: string | undefined;
+  assistantId: string | undefined;
+}
+
+export function useGraph(useGraphInput: UseGraphInput) {
   const { toast } = useToast();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-  const [assistantId, setAssistantId] = useState<string>();
-  const [threadId, setThreadId] = useState<string | null>(null);
   // Default to the last artifact in the list
   const [selectedArtifactId, setSelectedArtifactId] = useState<
     string | undefined
   >();
 
-  useEffect(() => {
-    if (threadId || typeof window === "undefined") return;
-    createThread();
-  }, []);
-
-  useEffect(() => {
-    if (assistantId || typeof window === "undefined") return;
-    getOrCreateThread();
-  }, []);
-
-  const createThread = async () => {
+  const clearState = () => {
     setMessages([]);
     setArtifacts([]);
     setSelectedArtifactId(undefined);
-    const client = createClient();
-    const thread = await client.threads.create();
-    setThreadId(thread.thread_id);
-    return thread;
-  };
-
-  const getOrCreateThread = async () => {
-    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
-    if (assistantIdCookie) {
-      setAssistantId(assistantIdCookie);
-      return;
-    }
-    const client = createClient();
-    const assistant = await client.assistants.create({
-      graphId: "agent",
-    });
-    setAssistantId(assistant.assistant_id);
-    setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
   };
 
   const streamMessage = async (params: GraphInput) => {
-    if (!threadId) {
+    if (!useGraphInput.threadId) {
       toast({
         title: "Error",
         description: "Thread ID not found",
       });
       return undefined;
     }
-    if (!assistantId) {
+    if (!useGraphInput.assistantId) {
       toast({
         title: "Error",
         description: "Assistant ID not found",
@@ -140,10 +114,14 @@ export function useGraph() {
       ...params,
     };
 
-    const stream = client.runs.stream(threadId, assistantId, {
-      input,
-      streamMode: "events",
-    });
+    const stream = client.runs.stream(
+      useGraphInput.threadId,
+      useGraphInput.assistantId,
+      {
+        input,
+        streamMode: "events",
+      }
+    );
 
     let fullArtifactGenerationStr = "";
     let artifactId = "";
@@ -487,12 +465,11 @@ export function useGraph() {
     artifacts,
     selectedArtifactId,
     messages,
-    assistantId,
     setSelectedArtifact: setSelectedArtifactById,
     setArtifacts,
     setMessages,
     streamMessage,
-    createThread,
     setArtifactContent,
+    clearState,
   };
 }

@@ -1,18 +1,26 @@
 "use client";
+
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useToast } from "@/hooks/use-toast";
 import { useGraph } from "@/hooks/useGraph";
 import { useStore } from "@/hooks/useStore";
+import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
 import { ProgrammingLanguageOptions } from "@/types";
 import { AIMessage } from "@langchain/core/messages";
+import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-export function Canvas() {
+interface CanvasProps {
+  user: User;
+}
+
+export function Canvas(props: CanvasProps) {
   const { toast } = useToast();
+  const { threadId, assistantId, createThread } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
   const [pendingArtifactSelection, setPendingArtifactSelection] = useState<
     string | null
@@ -26,10 +34,9 @@ export function Canvas() {
     messages,
     setSelectedArtifact,
     selectedArtifactId,
-    createThread,
     setArtifactContent,
-    assistantId,
-  } = useGraph();
+    clearState,
+  } = useGraph({ threadId, assistantId, userId: props.user.id });
   const {
     reflections,
     deleteReflections,
@@ -39,6 +46,7 @@ export function Canvas() {
 
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);
+    clearState();
     return createThread();
   };
 

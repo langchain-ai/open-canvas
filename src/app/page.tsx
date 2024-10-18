@@ -1,18 +1,21 @@
 "use client";
 import { Canvas } from "@/components/Canvas";
-import { AuthProvider } from "../contexts/AuthContext";
 import { useEffect } from "react";
 import { addAssistantIdToUser } from "@/lib/supabase/add_assistant_id_to_user";
+import { CanvasLoading } from "@/components/CanvasLoading";
+import { useUser } from "@/hooks/useUser";
 
 export default function Home() {
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    addAssistantIdToUser();
-  }, []);
+  const { user } = useUser();
 
-  return (
-    <AuthProvider>
-      <Canvas />
-    </AuthProvider>
-  );
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    addAssistantIdToUser();
+  }, [user]);
+
+  if (!user) {
+    return <CanvasLoading />;
+  }
+
+  return <Canvas user={user} />;
 }
