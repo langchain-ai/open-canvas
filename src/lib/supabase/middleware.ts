@@ -53,7 +53,8 @@ export async function updateSession(request: NextRequest) {
 
   if (user && request.nextUrl.pathname.startsWith("/auth")) {
     // user is logged in, respond by redirecting the user to the home page
-    return NextResponse.redirect("/");
+    const url = new URL('/', request.url);
+    return NextResponse.redirect(url);
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
