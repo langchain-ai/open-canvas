@@ -26,7 +26,7 @@ export function Signup() {
       provider,
       options: {
         redirectTo:
-          process.env.OAUTH_REDIRECT_URL ||
+          process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL ||
           "http://localhost:3000/auth/callback",
       },
     });

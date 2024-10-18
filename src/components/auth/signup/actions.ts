@@ -17,7 +17,8 @@ export async function signup(input: SignupWithEmailInput) {
     // },
     options: {
       emailRedirectTo:
-        process.env.EMAIL_REDIRECT_URL || "http://localhost:3000/auth/confirm",
+        process.env.NEXT_PUBLIC_EMAIL_REDIRECT_URL ||
+        "http://localhost:3000/auth/confirm",
     },
   };
 
