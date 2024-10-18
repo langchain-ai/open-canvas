@@ -44,12 +44,12 @@ export function Signup() {
   ): Promise<void> => {
     setIsError(false);
     const client = createSupabaseClient();
+    const currentOrigin =
+      typeof window !== "undefined" ? window.location.origin : "";
     await client.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo:
-          process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL ||
-          "http://localhost:3000/auth/callback",
+        redirectTo: `${currentOrigin}/auth/callback`,
       },
     });
   };

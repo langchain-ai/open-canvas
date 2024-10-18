@@ -7,6 +7,8 @@ import { SignupWithEmailInput } from "./Signup";
 
 export async function signup(input: SignupWithEmailInput) {
   const supabase = createClient();
+  const currentOrigin =
+    typeof window !== "undefined" ? window.location.origin : "";
 
   const data = {
     email: input.email,
@@ -16,9 +18,7 @@ export async function signup(input: SignupWithEmailInput) {
     //   is_open_canvas: true,
     // },
     options: {
-      emailRedirectTo:
-        process.env.NEXT_PUBLIC_EMAIL_REDIRECT_URL ||
-        "http://localhost:3000/auth/confirm",
+      emailRedirectTo: `${currentOrigin}/auth/confirm`,
     },
   };
 
