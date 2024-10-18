@@ -1,7 +1,7 @@
 import { LANGGRAPH_API_URL } from "../../../constants";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { User } from "@supabase/supabase-js";
+import { verifyUserAuthenticated } from "../../../lib/supabase/verify_user_server";
 
 function getCorsHeaders() {
   return {
@@ -9,14 +9,6 @@ function getCorsHeaders() {
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "*",
   };
-}
-
-async function verifyUserAuthenticated(): Promise<User | undefined> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user || undefined;
 }
 
 async function handleRequest(req: NextRequest, method: string) {
