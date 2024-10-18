@@ -22,17 +22,22 @@ export function UserAuthForm({
   onLoginWithOauth,
   ...props
 }: UserAuthFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isEmailPasswordLoading, setEmailPasswordIsLoading] = useState(false);
+  const [isGoogleLoading, setGoogleIsLoading] = useState(false);
+  const [isGithubLoading, setGithubIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [showPasswordField, setShowPasswordField] = useState(false);
+
+  const isLoading =
+    isEmailPasswordLoading || isGoogleLoading || isGithubLoading;
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setIsLoading(true);
+    setEmailPasswordIsLoading(true);
 
     await onLoginWithEmail({ email, password });
+    setEmailPasswordIsLoading(false);
   }
 
   return (
@@ -101,8 +106,9 @@ export function UserAuthForm({
       </div>
       <Button
         onClick={async () => {
-          setIsLoading(true);
+          setGoogleIsLoading(true);
           await onLoginWithOauth("google");
+          setGoogleIsLoading(false);
         }}
         variant="outline"
         type="button"
@@ -117,8 +123,9 @@ export function UserAuthForm({
       </Button>
       <Button
         onClick={async () => {
-          setIsLoading(true);
+          setGithubIsLoading(true);
           await onLoginWithOauth("google");
+          setGithubIsLoading(false);
         }}
         variant="outline"
         type="button"

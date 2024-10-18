@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import NextImage from "next/image";
 import Link from "next/link";
@@ -5,6 +6,7 @@ import { buttonVariants } from "../../ui/button";
 import { UserAuthForm } from "./user-auth-form-signup";
 import { signup } from "./actions";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export interface SignupWithEmailInput {
   email: string;
@@ -12,15 +14,35 @@ export interface SignupWithEmailInput {
 }
 
 export function Signup() {
+  const [isError, setIsError] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "true") {
+      setIsError(true);
+      // Remove the error parameter from the URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("error");
+      router.replace(
+        `${window.location.pathname}?${newSearchParams.toString()}`,
+        { scroll: false }
+      );
+    }
+  }, [searchParams, router]);
+
   const onSignupWithEmail = async (
     input: SignupWithEmailInput
   ): Promise<void> => {
-    signup(input);
+    setIsError(false);
+    await signup(input);
   };
 
   const onSignupWithOauth = async (
     provider: "google" | "github"
   ): Promise<void> => {
+    setIsError(false);
     const client = createSupabaseClient();
     await client.auth.signInWithOAuth({
       provider,
@@ -87,7 +109,11 @@ export function Signup() {
               onSignupWithEmail={onSignupWithEmail}
               onSignupWithOauth={onSignupWithOauth}
             />
-
+            {isError && (
+              <p className="text-red-500 text-sm text-center">
+                There was an error creating your account. Please try again.
+              </p>
+            )}
             {/* No TOS or privacy policy atm. */}
             {/* <p className="px-8 text-center text-sm text-muted-foreground">
               By clicking continue, you agree to our{" "}
