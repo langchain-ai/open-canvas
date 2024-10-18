@@ -27,21 +27,23 @@ export const reflect = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  const generateReflectionsSchema = z.object({
-    styleRules: z
-      .array(z.string())
-      .describe("The complete new list of style rules and guidelines."),
-    content: z
-      .array(z.string())
-      .describe("The complete new list of memories/facts about the user."),
-  });
+  const generateReflectionTool = {
+    name: "generate_reflections",
+    description: "Generate reflections based on the context provided.",
+    schema: z.object({
+      styleRules: z
+        .array(z.string())
+        .describe("The complete new list of style rules and guidelines."),
+      content: z
+        .array(z.string())
+        .describe("The complete new list of memories/facts about the user."),
+    }),
+  };
 
   const model = new ChatAnthropic({
     model: "claude-3-5-sonnet-20240620",
     temperature: 0,
-  }).withStructuredOutput(generateReflectionsSchema, {
-    name: "generate_reflections",
-  });
+  }).bindTools([generateReflectionTool]);
 
   const formattedSystemPrompt = REFLECT_SYSTEM_PROMPT.replace(
     "{artifact}",
@@ -65,10 +67,15 @@ export const reflect = async (
       content: formattedUserPrompt,
     },
   ]);
+  const reflectionToolCall = result.tool_calls?.[0];
+  if (!reflectionToolCall) {
+    console.error("FAILED TO GENERATE TOOL CALL", result);
+    throw new Error("Reflection tool call failed.");
+  }
 
   const newMemories = {
-    styleRules: result.styleRules,
-    content: result.content,
+    styleRules: reflectionToolCall.args.styleRules,
+    content: reflectionToolCall.args.content,
   };
 
   await store.put(memoryNamespace, memoryKey, newMemories);
