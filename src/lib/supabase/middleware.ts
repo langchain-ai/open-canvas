@@ -51,7 +51,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && request.nextUrl.pathname.startsWith("/auth")) {
+  if (
+    user &&
+    request.nextUrl.pathname.startsWith("/auth") &&
+    !request.nextUrl.pathname.startsWith("/auth/signout")
+  ) {
     // user is logged in, respond by redirecting the user to the home page
     return NextResponse.redirect("/");
   }
