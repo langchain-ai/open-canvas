@@ -42,19 +42,15 @@ async function handleRequest(req: NextRequest, method: string) {
 
     if (["POST", "PUT", "PATCH"].includes(method)) {
       const bodyText = await req.text();
+
       if (typeof bodyText === "string" && bodyText.length > 0) {
         const parsedBody = JSON.parse(bodyText);
-        if (parsedBody?.config?.configurable) {
-          parsedBody.config.configurable.supabase_user_id = user.id;
-        } else {
-          parsedBody.config = {
-            configurable: {
-              supabase_user_id: user.id,
-            },
-          };
-        }
+        parsedBody.config = parsedBody.config || {};
+        parsedBody.config.configurable = {
+          ...parsedBody.config.configurable,
+          supabase_user_id: user.id,
+        };
         options.body = JSON.stringify(parsedBody);
-        console.log("set supabase id in config.", user.id);
       } else {
         options.body = bodyText;
       }

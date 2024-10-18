@@ -29,7 +29,7 @@ export async function signup(input: SignupWithEmailInput) {
     throw new Error("Error signing up.");
     // redirect('/error')
   }
-  console.log("SUCCESSFULLY SIGNED UP. REDIRECTING TO CONFIRM EMAIL PAGE");
+
   // Users still need to confirm their email address.
   // This page will show a message to check their email.
   redirect("/auth/signup/success");
