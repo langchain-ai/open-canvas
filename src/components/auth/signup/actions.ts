@@ -25,9 +25,8 @@ export async function signup(input: SignupWithEmailInput) {
   const { error } = await supabase.auth.signUp(data);
 
   if (error) {
-    // TODO: Push a query param instead.
-    throw new Error("Error signing up.");
-    // redirect('/error')
+    console.error(error);
+    redirect("/auth/signup?error=true");
   }
 
   // Users still need to confirm their email address.

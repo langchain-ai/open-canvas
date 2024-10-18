@@ -17,9 +17,8 @@ export async function login(input: LoginWithEmailInput) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    // TODO: Push a query param instead.
-    throw new Error("Error logging in.");
-    // redirect('/error')
+    console.error(error);
+    redirect("/auth/login?error=true");
   }
 
   revalidatePath("/", "layout");

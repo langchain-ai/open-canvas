@@ -5,6 +5,8 @@ import { buttonVariants } from "../../ui/button";
 import { UserAuthForm } from "./user-auth-form-login";
 import { login } from "./actions";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export interface LoginWithEmailInput {
   email: string;
@@ -12,15 +14,35 @@ export interface LoginWithEmailInput {
 }
 
 export function Login() {
+  const [isError, setIsError] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "true") {
+      setIsError(true);
+      // Remove the error parameter from the URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("error");
+      router.replace(
+        `${window.location.pathname}?${newSearchParams.toString()}`,
+        { scroll: false }
+      );
+    }
+  }, [searchParams, router]);
+
   const onLoginWithEmail = async (
     input: LoginWithEmailInput
   ): Promise<void> => {
+    setIsError(false);
     await login(input);
   };
 
   const onLoginWithOauth = async (
     provider: "google" | "github"
   ): Promise<void> => {
+    setIsError(false);
     const client = createSupabaseClient();
     await client.auth.signInWithOAuth({
       provider,
@@ -82,6 +104,11 @@ export function Login() {
               onLoginWithEmail={onLoginWithEmail}
               onLoginWithOauth={onLoginWithOauth}
             />
+            {isError && (
+              <p className="text-red-500 text-sm text-center">
+                There was an error signing into your account. Please try again.
+              </p>
+            )}
           </div>
         </div>
       </div>
