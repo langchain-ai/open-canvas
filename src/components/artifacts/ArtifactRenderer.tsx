@@ -1,22 +1,21 @@
-import { v4 as uuidv4 } from "uuid";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { GraphInput } from "@/hooks/useGraph";
+import { convertToOpenAIFormat } from "@/lib/convert_messages";
+import { newlineToCarriageReturn } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
-import { GraphInput } from "@/hooks/useGraph";
-import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import { X } from "lucide-react";
-import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
-import { TextRenderer } from "./TextRenderer";
-import { CodeRenderer } from "./CodeRenderer";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
-import { newlineToCarriageReturn } from "@/lib/normalize_string";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { CircleArrowUp, Eye, PencilLine, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
+import { CodeRenderer } from "./CodeRenderer";
+import { TextRenderer } from "./TextRenderer";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -246,17 +245,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   return (
     <div className="relative w-full h-full overflow-auto">
       <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
+        <div className="pl-[6px] pt-3 flex flex-row gap-2 items-center justify-start">
           <TooltipIconButton
             tooltip="Close canvas"
             variant="ghost"
-            className="w-[36px] h-[36px]"
+            className="w-fit h-fit p-2"
             delayDuration={400}
             onClick={() => props.setSelectedArtifactById(undefined)}
           >
-            <X />
+            <X className="w-6 h-6 text-gray-600" />
           </TooltipIconButton>
-          <h1 className="text-xl font-medium">{props.artifact.title}</h1>
+          <h1 className="text-xl font-medium text-gray-600">
+            {props.artifact.title}
+          </h1>
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
           <ReflectionsDialog
@@ -267,15 +268,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           />
         </div>
         {props.artifact.type === "text" ? (
-          <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
+          <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton
               tooltip={props.isEditing ? "Preview" : "Edit"}
               variant="ghost"
-              className="transition-colors w-fit h-fit"
+              className="transition-colors w-fit h-fit p-2"
               delayDuration={400}
               onClick={() => props.setIsEditing((v) => !v)}
             >
-              {props.isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
+              {props.isEditing ? (
+                <Eye className="w-6 h-6 text-gray-600" />
+              ) : (
+                <PencilLine className="w-6 h-6 text-gray-600" />
+              )}
             </TooltipIconButton>
           </div>
         ) : null}
@@ -290,7 +295,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         <div
           className={cn(
             "relative min-h-full",
-            props.artifact.type === "code" ? "min-w-full" : "min-w-full px-4"
+            props.artifact.type === "code" ? "min-w-full" : "min-w-full"
           )}
         >
           <div className="h-[85%]" ref={markdownRef}>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
@@ -13,8 +13,7 @@ import {
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
-import { getCookie, setCookie } from "@/lib/cookies";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
+import { Thread } from "@langchain/langgraph-sdk";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -55,61 +54,37 @@ function removeCodeBlockFormatting(text: string): string {
   }
 }
 
-export function useGraph() {
+interface UseGraphInput {
+  userId: string;
+  threadId: string | undefined;
+  assistantId: string | undefined;
+}
+
+export function useGraph(useGraphInput: UseGraphInput) {
   const { toast } = useToast();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-  const [assistantId, setAssistantId] = useState<string>();
-  const [threadId, setThreadId] = useState<string | null>(null);
   // Default to the last artifact in the list
   const [selectedArtifactId, setSelectedArtifactId] = useState<
     string | undefined
   >();
 
-  useEffect(() => {
-    if (threadId || typeof window === "undefined") return;
-    createThread();
-  }, []);
-
-  useEffect(() => {
-    if (assistantId || typeof window === "undefined") return;
-    getOrCreateThread();
-  }, []);
-
-  const createThread = async () => {
+  const clearState = () => {
     setMessages([]);
     setArtifacts([]);
     setSelectedArtifactId(undefined);
-    const client = createClient();
-    const thread = await client.threads.create();
-    setThreadId(thread.thread_id);
-    return thread;
-  };
-
-  const getOrCreateThread = async () => {
-    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
-    if (assistantIdCookie) {
-      setAssistantId(assistantIdCookie);
-      return;
-    }
-    const client = createClient();
-    const assistant = await client.assistants.create({
-      graphId: "agent",
-    });
-    setAssistantId(assistant.assistant_id);
-    setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
   };
 
   const streamMessage = async (params: GraphInput) => {
-    if (!threadId) {
+    if (!useGraphInput.threadId) {
       toast({
         title: "Error",
         description: "Thread ID not found",
       });
       return undefined;
     }
-    if (!assistantId) {
+    if (!useGraphInput.assistantId) {
       toast({
         title: "Error",
         description: "Assistant ID not found",
@@ -140,10 +115,14 @@ export function useGraph() {
       ...params,
     };
 
-    const stream = client.runs.stream(threadId, assistantId, {
-      input,
-      streamMode: "events",
-    });
+    const stream = client.runs.stream(
+      useGraphInput.threadId,
+      useGraphInput.assistantId,
+      {
+        input,
+        streamMode: "events",
+      }
+    );
 
     let fullArtifactGenerationStr = "";
     let artifactId = "";
@@ -159,6 +138,9 @@ export function useGraph() {
 
     let messageId: string | undefined = undefined;
     let runId: string | undefined = undefined;
+
+    // The last message in a given graph invocation
+    let _lastMessage: Record<string, any> | undefined = undefined;
 
     for await (const chunk of stream) {
       if (!runId && chunk.data?.metadata?.run_id) {
@@ -348,7 +330,9 @@ export function useGraph() {
             }
           });
         }
-      } else if (chunk.data.event === "on_chain_start") {
+      }
+
+      if (chunk.data.event === "on_chain_start") {
         if (
           [
             "rewriteArtifact",
@@ -364,12 +348,21 @@ export function useGraph() {
             updatingArtifactId = chunk.data.data?.input?.selectedArtifactId;
           }
         }
+
+        if (chunk.data.metadata.langgraph_node === "cleanState") {
+          if (chunk.data.data?.input?.messages?.length) {
+            _lastMessage =
+              chunk.data.data?.input?.messages[
+                chunk.data.data?.input?.messages.length - 1
+              ];
+          }
+        }
       }
     }
 
     if (runId) {
       // Chain `.then` to not block the stream
-      shareRun(runId).then((sharedRunURL) => {
+      shareRun(runId).then(async (sharedRunURL) => {
         setMessages((prevMessages) => {
           const newMsgs = prevMessages.map((msg) => {
             if (
@@ -400,6 +393,27 @@ export function useGraph() {
           });
           return newMsgs;
         });
+
+        // if (useGraphInput.threadId && lastMessage) {
+        //   // Update the state of the last message to include the run URL
+        //   // for proper rendering when loading history.
+        //   if (lastMessage.type === "ai") {
+        //     const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
+        //       ...lastMessage,
+        //       content: lastMessage.content,
+        //       response_metadata: {
+        //         ...lastMessage.response_metadata,
+        //         langSmithRunURL: sharedRunURL,
+        //       }
+        //     })];
+        //     await client.threads.updateState(useGraphInput.threadId, {
+        //       values: {
+        //         messages: newMessages
+        //       },
+        //     });
+        //     const newState = await client.threads.getState(useGraphInput.threadId);
+        //   }
+        // }
       });
     }
 
@@ -483,16 +497,70 @@ export function useGraph() {
     });
   };
 
+  const switchSelectedThread = (
+    thread: Thread,
+    setThreadId: (id: string) => void
+  ) => {
+    setThreadId(thread.thread_id);
+    const castValues = thread.values as {
+      artifacts?: Artifact[];
+      messages?: Record<string, any>[];
+    };
+    if (!castValues?.messages?.length) {
+      setMessages([]);
+      return;
+    }
+    setArtifacts(castValues.artifacts ?? []);
+    setMessages(
+      castValues.messages.flatMap((msg: Record<string, any>) => {
+        let artifactMsg: AIMessage | undefined = undefined;
+        if (msg.response_metadata?.artifactId) {
+          // This is the followup message after an artifact was generated.
+          // Add that artifact to the list of artifacts, and an AIMessage with
+          // an artifact tool call so it's rendered.
+          const generatedArtifact = castValues.artifacts?.find(
+            (a) => a.id === msg.response_metadata.artifactId
+          );
+          if (generatedArtifact) {
+            artifactMsg = new AIMessage({
+              content: "",
+              tool_calls: [
+                {
+                  id: msg.response_metadata.artifactId,
+                  args: { title: generatedArtifact.title },
+                  name: "artifact_ui",
+                },
+              ],
+            });
+          }
+        }
+
+        if (msg.response_metadata?.langSmithRunURL) {
+          msg.tool_calls = msg.tool_calls ?? [];
+          msg.tool_calls.push({
+            name: "langsmith_tool_ui",
+            args: { sharedRunURL: msg.response_metadata.langSmithRunURL },
+            id: msg.response_metadata.langSmithRunURL
+              ?.split("https://smith.langchain.com/public/")[1]
+              .split("/")[0],
+          });
+        }
+
+        return [...(artifactMsg ? [artifactMsg] : []), msg] as BaseMessage[];
+      })
+    );
+  };
+
   return {
     artifacts,
     selectedArtifactId,
     messages,
-    assistantId,
     setSelectedArtifact: setSelectedArtifactById,
     setArtifacts,
     setMessages,
     streamMessage,
-    createThread,
     setArtifactContent,
+    clearState,
+    switchSelectedThread,
   };
 }

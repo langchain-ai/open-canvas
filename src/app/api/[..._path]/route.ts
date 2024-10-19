@@ -1,5 +1,7 @@
 import { LANGGRAPH_API_URL } from "../../../constants";
 import { NextRequest, NextResponse } from "next/server";
+import { User } from "@supabase/supabase-js";
+import { verifyUserAuthenticated } from "../../../lib/supabase/verify_user_server";
 
 function getCorsHeaders() {
   return {
@@ -10,6 +12,17 @@ function getCorsHeaders() {
 }
 
 async function handleRequest(req: NextRequest, method: string) {
+  let user: User | undefined;
+  try {
+    user = await verifyUserAuthenticated();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (e) {
+    console.error("Failed to fetch user", e);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const path = req.nextUrl.pathname.replace(/^\/?api\//, "");
     const url = new URL(req.url);
@@ -28,7 +41,19 @@ async function handleRequest(req: NextRequest, method: string) {
     };
 
     if (["POST", "PUT", "PATCH"].includes(method)) {
-      options.body = await req.text();
+      const bodyText = await req.text();
+
+      if (typeof bodyText === "string" && bodyText.length > 0) {
+        const parsedBody = JSON.parse(bodyText);
+        parsedBody.config = parsedBody.config || {};
+        parsedBody.config.configurable = {
+          ...parsedBody.config.configurable,
+          supabase_user_id: user.id,
+        };
+        options.body = JSON.stringify(parsedBody);
+      } else {
+        options.body = bodyText;
+      }
     }
 
     const res = await fetch(

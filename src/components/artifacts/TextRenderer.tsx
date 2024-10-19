@@ -1,6 +1,6 @@
+import { cleanContent } from "@/lib/normalize_string";
 import { Artifact } from "@/types";
 import { Dispatch, SetStateAction, useEffect } from "react";
-import { cleanContent } from "@/lib/normalize_string";
 
 import "@blocknote/core/fonts/inter.css";
 import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote } from "@blocknote/react";
@@ -19,7 +19,7 @@ export function TextRenderer(props: TextRenderer) {
 
   const onChange = async () => {
     const markdown = await editor.blocksToMarkdownLossy(editor.document);
-    props.setArtifactContent(props.artifact.id, markdown);
+    props.setArtifactContent(props.artifact.id, cleanContent(markdown));
   };
 
   useEffect(() => {
@@ -31,6 +31,13 @@ export function TextRenderer(props: TextRenderer) {
     })();
   }, [props.artifact.content , editor]);
 
+  const editorSelectionChange = editor.onEditorSelectionChange(() => {
+    const selectedText = editor.getSelectedText();
+    console.log("editorSelectionChange", selectedText);
+  });
+
+  const getSelection = editor.getSelection();
+  console.log("getSelection", getSelection);
   return (
     <div
       className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden py-5"
@@ -41,6 +48,11 @@ export function TextRenderer(props: TextRenderer) {
         onCompositionEnd={onChange}
         editable={props.isEditing}
         editor={editor}
+        onSelectionChange={() => {
+          // Use this to get the selected text for highlighting feature.
+          const selectedText = editor.getSelectedText();
+          console.log(selectedText);
+        }}
       >
         <SuggestionMenuController
           getItems={async () =>
