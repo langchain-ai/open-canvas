@@ -139,11 +139,11 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
           <TooltipIconButton
             tooltip="New chat"
             variant="ghost"
-            className="transition-colors w-[36px] h-[36px] text-gray-600"
+            className="w-fit h-fit p-2"
             delayDuration={400}
             onClick={handleCreateThread}
           >
-            <SquarePen />
+            <SquarePen className="w-6 h-6 text-gray-600" />
           </TooltipIconButton>
         ) : (
           <div className="flex flex-row gap-2 items-center">

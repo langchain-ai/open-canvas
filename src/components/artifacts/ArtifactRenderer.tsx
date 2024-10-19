@@ -246,17 +246,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   return (
     <div className="relative w-full h-full overflow-auto">
       <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
+        <div className="pl-[6px] pt-3 flex flex-row gap-2 items-center justify-start">
           <TooltipIconButton
             tooltip="Close canvas"
             variant="ghost"
-            className="w-[36px] h-[36px]"
+            className="w-fit h-fit p-2"
             delayDuration={400}
             onClick={() => props.setSelectedArtifactById(undefined)}
           >
-            <X />
+            <X className="w-6 h-6 text-gray-600" />
           </TooltipIconButton>
-          <h1 className="text-xl font-medium">{props.artifact.title}</h1>
+          <h1 className="text-xl font-medium text-gray-600">
+            {props.artifact.title}
+          </h1>
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
           <ReflectionsDialog
@@ -267,15 +269,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           />
         </div>
         {props.artifact.type === "text" ? (
-          <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
+          <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton
               tooltip={props.isEditing ? "Preview" : "Edit"}
               variant="ghost"
-              className="transition-colors w-fit h-fit"
+              className="transition-colors w-fit h-fit p-2"
               delayDuration={400}
               onClick={() => props.setIsEditing((v) => !v)}
             >
-              {props.isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
+              {props.isEditing ? (
+                <Eye className="w-6 h-6 text-gray-600" />
+              ) : (
+                <PencilLine className="w-6 h-6 text-gray-600" />
+              )}
             </TooltipIconButton>
           </div>
         ) : null}

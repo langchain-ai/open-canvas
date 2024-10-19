@@ -109,7 +109,7 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     <div
       ref={toolbarRef}
       className={cn(
-        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center",
+        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center bg-white",
         isExpanded
           ? "w-fit-content min-h-fit rounded-3xl"
           : "w-12 h-12 rounded-full"
