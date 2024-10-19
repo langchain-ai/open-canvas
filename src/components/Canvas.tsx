@@ -126,7 +126,12 @@ export function Canvas(props: CanvasProps) {
           userThreads={userThreads}
           switchSelectedThread={(thread) => {
             switchSelectedThread(thread, setThreadId);
-            setChatStarted(true);
+            // Chat should only be "started" if there are messages present
+            if ((thread.values as Record<string, any>)?.messages?.length) {
+              setChatStarted(true);
+            } else {
+              setChatStarted(false);
+            }
           }}
           deleteThread={(id) => deleteThread(id, () => setMessages([]))}
           handleGetReflections={getReflections}

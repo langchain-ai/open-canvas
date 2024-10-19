@@ -44,7 +44,6 @@ async function handleRequest(req: NextRequest, method: string) {
       const bodyText = await req.text();
 
       if (typeof bodyText === "string" && bodyText.length > 0) {
-        console.log("bodyText before\n", bodyText, "\n\n");
         const parsedBody = JSON.parse(bodyText);
         parsedBody.config = parsedBody.config || {};
         parsedBody.config.configurable = {
@@ -52,7 +51,6 @@ async function handleRequest(req: NextRequest, method: string) {
           supabase_user_id: user.id,
         };
         options.body = JSON.stringify(parsedBody);
-        console.log("bodyText AFTER\n", options.body, "\n\n");
       } else {
         options.body = bodyText;
       }

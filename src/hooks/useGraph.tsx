@@ -408,19 +408,15 @@ export function useGraph(useGraphInput: UseGraphInput) {
         //       content: lastMessage.content,
         //       response_metadata: {
         //         ...lastMessage.response_metadata,
-        //         langsmithRunURL: sharedRunURL,
+        //         langSmithRunURL: sharedRunURL,
         //       }
         //     })];
-        //     console.log("newMessages", newMessages);
         //     await client.threads.updateState(useGraphInput.threadId, {
         //       values: {
         //         messages: newMessages
         //       },
         //     });
         //     const newState = await client.threads.getState(useGraphInput.threadId);
-        //     console.log("newState", (newState.values as Record<string, any>).messages);
-        //   } else {
-        //     console.log("lastmsg not assistant", lastMessage)
         //   }
         // }
       });
@@ -519,10 +515,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
       setMessages([]);
       return;
     }
-    console.log("castValues", castValues);
     setArtifacts(castValues.artifacts ?? []);
     setMessages(
       castValues.messages.flatMap((msg: Record<string, any>) => {
+        let artifactMsg: AIMessage | undefined = undefined;
         if (msg.response_metadata?.artifactId) {
           // This is the followup message after an artifact was generated.
           // Add that artifact to the list of artifacts, and an AIMessage with
@@ -531,7 +527,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
             (a) => a.id === msg.response_metadata.artifactId
           );
           if (generatedArtifact) {
-            const artifactMsg = new AIMessage({
+            artifactMsg = new AIMessage({
               content: "",
               tool_calls: [
                 {
@@ -541,13 +537,21 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 },
               ],
             });
-            return [artifactMsg, msg];
-          } else {
-            return msg;
           }
-        } else {
-          return msg;
         }
+
+        if (msg.response_metadata?.langSmithRunURL) {
+          msg.tool_calls = msg.tool_calls ?? [];
+          msg.tool_calls.push({
+            name: "langsmith_tool_ui",
+            args: { sharedRunURL: msg.response_metadata.langSmithRunURL },
+            id: msg.response_metadata.langSmithRunURL
+              ?.split("https://smith.langchain.com/public/")[1]
+              .split("/")[0],
+          });
+        }
+
+        return [...(artifactMsg ? [artifactMsg] : []), msg] as BaseMessage[];
       })
     );
   };
