@@ -19,7 +19,7 @@ export function TextRenderer(props: TextRenderer) {
 
   const onChange = async () => {
     const markdown = await editor.blocksToMarkdownLossy(editor.document);
-    props.setArtifactContent(props.artifact.id, cleanContent(markdown));
+    props.setArtifactContent(props.artifact.id, markdown);
   };
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function TextRenderer(props: TextRenderer) {
       );
       editor.replaceBlocks(editor.document, blocks);
     })();
-  }, [props.artifact.content, editor]);
+  }, [props.artifact.content , editor]);
 
   return (
     <div
@@ -38,8 +38,8 @@ export function TextRenderer(props: TextRenderer) {
     >
       <BlockNoteView
         slashMenu={false}
+        onCompositionEnd={onChange}
         editable={props.isEditing}
-        onChange={onChange}
         editor={editor}
       >
         <SuggestionMenuController
