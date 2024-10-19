@@ -1,9 +1,8 @@
 import { isToday, isYesterday, isWithinInterval, subDays } from "date-fns";
 import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
 import { Button } from "./ui/button";
-import { SquarePen, History, Trash2 } from "lucide-react";
+import { History, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { useToast } from "../hooks/use-toast";
 import { Skeleton } from "./ui/skeleton";
 import { useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";

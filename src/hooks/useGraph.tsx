@@ -1,9 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  AIMessage,
-  BaseMessage,
-  RemoveMessage,
-} from "@langchain/core/messages";
+import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
 import {
@@ -18,7 +14,6 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
-import { convertLangchainMessages } from "@/lib/convert_messages";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -145,7 +140,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     let runId: string | undefined = undefined;
 
     // The last message in a given graph invocation
-    let lastMessage: Record<string, any> | undefined = undefined;
+    let _lastMessage: Record<string, any> | undefined = undefined;
 
     for await (const chunk of stream) {
       if (!runId && chunk.data?.metadata?.run_id) {
@@ -356,7 +351,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
         if (chunk.data.metadata.langgraph_node === "cleanState") {
           if (chunk.data.data?.input?.messages?.length) {
-            lastMessage =
+            _lastMessage =
               chunk.data.data?.input?.messages[
                 chunk.data.data?.input?.messages.length - 1
               ];
