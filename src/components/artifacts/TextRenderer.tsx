@@ -4,6 +4,7 @@ import MDEditor from "@uiw/react-md-editor";
 import { Dispatch, SetStateAction } from "react";
 
 import styles from "./TextRenderer.module.css";
+import { cn } from "@/lib/utils";
 
 export interface TextRenderer {
   artifact: Artifact;
@@ -24,7 +25,12 @@ export function TextRenderer(props: TextRenderer) {
         visibleDragbar={false}
         value={cleanContent(props.artifact.content)}
         onChange={(v) => props.setArtifactContent(props.artifact.id, v || "")}
-        className={`min-h-full border-none  ${styles.mdEditorCustom} ${styles.fullHeightTextArea} ${styles.lightModeOnly}`}
+        className={cn(
+          "min-h-full border-none",
+          styles.mdEditorCustom,
+          styles.fullHeightTextArea,
+          styles.lightModeOnly
+        )}
         height="100%"
       />
     </div>
