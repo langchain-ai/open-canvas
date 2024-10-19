@@ -18,6 +18,7 @@ import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { Thread } from "@langchain/langgraph-sdk";
+
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
   streamMessage: (input: GraphInput) => Promise<void>;

@@ -191,7 +191,7 @@ export function ThreadHistory(props: ThreadHistoryProps) {
           variant="ghost"
           className="w-fit h-fit p-2"
         >
-          <History className="w-6 h-6" />
+          <History className="w-6 h-6 text-gray-600" />
         </TooltipIconButton>
       </SheetTrigger>
       <SheetContent side="left" className="border-none">
