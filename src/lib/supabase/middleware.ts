@@ -57,7 +57,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth/signout")
   ) {
     // user is logged in, respond by redirecting the user to the home page
-    const url = new URL('/', request.url);
+    const url = new URL("/", request.url);
     return NextResponse.redirect(url);
   }
 
