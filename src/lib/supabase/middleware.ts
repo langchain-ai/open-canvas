@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function updateSession(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -51,14 +51,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (
-    user &&
-    request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/auth/signout")
-  ) {
-    // user is logged in, respond by redirecting the user to the home page
-    const url = new URL("/", request.url);
-    return NextResponse.redirect(url);
+  if (user) {
+    if (
+      request.nextUrl.pathname.startsWith("/auth") &&
+      !request.nextUrl.pathname.startsWith("/auth/signout")
+    ) {
+      // user is logged in, respond by redirecting the user to the home page
+      const url = new URL("/", request.url);
+      return NextResponse.redirect(url);
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
