@@ -1,22 +1,21 @@
-import { v4 as uuidv4 } from "uuid";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { GraphInput } from "@/hooks/useGraph";
+import { convertToOpenAIFormat } from "@/lib/convert_messages";
+import { newlineToCarriageReturn } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
-import { GraphInput } from "@/hooks/useGraph";
-import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import { X } from "lucide-react";
-import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
-import { TextRenderer } from "./TextRenderer";
-import { CodeRenderer } from "./CodeRenderer";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
-import { newlineToCarriageReturn } from "@/lib/normalize_string";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { CircleArrowUp, Eye, PencilLine, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
+import { CodeRenderer } from "./CodeRenderer";
+import { TextRenderer } from "./TextRenderer";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
@@ -290,7 +289,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         <div
           className={cn(
             "relative min-h-full",
-            props.artifact.type === "code" ? "min-w-full" : "min-w-full px-4"
+            props.artifact.type === "code" ? "min-w-full" : "min-w-full"
           )}
         >
           <div className="h-[85%]" ref={markdownRef}>
