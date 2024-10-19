@@ -138,7 +138,13 @@ export function Canvas(props: CanvasProps) {
           handleDeleteReflections={deleteReflections}
           reflections={reflections}
           isLoadingReflections={isLoadingReflections}
-          setSelectedArtifact={setSelectedArtifact}
+          setSelectedArtifact={(id) => {
+            if (selectedArtifactId === id) {
+              setSelectedArtifact(undefined);
+            } else {
+              setSelectedArtifact(id);
+            }
+          }}
           streamMessage={streamMessage}
           setArtifacts={setArtifacts}
           messages={messages}
