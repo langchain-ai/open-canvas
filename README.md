@@ -69,7 +69,22 @@ Then, open [localhost:3000](http://localhost:3000) with your browser and start i
 
 ## Roadmap
 
-We'd like to continue developing and improving Open Canvas, and need your help!
+### Features
+
+Below is a list of features we'd like to add to Open Canvas in the near future:
+
+- **Artifact versioning**: Like in Google Docs, you should be able to go back in time and see previous versions of your artifact.
+- **Render React in the editor**: Ideally, if you have Open Canvas generate React (or HTML) code, we should be able to render it live in the editor.
+- **Custom quick actions**: Allow users to define their own quick actions which will persist across sessions.
+- **Multiple assistants**: Users should be able to create multiple assistants, each having their own memory store.
+- **Give assistants custom 'tools'**: Once we've implemented `RemoteGraph` in LangGraph.js, users should be able to give assistants access to call their own graphs as tools. This means you could customize your assistant to have access to current events, your own personal knowledge graph, etc.
+- **Live markdown renderer**: Markdown code should be rendered live and be editable at the same time.
+
+Do you have a feature request? Please [open an issue](https://github.com/langchain-ai/open-canvas/issues/new)!
+
+### Contributing
+
+We'd like to continue developing and improving Open Canvas, and want your help!
 
 To start, there are a handful of GitHub issues with feature requests outlining improvements and additions to make the app's UX even better.
 There are three main labels:
