@@ -35,6 +35,12 @@ export interface ContentComposerChatInterfaceProps {
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
+  isUserThreadsLoading: boolean;
+  userThreads: Thread[];
+  switchSelectedThread: (thread: Thread) => void;
+  deleteThread: (id: string) => Promise<void>;
+  getUserThreads: (id: string) => Promise<void>;
+  userId: string;
 }
 
 export function ContentComposerChatInterface(
@@ -63,6 +69,8 @@ export function ContentComposerChatInterface(
       });
     } finally {
       setIsRunning(false);
+      // Re-fetch threads so that the current thread's title is updated.
+      await props.getUserThreads(props.userId);
     }
   }
 
@@ -90,6 +98,10 @@ export function ContentComposerChatInterface(
           showNewThreadButton={props.showNewThreadButton}
           createThread={props.createThread}
           setSelectedArtifact={props.setSelectedArtifact}
+          isUserThreadsLoading={props.isUserThreadsLoading}
+          userThreads={props.userThreads}
+          switchSelectedThread={props.switchSelectedThread}
+          deleteThread={props.deleteThread}
         />
       </AssistantRuntimeProvider>
       <Toaster />

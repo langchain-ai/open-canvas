@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
-import { AIMessage, BaseMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  BaseMessage,
+  RemoveMessage,
+} from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
 import {
@@ -13,6 +17,8 @@ import {
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
+import { Thread } from "@langchain/langgraph-sdk";
+import { convertLangchainMessages } from "@/lib/convert_messages";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -137,6 +143,9 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
     let messageId: string | undefined = undefined;
     let runId: string | undefined = undefined;
+
+    // The last message in a given graph invocation
+    let lastMessage: Record<string, any> | undefined = undefined;
 
     for await (const chunk of stream) {
       if (!runId && chunk.data?.metadata?.run_id) {
@@ -326,7 +335,9 @@ export function useGraph(useGraphInput: UseGraphInput) {
             }
           });
         }
-      } else if (chunk.data.event === "on_chain_start") {
+      }
+
+      if (chunk.data.event === "on_chain_start") {
         if (
           [
             "rewriteArtifact",
@@ -342,12 +353,21 @@ export function useGraph(useGraphInput: UseGraphInput) {
             updatingArtifactId = chunk.data.data?.input?.selectedArtifactId;
           }
         }
+
+        if (chunk.data.metadata.langgraph_node === "cleanState") {
+          if (chunk.data.data?.input?.messages?.length) {
+            lastMessage =
+              chunk.data.data?.input?.messages[
+                chunk.data.data?.input?.messages.length - 1
+              ];
+          }
+        }
       }
     }
 
     if (runId) {
       // Chain `.then` to not block the stream
-      shareRun(runId).then((sharedRunURL) => {
+      shareRun(runId).then(async (sharedRunURL) => {
         setMessages((prevMessages) => {
           const newMsgs = prevMessages.map((msg) => {
             if (
@@ -378,6 +398,31 @@ export function useGraph(useGraphInput: UseGraphInput) {
           });
           return newMsgs;
         });
+
+        // if (useGraphInput.threadId && lastMessage) {
+        //   // Update the state of the last message to include the run URL
+        //   // for proper rendering when loading history.
+        //   if (lastMessage.type === "ai") {
+        //     const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
+        //       ...lastMessage,
+        //       content: lastMessage.content,
+        //       response_metadata: {
+        //         ...lastMessage.response_metadata,
+        //         langsmithRunURL: sharedRunURL,
+        //       }
+        //     })];
+        //     console.log("newMessages", newMessages);
+        //     await client.threads.updateState(useGraphInput.threadId, {
+        //       values: {
+        //         messages: newMessages
+        //       },
+        //     });
+        //     const newState = await client.threads.getState(useGraphInput.threadId);
+        //     console.log("newState", (newState.values as Record<string, any>).messages);
+        //   } else {
+        //     console.log("lastmsg not assistant", lastMessage)
+        //   }
+        // }
       });
     }
 
@@ -461,6 +506,52 @@ export function useGraph(useGraphInput: UseGraphInput) {
     });
   };
 
+  const switchSelectedThread = (
+    thread: Thread,
+    setThreadId: (id: string) => void
+  ) => {
+    setThreadId(thread.thread_id);
+    const castValues = thread.values as {
+      artifacts?: Artifact[];
+      messages?: Record<string, any>[];
+    };
+    if (!castValues?.messages?.length) {
+      setMessages([]);
+      return;
+    }
+    console.log("castValues", castValues);
+    setArtifacts(castValues.artifacts ?? []);
+    setMessages(
+      castValues.messages.flatMap((msg: Record<string, any>) => {
+        if (msg.response_metadata?.artifactId) {
+          // This is the followup message after an artifact was generated.
+          // Add that artifact to the list of artifacts, and an AIMessage with
+          // an artifact tool call so it's rendered.
+          const generatedArtifact = castValues.artifacts?.find(
+            (a) => a.id === msg.response_metadata.artifactId
+          );
+          if (generatedArtifact) {
+            const artifactMsg = new AIMessage({
+              content: "",
+              tool_calls: [
+                {
+                  id: msg.response_metadata.artifactId,
+                  args: { title: generatedArtifact.title },
+                  name: "artifact_ui",
+                },
+              ],
+            });
+            return [artifactMsg, msg];
+          } else {
+            return msg;
+          }
+        } else {
+          return msg;
+        }
+      })
+    );
+  };
+
   return {
     artifacts,
     selectedArtifactId,
@@ -471,5 +562,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
     streamMessage,
     setArtifactContent,
     clearState,
+    switchSelectedThread,
   };
 }

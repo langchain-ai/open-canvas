@@ -20,7 +20,16 @@ interface CanvasProps {
 
 export function Canvas(props: CanvasProps) {
   const { toast } = useToast();
-  const { threadId, assistantId, createThread } = useThread(props.user.id);
+  const {
+    threadId,
+    assistantId,
+    createThread,
+    deleteThread,
+    userThreads,
+    isUserThreadsLoading,
+    getUserThreads,
+    setThreadId,
+  } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
   const [pendingArtifactSelection, setPendingArtifactSelection] = useState<
     string | null
@@ -36,6 +45,7 @@ export function Canvas(props: CanvasProps) {
     selectedArtifactId,
     setArtifactContent,
     clearState,
+    switchSelectedThread,
   } = useGraph({ threadId, assistantId, userId: props.user.id });
   const {
     reflections,
@@ -110,6 +120,15 @@ export function Canvas(props: CanvasProps) {
         )}
       >
         <ContentComposerChatInterface
+          userId={props.user.id}
+          getUserThreads={getUserThreads}
+          isUserThreadsLoading={isUserThreadsLoading}
+          userThreads={userThreads}
+          switchSelectedThread={(thread) => {
+            switchSelectedThread(thread, setThreadId);
+            setChatStarted(true);
+          }}
+          deleteThread={(id) => deleteThread(id, () => setMessages([]))}
           handleGetReflections={getReflections}
           handleDeleteReflections={deleteReflections}
           reflections={reflections}

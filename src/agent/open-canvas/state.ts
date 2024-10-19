@@ -77,6 +77,10 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * Whether or not to fix bugs in the code artifact.
    */
   fixBugs: Annotation<boolean | undefined>,
+  /**
+   * The name of the last node that was executed.
+   */
+  lastNodeName: Annotation<string | undefined>,
 });
 
 export type OpenCanvasGraphReturnType = Partial<

@@ -23,7 +23,18 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
     throw new Error("Only text messages are supported");
   }
 
-  switch (message._getType()) {
+  let messageType = "";
+  if ("getType" in message && typeof message.getType === "function") {
+    messageType = message.getType();
+  } else if ("_getType" in message && typeof message._getType === "function") {
+    messageType = message._getType();
+  } else if ("type" in message) {
+    messageType = message.type as string;
+  } else {
+    throw new Error("Unsupported message type");
+  }
+
+  switch (messageType) {
     case "system":
       return {
         role: "system",

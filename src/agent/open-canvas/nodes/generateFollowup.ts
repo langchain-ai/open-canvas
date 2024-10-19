@@ -52,6 +52,12 @@ export const generateFollowup = async (
     { role: "user", content: formattedPrompt },
   ]);
 
+  if (state.lastNodeName === "generateArtifact") {
+    // In order for the history to properly work on the frontend, we must
+    // add the artifact ID to the followup message if it was just generated.
+    response.response_metadata.artifactId = recentArtifact.id;
+  }
+
   return {
     messages: [response],
   };

@@ -82,6 +82,7 @@ export const generateArtifact = async (
   };
 
   return {
+    lastNodeName: "generateArtifact",
     artifacts: [newArtifact],
   };
 };
