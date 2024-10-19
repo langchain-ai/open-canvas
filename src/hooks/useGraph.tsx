@@ -14,6 +14,7 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
+import { getMessageType } from "@/lib/convert_messages";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -421,7 +422,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     // Only do this if we have the title.
     if (artifactId && artifactTitle) {
       const hasArtifactToolCall = messages.some((msg) => {
-        if (msg._getType() !== "ai") return false;
+        if (getMessageType(msg) !== "ai") return false;
         const aiMsg = msg as AIMessage;
         if (!aiMsg.tool_calls) return false;
         return aiMsg.tool_calls.some((tc) => tc.id === artifactId);
@@ -429,7 +430,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
       if (!hasArtifactToolCall) {
         setMessages((prevMessages) => {
           const lastHumanIndex = prevMessages.findLastIndex(
-            (msg) => msg._getType() === "human"
+            (msg) => getMessageType(msg) === "human"
           );
           const newMessage = new AIMessage({
             content: "",

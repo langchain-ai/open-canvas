@@ -5,10 +5,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SignupWithEmailInput } from "./Signup";
 
-export async function signup(input: SignupWithEmailInput) {
+export async function signup(input: SignupWithEmailInput, baseUrl: string) {
   const supabase = createClient();
-  const currentOrigin =
-    typeof window !== "undefined" ? window.location.origin : "";
 
   const data = {
     email: input.email,
@@ -18,7 +16,7 @@ export async function signup(input: SignupWithEmailInput) {
     //   is_open_canvas: true,
     // },
     options: {
-      emailRedirectTo: `${currentOrigin}/auth/confirm`,
+      emailRedirectTo: `${baseUrl}/auth/confirm`,
     },
   };
 
