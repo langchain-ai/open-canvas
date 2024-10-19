@@ -36,7 +36,7 @@ export function Signup() {
     input: SignupWithEmailInput
   ): Promise<void> => {
     setIsError(false);
-    await signup(input);
+    await signup(input, window.location.origin);
   };
 
   const onSignupWithOauth = async (
