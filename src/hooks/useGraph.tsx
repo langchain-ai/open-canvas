@@ -249,11 +249,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
                     }
                     return c;
                   });
-              console.log(
-                "Setting artifact with newContents",
-                isFirstUpdate,
-                newContents
-              );
 
               return {
                 ...(prev ?? artifact),
