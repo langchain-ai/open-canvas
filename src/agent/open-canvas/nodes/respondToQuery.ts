@@ -4,7 +4,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContentWithTemplate,
   formatReflections,
-} from "@/agent/utils";
+} from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactContent, Reflections } from "../../../types";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";

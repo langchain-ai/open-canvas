@@ -9,7 +9,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContent,
   formatReflections,
-} from "@/agent/utils";
+} from "../../utils";
 import { ArtifactContent, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";

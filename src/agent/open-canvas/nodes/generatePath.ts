@@ -8,8 +8,8 @@ import {
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
-import { ArtifactContent } from "@/types";
-import { formatArtifactContentWithTemplate } from "@/agent/utils";
+import { ArtifactContent } from "../../../types";
+import { formatArtifactContentWithTemplate } from "../../utils";
 
 /**
  * Routes to the proper node in the graph based on the user's query.

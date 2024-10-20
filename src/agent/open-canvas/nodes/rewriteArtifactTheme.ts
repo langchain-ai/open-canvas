@@ -7,7 +7,7 @@ import {
   CHANGE_ARTIFACT_READING_LEVEL_PROMPT,
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
-import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
+import { ensureStoreInConfig, formatReflections } from "../../utils";
 import { ArtifactContent, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 

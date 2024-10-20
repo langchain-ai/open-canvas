@@ -4,7 +4,7 @@ import { NEW_ARTIFACT_PROMPT } from "../prompts";
 import { Reflections } from "../../../types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
+import { ensureStoreInConfig, formatReflections } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**

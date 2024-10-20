@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
-import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
+import { ensureStoreInConfig, formatReflections } from "../../utils";
 import { ArtifactContent, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
