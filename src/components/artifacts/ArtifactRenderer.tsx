@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { CircleArrowUp, Eye, PencilLine, X } from "lucide-react";
+import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
@@ -16,13 +16,14 @@ import { Input } from "../ui/input";
 import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { CodeRenderer } from "./CodeRenderer";
 import { TextRenderer } from "./TextRenderer";
+import { getCurrentArtifactContent } from "@/lib/get_current_artifact";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
-  setArtifactContent: (id: string, content: string) => void;
+  setArtifactContent: (index: number, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  setSelectedArtifactById: (id: string | undefined) => void;
+  setSelectedArtifact: (index: number) => void;
   messages: BaseMessage[];
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
@@ -133,7 +134,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
         highlighted: {
-          id: props.artifact.id,
           startCharIndex: selectionIndexes.start,
           endCharIndex: selectionIndexes.end,
         },
@@ -170,8 +170,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
             // Calculate start and end indexes
             let startIndex, endIndex;
-
-            if (props.artifact?.type === "code" && editorRef.current) {
+            const currentArtifactContent = props.artifact
+              ? getCurrentArtifactContent(props.artifact)
+              : undefined;
+            if (currentArtifactContent?.type === "code" && editorRef.current) {
               const from = editorRef.current.posAtDOM(
                 range.startContainer,
                 range.startOffset
@@ -236,27 +238,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         }
       }
     }
-  }, [isSelectionActive, selectionBox, props.artifact?.type]);
+  }, [isSelectionActive, selectionBox]);
 
   if (!props.artifact) {
     return <div className="w-full h-full"></div>;
   }
+  const currentArtifactContent = getCurrentArtifactContent(props.artifact);
 
   return (
     <div className="relative w-full h-full overflow-auto">
       <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-row gap-2 items-center justify-start">
-          <TooltipIconButton
-            tooltip="Close canvas"
-            variant="ghost"
-            className="w-fit h-fit p-2"
-            delayDuration={400}
-            onClick={() => props.setSelectedArtifactById(undefined)}
-          >
-            <X className="w-6 h-6 text-gray-600" />
-          </TooltipIconButton>
+        <div className="pl-[6px] pt-3 flex flex-row items-center justify-start">
           <h1 className="text-xl font-medium text-gray-600">
-            {props.artifact.title}
+            {currentArtifactContent.title}
           </h1>
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
@@ -267,7 +261,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             handleDeleteReflections={props.handleDeleteReflections}
           />
         </div>
-        {props.artifact.type === "text" ? (
+        {currentArtifactContent.type === "text" ? (
           <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton
               tooltip={props.isEditing ? "Preview" : "Edit"}
@@ -289,29 +283,29 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         ref={contentRef}
         className={cn(
           "flex justify-center h-full",
-          props.artifact.type === "code" ? "pt-[10px]" : ""
+          currentArtifactContent.type === "code" ? "pt-[10px]" : ""
         )}
       >
         <div
           className={cn(
             "relative min-h-full",
-            props.artifact.type === "code" ? "min-w-full" : "min-w-full"
+            currentArtifactContent.type === "code" ? "min-w-full" : "min-w-full"
           )}
         >
           <div className="h-[85%]" ref={markdownRef}>
-            {props.artifact.type === "text" ? (
+            {currentArtifactContent.type === "text" ? (
               <TextRenderer
                 isEditing={props.isEditing}
                 setIsEditing={props.setIsEditing}
-                artifact={props.artifact}
+                artifactContent={currentArtifactContent}
                 setArtifactContent={props.setArtifactContent}
               />
             ) : null}
-            {props.artifact.type === "code" ? (
+            {currentArtifactContent.type === "code" ? (
               <CodeRenderer
                 setArtifactContent={props.setArtifactContent}
                 editorRef={editorRef}
-                artifact={props.artifact}
+                artifactContent={currentArtifactContent}
               />
             ) : null}
           </div>
@@ -370,16 +364,14 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
-      {props.artifact.type === "text" ? (
-        <ActionsToolbar
-          selectedArtifactId={props.artifact.id}
-          streamMessage={props.streamMessage}
-        />
+      {currentArtifactContent.type === "text" ? (
+        <ActionsToolbar streamMessage={props.streamMessage} />
       ) : null}
-      {props.artifact.type === "code" ? (
+      {currentArtifactContent.type === "code" ? (
         <CodeToolBar
-          language={props.artifact.language as ProgrammingLanguageOptions}
-          selectedArtifactId={props.artifact.id}
+          language={
+            currentArtifactContent.language as ProgrammingLanguageOptions
+          }
           streamMessage={props.streamMessage}
         />
       ) : null}

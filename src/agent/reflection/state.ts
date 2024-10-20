@@ -1,4 +1,4 @@
-import { Artifact } from "@/types";
+import { Artifact } from "../../types";
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
 export const ReflectionGraphAnnotation = Annotation.Root({

@@ -24,7 +24,6 @@ type ToolbarOption = {
 };
 
 export interface CodeToolbarProps {
-  selectedArtifactId: string | undefined;
   language: ProgrammingLanguageOptions;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
@@ -101,17 +100,14 @@ export function CodeToolBar(props: CodeToolbarProps) {
     setActiveOption(null);
     if (optionId === "addComments") {
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         addComments: true,
       });
     } else if (optionId === "addLogs") {
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         addLogs: true,
       });
     } else if (optionId === "fixBugs") {
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         fixBugs: true,
       });
     }
@@ -121,10 +117,6 @@ export function CodeToolBar(props: CodeToolbarProps) {
     setIsExpanded(false);
     setActiveOption(null);
   };
-
-  if (!props.selectedArtifactId) {
-    return null;
-  }
 
   return (
     <div

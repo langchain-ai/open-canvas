@@ -12,9 +12,8 @@ import { reflectNode } from "./nodes/reflect";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
-  "messages" | "artifacts"
+  "messages" | "artifact"
 > = {
-  selectedArtifactId: undefined,
   highlighted: undefined,
   next: undefined,
   language: undefined,

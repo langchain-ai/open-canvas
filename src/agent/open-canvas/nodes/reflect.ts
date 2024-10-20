@@ -13,12 +13,9 @@ export const reflectNode = async (
     },
   });
 
-  const selectedArtifact = state.selectedArtifactId
-    ? state.artifacts.find((art) => art.id === state.selectedArtifactId)
-    : state.artifacts[state.artifacts.length - 1];
   const reflectionInput = {
     messages: state.messages,
-    artifact: selectedArtifact,
+    artifact: state.artifact,
   };
   const reflectionConfig = {
     configurable: {

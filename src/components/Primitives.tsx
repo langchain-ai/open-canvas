@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
 import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
@@ -30,7 +29,6 @@ import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
 
 export interface MyThreadProps {
-  setSelectedArtifact: (artifactId: string) => void;
   createThread: () => Promise<Thread>;
   showNewThreadButton: boolean;
   handleQuickStart: (
@@ -115,8 +113,6 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
 };
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
-  const { setSelectedArtifact } = props;
-  useArtifactToolUI({ setSelectedArtifact });
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
