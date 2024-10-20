@@ -1,9 +1,13 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { formatArtifacts } from "../utils";
-import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
+import {
+  ensureStoreInConfig,
+  formatArtifactContentWithTemplate,
+  formatReflections,
+} from "@/agent/utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { Reflections } from "../../../types";
+import { ArtifactContent, Reflections } from "../../../types";
+import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
 
 /**
  * Generate responses to questions. Does not generate artifacts.
@@ -26,9 +30,14 @@ You also have the following reflections on style guidelines and general memories
 {reflections}
 </reflections>
 
-<artifacts>
-{artifacts}
-</artifacts>`;
+{currentArtifactPrompt}`;
+
+  let currentArtifactContent: ArtifactContent | undefined;
+  if (state.artifact) {
+    currentArtifactContent = state.artifact.contents.find(
+      (art) => art.index === state.artifact.currentContentIndex
+    );
+  }
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
@@ -43,8 +52,16 @@ You also have the following reflections on style guidelines and general memories
     : "No reflections found.";
 
   const formattedPrompt = prompt
-    .replace("{artifacts}", formatArtifacts(state.artifacts))
-    .replace("{reflections}", memoriesAsString);
+    .replace("{reflections}", memoriesAsString)
+    .replace(
+      "{currentArtifactPrompt}",
+      currentArtifactContent
+        ? formatArtifactContentWithTemplate(
+            CURRENT_ARTIFACT_PROMPT,
+            currentArtifactContent
+          )
+        : NO_ARTIFACT_PROMPT
+    );
 
   const response = await smallModel.invoke([
     { role: "system", content: formattedPrompt },

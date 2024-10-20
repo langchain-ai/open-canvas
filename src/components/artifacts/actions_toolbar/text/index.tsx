@@ -18,7 +18,6 @@ type ToolbarOption = {
 };
 
 export interface ActionsToolbarProps {
-  selectedArtifactId: string | undefined;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
 
@@ -88,7 +87,6 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
       setIsExpanded(false);
       setActiveOption(null);
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         regenerateWithEmojis: true,
       });
     } else {
@@ -100,10 +98,6 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     setIsExpanded(false);
     setActiveOption(null);
   };
-
-  if (!props.selectedArtifactId) {
-    return null;
-  }
 
   return (
     <div

@@ -16,15 +16,13 @@ import {
 } from "@/lib/convert_messages";
 import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
-import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
+import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { Thread } from "@langchain/langgraph-sdk";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  setArtifacts: React.Dispatch<React.SetStateAction<Artifact[]>>;
-  setSelectedArtifact: (artifactId: string) => void;
   createThread: () => Promise<Thread>;
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
   showNewThreadButton: boolean;
@@ -98,7 +96,6 @@ export function ContentComposerChatInterface(
           handleQuickStart={props.handleQuickStart}
           showNewThreadButton={props.showNewThreadButton}
           createThread={props.createThread}
-          setSelectedArtifact={props.setSelectedArtifact}
           isUserThreadsLoading={props.isUserThreadsLoading}
           userThreads={props.userThreads}
           switchSelectedThread={props.switchSelectedThread}

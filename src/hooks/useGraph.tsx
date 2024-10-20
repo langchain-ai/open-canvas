@@ -1,10 +1,12 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "./use-toast";
 import { createClient } from "./utils";
 import {
   Artifact,
+  ArtifactContent,
   ArtifactLengthOptions,
+  ArtifactType,
   Highlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
@@ -14,7 +16,6 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
-import { getMessageType } from "@/lib/convert_messages";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -65,16 +66,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const { toast } = useToast();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
-  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-  // Default to the last artifact in the list
-  const [selectedArtifactId, setSelectedArtifactId] = useState<
-    string | undefined
-  >();
-
+  const [artifact, setArtifact] = useState<Artifact>();
   const clearState = () => {
     setMessages([]);
-    setArtifacts([]);
-    setSelectedArtifactId(undefined);
+    setArtifact(undefined);
   };
 
   const streamMessage = async (params: GraphInput) => {
@@ -96,23 +91,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     const client = createClient();
 
     const input = {
-      // Ensure we set all existing values (except `artifacts` and `messages`) to undefined by default.
-      selectedArtifactId,
-      artifacts,
-      messages: params.messages?.filter((msg) => {
-        if (msg.role !== "assistant") {
-          return true;
-        }
-        const aiMsg = msg as AIMessage;
-        // Filter our artifact ui tool calls from going to the server.
-        if (
-          aiMsg.tool_calls &&
-          aiMsg.tool_calls.some((tc) => tc.name === "artifact_ui")
-        ) {
-          return false;
-        }
-        return true;
-      }),
+      artifact,
       ...params,
     };
 
@@ -129,7 +108,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
     let artifactId = "";
     let artifactTitle = "";
     let artifactType = "";
-    let updatingArtifactId = "";
     let newArtifactText = "";
 
     // All the text up until the startCharIndex
@@ -139,6 +117,20 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
     let messageId: string | undefined = undefined;
     let runId: string | undefined = undefined;
+
+    const prevArtifactContent = artifact?.contents.find(
+      (a) => a.index === artifact.currentContentIndex
+    );
+    let newArtifactContentIndex: number | undefined = undefined;
+    let isFirstUpdate = true;
+
+    let rewriteArtifactMeta:
+      | {
+          type: ArtifactType;
+          title?: string;
+          programmingLanguage?: string;
+        }
+      | undefined = undefined;
 
     // The last message in a given graph invocation
     let _lastMessage: Record<string, any> | undefined = undefined;
@@ -156,129 +148,270 @@ export function useGraph(useGraphInput: UseGraphInput) {
           fullArtifactGenerationStr +=
             chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
           try {
-            const artifact: ArtifactToolResponse = parsePartialJson(
+            const newArtifactText: ArtifactToolResponse = parsePartialJson(
               fullArtifactGenerationStr
             );
-            artifactTitle = artifact.title ?? "";
-            artifactType = artifact.type ?? "";
+            artifactTitle = newArtifactText.title ?? "";
+            artifactType = newArtifactText.type ?? "";
             if (
-              (artifact.artifact && artifactId && artifactType === "text") ||
+              (newArtifactText.artifact &&
+                artifactId &&
+                artifactType === "text") ||
               artifactType === "code"
             ) {
-              setArtifacts((prev) => {
-                const allWithoutCurrent = prev.filter(
-                  (a) => a.id !== artifactId
-                );
-                let content = artifact.artifact;
+              setArtifact(() => {
+                let content = newArtifactText.artifact;
                 if (artifactType === "code") {
                   content = removeCodeBlockFormatting(content ?? "");
                 }
 
-                return [
-                  ...allWithoutCurrent,
-                  {
-                    id: artifactId,
-                    title: artifactTitle,
-                    content: content ?? "",
-                    type: artifactType as Artifact["type"],
-                    language: artifact.language ?? "",
-                  },
-                ];
+                return {
+                  id: artifactId,
+                  currentContentIndex: 1,
+                  contents: [
+                    {
+                      index: 1,
+                      content: content ?? "",
+                      title: artifactTitle,
+                      type: artifactType as ArtifactType,
+                      language: newArtifactText.language ?? "",
+                    },
+                  ],
+                };
               });
-              // Ensure the newest generated artifact is selected when generating.
-              if (!selectedArtifactId || selectedArtifactId !== artifactId) {
-                setSelectedArtifactId(artifactId);
-              }
             }
           } catch (_) {
             // no-op
           }
-        } else if (chunk.data.metadata.langgraph_node === "updateArtifact") {
-          if (params.highlighted && updatingArtifactId) {
+        }
+
+        if (chunk.data.metadata.langgraph_node === "updateArtifact") {
+          if (params.highlighted) {
+            if (!artifact) {
+              toast({
+                title: "Error",
+                description: "Original artifact not found",
+              });
+              return;
+            }
             const partialUpdatedContent = chunk.data.data.chunk[1].content;
             const { startCharIndex, endCharIndex } = params.highlighted;
+
+            if (!prevArtifactContent) {
+              toast({
+                title: "Error",
+                description: "Original artifact not found",
+              });
+              return;
+            }
 
             if (
               updatedArtifactStartContent === undefined &&
               updatedArtifactRestContent === undefined
             ) {
-              const originalArtifact = artifacts.find(
-                (a) => a.id === updatingArtifactId
-              );
-              if (!originalArtifact) {
-                toast({
-                  title: "Error",
-                  description: "Original artifact not found",
-                });
-                return;
-              }
-              updatedArtifactStartContent = originalArtifact.content.slice(
+              updatedArtifactStartContent = prevArtifactContent.content.slice(
                 0,
                 startCharIndex
               );
               updatedArtifactRestContent =
-                originalArtifact.content.slice(endCharIndex);
+                prevArtifactContent.content.slice(endCharIndex);
             } else {
               // One of the above have been populated, now we can update the start to contain the new text.
               updatedArtifactStartContent += partialUpdatedContent;
             }
 
-            setArtifacts((prev) =>
-              prev.map((artifact) => {
-                if (artifact.id === updatingArtifactId) {
-                  let content = `${updatedArtifactStartContent}${updatedArtifactRestContent}`;
-                  if (artifactType === "code") {
-                    content = removeCodeBlockFormatting(content);
-                  }
-
-                  return {
-                    ...artifact,
-                    content,
-                  };
-                }
-                return artifact;
-              })
-            );
-            if (!selectedArtifactId) {
-              setSelectedArtifactId(updatingArtifactId);
+            if (newArtifactContentIndex === undefined) {
+              newArtifactContentIndex = artifact.contents.length + 1;
             }
-          }
-        } else if (
-          [
-            "rewriteArtifact",
-            "rewriteArtifactTheme",
-            "rewriteCodeArtifactTheme",
-          ].includes(chunk.data.metadata.langgraph_node)
-        ) {
-          if (updatingArtifactId) {
-            newArtifactText += chunk.data.data.chunk[1].content;
 
-            // Ensure we have the language to update the artifact with
-            const artifactLanguage = params.portLanguage || undefined;
+            setArtifact((prev) => {
+              let content = `${updatedArtifactStartContent}${updatedArtifactRestContent}`;
+              if (artifactType === "code") {
+                content = removeCodeBlockFormatting(content);
+              }
 
-            // If no highlight, update the entire content as before
-            setArtifacts((prev) => {
-              return prev.map((artifact) => {
-                if (artifact.id === updatingArtifactId) {
-                  let content = newArtifactText;
-                  if (artifactType === "code") {
-                    content = removeCodeBlockFormatting(content);
-                  }
+              const newContents: ArtifactContent[] = isFirstUpdate
+                ? [
+                    ...(prev ?? artifact).contents,
+                    {
+                      ...(prevArtifactContent as ArtifactContent),
+                      index:
+                        newArtifactContentIndex ?? artifact.contents.length + 1,
+                      content,
+                    },
+                  ]
+                : (prev ?? artifact).contents.map((c) => {
+                    if (c.index === newArtifactContentIndex) {
+                      return {
+                        ...c,
+                        content,
+                      };
+                    }
+                    return c;
+                  });
+              console.log(
+                "Setting artifact with newContents",
+                isFirstUpdate,
+                newContents
+              );
 
-                  return {
-                    ...artifact,
-                    language: artifactLanguage ?? artifact.language,
-                    content,
-                  };
-                }
-                return artifact;
-              });
+              return {
+                ...(prev ?? artifact),
+                currentContentIndex:
+                  newArtifactContentIndex ?? artifact.contents.length + 1,
+                contents: newContents,
+              };
             });
-            if (!selectedArtifactId) {
-              setSelectedArtifactId(updatingArtifactId);
+
+            if (isFirstUpdate) {
+              isFirstUpdate = false;
             }
           }
-        } else if (chunk.data.metadata.langgraph_node === "generateFollowup") {
+        }
+
+        if (
+          chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
+          chunk.data.name === "rewrite_artifact_model_call" &&
+          rewriteArtifactMeta
+        ) {
+          if (!artifact) {
+            toast({
+              title: "Error",
+              description: "Original artifact not found",
+            });
+            return;
+          }
+
+          newArtifactText += chunk.data.data.chunk[1].content;
+
+          // Ensure we have the language to update the artifact with
+          let artifactLanguage = params.portLanguage || undefined;
+          if (
+            !artifactLanguage &&
+            rewriteArtifactMeta.type === "code" &&
+            rewriteArtifactMeta.programmingLanguage
+          ) {
+            artifactLanguage =
+              rewriteArtifactMeta.programmingLanguage as ProgrammingLanguageOptions;
+          }
+
+          if (newArtifactContentIndex === undefined) {
+            newArtifactContentIndex = artifact.contents.length + 1;
+          }
+
+          setArtifact((prev) => {
+            let content = newArtifactText;
+            if (rewriteArtifactMeta?.type === "code") {
+              content = removeCodeBlockFormatting(content);
+            }
+
+            const newContents: ArtifactContent[] = isFirstUpdate
+              ? [
+                  ...(prev ?? artifact).contents,
+                  {
+                    type:
+                      rewriteArtifactMeta?.type ??
+                      prevArtifactContent?.type ??
+                      "text",
+                    title:
+                      rewriteArtifactMeta?.title ??
+                      prevArtifactContent?.title ??
+                      "",
+                    index:
+                      newArtifactContentIndex ?? artifact.contents.length + 1,
+                    language:
+                      artifactLanguage ?? prevArtifactContent?.language ?? "",
+                    content,
+                  },
+                ]
+              : (prev ?? artifact).contents.map((c) => {
+                  if (c.index === newArtifactContentIndex) {
+                    return {
+                      ...c,
+                      content,
+                    };
+                  }
+                  return c;
+                });
+
+            return {
+              ...(prev ?? artifact),
+              currentContentIndex:
+                newArtifactContentIndex ?? artifact.contents.length + 1,
+              contents: newContents,
+            };
+          });
+
+          if (isFirstUpdate) {
+            isFirstUpdate = false;
+          }
+        }
+
+        if (
+          ["rewriteArtifactTheme", "rewriteCodeArtifactTheme"].includes(
+            chunk.data.metadata.langgraph_node
+          )
+        ) {
+          if (!artifact) {
+            toast({
+              title: "Error",
+              description: "Original artifact not found",
+            });
+            return;
+          }
+
+          newArtifactText += chunk.data.data.chunk[1].content;
+
+          // Ensure we have the language to update the artifact with
+          let artifactLanguage = params.portLanguage || undefined;
+
+          if (newArtifactContentIndex === undefined) {
+            newArtifactContentIndex = artifact.contents.length + 1;
+          }
+
+          setArtifact((prev) => {
+            let content = newArtifactText;
+            if (prevArtifactContent?.type === "code") {
+              content = removeCodeBlockFormatting(content);
+            }
+
+            const newContents: ArtifactContent[] = isFirstUpdate
+              ? [
+                  ...(prev ?? artifact).contents,
+                  {
+                    type: prevArtifactContent?.type ?? "text",
+                    title: prevArtifactContent?.title ?? "",
+                    index:
+                      newArtifactContentIndex ?? artifact.contents.length + 1,
+                    language:
+                      artifactLanguage ?? prevArtifactContent?.language ?? "",
+                    content,
+                  },
+                ]
+              : (prev ?? artifact).contents.map((c) => {
+                  if (c.index === newArtifactContentIndex) {
+                    return {
+                      ...c,
+                      content,
+                    };
+                  }
+                  return c;
+                });
+
+            return {
+              ...(prev ?? artifact),
+              currentContentIndex:
+                newArtifactContentIndex ?? artifact.contents.length + 1,
+              contents: newContents,
+            };
+          });
+
+          if (isFirstUpdate) {
+            isFirstUpdate = false;
+          }
+        }
+
+        if (chunk.data.metadata.langgraph_node === "generateFollowup") {
           const message = chunk.data.data.chunk[1];
           messageId = message.id;
           setMessages((prevMessages) => {
@@ -304,7 +437,9 @@ export function useGraph(useGraphInput: UseGraphInput) {
               return [...prevMessages, newMessage];
             }
           });
-        } else if (chunk.data.metadata.langgraph_node === "respondToQuery") {
+        }
+
+        if (chunk.data.metadata.langgraph_node === "respondToQuery") {
           const message = chunk.data.data.chunk[1];
           messageId = message.id;
           setMessages((prevMessages) => {
@@ -334,22 +469,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
       }
 
       if (chunk.data.event === "on_chain_start") {
-        if (
-          [
-            "rewriteArtifact",
-            "rewriteArtifactTheme",
-            "rewriteCodeArtifactTheme",
-            "updateArtifact",
-          ].includes(chunk.data.metadata.langgraph_node)
-        ) {
-          if (
-            chunk.data.data?.input?.selectedArtifactId &&
-            !updatingArtifactId
-          ) {
-            updatingArtifactId = chunk.data.data?.input?.selectedArtifactId;
-          }
-        }
-
         if (chunk.data.metadata.langgraph_node === "cleanState") {
           if (chunk.data.data?.input?.messages?.length) {
             _lastMessage =
@@ -357,6 +476,15 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 chunk.data.data?.input?.messages.length - 1
               ];
           }
+        }
+      }
+
+      if (chunk.data.event === "on_chat_model_end") {
+        if (
+          chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
+          chunk.data.name === "optionally_update_artifact_meta"
+        ) {
+          rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
         }
       }
     }
@@ -417,84 +545,46 @@ export function useGraph(useGraphInput: UseGraphInput) {
         // }
       });
     }
-
-    // Check to see if there is an AIMessage with a tool call that contains the same artifact ID. If not, add one to render the tool.
-    // Only do this if we have the title.
-    if (artifactId && artifactTitle) {
-      const hasArtifactToolCall = messages.some((msg) => {
-        if (getMessageType(msg) !== "ai") return false;
-        const aiMsg = msg as AIMessage;
-        if (!aiMsg.tool_calls) return false;
-        return aiMsg.tool_calls.some((tc) => tc.id === artifactId);
-      });
-      if (!hasArtifactToolCall) {
-        setMessages((prevMessages) => {
-          const lastHumanIndex = prevMessages.findLastIndex(
-            (msg) => getMessageType(msg) === "human"
-          );
-          const newMessage = new AIMessage({
-            content: "",
-            tool_calls: [
-              {
-                id: artifactId,
-                args: { title: artifactTitle },
-                name: "artifact_ui",
-              },
-            ],
-          });
-
-          if (lastHumanIndex === -1) {
-            // If no human message found, add to the end
-            return [...prevMessages, newMessage];
-          } else {
-            // Insert after the last human message
-            return [
-              ...prevMessages.slice(0, lastHumanIndex + 1),
-              newMessage,
-              ...prevMessages.slice(lastHumanIndex + 1),
-            ];
-          }
-        });
-      }
-    }
   };
 
-  const setSelectedArtifactById = useCallback(
-    (id: string | undefined) => {
-      if (!id) {
-        setSelectedArtifactId(undefined);
-        return;
+  const setSelectedArtifact = (index: number) => {
+    setArtifact((prev) => {
+      if (!prev) {
+        toast({
+          title: "Error",
+          description: "No artifact found",
+        });
+        return prev;
       }
+      return {
+        ...prev,
+        currentContentIndex: index,
+      };
+    });
+  };
 
-      const selectedArtifact = artifacts.find((a) => a.id === id);
-      if (!selectedArtifact) {
-        if (!selectedArtifactId && artifacts.length) {
-          setSelectedArtifactId(artifacts[artifacts.length - 1].id);
-          return;
-        } else {
-          toast({
-            title: "Error",
-            description: "Selected artifact not found",
-          });
-          return;
-        }
+  const setArtifactContent = (index: number, content: string) => {
+    setArtifact((prev) => {
+      if (!prev) {
+        toast({
+          title: "Error",
+          description: "No artifact found",
+        });
+        return prev;
       }
-      setSelectedArtifactId(selectedArtifact.id);
-    },
-    [artifacts, toast, setSelectedArtifactId]
-  );
-
-  const setArtifactContent = (id: string, content: string) => {
-    setArtifacts((prev) => {
-      return prev.map((artifact) => {
-        if (artifact.id === id) {
-          return {
-            ...artifact,
-            content: reverseCleanContent(content),
-          };
-        }
-        return artifact;
-      });
+      return {
+        ...prev,
+        currentContentIndex: index,
+        contents: prev.contents.map((a) => {
+          if (a.index === index) {
+            return {
+              ...a,
+              content: reverseCleanContent(content),
+            };
+          }
+          return a;
+        }),
+      };
     });
   };
 
@@ -504,38 +594,16 @@ export function useGraph(useGraphInput: UseGraphInput) {
   ) => {
     setThreadId(thread.thread_id);
     const castValues = thread.values as {
-      artifacts?: Artifact[];
+      artifact?: Artifact;
       messages?: Record<string, any>[];
     };
     if (!castValues?.messages?.length) {
       setMessages([]);
       return;
     }
-    setArtifacts(castValues.artifacts ?? []);
+    setArtifact(castValues.artifact);
     setMessages(
-      castValues.messages.flatMap((msg: Record<string, any>) => {
-        let artifactMsg: AIMessage | undefined = undefined;
-        if (msg.response_metadata?.artifactId) {
-          // This is the followup message after an artifact was generated.
-          // Add that artifact to the list of artifacts, and an AIMessage with
-          // an artifact tool call so it's rendered.
-          const generatedArtifact = castValues.artifacts?.find(
-            (a) => a.id === msg.response_metadata.artifactId
-          );
-          if (generatedArtifact) {
-            artifactMsg = new AIMessage({
-              content: "",
-              tool_calls: [
-                {
-                  id: msg.response_metadata.artifactId,
-                  args: { title: generatedArtifact.title },
-                  name: "artifact_ui",
-                },
-              ],
-            });
-          }
-        }
-
+      castValues.messages.map((msg: Record<string, any>) => {
         if (msg.response_metadata?.langSmithRunURL) {
           msg.tool_calls = msg.tool_calls ?? [];
           msg.tool_calls.push({
@@ -547,17 +615,16 @@ export function useGraph(useGraphInput: UseGraphInput) {
           });
         }
 
-        return [...(artifactMsg ? [artifactMsg] : []), msg] as BaseMessage[];
+        return msg as BaseMessage;
       })
     );
   };
 
   return {
-    artifacts,
-    selectedArtifactId,
+    artifact,
     messages,
-    setSelectedArtifact: setSelectedArtifactById,
-    setArtifacts,
+    setSelectedArtifact,
+    setArtifact,
     setMessages,
     streamMessage,
     setArtifactContent,

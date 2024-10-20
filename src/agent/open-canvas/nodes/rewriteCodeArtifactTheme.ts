@@ -6,6 +6,7 @@ import {
   FIX_BUGS_CODE_ARTIFACT_PROMPT,
   PORT_LANGUAGE_CODE_ARTIFACT_PROMPT,
 } from "../prompts";
+import { ArtifactContent } from "@/types";
 
 export const rewriteCodeArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State
@@ -15,11 +16,14 @@ export const rewriteCodeArtifactTheme = async (
     temperature: 0.5,
   });
 
-  const selectedArtifact = state.artifacts.find(
-    (artifact) => artifact.id === state.selectedArtifactId
-  );
-  if (!selectedArtifact) {
-    throw new Error("No artifact found with the selected ID");
+  let currentArtifactContent: ArtifactContent | undefined;
+  if (state.artifact) {
+    currentArtifactContent = state.artifact.contents.find(
+      (art) => art.index === state.artifact.currentContentIndex
+    );
+  }
+  if (!currentArtifactContent) {
+    throw new Error("No artifact content found.");
   }
 
   let formattedPrompt = "";
@@ -65,7 +69,7 @@ export const rewriteCodeArtifactTheme = async (
   // Insert the code into the artifact placeholder in the prompt
   formattedPrompt = formattedPrompt.replace(
     "{artifactContent}",
-    selectedArtifact.content
+    currentArtifactContent.content
   );
 
   const newArtifactValues = await smallModel.invoke([
@@ -73,13 +77,21 @@ export const rewriteCodeArtifactTheme = async (
   ]);
 
   const newArtifact = {
-    ...selectedArtifact,
-    // Ensure the new artifact's language is updated, if necessary
-    language: state.portLanguage || selectedArtifact.language,
-    content: newArtifactValues.content as string,
+    ...state.artifact,
+    currentContentIndex: state.artifact.contents.length + 1,
+    contents: [
+      ...state.artifact.contents,
+      {
+        ...currentArtifactContent,
+        index: state.artifact.contents.length + 1,
+        content: newArtifactValues.content as string,
+        // Ensure the new artifact's language is updated, if necessary
+        language: state.portLanguage || currentArtifactContent.language,
+      },
+    ],
   };
 
   return {
-    artifacts: [newArtifact],
+    artifact: newArtifact,
   };
 };

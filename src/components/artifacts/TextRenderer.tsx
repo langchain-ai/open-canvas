@@ -1,5 +1,5 @@
 import { cleanContent } from "@/lib/normalize_string";
-import { Artifact } from "@/types";
+import { ArtifactContent } from "@/types";
 import MDEditor from "@uiw/react-md-editor";
 import { Dispatch, SetStateAction } from "react";
 
@@ -7,10 +7,10 @@ import styles from "./TextRenderer.module.css";
 import { cn } from "@/lib/utils";
 
 export interface TextRenderer {
-  artifact: Artifact;
+  artifactContent: ArtifactContent;
   isEditing: boolean;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
-  setArtifactContent: (id: string, content: string) => void;
+  setArtifactContent: (index: number, content: string) => void;
 }
 
 export function TextRenderer(props: TextRenderer) {
@@ -23,8 +23,10 @@ export function TextRenderer(props: TextRenderer) {
         preview={props.isEditing ? "edit" : "preview"}
         hideToolbar
         visibleDragbar={false}
-        value={cleanContent(props.artifact.content)}
-        onChange={(v) => props.setArtifactContent(props.artifact.id, v || "")}
+        value={cleanContent(props.artifactContent.content)}
+        onChange={(v) =>
+          props.setArtifactContent(props.artifactContent.index, v || "")
+        }
         className={cn(
           "min-h-full border-none",
           styles.mdEditorCustom,

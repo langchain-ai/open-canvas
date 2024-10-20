@@ -8,10 +8,9 @@ import { useStore } from "@/hooks/useStore";
 import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
-import { ProgrammingLanguageOptions } from "@/types";
-import { AIMessage } from "@langchain/core/messages";
+import { Artifact, ProgrammingLanguageOptions } from "@/types";
 import { User } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 interface CanvasProps {
@@ -31,21 +30,17 @@ export function Canvas(props: CanvasProps) {
     setThreadId,
   } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
-  const [pendingArtifactSelection, setPendingArtifactSelection] = useState<
-    string | null
-  >(null);
   const [isEditing, setIsEditing] = useState(false);
   const {
     streamMessage,
     setMessages,
-    setArtifacts,
-    artifacts,
+    setArtifact,
     messages,
     setSelectedArtifact,
-    selectedArtifactId,
     setArtifactContent,
     clearState,
     switchSelectedThread,
+    artifact,
   } = useGraph({ threadId, assistantId, userId: props.user.id });
   const {
     reflections,
@@ -75,40 +70,28 @@ export function Canvas(props: CanvasProps) {
     setChatStarted(true);
 
     const artifactId = uuidv4();
-    const artifact = {
+    const newArtifact: Artifact = {
       id: artifactId,
-      title: `Quickstart ${type}`,
-      content:
-        type === "code"
-          ? getLanguageTemplate(language ?? "javascript")
-          : "# Hello world",
-      type,
-      language: language ?? "english",
+      currentContentIndex: 1,
+      contents: [
+        {
+          index: 1,
+          title: `Quickstart ${type}`,
+          content:
+            type === "code"
+              ? getLanguageTemplate(language ?? "javascript")
+              : "# Hello world",
+          type,
+          language: language ?? "english",
+        },
+      ],
     };
-    setArtifacts((prevArtifacts) => [...prevArtifacts, artifact]);
-    setMessages((prevMessages) => {
-      const newMessage = new AIMessage({
-        content: "",
-        tool_calls: [
-          {
-            id: artifactId,
-            args: { title: artifact.title },
-            name: "artifact_ui",
-          },
-        ],
-      });
-      return [...prevMessages, newMessage];
-    });
+    // Do not worry about existing items in state. This should
+    // never occur since this action can only be invoked if
+    // there are no messages/artifacts in the thread.
+    setArtifact(newArtifact);
     setIsEditing(true);
-    setPendingArtifactSelection(artifactId);
   };
-
-  useEffect(() => {
-    if (pendingArtifactSelection) {
-      setSelectedArtifact(pendingArtifactSelection);
-      setPendingArtifactSelection(null);
-    }
-  }, [artifacts, pendingArtifactSelection, setSelectedArtifact]);
 
   return (
     <main className="h-screen flex flex-row">
@@ -138,15 +121,7 @@ export function Canvas(props: CanvasProps) {
           handleDeleteReflections={deleteReflections}
           reflections={reflections}
           isLoadingReflections={isLoadingReflections}
-          setSelectedArtifact={(id) => {
-            if (selectedArtifactId === id) {
-              setSelectedArtifact(undefined);
-            } else {
-              setSelectedArtifact(id);
-            }
-          }}
           streamMessage={streamMessage}
-          setArtifacts={setArtifacts}
           messages={messages}
           setMessages={setMessages}
           createThread={createThreadWithChatStarted}
@@ -165,14 +140,10 @@ export function Canvas(props: CanvasProps) {
             setIsEditing={setIsEditing}
             isEditing={isEditing}
             setArtifactContent={setArtifactContent}
-            setSelectedArtifactById={setSelectedArtifact}
+            setSelectedArtifact={setSelectedArtifact}
             messages={messages}
             setMessages={setMessages}
-            artifact={
-              selectedArtifactId
-                ? artifacts.find((a) => a.id === selectedArtifactId)
-                : undefined
-            }
+            artifact={artifact}
             streamMessage={streamMessage}
           />
         </div>

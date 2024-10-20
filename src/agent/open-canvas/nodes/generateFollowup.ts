@@ -2,7 +2,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
-import { Reflections } from "../../../types";
+import { ArtifactContent, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
@@ -32,10 +32,15 @@ export const generateFollowup = async (
       })
     : "No reflections found.";
 
-  const recentArtifact = state.artifacts[state.artifacts.length - 1];
+  let currentArtifactContent: ArtifactContent | undefined;
+  if (state.artifact) {
+    currentArtifactContent = state.artifact.contents.find(
+      (art) => art.index === state.artifact.currentContentIndex
+    );
+  }
   const formattedPrompt = FOLLOWUP_ARTIFACT_PROMPT.replace(
     "{artifactContent}",
-    recentArtifact.content
+    currentArtifactContent?.content ?? "No artifacts generated yet."
   )
     .replace("{reflections}", memoriesAsString)
     .replace(
@@ -55,7 +60,7 @@ export const generateFollowup = async (
   if (state.lastNodeName === "generateArtifact") {
     // In order for the history to properly work on the frontend, we must
     // add the artifact ID to the followup message if it was just generated.
-    response.response_metadata.artifactId = recentArtifact.id;
+    response.response_metadata.artifactId = state.artifact.id;
   }
 
   return {

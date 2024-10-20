@@ -2,7 +2,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
-import { Reflections } from "../../../types";
+import { ArtifactContent, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
@@ -29,11 +29,14 @@ export const updateArtifact = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  const selectedArtifact = state.artifacts.find(
-    (artifact) => artifact.id === state.selectedArtifactId
-  );
-  if (!selectedArtifact) {
-    throw new Error("No artifact found with the selected ID");
+  let currentArtifactContent: ArtifactContent | undefined;
+  if (state.artifact) {
+    currentArtifactContent = state.artifact.contents.find(
+      (art) => art.index === state.artifact.currentContentIndex
+    );
+  }
+  if (!currentArtifactContent) {
+    throw new Error("No artifact content found.");
   }
 
   if (!state.highlighted) {
@@ -45,19 +48,19 @@ export const updateArtifact = async (
   // Highlighted text is present, so we need to update the highlighted text.
   const start = Math.max(0, state.highlighted.startCharIndex - 500);
   const end = Math.min(
-    selectedArtifact.content.length,
+    currentArtifactContent.content.length,
     state.highlighted.endCharIndex + 500
   );
 
-  const beforeHighlight = selectedArtifact.content.slice(
+  const beforeHighlight = currentArtifactContent.content.slice(
     start,
     state.highlighted.startCharIndex
   ) as string;
-  const highlightedText = selectedArtifact.content.slice(
+  const highlightedText = currentArtifactContent.content.slice(
     state.highlighted.startCharIndex,
     state.highlighted.endCharIndex
   ) as string;
-  const afterHighlight = selectedArtifact.content.slice(
+  const afterHighlight = currentArtifactContent.content.slice(
     state.highlighted.endCharIndex,
     end
   ) as string;
@@ -81,20 +84,29 @@ export const updateArtifact = async (
     recentHumanMessage,
   ]);
 
-  const entireTextBefore = selectedArtifact.content.slice(
+  const entireTextBefore = currentArtifactContent.content.slice(
     0,
     state.highlighted.startCharIndex
   );
-  const entireTextAfter = selectedArtifact.content.slice(
+  const entireTextAfter = currentArtifactContent.content.slice(
     state.highlighted.endCharIndex
   );
   const entireUpdatedContent = `${entireTextBefore}${updatedArtifact.content}${entireTextAfter}`;
+
   const newArtifact = {
-    ...selectedArtifact,
-    content: entireUpdatedContent,
+    ...state.artifact,
+    currentContentIndex: state.artifact.contents.length + 1,
+    contents: [
+      ...state.artifact.contents,
+      {
+        ...currentArtifactContent,
+        index: state.artifact.contents.length + 1,
+        content: entireUpdatedContent,
+      },
+    ],
   };
 
   return {
-    artifacts: [newArtifact],
+    artifact: newArtifact,
   };
 };

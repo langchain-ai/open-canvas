@@ -8,7 +8,7 @@ import {
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
-import { Reflections } from "../../../types";
+import { ArtifactContent, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 export const rewriteArtifactTheme = async (
@@ -32,11 +32,14 @@ export const rewriteArtifactTheme = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  const selectedArtifact = state.artifacts.find(
-    (artifact) => artifact.id === state.selectedArtifactId
-  );
-  if (!selectedArtifact) {
-    throw new Error("No artifact found with the selected ID");
+  let currentArtifactContent: ArtifactContent | undefined;
+  if (state.artifact) {
+    currentArtifactContent = state.artifact.contents.find(
+      (art) => art.index === state.artifact.currentContentIndex
+    );
+  }
+  if (!currentArtifactContent) {
+    throw new Error("No artifact content found.");
   }
 
   let formattedPrompt = "";
@@ -44,7 +47,7 @@ export const rewriteArtifactTheme = async (
     formattedPrompt = CHANGE_ARTIFACT_LANGUAGE_PROMPT.replace(
       "{newLanguage}",
       state.language
-    ).replace("{artifactContent}", selectedArtifact.content);
+    ).replace("{artifactContent}", currentArtifactContent.content);
   } else if (state.readingLevel && state.readingLevel !== "pirate") {
     let newReadingLevel = "";
     switch (state.readingLevel) {
@@ -64,11 +67,11 @@ export const rewriteArtifactTheme = async (
     formattedPrompt = CHANGE_ARTIFACT_READING_LEVEL_PROMPT.replace(
       "{newReadingLevel}",
       newReadingLevel
-    ).replace("{artifactContent}", selectedArtifact.content);
+    ).replace("{artifactContent}", currentArtifactContent.content);
   } else if (state.readingLevel && state.readingLevel === "pirate") {
     formattedPrompt = CHANGE_ARTIFACT_TO_PIRATE_PROMPT.replace(
       "{artifactContent}",
-      selectedArtifact.content
+      currentArtifactContent.content
     );
   } else if (state.artifactLength) {
     let newLength = "";
@@ -89,11 +92,11 @@ export const rewriteArtifactTheme = async (
     formattedPrompt = CHANGE_ARTIFACT_LENGTH_PROMPT.replace(
       "{newLength}",
       newLength
-    ).replace("{artifactContent}", selectedArtifact.content);
+    ).replace("{artifactContent}", currentArtifactContent.content);
   } else if (state.regenerateWithEmojis) {
     formattedPrompt = ADD_EMOJIS_TO_ARTIFACT_PROMPT.replace(
       "{artifactContent}",
-      selectedArtifact.content
+      currentArtifactContent.content
     );
   } else {
     throw new Error("No theme selected");
@@ -106,11 +109,19 @@ export const rewriteArtifactTheme = async (
   ]);
 
   const newArtifact = {
-    ...selectedArtifact,
-    content: newArtifactValues.content as string,
+    ...state.artifact,
+    currentContentIndex: state.artifact.contents.length + 1,
+    contents: [
+      ...state.artifact.contents,
+      {
+        ...currentArtifactContent,
+        index: state.artifact.contents.length + 1,
+        content: newArtifactValues.content as string,
+      },
+    ],
   };
 
   return {
-    artifacts: [newArtifact],
+    artifact: newArtifact,
   };
 };

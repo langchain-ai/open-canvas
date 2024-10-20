@@ -10,19 +10,14 @@ import { GraphInput } from "@/hooks/useGraph";
 import { LanguageOptions } from "@/types";
 
 export interface TranslateOptionsProps {
-  selectedArtifactId: string | undefined;
   streamMessage: (input: GraphInput) => Promise<void>;
   handleClose: () => void;
 }
 
 export function TranslateOptions(props: TranslateOptionsProps) {
   const handleSubmit = async (language: LanguageOptions) => {
-    if (!props.selectedArtifactId) {
-      return;
-    }
     props.handleClose();
     await props.streamMessage({
-      selectedArtifactId: props.selectedArtifactId,
       language,
     });
   };

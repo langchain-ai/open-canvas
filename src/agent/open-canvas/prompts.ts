@@ -1,5 +1,15 @@
 const DEFAULT_CODE_PROMPT_RULES = `- Do NOT include triple backticks when generating code. The code should be in plain text.`;
 
+const APP_CONTEXT = `
+<app-context>
+The name of the application is "Open Canvas". Open Canvas is a web application where users have a chat window and a canvas to display an artifact.
+Artifacts can be any sort of writing content, emails, code, or other creative writing work. Think of artifacts as content, or writing you might find on you might find on a blog, Google doc, or other writing platform.
+Users only have a single artifact per conversation, however they have the ability to go back and fourth between artifact edits/revisions.
+If a user asks you to generate something completely different from the current artifact, you may do this, as the UI displaying the artifacts will be updated to show whatever they've requested.
+Even if the user goes from a 'text' artifact to a 'code' artifact.
+</app-context>
+`;
+
 export const NEW_ARTIFACT_PROMPT = `You are an AI assistant tasked with generating a new artifact based on the users request.
 Ensure you use markdown syntax when appropriate, as the text you generate will be rendered in markdown.
   
@@ -46,10 +56,39 @@ You also have the following reflections on style guidelines and general memories
 
 Use the user's recent message below to make the edit.`;
 
+export const GET_TITLE_TYPE_REWRITE_ARTIFACT = `You are an AI assistant who has been tasked with analyzing the users request to rewrite an artifact.
+
+Your task is to determine what the title and type of the artifact should be based on the users request.
+You should NOT modify the title unless the users request indicates the artifact subject/topic has changed.
+You do NOT need to change the type unless it is clear the user is asking for their artifact to be a different type.
+Use this context about the application when making your decision:
+${APP_CONTEXT}
+
+The types you can choose from are:
+- 'text': This is a general text artifact. This could be a poem, story, email, or any other type of writing.
+- 'code': This is a code artifact. This could be a code snippet, a full program, or any other type of code.
+
+Be careful when selecting the type, as this will update how the artifact is displayed in the UI.
+
+Remember, if you change the type from 'text' to 'code' you must also define the programming language the code should be written in.
+
+Here is the current artifact (only the first 500 characters, or less if the artifact is shorter):
+<artifact>
+{artifact}
+</artifact>
+
+The users message below is the most recent message they sent. Use this to determine what the title and type of the artifact should be.`;
+
+export const OPTIONALLY_UPDATE_META_PROMPT = `It has been pre-determined based on the users message and other context that the type of the artifact should be:
+{artifactType}
+
+{artifactTitle}
+
+You should use this as context when generating your response.`;
+
 export const UPDATE_ENTIRE_ARTIFACT_PROMPT = `You are an AI assistant, and the user has requested you make an update to an artifact you generated in the past.
 
 Here is the current content of the artifact:
-
 <artifact>
 {artifactContent}
 </artifact>
@@ -65,9 +104,14 @@ Follow these rules and guidelines:
 <rules-guidelines>
 - You should respond with the ENTIRE updated artifact, with no additional text before and after.
 - Do not wrap it in any XML tags you see in this prompt.
-- You should use proper markdown syntax when appropriate, as the text you generate will be rendered in markdown.
+- You should use proper markdown syntax when appropriate, as the text you generate will be rendered in markdown. UNLESS YOU ARE WRITING CODE.
+- When you generate code, a markdown renderer is NOT used so if you respond with code in markdown syntax it will break the UI for the user.
 ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>
+
+{updateMetaPrompt}
+
+Ensure you ONLY reply with the rewritten artifact and NO other content.
 `;
 
 // ----- Text modification prompts -----
@@ -171,32 +215,39 @@ Rules and guidelines:
 
 // ----- End text modification prompts -----
 
+export const ROUTE_QUERY_OPTIONS_HAS_ARTIFACTS = `
+- 'rewriteArtifact': The user has requested some sort of change, or revision to the artifact, or to write a completely new artifact independent of the current artifact. Use their recent message and the currently selected artifact (if any) to determine what to do. You should ONLY select this if the user has clearly requested a change to the artifact, otherwise you should lean towards either generating a new artifact or responding to their query.
+  It is very important you do not edit the artifact unless clearly requested by the user.
+- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.`;
+
+export const ROUTE_QUERY_OPTIONS_NO_ARTIFACTS = `
+- 'generateArtifact': The user has inputted a request which requires generating an artifact.
+- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require generating a artifact.`;
+
+export const CURRENT_ARTIFACT_PROMPT = `This artifact is the one the user is currently viewing.
+<artifact>
+{artifact}
+</artifact>`;
+
+export const NO_ARTIFACT_PROMPT = `The user has not generated an artifact yet.`;
+
 export const ROUTE_QUERY_PROMPT = `You are an assistant tasked with routing the users query based on their most recent message.
 You should look at this message in isolation and determine where to best route there query.
+
+Use this context about the application and its features when determining where to route to:
+${APP_CONTEXT}
+
 Your options are as follows:
-
-- 'updateArtifact': The user has requested some sort of change or edit to an existing artifact. Use their recent message and the currently selected artifact (if any) to determine what to do. You should ONLY select this if the user has clearly requested a change to the artifact, otherwise you should lean towards either generating a new artifact or responding to their query.
-  It is very important you do not edit the artifact unless clearly requested by the user.
-- 'generateArtifact': The user has inputted a request which requires generating a new artifact.
-  Artifacts can be any sort of writing content, code, or other creative works. Think of artifacts as content you might find on a blog, google doc, or other writing platform.
-- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.
-
-If you believe the user wants to update an existing artifact, you MUST also supply the ID of the artifact they are referring to.
+<options>
+{artifactOptions}
+</options>
 
 A few of the recent messages in the chat history are:
 <recent-messages>
 {recentMessages}
 </recent-messages>
 
-The following contains every artifact the user has generated in the chat history:
-<artifacts>
-{artifacts}
-</artifacts>
-
-This artifact is the one the user is currently viewing. You should weigh this artifact more heavily compared to the others when determining the route.
-<selected-artifact>
-{selectedArtifact}
-</selected-artifact>`;
+{currentArtifactPrompt}`;
 
 export const FOLLOWUP_ARTIFACT_PROMPT = `You are an AI assistant tasked with generating a followup to the artifact the user just generated.
 The context is you're having a conversation with the user, and you've just generated an artifact for them. Now you should follow up with a message that notifies them you're done. Make this message creative!

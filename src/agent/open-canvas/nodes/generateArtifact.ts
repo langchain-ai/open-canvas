@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { NEW_ARTIFACT_PROMPT } from "../prompts";
-import { Artifact, Reflections } from "../../../types";
+import { Reflections } from "../../../types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { ensureStoreInConfig, formatReflections } from "@/agent/utils";
@@ -73,16 +73,23 @@ export const generateArtifact = async (
     ],
     { runName: "generate_artifact" }
   );
-  const newArtifact: Artifact = {
+
+  const newArtifact = {
     id: response.id ?? uuidv4(),
-    content: response.tool_calls?.[0]?.args.artifact,
-    title: response.tool_calls?.[0]?.args.title,
-    type: response.tool_calls?.[0]?.args.type,
-    language: response.tool_calls?.[0]?.args.language,
+    currentContentIndex: 1,
+    contents: [
+      {
+        index: 1,
+        content: response.tool_calls?.[0]?.args.artifact,
+        title: response.tool_calls?.[0]?.args.title,
+        type: response.tool_calls?.[0]?.args.type,
+        language: response.tool_calls?.[0]?.args.language,
+      },
+    ],
   };
 
   return {
     lastNodeName: "generateArtifact",
-    artifacts: [newArtifact],
+    artifact: newArtifact,
   };
 };
