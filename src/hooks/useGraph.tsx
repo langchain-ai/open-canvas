@@ -363,7 +363,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           newArtifactText += chunk.data.data.chunk[1].content;
 
           // Ensure we have the language to update the artifact with
-          let artifactLanguage = params.portLanguage || undefined;
+          const artifactLanguage = params.portLanguage || undefined;
 
           if (newArtifactContentIndex === undefined) {
             newArtifactContentIndex = artifact.contents.length + 1;
