@@ -68,6 +68,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "respondToQuery",
     "generateArtifact",
     "rewriteArtifact",
+    "customAction",
   ])
   // Edges
   .addEdge("generateArtifact", "generateFollowup")

@@ -380,7 +380,7 @@ Use this context about the application the user is interacting with when generat
 The name of the application is "Open Canvas". Open Canvas is a web application where users have a chat window and a canvas to display an artifact.
 Artifacts can be any sort of writing content, emails, code, or other creative writing work. Think of artifacts as content, or writing you might find on you might find on a blog, Google doc, or other writing platform.
 Users only have a single artifact per conversation, however they have the ability to go back and fourth between artifact edits/revisions.
-<app-context>`;
+</app-context>`;
 
 export const CUSTOM_QUICK_ACTION_CONVERSATION_CONTEXT = `Here is the last 5 (or less) messages in the chat history between you and the user:
 <conversation>

@@ -122,3 +122,11 @@ a {
     1.625em + 2px
   ); /* Adjust the base value (1.625em) if needed */
 }
+
+.inline-code {
+  font-family: monospace;
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
