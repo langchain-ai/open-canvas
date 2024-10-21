@@ -195,7 +195,10 @@ export function ThreadHistory(props: ThreadHistoryProps) {
           <PiChatsCircleLight className="w-6 h-6 text-gray-600" />
         </TooltipIconButton>
       </SheetTrigger>
-      <SheetContent side="left" className="border-none">
+      <SheetContent
+        side="left"
+        className="border-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+      >
         <p className="px-2 text-lg text-gray-600">Chat History</p>
         {props.isUserThreadsLoading && !props.userThreads.length ? (
           <div className="flex flex-col gap-1 px-2 pt-3">
