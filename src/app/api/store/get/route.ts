@@ -16,30 +16,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { assistantId } = await req.json();
-
-  if (!assistantId) {
-    return new NextResponse(
-      JSON.stringify({
-        error: "`assistantId` is required to fetch stored data.",
-      }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
+  const { namespace, key } = await req.json();
 
   const lgClient = new Client({
     apiKey: process.env.LANGCHAIN_API_KEY,
     apiUrl: LANGGRAPH_API_URL,
   });
 
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-
   try {
-    const item = await lgClient.store.getItem(memoryNamespace, memoryKey);
+    const item = await lgClient.store.getItem(namespace, key);
 
     return new NextResponse(JSON.stringify({ item }), {
       status: 200,

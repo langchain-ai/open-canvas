@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { namespace, key } = await req.json();
+  const { namespace, key, value } = await req.json();
 
   const lgClient = new Client({
     apiKey: process.env.LANGCHAIN_API_KEY,
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    await lgClient.store.deleteItem(namespace, key);
+    await lgClient.store.putItem(namespace, key, value);
 
     return new NextResponse(JSON.stringify({ success: true }), {
       status: 200,
