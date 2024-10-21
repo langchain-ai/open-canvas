@@ -102,11 +102,15 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
   const handleNewActionClick = (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsEditing(false);
+    setIsEditingId(undefined);
     setDialogOpen(true);
   };
 
   const handleQuickActionClick = async (id: string): Promise<void> => {
     setOpen(false);
+    setIsEditing(false);
+    setIsEditingId(undefined);
     await props.streamMessage({
       customQuickActionId: id,
     });
