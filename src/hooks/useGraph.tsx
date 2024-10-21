@@ -37,6 +37,7 @@ export interface GraphInput {
   addLogs?: boolean;
   portLanguage?: ProgrammingLanguageOptions;
   fixBugs?: boolean;
+  customQuickActionId?: string;
 }
 
 function removeCodeBlockFormatting(text: string): string {
@@ -343,9 +344,11 @@ export function useGraph(useGraphInput: UseGraphInput) {
         }
 
         if (
-          ["rewriteArtifactTheme", "rewriteCodeArtifactTheme"].includes(
-            chunk.data.metadata.langgraph_node
-          )
+          [
+            "rewriteArtifactTheme",
+            "rewriteCodeArtifactTheme",
+            "customAction",
+          ].includes(chunk.data.metadata.langgraph_node)
         ) {
           if (!artifact) {
             toast({

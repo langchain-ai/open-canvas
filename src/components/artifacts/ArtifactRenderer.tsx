@@ -17,8 +17,10 @@ import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { CodeRenderer } from "./CodeRenderer";
 import { TextRenderer } from "./TextRenderer";
 import { getCurrentArtifactContent } from "@/lib/get_current_artifact";
+import { CustomQuickActions } from "./actions_toolbar/custom";
 
 export interface ArtifactRendererProps {
+  assistantId: string | undefined;
   artifact: Artifact | undefined;
   setArtifactContent: (index: number, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
@@ -408,6 +410,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
+      <CustomQuickActions
+        assistantId={props.assistantId}
+        streamMessage={props.streamMessage}
+      />
       {currentArtifactContent.type === "text" ? (
         <ActionsToolbar streamMessage={props.streamMessage} />
       ) : null}

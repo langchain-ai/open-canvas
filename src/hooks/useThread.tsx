@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient } from "./utils";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
@@ -9,21 +9,6 @@ export function useThread(userId: string) {
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
-
-  useEffect(() => {
-    if (threadId || typeof window === "undefined") return;
-    createThread();
-  }, []);
-
-  useEffect(() => {
-    if (assistantId || typeof window === "undefined") return;
-    getOrCreateAssistant();
-  }, []);
-
-  useEffect(() => {
-    if (typeof window == "undefined" || !userId || userThreads.length) return;
-    getUserThreads(userId);
-  }, [userId]);
 
   const createThread = async (clearState?: () => void) => {
     clearState?.();
@@ -114,5 +99,6 @@ export function useThread(userId: string) {
     deleteThread,
     getThreadById,
     setThreadId,
+    getOrCreateAssistant,
   };
 }

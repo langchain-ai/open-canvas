@@ -2,6 +2,8 @@
 // import { HumanMessage, AIMessage } from "@langchain/core/messages";
 // import { v4 as uuidv4 } from "uuid";
 
+import { CustomQuickAction } from "@/types";
+
 // const defaultContent = `Here is a short story for you:
 
 // The Unexpected Journey
@@ -114,3 +116,86 @@
 //     type: "code",
 //   },
 // ];
+
+export const DUMMY_QUICK_ACTIONS: CustomQuickAction[] = [
+  {
+    id: "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    title: "Explain Code",
+    prompt: "",
+    includeReflections: true,
+    includePrefix: true,
+    includeRecentHistory: true,
+  },
+  {
+    id: "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+    title: "Optimize Function",
+    prompt: "",
+    includeReflections: false,
+    includePrefix: true,
+    includeRecentHistory: false,
+  },
+  {
+    id: "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+    title: "Debug Issue",
+    prompt: "",
+    includeReflections: true,
+    includePrefix: false,
+    includeRecentHistory: true,
+  },
+  {
+    id: "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+    title: "Refactor Class",
+    prompt: "",
+    includeReflections: false,
+    includePrefix: true,
+    includeRecentHistory: true,
+  },
+  {
+    id: "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+    title: "Add Comments",
+    prompt: "",
+    includeReflections: true,
+    includePrefix: false,
+    includeRecentHistory: false,
+  },
+  {
+    id: "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+    title: "Convert to TypeScript",
+    prompt: "",
+    includeReflections: false,
+    includePrefix: true,
+    includeRecentHistory: false,
+  },
+  {
+    id: "7g8h9i0j-1k2l-3m4n-5o6p-7q8r9s0t1u2v",
+    title: "Generate Tests",
+    prompt: "",
+    includeReflections: true,
+    includePrefix: true,
+    includeRecentHistory: true,
+  },
+  {
+    id: "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w",
+    title: "Implement Interface",
+    prompt: "",
+    includeReflections: false,
+    includePrefix: false,
+    includeRecentHistory: true,
+  },
+  {
+    id: "9i0j1k2l-3m4n-5o6p-7q8r-9s0t1u2v3w4x",
+    title: "Dockerize App",
+    prompt: "",
+    includeReflections: true,
+    includePrefix: true,
+    includeRecentHistory: false,
+  },
+  {
+    id: "0j1k2l3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y",
+    title: "API Documentation",
+    prompt: "",
+    includeReflections: false,
+    includePrefix: true,
+    includeRecentHistory: true,
+  },
+];

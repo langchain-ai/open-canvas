@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -15,10 +15,6 @@ export function useUser() {
     setUser(user);
     setLoading(false);
   }
-
-  useEffect(() => {
-    getUser();
-  }, []);
 
   return {
     getUser,
