@@ -1,5 +1,5 @@
 import { CustomQuickAction, Reflections } from "@/types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useToast } from "./use-toast";
 
 export function useStore(assistantId: string | undefined) {
@@ -8,18 +8,6 @@ export function useStore(assistantId: string | undefined) {
   const [reflections, setReflections] = useState<
     Reflections & { assistantId: string; updatedAt: Date }
   >();
-
-  useEffect(() => {
-    if (!assistantId || typeof window === "undefined") return;
-    // Don't re-fetch reflections if they already exist & are for the same assistant
-    if (
-      (reflections?.content || reflections?.styleRules) &&
-      reflections.assistantId === assistantId
-    )
-      return;
-
-    getReflections();
-  }, [assistantId]);
 
   const getReflections = async (): Promise<void> => {
     if (!assistantId) {
