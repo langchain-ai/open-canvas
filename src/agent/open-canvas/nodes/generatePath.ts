@@ -45,6 +45,12 @@ export const generatePath = async (
     };
   }
 
+  if (state.customQuickActionId) {
+    return {
+      next: "customAction",
+    };
+  }
+
   let currentArtifactContent: ArtifactContent | undefined;
   if (state.artifact) {
     currentArtifactContent = state.artifact.contents.find(

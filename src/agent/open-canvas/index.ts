@@ -9,6 +9,7 @@ import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { reflectNode } from "./nodes/reflect";
+import { customAction } from "./nodes/customAction";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
@@ -25,6 +26,7 @@ const defaultInputs: Omit<
   fixBugs: undefined,
   portLanguage: undefined,
   lastNodeName: undefined,
+  customQuickActionId: undefined,
 };
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
@@ -54,6 +56,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
   .addNode("updateArtifact", updateArtifact)
   .addNode("generateArtifact", generateArtifact)
+  .addNode("customAction", customAction)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
   .addNode("reflect", reflectNode)
