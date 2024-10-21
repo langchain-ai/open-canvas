@@ -53,6 +53,9 @@ export const rewriteCodeArtifactTheme = async (
       case "html":
         newLanguage = "HTML";
         break;
+      case "sql":
+        newLanguage = "SQL";
+        break;
     }
     formattedPrompt = PORT_LANGUAGE_CODE_ARTIFACT_PROMPT.replace(
       "{newLanguage}",

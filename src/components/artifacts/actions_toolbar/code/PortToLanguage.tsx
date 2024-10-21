@@ -25,6 +25,8 @@ const prettifyLanguage = (language: ProgrammingLanguageOptions) => {
       return "Python";
     case "html":
       return "HTML";
+    case "sql":
+      return "SQL";
     default:
       return language;
   }

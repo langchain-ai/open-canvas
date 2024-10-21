@@ -1,11 +1,12 @@
 import { isToday, isYesterday, isWithinInterval, subDays } from "date-fns";
 import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
 import { Button } from "./ui/button";
-import { History, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { Skeleton } from "./ui/skeleton";
 import { useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";
+import { PiChatsCircleLight } from "react-icons/pi";
 
 interface ThreadHistoryProps {
   isUserThreadsLoading: boolean;
@@ -191,7 +192,7 @@ export function ThreadHistory(props: ThreadHistoryProps) {
           variant="ghost"
           className="w-fit h-fit p-2"
         >
-          <History className="w-6 h-6 text-gray-600" />
+          <PiChatsCircleLight className="w-6 h-6 text-gray-600" />
         </TooltipIconButton>
       </SheetTrigger>
       <SheetContent side="left" className="border-none">

@@ -9,6 +9,7 @@ import { python } from "@codemirror/lang-python";
 import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
 import { html } from "@codemirror/lang-html";
+import { sql } from "@codemirror/lang-sql";
 
 export interface CodeRendererProps {
   artifactContent: ArtifactContent;
@@ -32,6 +33,8 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     extensions = [python()];
   } else if (props.artifactContent.language === "html") {
     extensions = [html()];
+  } else if (props.artifactContent.language === "sql") {
+    extensions = [sql()];
   }
 
   if (!props.artifactContent.content) {
