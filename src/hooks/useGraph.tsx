@@ -522,27 +522,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
           });
           return newMsgs;
         });
-
-        // if (useGraphInput.threadId && lastMessage) {
-        //   // Update the state of the last message to include the run URL
-        //   // for proper rendering when loading history.
-        //   if (lastMessage.type === "ai") {
-        //     const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
-        //       ...lastMessage,
-        //       content: lastMessage.content,
-        //       response_metadata: {
-        //         ...lastMessage.response_metadata,
-        //         langSmithRunURL: sharedRunURL,
-        //       }
-        //     })];
-        //     await client.threads.updateState(useGraphInput.threadId, {
-        //       values: {
-        //         messages: newMessages
-        //       },
-        //     });
-        //     const newState = await client.threads.getState(useGraphInput.threadId);
-        //   }
-        // }
       });
     }
   };

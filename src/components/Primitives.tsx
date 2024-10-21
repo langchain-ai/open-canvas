@@ -27,9 +27,10 @@ import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
+import { useToast } from "@/hooks/use-toast";
 
 export interface MyThreadProps {
-  createThread: () => Promise<Thread>;
+  createThread: () => Promise<Thread | undefined>;
   showNewThreadButton: boolean;
   handleQuickStart: (
     type: "text" | "code",
@@ -113,10 +114,18 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
 };
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
+  const { toast } = useToast();
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
-    await props.createThread();
+    const thread = await props.createThread();
+    if (!thread) {
+      toast({
+        title: "Failed to create a new thread",
+        duration: 5000,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
