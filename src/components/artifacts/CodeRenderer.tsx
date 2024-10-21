@@ -33,7 +33,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     extensions = [python()];
   } else if (props.artifactContent.language === "html") {
     extensions = [html()];
-  } else if (props.artifact.language === "sql") {
+  } else if (props.artifactContent.language === "sql") {
     extensions = [sql()];
   }
 
