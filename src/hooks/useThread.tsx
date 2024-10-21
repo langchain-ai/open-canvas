@@ -14,17 +14,21 @@ export function useThread(userId: string) {
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
 
-  const createThread = async (supabaseUserId: string) => {
+  const createThread = async (supabaseUserId: string): Promise<Thread | undefined> => {
     const client = createClient();
-    const thread = await client.threads.create({
-      metadata: {
-        supabase_user_id: supabaseUserId,
-      },
-    });
-    setThreadId(thread.thread_id);
-    setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
-    await getUserThreads(userId);
-    return thread;
+    try {
+      const thread = await client.threads.create({
+        metadata: {
+          supabase_user_id: supabaseUserId,
+        },
+      });
+      setThreadId(thread.thread_id);
+      setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+      await getUserThreads(userId);
+      return thread;
+    } catch (e) {
+      console.error("Failed to create thread", e);
+    }
   };
 
   const getOrCreateAssistant = async () => {
@@ -34,11 +38,15 @@ export function useThread(userId: string) {
       return;
     }
     const client = createClient();
-    const assistant = await client.assistants.create({
-      graphId: "agent",
-    });
-    setAssistantId(assistant.assistant_id);
-    setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
+    try {
+      const assistant = await client.assistants.create({
+        graphId: "agent",
+      });
+      setAssistantId(assistant.assistant_id);
+      setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
+    } catch (e) {
+      console.error("Failed to create assistant", e);
+    }
   };
 
   const getUserThreads = async (id: string) => {
@@ -75,7 +83,7 @@ export function useThread(userId: string) {
 
     // Thread ID is in cookies.
     const thread = await getThreadById(threadIdCookie);
-    if (!thread.values || Object.keys(thread.values).length === 0) {
+    if (!thread?.values || Object.keys(thread.values).length === 0) {
       // No values = no activity. Can keep.
       setThreadId(threadIdCookie);
       return;
@@ -150,9 +158,13 @@ export function useThread(userId: string) {
     }
   };
 
-  const getThreadById = async (id: string) => {
-    const client = createClient();
-    return await client.threads.get(id);
+  const getThreadById = async (id: string): Promise<Thread | undefined> => {
+    try {
+      const client = createClient();
+      return await client.threads.get(id);
+    } catch (e) {
+      console.error(`Failed to get thread with ID ${id}`, e);
+    }
   };
 
   const deleteThread = async (id: string, clearMessages: () => void) => {
@@ -173,7 +185,11 @@ export function useThread(userId: string) {
       void createThread(userId);
     }
     const client = createClient();
-    await client.threads.delete(id);
+    try {
+      await client.threads.delete(id);
+    } catch (e) {
+      console.error(`Failed to delete thread with ID ${id}`, e);
+    }
   };
 
   return {
