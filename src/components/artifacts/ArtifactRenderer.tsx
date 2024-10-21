@@ -258,9 +258,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             {currentArtifactContent.title}
           </h1>
         </div>
-        <div className="flex items-center justify-center mx-auto gap-3 text-gray-600">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-3 text-gray-600">
           <TooltipIconButton
             tooltip="Previous"
+            side="left"
             variant="ghost"
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
@@ -282,6 +283,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <TooltipIconButton
             tooltip="Next"
             variant="ghost"
+            side="right"
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
             onClick={() =>

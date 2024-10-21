@@ -16,7 +16,7 @@ export interface TextRenderer {
 export function TextRenderer(props: TextRenderer) {
   return (
     <div
-      className="w-full h-full mt-2 flex flex-col border-t-[1px]   border-gray-200 overflow-hidden absolute"
+      className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-hidden absolute"
       data-color-mode="light"
     >
       <MDEditor
