@@ -159,15 +159,6 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
       <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <DropdownMenuLabel>Custom Quick Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={handleNewActionClick}
-          className="flex items-center justify-start gap-1"
-        >
-          <CirclePlus className="w-4 h-4" />
-          <p className="font-medium">New</p>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>My Actions</DropdownMenuLabel>
         {isLoadingQuickActions && !customQuickActions?.length ? (
           <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
             Loading
@@ -178,7 +169,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             No custom quick actions found.
           </p>
         ) : (
-          <>
+          <div className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {customQuickActions.map((action) => (
               <DropdownMenuItemWithDelete
                 key={action.id}
@@ -188,8 +179,16 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
                 onEdit={() => openEditDialog(action.id)}
               />
             ))}
-          </>
+          </div>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={handleNewActionClick}
+          className="flex items-center justify-start gap-1"
+        >
+          <CirclePlus className="w-4 h-4" />
+          <p className="font-medium">New</p>
+        </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
         allQuickActions={customQuickActions || []}
