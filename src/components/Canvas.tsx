@@ -23,12 +23,14 @@ export function Canvas(props: CanvasProps) {
     threadId,
     assistantId,
     createThread,
+    searchOrCreateThread,
     deleteThread,
     userThreads,
     isUserThreadsLoading,
     getUserThreads,
     setThreadId,
     getOrCreateAssistant,
+    clearThreadsWithNoValues,
   } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -54,12 +56,15 @@ export function Canvas(props: CanvasProps) {
     if (typeof window === "undefined") return;
 
     if (!threadId) {
-      createThread();
+      searchOrCreateThread(props.user.id);
     }
 
     if (!assistantId) {
       getOrCreateAssistant();
     }
+
+    // Clear threads with no values
+    clearThreadsWithNoValues(props.user.id);
   }, []);
 
   useEffect(() => {
@@ -83,7 +88,7 @@ export function Canvas(props: CanvasProps) {
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);
     clearState();
-    return createThread();
+    return createThread(props.user.id);
   };
 
   const handleQuickStart = (
