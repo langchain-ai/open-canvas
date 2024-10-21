@@ -1,6 +1,6 @@
 # Open Canvas
 
-[TRY IT OUT HERE](https://open-canvas-lc.vercel.app)
+[TRY IT OUT HERE](https://opencanvas.langchain.com/)
 
 ![Screenshot of app](./public/screenshot.jpg)
 
@@ -12,7 +12,7 @@ Open Canvas is an open source web application for collaborating with agents to b
 
 ## How to use
 
-You can use our deployed version for free by visiting [open-canvas-lc.vercel.app](https://open-canvas-lc.vercel.app/)
+You can use our deployed version for free by visiting [opencanvas.langchain.com](https://opencanvas.langchain.com/)
 
 or
 
