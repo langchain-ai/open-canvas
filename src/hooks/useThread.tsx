@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient } from "./utils";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
