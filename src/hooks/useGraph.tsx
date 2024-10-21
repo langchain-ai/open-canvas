@@ -600,7 +600,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     };
     if (!castValues?.messages?.length) {
       setMessages([]);
-      setArtifact(undefined);
+      setArtifact(castValues.artifact);
       return;
     }
     setArtifact(castValues.artifact);
