@@ -21,7 +21,6 @@ import { useEffect, useState } from "react";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { DUMMY_QUICK_ACTIONS } from "@/lib/dummy";
 
 export interface CustomQuickActionsProps {
   assistantId: string | undefined;
@@ -171,11 +170,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
           </p>
         ) : (
           <div className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {[
-              ...customQuickActions,
-              ...DUMMY_QUICK_ACTIONS,
-              ...DUMMY_QUICK_ACTIONS,
-            ].map((action) => (
+            {customQuickActions.map((action) => (
               <DropdownMenuItemWithDelete
                 key={action.id}
                 onDelete={async () => await handleDelete(action.id)}
