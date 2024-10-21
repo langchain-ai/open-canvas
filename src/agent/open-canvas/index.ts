@@ -12,9 +12,8 @@ import { reflectNode } from "./nodes/reflect";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
-  "messages" | "artifacts"
+  "messages" | "artifact"
 > = {
-  selectedArtifactId: undefined,
   highlighted: undefined,
   next: undefined,
   language: undefined,
@@ -25,6 +24,7 @@ const defaultInputs: Omit<
   addLogs: undefined,
   fixBugs: undefined,
   portLanguage: undefined,
+  lastNodeName: undefined,
 };
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {

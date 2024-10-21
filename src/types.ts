@@ -22,17 +22,21 @@ export type UserRules = {
 
 export interface Artifact {
   id: string;
+  contents: ArtifactContent[];
+  currentContentIndex: number;
+}
+
+export interface ArtifactContent {
+  index: number;
   content: string;
   title: string;
-  type: "code" | "text";
+  type: ArtifactType;
   language: string;
 }
 
+export type ArtifactType = "code" | "text";
+
 export interface Highlight {
-  /**
-   * The id of the artifact the highlighted text belongs to
-   */
-  id: string;
   /**
    * The index of the first character of the highlighted text
    */

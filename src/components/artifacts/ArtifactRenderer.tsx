@@ -1,29 +1,29 @@
-import { v4 as uuidv4 } from "uuid";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { CircleArrowUp, Eye, PencilLine } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { GraphInput } from "@/hooks/useGraph";
+import { convertToOpenAIFormat } from "@/lib/convert_messages";
+import { newlineToCarriageReturn } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
-import { GraphInput } from "@/hooks/useGraph";
-import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import { X } from "lucide-react";
-import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
-import { TextRenderer } from "./TextRenderer";
-import { CodeRenderer } from "./CodeRenderer";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { useToast } from "@/hooks/use-toast";
 import { EditorView } from "@codemirror/view";
-import { newlineToCarriageReturn } from "@/lib/normalize_string";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { CircleArrowUp, Eye, PencilLine, Forward } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
+import { CodeRenderer } from "./CodeRenderer";
+import { TextRenderer } from "./TextRenderer";
+import { getCurrentArtifactContent } from "@/lib/get_current_artifact";
 
 export interface ArtifactRendererProps {
   artifact: Artifact | undefined;
-  setArtifactContent: (id: string, content: string) => void;
+  setArtifactContent: (index: number, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  setSelectedArtifactById: (id: string | undefined) => void;
+  setSelectedArtifact: (index: number) => void;
   messages: BaseMessage[];
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
@@ -134,7 +134,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
         highlighted: {
-          id: props.artifact.id,
           startCharIndex: selectionIndexes.start,
           endCharIndex: selectionIndexes.end,
         },
@@ -171,8 +170,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
             // Calculate start and end indexes
             let startIndex, endIndex;
-
-            if (props.artifact?.type === "code" && editorRef.current) {
+            const currentArtifactContent = props.artifact
+              ? getCurrentArtifactContent(props.artifact)
+              : undefined;
+            if (currentArtifactContent?.type === "code" && editorRef.current) {
               const from = editorRef.current.posAtDOM(
                 range.startContainer,
                 range.startOffset
@@ -237,26 +238,64 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         }
       }
     }
-  }, [isSelectionActive, selectionBox, props.artifact?.type]);
+  }, [isSelectionActive, selectionBox]);
 
   if (!props.artifact) {
     return <div className="w-full h-full"></div>;
   }
+  const currentArtifactContent = getCurrentArtifactContent(props.artifact);
+  const isBackwardsDisabled =
+    props.artifact.contents.length === 1 || currentArtifactContent.index === 1;
+  const isForwardDisabled =
+    props.artifact.contents.length === 1 ||
+    currentArtifactContent.index === props.artifact.contents.length;
 
   return (
     <div className="relative w-full h-full overflow-auto">
       <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-row gap-4 items-center justify-start">
+        <div className="pl-[6px] pt-3 flex flex-row items-center justify-start">
+          <h1 className="text-xl font-medium text-gray-600">
+            {currentArtifactContent.title}
+          </h1>
+        </div>
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-3 text-gray-600">
           <TooltipIconButton
-            tooltip="Close canvas"
+            tooltip="Previous"
+            side="left"
             variant="ghost"
-            className="w-[36px] h-[36px]"
+            className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
-            onClick={() => props.setSelectedArtifactById(undefined)}
+            onClick={() =>
+              props.setSelectedArtifact(currentArtifactContent.index - 1)
+            }
+            disabled={isBackwardsDisabled}
           >
-            <X />
+            <Forward
+              aria-disabled={isBackwardsDisabled}
+              className="w-6 h-6 text-gray-600 scale-x-[-1]"
+            />
           </TooltipIconButton>
-          <h1 className="text-xl font-medium">{props.artifact.title}</h1>
+          <div className="flex items-center justify-center gap-1">
+            <p className="text-xs pt-1">
+              {currentArtifactContent.index} / {props.artifact.contents.length}
+            </p>
+          </div>
+          <TooltipIconButton
+            tooltip="Next"
+            variant="ghost"
+            side="right"
+            className="transition-colors w-fit h-fit p-2"
+            delayDuration={400}
+            onClick={() =>
+              props.setSelectedArtifact(currentArtifactContent.index + 1)
+            }
+            disabled={isForwardDisabled}
+          >
+            <Forward
+              aria-disabled={isForwardDisabled}
+              className="w-6 h-6 text-gray-600"
+            />
+          </TooltipIconButton>
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
           <ReflectionsDialog
@@ -266,16 +305,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             handleDeleteReflections={props.handleDeleteReflections}
           />
         </div>
-        {props.artifact.type === "text" ? (
-          <div className="pr-[6px] pt-3 flex flex-row gap-4 items-center justify-end">
+        {currentArtifactContent.type === "text" ? (
+          <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
             <TooltipIconButton
               tooltip={props.isEditing ? "Preview" : "Edit"}
               variant="ghost"
-              className="transition-colors w-fit h-fit"
+              className="transition-colors w-fit h-fit p-2"
               delayDuration={400}
               onClick={() => props.setIsEditing((v) => !v)}
             >
-              {props.isEditing ? <Eye className="w-6 h-6" /> : <PencilLine />}
+              {props.isEditing ? (
+                <Eye className="w-6 h-6 text-gray-600" />
+              ) : (
+                <PencilLine className="w-6 h-6 text-gray-600" />
+              )}
             </TooltipIconButton>
           </div>
         ) : null}
@@ -284,29 +327,29 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         ref={contentRef}
         className={cn(
           "flex justify-center h-full",
-          props.artifact.type === "code" ? "pt-[10px]" : ""
+          currentArtifactContent.type === "code" ? "pt-[10px]" : ""
         )}
       >
         <div
           className={cn(
             "relative min-h-full",
-            props.artifact.type === "code" ? "min-w-full" : "min-w-full px-4"
+            currentArtifactContent.type === "code" ? "min-w-full" : "min-w-full"
           )}
         >
           <div className="h-[85%]" ref={markdownRef}>
-            {props.artifact.type === "text" ? (
+            {currentArtifactContent.type === "text" ? (
               <TextRenderer
                 isEditing={props.isEditing}
                 setIsEditing={props.setIsEditing}
-                artifact={props.artifact}
+                artifactContent={currentArtifactContent}
                 setArtifactContent={props.setArtifactContent}
               />
             ) : null}
-            {props.artifact.type === "code" ? (
+            {currentArtifactContent.type === "code" ? (
               <CodeRenderer
                 setArtifactContent={props.setArtifactContent}
                 editorRef={editorRef}
-                artifact={props.artifact}
+                artifactContent={currentArtifactContent}
               />
             ) : null}
           </div>
@@ -365,16 +408,14 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
-      {props.artifact.type === "text" ? (
-        <ActionsToolbar
-          selectedArtifactId={props.artifact.id}
-          streamMessage={props.streamMessage}
-        />
+      {currentArtifactContent.type === "text" ? (
+        <ActionsToolbar streamMessage={props.streamMessage} />
       ) : null}
-      {props.artifact.type === "code" ? (
+      {currentArtifactContent.type === "code" ? (
         <CodeToolBar
-          language={props.artifact.language as ProgrammingLanguageOptions}
-          selectedArtifactId={props.artifact.id}
+          language={
+            currentArtifactContent.language as ProgrammingLanguageOptions
+          }
           streamMessage={props.streamMessage}
         />
       ) : null}

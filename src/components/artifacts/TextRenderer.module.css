@@ -1,6 +1,7 @@
 .mdEditorCustom {
   height: 100% !important;
   overflow: hidden;
+  border-radius: 0%;
 }
 
 .mdEditorCustom :global(.w-md-editor) {
@@ -21,7 +22,6 @@
 
 .mdEditorCustom :global(.w-md-editor-preview) {
   box-shadow: none !important;
-  border-left: 1px solid #e0e0e0;
 }
 
 .mdEditorCustom :global(.w-md-editor-toolbar) {

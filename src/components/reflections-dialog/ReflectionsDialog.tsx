@@ -8,9 +8,10 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Loader } from "lucide-react";
+import { BrainCog, Loader } from "lucide-react";
 import { Reflections } from "@/types";
 import { ConfirmClearDialog } from "./ConfirmClearDialog";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 
 export interface ReflectionsProps {
   isLoadingReflections: boolean;
@@ -38,6 +39,15 @@ function NoReflections(props: Pick<ReflectionsProps, "handleGetReflections">) {
   );
 }
 
+{
+  /* <div
+          onClick={() => setOpen(true)}
+          className="ml-auto bg-white hover:bg-gray-50 text-black border border-gray-300 px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
+        >
+          <p className="text-sm font-light">Reflections</p>
+        </div> */
+}
+
 export function ReflectionsDialog(props: ReflectionsProps) {
   const {
     isLoadingReflections,
@@ -55,12 +65,14 @@ export function ReflectionsDialog(props: ReflectionsProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <div
+        <TooltipIconButton
+          tooltip="Reflections"
+          variant="ghost"
+          className="w-fit h-fit p-2"
           onClick={() => setOpen(true)}
-          className="ml-auto bg-white hover:bg-gray-50 text-black border border-gray-300 px-4 py-2 rounded-md shadow-sm transition-colors duration-200 cursor-pointer flex items-center space-x-2"
         >
-          <p className="text-sm font-light">Reflections</p>
-        </div>
+          <BrainCog className="w-6 h-6 text-gray-600" />
+        </TooltipIconButton>
       </DialogTrigger>
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl">
         <DialogHeader>

@@ -51,10 +51,6 @@ ANTHROPIC_API_KEY=
 # OpenAI used for content generation
 OPENAI_API_KEY=
 
-# Vercel KV stores. Used for system prompt storage.
-KV_REST_API_URL=
-KV_REST_API_TOKEN=
-
 # LangGraph Deployment, or local development server via LangGraph Studio.
 LANGGRAPH_API_URL=
 ```
@@ -66,6 +62,8 @@ yarn dev
 ```
 
 Then, open [localhost:3000](http://localhost:3000) with your browser and start interacting!
+
+You can also watch a short (2 min) video walkthrough on how to setup Open Canvas locally [here](https://www.loom.com/share/e2ce559840f14a9abf1b3d5af7686271).
 
 ## Roadmap
 

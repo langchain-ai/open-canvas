@@ -1,4 +1,4 @@
-import { Artifact } from "@/types";
+import { ArtifactContent } from "@/types";
 import { MutableRefObject } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -12,32 +12,32 @@ import { html } from "@codemirror/lang-html";
 import { sql } from "@codemirror/lang-sql";
 
 export interface CodeRendererProps {
-  artifact: Artifact;
-  setArtifactContent: (id: string, content: string) => void;
+  artifactContent: ArtifactContent;
+  setArtifactContent: (index: number, content: string) => void;
   editorRef: MutableRefObject<EditorView | null>;
 }
 
 export function CodeRenderer(props: Readonly<CodeRendererProps>) {
   let extensions: any[] = [];
-  if (props.artifact.language === "javascript") {
+  if (props.artifactContent.language === "javascript") {
     extensions = [javascript({ jsx: true, typescript: false })];
-  } else if (props.artifact.language === "typescript") {
+  } else if (props.artifactContent.language === "typescript") {
     extensions = [javascript({ jsx: true, typescript: true })];
-  } else if (props.artifact.language === "cpp") {
+  } else if (props.artifactContent.language === "cpp") {
     extensions = [cpp()];
-  } else if (props.artifact.language === "java") {
+  } else if (props.artifactContent.language === "java") {
     extensions = [java()];
-  } else if (props.artifact.language === "php") {
+  } else if (props.artifactContent.language === "php") {
     extensions = [php()];
-  } else if (props.artifact.language === "python") {
+  } else if (props.artifactContent.language === "python") {
     extensions = [python()];
-  } else if (props.artifact.language === "html") {
+  } else if (props.artifactContent.language === "html") {
     extensions = [html()];
   } else if (props.artifact.language === "sql") {
     extensions = [sql()];
   }
 
-  if (!props.artifact.content) {
+  if (!props.artifactContent.content) {
     return null;
   }
 
@@ -45,10 +45,10 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     <CodeMirror
       editable={true}
       className={`w-full min-h-full ${styles.codeMirrorCustom}`}
-      value={cleanContent(props.artifact.content)}
+      value={cleanContent(props.artifactContent.content)}
       height="800px"
       extensions={extensions}
-      onChange={(c) => props.setArtifactContent(props.artifact.id, c)}
+      onChange={(c) => props.setArtifactContent(props.artifactContent.index, c)}
       onCreateEditor={(view) => {
         props.editorRef.current = view;
       }}
