@@ -85,7 +85,10 @@ export function useThread(userId: string) {
 
     // Thread ID is in cookies.
     const thread = await getThreadById(threadIdCookie);
-    if (!thread?.values || Object.keys(thread.values).length === 0) {
+    if (
+      thread &&
+      (!thread?.values || Object.keys(thread.values).length === 0)
+    ) {
       // No values = no activity. Can keep.
       setThreadId(threadIdCookie);
       return;
