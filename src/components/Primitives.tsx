@@ -124,7 +124,7 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
         title: "Failed to create a new thread",
         duration: 5000,
         variant: "destructive",
-      })
+      });
     }
   };
 

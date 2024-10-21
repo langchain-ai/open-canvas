@@ -14,7 +14,9 @@ export function useThread(userId: string) {
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
 
-  const createThread = async (supabaseUserId: string): Promise<Thread | undefined> => {
+  const createThread = async (
+    supabaseUserId: string
+  ): Promise<Thread | undefined> => {
     const client = createClient();
     try {
       const thread = await client.threads.create({
