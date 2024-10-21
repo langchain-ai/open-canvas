@@ -31,7 +31,7 @@ export const getMessageType = (message: Record<string, any>): string => {
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
 > = (message): Message | Message[] => {
-  if (typeof message.content !== "string") {
+  if (typeof message?.content !== "string") {
     throw new Error("Only text messages are supported");
   }
 
@@ -83,7 +83,7 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
 };
 
 export function convertToOpenAIFormat(message: BaseMessage) {
-  if (typeof message.content !== "string") {
+  if (typeof message?.content !== "string") {
     throw new Error("Only text messages are supported");
   }
   switch (getMessageType(message)) {

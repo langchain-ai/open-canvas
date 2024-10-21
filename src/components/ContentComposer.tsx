@@ -49,7 +49,7 @@ export function ContentComposerChatInterface(
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
-    if (message.content[0]?.type !== "text") {
+    if (message.content?.[0]?.type !== "text") {
       throw new Error("Only text messages are supported");
     }
     props.setChatStarted(true);

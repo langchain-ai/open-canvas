@@ -23,7 +23,7 @@ export function TextRenderer(props: TextRenderer) {
         preview={props.isEditing ? "edit" : "preview"}
         hideToolbar
         visibleDragbar={false}
-        value={cleanContent(props.artifactContent.content)}
+        value={cleanContent(props.artifactContent?.content)}
         onChange={(v) =>
           props.setArtifactContent(props.artifactContent.index, v || "")
         }

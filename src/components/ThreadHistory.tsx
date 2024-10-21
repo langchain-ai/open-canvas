@@ -64,7 +64,8 @@ const convertThreadActualToThreadProps = (
 ): ThreadProps => ({
   id: thread.thread_id,
   label:
-    (thread.values as Record<string, any>)?.messages?.[0].content || "Untitled",
+    (thread.values as Record<string, any>)?.messages?.[0]?.content ||
+    "Untitled",
   createdAt: new Date(thread.created_at),
   onClick: () => {
     return switchSelectedThread(thread);

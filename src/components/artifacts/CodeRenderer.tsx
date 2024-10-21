@@ -37,7 +37,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     extensions = [sql()];
   }
 
-  if (!props.artifactContent.content) {
+  if (!props.artifactContent?.content) {
     return null;
   }
 
