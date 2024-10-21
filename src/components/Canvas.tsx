@@ -62,10 +62,13 @@ export function Canvas(props: CanvasProps) {
     if (!assistantId) {
       getOrCreateAssistant();
     }
+  }, []);
 
+  useEffect(() => {
+    if (!threadId) return;
     // Clear threads with no values
     clearThreadsWithNoValues(props.user.id);
-  }, []);
+  }, [threadId]);
 
   useEffect(() => {
     if (typeof window == "undefined" || !props.user.id || userThreads.length)
