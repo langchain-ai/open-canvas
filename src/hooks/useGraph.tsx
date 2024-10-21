@@ -16,6 +16,8 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "./useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
+import { setCookie } from "@/lib/cookies";
+import { THREAD_ID_COOKIE_NAME } from "@/constants";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 interface ArtifactToolResponse {
@@ -591,12 +593,14 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setThreadId: (id: string) => void
   ) => {
     setThreadId(thread.thread_id);
+    setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
     const castValues = thread.values as {
       artifact?: Artifact;
       messages?: Record<string, any>[];
     };
     if (!castValues?.messages?.length) {
       setMessages([]);
+      setArtifact(castValues.artifact);
       return;
     }
     setArtifact(castValues.artifact);
