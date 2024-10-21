@@ -8,27 +8,8 @@ import {
 } from "../../types";
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
-/**
- * Concatenates the current state with the update.
- * It removes duplicates, prioritizing the update by `artifact.id`
- * @param {Artifact[]} state - The current state
- * @param {Artifact[]} update - The update to apply
- * @returns {Artifact[]} The updated state, removing duplicates.
- */
-const artifactsReducer = (
-  state: Artifact[],
-  update: Artifact[]
-): Artifact[] => {
-  const updatedIds = new Set(update.map((a) => a.id));
-  return state.filter((a) => !updatedIds.has(a.id)).concat(update);
-};
-
 export const OpenCanvasGraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
-  /**
-   * The ID of the artifact to perform some action on.
-   */
-  selectedArtifactId: Annotation<string | undefined>,
   /**
    * The part of the artifact the user highlighted. Use the `selectedArtifactId`
    * to determine which artifact the highlight belongs to.
@@ -37,10 +18,7 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
   /**
    * The artifacts that have been generated in the conversation.
    */
-  artifacts: Annotation<Artifact[]>({
-    reducer: artifactsReducer,
-    default: () => [],
-  }),
+  artifact: Annotation<Artifact>,
   /**
    * The next node to route to. Only used for the first routing node/conditional edge.
    */
@@ -77,6 +55,10 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * Whether or not to fix bugs in the code artifact.
    */
   fixBugs: Annotation<boolean | undefined>,
+  /**
+   * The name of the last node that was executed.
+   */
+  lastNodeName: Annotation<string | undefined>,
 });
 
 export type OpenCanvasGraphReturnType = Partial<

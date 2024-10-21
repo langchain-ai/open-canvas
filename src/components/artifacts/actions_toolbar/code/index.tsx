@@ -24,7 +24,6 @@ type ToolbarOption = {
 };
 
 export interface CodeToolbarProps {
-  selectedArtifactId: string | undefined;
   language: ProgrammingLanguageOptions;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
@@ -101,17 +100,14 @@ export function CodeToolBar(props: CodeToolbarProps) {
     setActiveOption(null);
     if (optionId === "addComments") {
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         addComments: true,
       });
     } else if (optionId === "addLogs") {
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         addLogs: true,
       });
     } else if (optionId === "fixBugs") {
       await props.streamMessage({
-        selectedArtifactId: props.selectedArtifactId,
         fixBugs: true,
       });
     }
@@ -122,15 +118,11 @@ export function CodeToolBar(props: CodeToolbarProps) {
     setActiveOption(null);
   };
 
-  if (!props.selectedArtifactId) {
-    return null;
-  }
-
   return (
     <div
       ref={toolbarRef}
       className={cn(
-        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center",
+        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center bg-white",
         isExpanded ? "w-26 min-h-fit rounded-3xl" : "w-12 h-12 rounded-full"
       )}
       onClick={toggleExpand}
@@ -159,8 +151,8 @@ export function CodeToolBar(props: CodeToolbarProps) {
         </div>
       ) : (
         <TooltipIconButton
-          tooltip="Writing tools"
-          variant="ghost"
+          tooltip="Code tools"
+          variant="outline"
           className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
           delayDuration={400}
         >

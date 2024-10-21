@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageList } from "@/components/ProgrammingLanguageList";
 
 export interface PortToLanguageOptionsProps {
-  selectedArtifactId: string | undefined;
   streamMessage: (input: GraphInput) => Promise<void>;
   handleClose: () => void;
   language: ProgrammingLanguageOptions;
@@ -35,9 +34,6 @@ export function PortToLanguageOptions(props: PortToLanguageOptionsProps) {
   const { toast } = useToast();
 
   const handleSubmit = async (portLanguage: ProgrammingLanguageOptions) => {
-    if (!props.selectedArtifactId) {
-      return;
-    }
     if (portLanguage === props.language) {
       toast({
         title: "Port language error",
@@ -50,7 +46,6 @@ export function PortToLanguageOptions(props: PortToLanguageOptionsProps) {
 
     props.handleClose();
     await props.streamMessage({
-      selectedArtifactId: props.selectedArtifactId,
       portLanguage,
     });
   };

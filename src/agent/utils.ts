@@ -1,5 +1,5 @@
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
-import { Reflections } from "../types";
+import { ArtifactContent, Reflections } from "../types";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -48,4 +48,25 @@ export const ensureStoreInConfig = (
     throw new Error("`store` not found in config");
   }
   return config.store;
+};
+
+export const formatArtifactContent = (
+  content: ArtifactContent,
+  shortenContent?: boolean
+): string => {
+  const artifactContent = shortenContent
+    ? content.content.slice(0, 500)
+    : content.content;
+  return `Title: ${content.title}\nArtifact type: ${content.type}\nContent: ${artifactContent}`;
+};
+
+export const formatArtifactContentWithTemplate = (
+  template: string,
+  content: ArtifactContent,
+  shortenContent?: boolean
+): string => {
+  return template.replace(
+    "{artifact}",
+    formatArtifactContent(content, shortenContent)
+  );
 };

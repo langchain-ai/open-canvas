@@ -16,6 +16,18 @@ type Message =
       result: any;
     };
 
+export const getMessageType = (message: Record<string, any>): string => {
+  if ("getType" in message && typeof message.getType === "function") {
+    return message.getType();
+  } else if ("_getType" in message && typeof message._getType === "function") {
+    return message._getType();
+  } else if ("type" in message) {
+    return message.type as string;
+  } else {
+    throw new Error("Unsupported message type");
+  }
+};
+
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
 > = (message): Message | Message[] => {
@@ -23,7 +35,7 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
     throw new Error("Only text messages are supported");
   }
 
-  switch (message._getType()) {
+  switch (getMessageType(message)) {
     case "system":
       return {
         role: "system",
@@ -66,7 +78,7 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
         result: message.content,
       };
     default:
-      throw new Error(`Unsupported message type: ${message._getType()}`);
+      throw new Error(`Unsupported message type: ${getMessageType(message)}`);
   }
 };
 
@@ -74,7 +86,7 @@ export function convertToOpenAIFormat(message: BaseMessage) {
   if (typeof message.content !== "string") {
     throw new Error("Only text messages are supported");
   }
-  switch (message._getType()) {
+  switch (getMessageType(message)) {
     case "system":
       return {
         role: "system",
@@ -97,6 +109,6 @@ export function convertToOpenAIFormat(message: BaseMessage) {
         result: message.content,
       };
     default:
-      throw new Error(`Unsupported message type: ${message._getType()}`);
+      throw new Error(`Unsupported message type: ${getMessageType(message)}`);
   }
 }

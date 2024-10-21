@@ -21,15 +21,14 @@ import {
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { useArtifactToolUI } from "./ArtifactToolUI";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
 import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
+import { ThreadHistory } from "./ThreadHistory";
 
 export interface MyThreadProps {
-  setSelectedArtifact: (artifactId: string) => void;
   createThread: () => Promise<Thread>;
   showNewThreadButton: boolean;
   handleQuickStart: (
@@ -40,6 +39,10 @@ export interface MyThreadProps {
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
+  isUserThreadsLoading: boolean;
+  userThreads: Thread[];
+  switchSelectedThread: (thread: Thread) => void;
+  deleteThread: (id: string) => Promise<void>;
 }
 
 interface QuickStartButtonsProps {
@@ -110,8 +113,6 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
 };
 
 export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
-  const { setSelectedArtifact } = props;
-  useArtifactToolUI({ setSelectedArtifact });
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
@@ -121,16 +122,24 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
   return (
     <ThreadPrimitive.Root className="flex flex-col h-full">
       <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between">
-        <p className="text-xl text-gray-600">Open Canvas</p>
+        <div className="flex items-center justify-start gap-2 text-gray-600">
+          <ThreadHistory
+            isUserThreadsLoading={props.isUserThreadsLoading}
+            userThreads={props.userThreads}
+            switchSelectedThread={props.switchSelectedThread}
+            deleteThread={props.deleteThread}
+          />
+          <p className="text-xl">Open Canvas</p>
+        </div>
         {props.showNewThreadButton ? (
           <TooltipIconButton
             tooltip="New chat"
             variant="ghost"
-            className="transition-colors w-[36px] h-[36px] text-gray-600"
+            className="w-fit h-fit p-2"
             delayDuration={400}
             onClick={handleCreateThread}
           >
-            <SquarePen />
+            <SquarePen className="w-6 h-6 text-gray-600" />
           </TooltipIconButton>
         ) : (
           <div className="flex flex-row gap-2 items-center">

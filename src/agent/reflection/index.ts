@@ -5,7 +5,7 @@ import {
   START,
 } from "@langchain/langgraph";
 import { ReflectionGraphAnnotation, ReflectionGraphReturnType } from "./state";
-import { Reflections } from "../../types";
+import { ArtifactContent, Reflections } from "../../types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts";
 import { z } from "zod";
 import { ensureStoreInConfig, formatReflections } from "../utils";
@@ -45,9 +45,16 @@ export const reflect = async (
     temperature: 0,
   }).bindTools([generateReflectionTool]);
 
+  let currentArtifactContent: ArtifactContent | undefined;
+  if (state.artifact) {
+    currentArtifactContent = state.artifact.contents.find(
+      (art) => art.index === state.artifact?.currentContentIndex
+    );
+  }
+
   const formattedSystemPrompt = REFLECT_SYSTEM_PROMPT.replace(
     "{artifact}",
-    state.artifact?.content ?? "No artifact found."
+    currentArtifactContent?.content ?? "No artifact found."
   ).replace("{reflections}", memoriesAsString);
 
   const formattedUserPrompt = REFLECT_USER_PROMPT.replace(
