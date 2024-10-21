@@ -5,6 +5,7 @@ import { useToast } from "./use-toast";
 export function useStore(assistantId: string | undefined) {
   const { toast } = useToast();
   const [isLoadingReflections, setIsLoadingReflections] = useState(false);
+  const [isLoadingQuickActions, setIsLoadingQuickActions] = useState(false);
   const [reflections, setReflections] = useState<
     Reflections & { assistantId: string; updatedAt: Date }
   >();
@@ -82,27 +83,31 @@ export function useStore(assistantId: string | undefined) {
     if (!assistantId) {
       return undefined;
     }
-    setIsLoadingReflections(true);
-    const res = await fetch("/api/store/get", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: ["custom_actions", assistantId],
-        key: "actions",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    setIsLoadingQuickActions(true);
+    try {
+      const res = await fetch("/api/store/get", {
+        method: "POST",
+        body: JSON.stringify({
+          namespace: ["custom_actions", assistantId],
+          key: "actions",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    if (!res.ok) {
-      return undefined;
-    }
+      if (!res.ok) {
+        return undefined;
+      }
 
-    const { item } = await res.json();
-    if (!item?.value) {
-      return undefined;
+      const { item } = await res.json();
+      if (!item?.value) {
+        return undefined;
+      }
+      return Object.values(item?.value);
+    } finally {
+      setIsLoadingQuickActions(false);
     }
-    return Object.values(item?.value);
   };
 
   const deleteCustomQuickAction = async (id: string): Promise<boolean> => {
@@ -135,7 +140,6 @@ export function useStore(assistantId: string | undefined) {
     if (!assistantId) {
       return false;
     }
-    setIsLoadingReflections(true);
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
@@ -158,13 +162,41 @@ export function useStore(assistantId: string | undefined) {
     return success;
   };
 
+  const editCustomQuickAction = async (
+    action: CustomQuickAction
+  ): Promise<boolean> => {
+    if (!assistantId) {
+      return false;
+    }
+    const res = await fetch("/api/store/put/update_action", {
+      method: "POST",
+      body: JSON.stringify({
+        namespace: ["custom_actions", assistantId],
+        key: "actions",
+        customQuickAction: action,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      return false;
+    }
+
+    const { success } = await res.json();
+    return success;
+  };
+
   return {
     isLoadingReflections,
     reflections,
+    isLoadingQuickActions,
     deleteReflections,
     getReflections,
     deleteCustomQuickAction,
     getCustomQuickActions,
+    editCustomQuickAction,
     createCustomQuickAction,
   };
 }

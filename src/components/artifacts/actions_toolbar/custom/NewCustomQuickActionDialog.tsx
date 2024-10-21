@@ -12,12 +12,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Eye, EyeOff } from "lucide-react";
-import { Dispatch, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { FullPrompt } from "./FullPrompt";
 import { InlineContextTooltip } from "./PromptContextTooltip";
+import { useStore } from "@/hooks/useStore";
+import { useToast } from "@/hooks/use-toast";
+import { v4 as uuidv4 } from "uuid";
+import { CustomQuickAction } from "@/types";
 
 interface NewCustomQuickActionDialogProps {
-  assistantId: string;
+  isEditing: boolean;
+  customQuickAction?: CustomQuickAction;
+  getAndSetCustomQuickActions: () => Promise<void>;
+  assistantId: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -50,6 +63,12 @@ const ViewOrHidePromptIcon = (props: ViewOrHidePromptIconProps) => (
 export function NewCustomQuickActionDialog(
   props: NewCustomQuickActionDialogProps
 ) {
+  console.log(props);
+  const { toast } = useToast();
+  const { createCustomQuickAction, editCustomQuickAction } = useStore(
+    props.assistantId
+  );
+  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
   const [includeReflections, setIncludeReflections] = useState(true);
@@ -57,23 +76,100 @@ export function NewCustomQuickActionDialog(
   const [includeRecentHistory, setIncludeRecentHistory] = useState(true);
   const [showFullPrompt, setShowFullPrompt] = useState(true);
 
+  useEffect(() => {
+    if (props.customQuickAction) {
+      setName(props.customQuickAction.title || "");
+      setPrompt(props.customQuickAction.prompt || "");
+      setIncludeReflections(props.customQuickAction.includeReflections ?? true);
+      setIncludePrefix(props.customQuickAction.includePrefix ?? true);
+      setIncludeRecentHistory(
+        props.customQuickAction.includeRecentHistory ?? true
+      );
+    }
+  }, [props.customQuickAction]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitLoading(true);
+    try {
+      let success = false;
+      if (props.isEditing && props.customQuickAction) {
+        success = await editCustomQuickAction({
+          id: props.customQuickAction.id,
+          title: name,
+          prompt,
+          includePrefix,
+          includeRecentHistory,
+          includeReflections,
+        });
+      } else {
+        success = await createCustomQuickAction({
+          id: uuidv4(),
+          title: name,
+          prompt,
+          includePrefix,
+          includeRecentHistory,
+          includeReflections,
+        });
+      }
+
+      if (success) {
+        toast({
+          title: `Custom quick action ${props.isEditing ? "edited" : "created"} successfully`,
+        });
+        handleClearState();
+        props.onOpenChange(false);
+        // Re-fetch after creating a new custom quick action to update the list
+        await props.getAndSetCustomQuickActions();
+      } else {
+        toast({
+          title: `Failed to ${props.isEditing ? "edit" : "create"} custom quick action`,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSubmitLoading(false);
+    }
+  };
+
+  const handleClearState = () => {
+    setName("");
+    setPrompt("");
+    setIncludeReflections(true);
+    setIncludePrefix(true);
+    setIncludeRecentHistory(true);
+    setShowFullPrompt(true);
+  };
+
   return (
-    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+    <Dialog
+      open={props.open}
+      onOpenChange={(change) => {
+        if (!change) {
+          handleClearState();
+        }
+        props.onOpenChange(change);
+      }}
+    >
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl min-w-[70vw]">
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
-            New Quick Action
+            {props.isEditing ? "Edit" : "Create"} Quick Action
           </DialogTitle>
           <DialogDescription className="mt-2 text-md font-light text-gray-600">
             Custom quick actions are a way to create your own actions to take
             against the selected artifact.
           </DialogDescription>
         </DialogHeader>
-        <form className="flex flex-col items-start justify-start gap-4 w-full">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col items-start justify-start gap-4 w-full"
+        >
           <Label htmlFor="name">
             Name <span className="text-red-500">*</span>
           </Label>
           <Input
+            disabled={isSubmitLoading}
             required
             id="name"
             placeholder="Check for spelling errors"
@@ -107,6 +203,7 @@ export function NewCustomQuickActionDialog(
                   <InlineContextTooltip type="custom_instructions" />
                 </p>
                 <Textarea
+                  disabled={isSubmitLoading}
                   required
                   id="prompt"
                   placeholder="Given the following text..."
@@ -141,6 +238,7 @@ export function NewCustomQuickActionDialog(
 
           <div className="flex items-center space-x-2">
             <Checkbox
+              disabled={isSubmitLoading}
               checked={includePrefix}
               onCheckedChange={(c) => setIncludePrefix(!!c)}
               id="includeReflections"
@@ -154,6 +252,7 @@ export function NewCustomQuickActionDialog(
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
+              disabled={isSubmitLoading}
               checked={includeReflections}
               onCheckedChange={(c) => setIncludeReflections(!!c)}
               id="includeReflections"
@@ -168,6 +267,7 @@ export function NewCustomQuickActionDialog(
 
           <div className="flex items-center space-x-2">
             <Checkbox
+              disabled={isSubmitLoading}
               checked={includeRecentHistory}
               onCheckedChange={(c) => setIncludeRecentHistory(!!c)}
               id="includeReflections"
@@ -180,10 +280,19 @@ export function NewCustomQuickActionDialog(
             </label>
           </div>
           <div className="flex items-center justify-center w-full mt-4 gap-3">
-            <Button className="w-full" type="submit">
-              Submit
+            <Button disabled={isSubmitLoading} className="w-full" type="submit">
+              Save
             </Button>
-            <Button variant="destructive" className="w-[20%]" type="button">
+            <Button
+              disabled={isSubmitLoading}
+              onClick={() => {
+                handleClearState();
+                props.onOpenChange(false);
+              }}
+              variant="destructive"
+              className="w-[20%]"
+              type="button"
+            >
               Cancel
             </Button>
           </div>

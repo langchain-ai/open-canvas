@@ -164,6 +164,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            assistantId={assistantId}
             handleGetReflections={getReflections}
             handleDeleteReflections={deleteReflections}
             reflections={reflections}

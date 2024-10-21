@@ -20,6 +20,7 @@ import { getCurrentArtifactContent } from "@/lib/get_current_artifact";
 import { CustomQuickActions } from "./actions_toolbar/custom";
 
 export interface ArtifactRendererProps {
+  assistantId: string | undefined;
   artifact: Artifact | undefined;
   setArtifactContent: (index: number, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
@@ -410,8 +411,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         )}
       </div>
       <CustomQuickActions
-        customQuickActions={[]}
-        assistantId=""
+        assistantId={props.assistantId}
         streamMessage={props.streamMessage}
       />
       {currentArtifactContent.type === "text" ? (
