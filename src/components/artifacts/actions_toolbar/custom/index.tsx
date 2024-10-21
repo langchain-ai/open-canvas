@@ -46,14 +46,14 @@ const DropdownMenuItemWithDelete = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <DropdownMenuItem onSelect={onClick} className="w-full">
+      <DropdownMenuItem onSelect={onClick} className="w-full truncate">
         {title}
       </DropdownMenuItem>
       <TooltipIconButton
         tooltip="Edit action"
         variant="ghost"
         onClick={onEdit}
-        className={cn(isHovering ? "visible" : "invisible")}
+        className={cn("ml-1", isHovering ? "visible" : "invisible")}
       >
         <Pencil className="text-[#575757] hover:text-black transition-colors ease-in" />
       </TooltipIconButton>
@@ -118,7 +118,10 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
 
   const handleDelete = async (id: string) => {
     try {
-      const deletionSuccess = await deleteCustomQuickAction(id);
+      const deletionSuccess = await deleteCustomQuickAction(
+        id,
+        customQuickActions || []
+      );
       if (deletionSuccess) {
         toast({
           title: "Custom quick action deleted successfully",
@@ -153,7 +156,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
           <WandSparkles className="w-[26px] h-[26px]" />
         </TooltipIconButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <DropdownMenuLabel>Custom Quick Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -189,6 +192,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         )}
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
+        allQuickActions={customQuickActions || []}
         isEditing={isEditing}
         open={dialogOpen}
         onOpenChange={(c) => {

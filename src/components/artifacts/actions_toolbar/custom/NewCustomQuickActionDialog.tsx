@@ -28,6 +28,7 @@ import { CustomQuickAction } from "@/types";
 
 interface NewCustomQuickActionDialogProps {
   isEditing: boolean;
+  allQuickActions: CustomQuickAction[];
   customQuickAction?: CustomQuickAction;
   getAndSetCustomQuickActions: () => Promise<void>;
   assistantId: string | undefined;
@@ -63,7 +64,6 @@ const ViewOrHidePromptIcon = (props: ViewOrHidePromptIconProps) => (
 export function NewCustomQuickActionDialog(
   props: NewCustomQuickActionDialogProps
 ) {
-  console.log(props);
   const { toast } = useToast();
   const { createCustomQuickAction, editCustomQuickAction } = useStore(
     props.assistantId
@@ -94,23 +94,29 @@ export function NewCustomQuickActionDialog(
     try {
       let success = false;
       if (props.isEditing && props.customQuickAction) {
-        success = await editCustomQuickAction({
-          id: props.customQuickAction.id,
-          title: name,
-          prompt,
-          includePrefix,
-          includeRecentHistory,
-          includeReflections,
-        });
+        success = await editCustomQuickAction(
+          {
+            id: props.customQuickAction.id,
+            title: name,
+            prompt,
+            includePrefix,
+            includeRecentHistory,
+            includeReflections,
+          },
+          props.allQuickActions
+        );
       } else {
-        success = await createCustomQuickAction({
-          id: uuidv4(),
-          title: name,
-          prompt,
-          includePrefix,
-          includeRecentHistory,
-          includeReflections,
-        });
+        success = await createCustomQuickAction(
+          {
+            id: uuidv4(),
+            title: name,
+            prompt,
+            includePrefix,
+            includeRecentHistory,
+            includeReflections,
+          },
+          props.allQuickActions
+        );
       }
 
       if (success) {

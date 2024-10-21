@@ -110,16 +110,29 @@ export function useStore(assistantId: string | undefined) {
     }
   };
 
-  const deleteCustomQuickAction = async (id: string): Promise<boolean> => {
+  const deleteCustomQuickAction = async (
+    id: string,
+    rest: CustomQuickAction[]
+  ): Promise<boolean> => {
     if (!assistantId) {
       return false;
     }
-    const res = await fetch("/api/store/delete/id", {
+    const valuesWithoutDeleted = rest.reduce<Record<string, CustomQuickAction>>(
+      (acc, action) => {
+        if (action.id !== id) {
+          acc[action.id] = action;
+        }
+        return acc;
+      },
+      {}
+    );
+
+    const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
         namespace: ["custom_actions", assistantId],
         key: "actions",
-        id,
+        value: valuesWithoutDeleted,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -135,19 +148,27 @@ export function useStore(assistantId: string | undefined) {
   };
 
   const createCustomQuickAction = async (
-    action: CustomQuickAction
+    newAction: CustomQuickAction,
+    rest: CustomQuickAction[]
   ): Promise<boolean> => {
     if (!assistantId) {
       return false;
     }
+    const newValue = rest.reduce<Record<string, CustomQuickAction>>(
+      (acc, action) => {
+        acc[action.id] = action;
+        return acc;
+      },
+      {}
+    );
+
+    newValue[newAction.id] = newAction;
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
         namespace: ["custom_actions", assistantId],
         key: "actions",
-        value: {
-          [action.id]: action,
-        },
+        value: newValue,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -163,17 +184,27 @@ export function useStore(assistantId: string | undefined) {
   };
 
   const editCustomQuickAction = async (
-    action: CustomQuickAction
+    editedAction: CustomQuickAction,
+    rest: CustomQuickAction[]
   ): Promise<boolean> => {
     if (!assistantId) {
       return false;
     }
-    const res = await fetch("/api/store/put/update_action", {
+    const newValue = rest.reduce<Record<string, CustomQuickAction>>(
+      (acc, action) => {
+        acc[action.id] = action;
+        return acc;
+      },
+      {}
+    );
+
+    newValue[editedAction.id] = editedAction;
+    const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
         namespace: ["custom_actions", assistantId],
         key: "actions",
-        customQuickAction: action,
+        value: newValue,
       }),
       headers: {
         "Content-Type": "application/json",
