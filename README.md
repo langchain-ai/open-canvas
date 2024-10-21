@@ -1,6 +1,6 @@
 # Open Canvas
 
-[TRY IT OUT HERE](https://open-canvas-lc.vercel.app)
+[TRY IT OUT HERE](https://opencanvas.langchain.com/)
 
 ![Screenshot of app](./public/screenshot.jpg)
 
@@ -12,7 +12,7 @@ Open Canvas is an open source web application for collaborating with agents to b
 
 ## How to use
 
-You can use our deployed version for free by visiting [open-canvas-lc.vercel.app](https://open-canvas-lc.vercel.app/)
+You can use our deployed version for free by visiting [opencanvas.langchain.com](https://opencanvas.langchain.com/)
 
 or
 
@@ -41,7 +41,7 @@ Then [install LangGraph Studio](https://studio.langchain.com/) which is required
 After that, copy the `.env.example` file contents into `.env` and set the required values:
 
 ```bash
-# LangSmith tracing (optional, but recommended.)
+# LangSmith tracing
 LANGCHAIN_TRACING_V2=true
 LANGCHAIN_API_KEY=
 
@@ -52,7 +52,13 @@ ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 
 # LangGraph Deployment, or local development server via LangGraph Studio.
-LANGGRAPH_API_URL=
+# If running locally, this URL should be set in the `constants.ts` file.
+# LANGGRAPH_API_URL=
+
+# Supabase for authentication
+# Public keys
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
 Finally, start the development server:
