@@ -116,7 +116,7 @@ export const rewriteArtifact = async (
           ).replace(
             "{artifactTitle}",
             artifactMetaToolCall?.args?.title
-              ? `And its title should be:\n${artifactMetaToolCall?.args?.title}`
+              ? `And its title is (do NOT include this in your response):\n${artifactMetaToolCall?.args?.title}`
               : ""
           )
         : ""

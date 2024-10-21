@@ -151,8 +151,8 @@ export function CodeToolBar(props: CodeToolbarProps) {
         </div>
       ) : (
         <TooltipIconButton
-          tooltip="Writing tools"
-          variant="ghost"
+          tooltip="Code tools"
+          variant="outline"
           className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
           delayDuration={400}
         >

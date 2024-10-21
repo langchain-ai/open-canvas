@@ -105,7 +105,8 @@ Follow these rules and guidelines:
 - You should respond with the ENTIRE updated artifact, with no additional text before and after.
 - Do not wrap it in any XML tags you see in this prompt.
 - You should use proper markdown syntax when appropriate, as the text you generate will be rendered in markdown. UNLESS YOU ARE WRITING CODE.
-- When you generate code, a markdown renderer is NOT used so if you respond with code in markdown syntax it will break the UI for the user.
+- When you generate code, a markdown renderer is NOT used so if you respond with code in markdown syntax, or wrap the code in tipple backticks it will break the UI for the user.
+- If generating code, it is imperative you never wrap it in triple backticks, or prefix/suffix it with plain text. Ensure you ONLY respond with the code.
 ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>
 
