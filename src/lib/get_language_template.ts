@@ -38,6 +38,8 @@ if __name__ == "__main__":
     <p>Hello, World!</p>
   </body>
 </html>`;
+    case "sql":
+        return `SELECT "Hello, World!";`;
     default:
       return "// No quickstart content available for this language";
   }

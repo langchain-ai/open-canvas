@@ -73,6 +73,15 @@ export function ProgrammingLanguageList(
       >
         <p>HTML</p>
       </TooltipIconButton>
+      <TooltipIconButton
+        tooltip="SQL"
+        variant="ghost"
+        className="transition-colors w-full h-fit"
+        delayDuration={400}
+        onClick={async () => await props.handleSubmit("sql")}
+      >
+        <p>SQL</p>
+      </TooltipIconButton>
     </div>
   );
 }
