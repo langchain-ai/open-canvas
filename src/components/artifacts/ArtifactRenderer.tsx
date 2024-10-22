@@ -6,11 +6,23 @@ import {
   newlineToCarriageReturn,
 } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
-import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
+import {
+  Artifact,
+  ArtifactV2,
+  ProgrammingLanguageOptions,
+  Reflections,
+} from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { CircleArrowUp, Eye, PencilLine, Forward } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
@@ -36,6 +48,21 @@ export interface ArtifactRendererProps {
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
+  userId: string;
+  artifact_v2: ArtifactV2 | undefined;
+  setArtifact_v2: Dispatch<SetStateAction<ArtifactV2 | undefined>>;
+  setSelectedBlocks: Dispatch<
+    SetStateAction<
+      | {
+          blocks: {
+            markdown: string;
+            blockId: string;
+          }[];
+          selectedText: string;
+        }
+      | undefined
+    >
+  >;
 }
 
 interface SelectionBox {
@@ -358,6 +385,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <div className="h-[85%]" ref={markdownRef}>
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
+                artifact_v2={props.artifact_v2}
+                setArtifact_v2={props.setArtifact_v2}
+                setSelectedBlocks={props.setSelectedBlocks}
+                userId={props.userId}
                 isEditing={props.isEditing}
                 setIsEditing={props.setIsEditing}
                 artifactContent={currentArtifactContent}

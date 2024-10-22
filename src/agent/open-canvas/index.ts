@@ -10,10 +10,11 @@ import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { reflectNode } from "./nodes/reflect";
 import { customAction } from "./nodes/customAction";
+import { updateHighlightedText } from "./nodes/updateHighlightedText";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
-  "messages" | "artifact"
+  "messages" | "artifact" | "artifact_v2"
 > = {
   highlighted: undefined,
   next: undefined,
@@ -55,6 +56,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
   .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
   .addNode("updateArtifact", updateArtifact)
+  .addNode("updateHighlightedText", updateHighlightedText)
   .addNode("generateArtifact", generateArtifact)
   .addNode("customAction", customAction)
   .addNode("generateFollowup", generateFollowup)
@@ -69,10 +71,12 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "generateArtifact",
     "rewriteArtifact",
     "customAction",
+    "updateHighlightedText",
   ])
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
+  .addEdge("updateHighlightedText", "generateFollowup")
   .addEdge("rewriteArtifact", "generateFollowup")
   .addEdge("rewriteArtifactTheme", "generateFollowup")
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")

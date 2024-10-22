@@ -44,7 +44,14 @@ export function Canvas(props: CanvasProps) {
     clearState,
     switchSelectedThread,
     artifact,
-  } = useGraph({ threadId, assistantId, userId: props.user.id });
+    setSelectedBlocks,
+    artifact_v2,
+    setArtifact_v2,
+  } = useGraph({
+    userId: props.user.id,
+    threadId,
+    assistantId,
+  });
   const {
     reflections,
     deleteReflections,
@@ -172,6 +179,10 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            artifact_v2={artifact_v2}
+            setArtifact_v2={setArtifact_v2}
+            setSelectedBlocks={setSelectedBlocks}
+            userId={props.user.id}
             assistantId={assistantId}
             handleGetReflections={getReflections}
             handleDeleteReflections={deleteReflections}

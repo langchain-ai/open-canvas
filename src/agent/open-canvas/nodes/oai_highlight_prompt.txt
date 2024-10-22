@@ -1,0 +1,16 @@
+"# Context
+## Selected Text
+The user has selected this text in \"6717d0917b688191aa8f6ae9bfa7796c\" in particular:
+Bossman
+
+## Surrounding Context
+Here is the surrounding context:
+**Bossman was not your average
+
+# Instructions
+The user would like you perform one of the following actions:
+- Update the surrounding context via the `update_textdoc` tool. If you choose to update the surrounding context, follow these instructions: For the update pattern, create a regex which exactly matches the surrounding context. Edit just this string in order to fullfill the user's request. NEVER rewrite the entire document. Instead, ALWAYS edit ONLY the surrounding context. The only exception to this rule is if the surrounding context includes markdown lists or tables. In that case, fully rewrite the document using \".*\" as the regex update pattern.
+- Explain the selected text via chat, or answer a general question about the selected text (no tool call required).
+- Comment on the surrounding context with feedback via the `comment_textdoc` tool. This should only be used if the user very explicitly asks for feedback, critique, or comments.
+
+Based on the user's request, choose the appropriate action."

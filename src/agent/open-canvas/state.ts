@@ -1,5 +1,6 @@
 import {
   Artifact,
+  ArtifactV2,
   ArtifactLengthOptions,
   LanguageOptions,
   ProgrammingLanguageOptions,
@@ -19,6 +20,11 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * The artifacts that have been generated in the conversation.
    */
   artifact: Annotation<Artifact>,
+  /**
+   * The artifacts that have been generated in the conversation.
+   * Schema version 2
+   */
+  artifact_v2: Annotation<ArtifactV2>,
   /**
    * The next node to route to. Only used for the first routing node/conditional edge.
    */

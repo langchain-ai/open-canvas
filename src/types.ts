@@ -1,3 +1,5 @@
+import { Block } from "@blocknote/core";
+
 export type Message = {
   id: string;
   text?: string;
@@ -34,6 +36,31 @@ export interface ArtifactContent {
   language: string;
 }
 
+export interface ArtifactV2 {
+  id: string;
+  contents: (ArtifactMarkdownContent | ArtifactCodeContent)[];
+  currentContentIndex: number;
+}
+
+export interface ArtifactMarkdownContent {
+  index: number;
+  markdownBlocks: {
+    markdown: string;
+    blockId: string;
+    block: Block;
+  }[];
+  title: string;
+  type: "text";
+}
+
+export interface ArtifactCodeContent {
+  index: number;
+  code: string;
+  title: string;
+  type: "code";
+  language: ProgrammingLanguageOptions;
+}
+
 export type ArtifactType = "code" | "text";
 
 export interface Highlight {
@@ -45,6 +72,22 @@ export interface Highlight {
    * The index of the last character of the highlighted text
    */
   endCharIndex: number;
+  /**
+   * Data from the highlighted text
+   */
+  textData?: {
+    /**
+     * The blocks in which the selected text is found
+     */
+    blocks: {
+      markdown: string;
+      blockId: string;
+    }[];
+    /**
+     * The selected text.
+     */
+    selectedText: string;
+  };
 }
 
 export type LanguageOptions =
@@ -62,7 +105,50 @@ export type ProgrammingLanguageOptions =
   | "php"
   | "python"
   | "html"
-  | "sql";
+  | "sql"
+  | "other";
+
+export const PROGRAMMING_LANGUAGES: Array<{
+  language: ProgrammingLanguageOptions;
+  label: string;
+}> = [
+  {
+    language: "typescript",
+    label: "TypeScript",
+  },
+  {
+    language: "javascript",
+    label: "JavaScript",
+  },
+  {
+    language: "cpp",
+    label: "C++",
+  },
+  {
+    language: "java",
+    label: "Java",
+  },
+  {
+    language: "php",
+    label: "PHP",
+  },
+  {
+    language: "python",
+    label: "Python",
+  },
+  {
+    language: "html",
+    label: "HTML",
+  },
+  {
+    language: "sql",
+    label: "SQL",
+  },
+  {
+    language: "other",
+    label: "Other",
+  },
+];
 
 export type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
 

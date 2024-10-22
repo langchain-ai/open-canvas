@@ -18,6 +18,12 @@ export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State
 ) => {
   if (state.highlighted) {
+    if (state.highlighted.textData) {
+      return {
+        next: "updateHighlightedText",
+      };
+    }
+
     return {
       next: "updateArtifact",
     };

@@ -6,7 +6,9 @@ import {
   Artifact,
   ArtifactContent,
   ArtifactLengthOptions,
+  ArtifactMarkdownContent,
   ArtifactType,
+  ArtifactV2,
   Highlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
@@ -59,7 +61,7 @@ function removeCodeBlockFormatting(text: string): string {
   }
 }
 
-interface UseGraphInput {
+export interface UseGraphInput {
   userId: string;
   threadId: string | undefined;
   assistantId: string | undefined;
@@ -70,10 +72,22 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<Artifact>();
+  const [artifact_v2, setArtifact_v2] = useState<ArtifactV2>();
+  const [selectedBlocks, setSelectedBlocks] = useState<{
+    blocks: {
+      markdown: string;
+      blockId: string;
+    }[];
+    selectedText: string;
+  }>();
   const clearState = () => {
     setMessages([]);
     setArtifact(undefined);
   };
+
+  // useEffect(() => {
+  //   console.log("artifact_v2 updated in useGraph", artifact_v2)
+  // }, [artifact_v2])
 
   const streamMessage = async (params: GraphInput) => {
     if (!useGraphInput.threadId) {
@@ -95,7 +109,14 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
     const input = {
       artifact,
+      artifact_v2,
       ...params,
+      ...(params.highlighted && {
+        highlighted: {
+          ...params.highlighted,
+          textData: selectedBlocks,
+        },
+      }),
     };
 
     const stream = client.runs.stream(
@@ -137,6 +158,9 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
     // The last message in a given graph invocation
     let _lastMessage: Record<string, any> | undefined = undefined;
+
+    let markdownHighlightUpdateAggregateStr = "";
+    let newIndexUpdatedMarkdown: number | undefined = undefined;
 
     for await (const chunk of stream) {
       try {
@@ -189,6 +213,120 @@ export function useGraph(useGraphInput: UseGraphInput) {
             }
           }
 
+          if (chunk.data.metadata.langgraph_node === "updateHighlightedText") {
+            const toolCallChunk =
+              chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0];
+            if (!toolCallChunk?.args) {
+              continue;
+            }
+            markdownHighlightUpdateAggregateStr += toolCallChunk?.args;
+            try {
+              const parsed: {
+                blocks?: Array<{ block_id?: string; new_text?: string }>;
+              } = parsePartialJson(markdownHighlightUpdateAggregateStr);
+              if (parsed.blocks?.length) {
+                if (newIndexUpdatedMarkdown === undefined && artifact_v2) {
+                  newIndexUpdatedMarkdown = artifact_v2.contents.length + 1;
+                }
+
+                setArtifact_v2((prev) => {
+                  if (!prev) {
+                    console.error(
+                      "No artifact found when re-setting artifacts v2"
+                    );
+                    return prev;
+                  }
+                  if (newIndexUpdatedMarkdown === undefined) {
+                    newIndexUpdatedMarkdown = prev.contents.length + 1;
+                  }
+
+                  if (
+                    prev.contents.some(
+                      (c) => c.index === newIndexUpdatedMarkdown
+                    )
+                  ) {
+                    return {
+                      ...prev,
+                      currentContentIndex: newIndexUpdatedMarkdown,
+                      contents: prev.contents.map((c) => {
+                        if (c.index === newIndexUpdatedMarkdown) {
+                          const castC = c as ArtifactMarkdownContent;
+                          const newMarkdownBlocks = castC.markdownBlocks.map(
+                            (mb) => {
+                              const generatedBlock = parsed?.blocks?.find(
+                                (b) => b.block_id === mb.blockId
+                              );
+                              if (!generatedBlock) {
+                                // console.log("generated block NOT found (alr in state)")
+                                return mb;
+                              }
+                              console.log(
+                                "GENERATED BLOCK FOUND (alr in state)",
+                                generatedBlock.new_text?.slice(0, 10)
+                              );
+                              return {
+                                ...mb,
+                                markdown:
+                                  generatedBlock.new_text ?? mb.markdown,
+                              };
+                            }
+                          );
+                          return {
+                            ...castC,
+                            markdownBlocks: newMarkdownBlocks,
+                          };
+                        }
+                        return c;
+                      }),
+                    };
+                  } else {
+                    const castContents =
+                      prev.contents as ArtifactMarkdownContent[];
+                    const oldMarkdownBlocks = castContents.find(
+                      (c) => c.index === (newIndexUpdatedMarkdown || 0) - 1
+                    )?.markdownBlocks;
+                    if (!oldMarkdownBlocks) {
+                      throw new Error("No markdown blocks found");
+                    }
+                    const newMarkdownBlocks = oldMarkdownBlocks.map((mb) => {
+                      const generatedBlock = parsed?.blocks?.find(
+                        (b) => b.block_id === mb.blockId
+                      );
+                      if (!generatedBlock) {
+                        // console.log("generated block NOT found (NOT in state)")
+                        return mb;
+                      }
+                      console.log(
+                        "GENERATED BLOCK FOUND (NOT in state)",
+                        generatedBlock.new_text?.slice(0, 10)
+                      );
+                      return {
+                        ...mb,
+                        markdown: generatedBlock.new_text ?? mb.markdown,
+                      };
+                    });
+
+                    return {
+                      ...prev,
+                      currentContentIndex: newIndexUpdatedMarkdown,
+                      contents: [
+                        ...prev.contents,
+                        {
+                          index: newIndexUpdatedMarkdown,
+                          markdownBlocks: newMarkdownBlocks,
+                          title: "",
+                          type: "text",
+                        },
+                      ],
+                    };
+                  }
+                });
+              }
+            } catch (_) {
+              // no-op
+            }
+          }
+
           if (chunk.data.metadata.langgraph_node === "updateArtifact") {
             if (params.highlighted) {
               if (!artifact) {
@@ -229,6 +367,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
               setArtifact((prev) => {
                 let content = `${updatedArtifactStartContent}${updatedArtifactRestContent}`;
+                // TODO: this value is never getting assigned in this instance
                 if (artifactType === "code") {
                   content = removeCodeBlockFormatting(content);
                 }
@@ -487,6 +626,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
           ) {
             rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
           }
+
+          if (chunk.data.metadata.langgraph_node === "updateHighlightedText") {
+            console.log("content output", chunk.data.data);
+          }
         }
       } catch (e) {
         console.error("Error parsing chunk", e);
@@ -607,6 +750,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
   return {
     artifact,
+    artifact_v2,
+    setArtifact_v2,
+    selectedBlocks,
+    setSelectedBlocks,
     messages,
     setSelectedArtifact,
     setArtifact,

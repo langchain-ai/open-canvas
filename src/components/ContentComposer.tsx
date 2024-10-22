@@ -18,6 +18,7 @@ import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
+import { useToast } from "@/hooks/use-toast";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
@@ -45,12 +46,17 @@ export interface ContentComposerChatInterfaceProps {
 export function ContentComposerChatInterface(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
+  const { toast } = useToast();
   const { messages, setMessages, streamMessage } = props;
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (message.content?.[0]?.type !== "text") {
-      throw new Error("Only text messages are supported");
+      toast({
+        title: "Only text messages are supported",
+        variant: "destructive",
+      });
+      return;
     }
     props.setChatStarted(true);
     setIsRunning(true);
