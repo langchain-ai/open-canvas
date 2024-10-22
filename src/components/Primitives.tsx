@@ -28,6 +28,14 @@ import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export interface MyThreadProps {
   createThread: () => Promise<Thread | undefined>;
@@ -51,64 +59,73 @@ interface QuickStartButtonsProps {
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
+  composer: React.ReactNode;
 }
 
+const LANGUAGES: Array<{ label: string; key: ProgrammingLanguageOptions }> = [
+  { label: "PHP", key: "php" },
+  { label: "TypeScript", key: "typescript" },
+  { label: "JavaScript", key: "javascript" },
+  { label: "C++", key: "cpp" },
+  { label: "Java", key: "java" },
+  { label: "Python", key: "python" },
+  { label: "HTML", key: "html" },
+  { label: "SQL", key: "sql" },
+];
+
+const CodeSessionDropdown = ({
+  handleSubmit,
+}: {
+  handleSubmit: (portLanguage: ProgrammingLanguageOptions) => void;
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
+        >
+          New Code File
+          <Code />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="max-h-[600px] w-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <DropdownMenuLabel>Custom Quick Actions</DropdownMenuLabel>
+        {LANGUAGES.map((lang) => (
+          <DropdownMenuItem
+            key={lang.key}
+            onSelect={() => handleSubmit(lang.key)}
+            className="flex items-center justify-start gap-1"
+          >
+            {lang.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const QuickStartButtons = (props: QuickStartButtonsProps) => {
-  const [showLanguageList, setShowLanguageList] = useState(false);
-
-  const handleCodeClick = () => {
-    setShowLanguageList(true);
-  };
-
   const handleLanguageSubmit = (language: ProgrammingLanguageOptions) => {
-    setShowLanguageList(false);
     props.handleQuickStart("code", language);
-    return Promise.resolve();
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        showLanguageList &&
-        !(event.target as Element).closest(".quickstart-buttons")
-      ) {
-        setShowLanguageList(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showLanguageList]);
 
   return (
-    <div className="flex flex-col items-end relative quickstart-buttons">
-      <div className="flex flex-row gap-1 items-center">
-        <TooltipIconButton
-          tooltip="Quickstart: text"
-          variant="ghost"
-          className="transition-colors w-[36px] h-[36px] text-gray-600"
-          delayDuration={400}
+    <div className="flex flex-col gap-4 items-center justify-center w-full relative quickstart-buttons">
+      <p className="text-gray-600 text-sm">Start with a blank canvas</p>
+      <div className="flex flex-row gap-1 items-center justify-center w-full">
+        <Button
+          variant="outline"
+          className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
           onClick={() => props.handleQuickStart("text")}
         >
+          New Markdown
           <NotebookPen />
-        </TooltipIconButton>
-        <TooltipIconButton
-          tooltip="Quickstart: code"
-          variant="ghost"
-          className="transition-colors w-[36px] h-[36px] text-gray-600"
-          delayDuration={400}
-          onClick={handleCodeClick}
-        >
-          <Code />
-        </TooltipIconButton>
+        </Button>
+        <CodeSessionDropdown handleSubmit={handleLanguageSubmit} />
       </div>
-      {showLanguageList && (
-        <div className="absolute top-full right-0 mt-2 z-10">
-          <ProgrammingLanguageList handleSubmit={handleLanguageSubmit} />
-        </div>
-      )}
+      <p className="text-gray-600 text-sm">or start with a message</p>
+      {props.composer}
     </div>
   );
 };
@@ -158,13 +175,16 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
               reflections={props.reflections}
               handleDeleteReflections={props.handleDeleteReflections}
             />
-
-            <QuickStartButtons handleQuickStart={props.handleQuickStart} />
           </div>
         )}
       </div>
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
-        <MyThreadWelcome />
+        {!props.showNewThreadButton && (
+          <MyThreadWelcome
+            handleQuickStart={props.handleQuickStart}
+            composer={<MyComposer />}
+          />
+        )}
         <ThreadPrimitive.Messages
           components={{
             UserMessage: MyUserMessage,
@@ -176,7 +196,7 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
       <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
         <MyThreadScrollToBottom />
         <div className="w-full max-w-2xl">
-          <MyComposer />
+          {props.showNewThreadButton && <MyComposer />}
         </div>
       </div>
     </ThreadPrimitive.Root>
@@ -197,15 +217,35 @@ const MyThreadScrollToBottom: FC = () => {
   );
 };
 
-const MyThreadWelcome: FC = () => {
+interface MyThreadWelcomeProps {
+  handleQuickStart: (
+    type: "text" | "code",
+    language?: ProgrammingLanguageOptions
+  ) => void;
+  composer: React.ReactNode;
+}
+
+const MyThreadWelcome: FC<MyThreadWelcomeProps> = (
+  props: MyThreadWelcomeProps
+) => {
   return (
     <ThreadPrimitive.Empty>
-      <div className="flex flex-grow basis-full flex-col items-center justify-center">
-        <Avatar>
-          <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
-          <AvatarFallback>LC</AvatarFallback>
-        </Avatar>
-        <p className="mt-4 font-medium">What would you like to write today?</p>
+      <div className="flex items-center justify-center mt-24 w-full">
+        <div className="text-center max-w-lg w-full">
+          <Avatar className="mx-auto">
+            <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
+            <AvatarFallback>LC</AvatarFallback>
+          </Avatar>
+          <p className="mt-4 font-medium">
+            What would you like to write today?
+          </p>
+          <div className="mt-4">
+            <QuickStartButtons
+              composer={props.composer}
+              handleQuickStart={props.handleQuickStart}
+            />
+          </div>
+        </div>
       </div>
     </ThreadPrimitive.Empty>
   );
@@ -213,7 +253,7 @@ const MyThreadWelcome: FC = () => {
 
 const MyComposer: FC = () => {
   return (
-    <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex w-full flex-wrap items-end rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
+    <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex w-full min-h-[64px] flex-wrap items-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
       <ComposerPrimitive.Input
         autoFocus
         placeholder="Write a message..."
