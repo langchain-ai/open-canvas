@@ -1,7 +1,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { GraphInput } from "@/hooks/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import { newlineToCarriageReturn } from "@/lib/normalize_string";
+import { emptyLineCount, newlineToCarriageReturn } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { EditorView } from "@codemirror/view";
@@ -37,6 +37,10 @@ interface SelectionBox {
   top: number;
   left: number;
   text: string;
+}
+
+function loadSectionContent(content:string,start:number,end:number){
+  return content.substring(start,end)
 }
 
 export function ArtifactRenderer(props: ArtifactRendererProps) {
@@ -215,6 +219,15 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   node = node.parentNode;
                 }
               }
+              const startOffset =  emptyLineCount(
+                currentArtifactContent?.content.substring(0, startIndex+1)??"",
+              )*2
+              const endOffset =  emptyLineCount(
+                currentArtifactContent?.content.substring(0,endIndex+1)??"",
+              )*2
+              console.log('startOffset',startOffset)
+              startIndex+=startOffset
+              endIndex+=endOffset
             }
 
             setSelectionIndexes({ start: startIndex, end: endIndex });
@@ -368,7 +381,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             style={{
               top: `${selectionBox.top + 60}px`,
               left: `${selectionBox.left}px`,
-              width: isInputVisible ? "400px" : "250px",
+              width: isInputVisible ? "400px" : "850px",
               marginLeft: isInputVisible ? "0" : "150px",
             }}
             onMouseDown={handleSelectionBoxMouseDown}
@@ -397,14 +410,27 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                 </Button>
               </form>
             ) : (
-              <Button
+              <div className="w-full ">
+                <div className="h-[500px]">
+                  <div>
+                    {JSON.stringify(selectionIndexes)}
+                  </div>
+                  {
+                     loadSectionContent((currentArtifactContent.content),selectionIndexes?.start??0 , selectionIndexes?.end??0)
+                  }
+                </div>
+
+                <hr />
+                 <Button
                 variant="ghost"
                 onClick={() => setIsInputVisible(true)}
                 className="transition-all duration-300 ease-in-out w-full"
               >
                 Ask Open Canvas
               </Button>
-            )}
+
+              </div>
+)}
           </div>
         )}
       </div>
