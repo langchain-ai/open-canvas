@@ -10,7 +10,7 @@ import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions } from "@/types";
 import { User } from "@supabase/supabase-js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 interface CanvasProps {
@@ -23,11 +23,14 @@ export function Canvas(props: CanvasProps) {
     threadId,
     assistantId,
     createThread,
+    searchOrCreateThread,
     deleteThread,
     userThreads,
     isUserThreadsLoading,
     getUserThreads,
     setThreadId,
+    getOrCreateAssistant,
+    clearThreadsWithNoValues,
   } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -49,10 +52,46 @@ export function Canvas(props: CanvasProps) {
     isLoadingReflections,
   } = useStore(assistantId);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!threadId) {
+      searchOrCreateThread(props.user.id);
+    }
+
+    if (!assistantId) {
+      getOrCreateAssistant();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!threadId) return;
+    // Clear threads with no values
+    clearThreadsWithNoValues(props.user.id);
+  }, [threadId]);
+
+  useEffect(() => {
+    if (typeof window == "undefined" || !props.user.id || userThreads.length)
+      return;
+    getUserThreads(props.user.id);
+  }, [props.user.id]);
+
+  useEffect(() => {
+    if (!assistantId || typeof window === "undefined") return;
+    // Don't re-fetch reflections if they already exist & are for the same assistant
+    if (
+      (reflections?.content || reflections?.styleRules) &&
+      reflections.assistantId === assistantId
+    )
+      return;
+
+    getReflections();
+  }, [assistantId]);
+
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);
     clearState();
-    return createThread();
+    return createThread(props.user.id);
   };
 
   const handleQuickStart = (
@@ -133,6 +172,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            assistantId={assistantId}
             handleGetReflections={getReflections}
             handleDeleteReflections={deleteReflections}
             reflections={reflections}

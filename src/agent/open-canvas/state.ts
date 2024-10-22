@@ -59,6 +59,10 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * The name of the last node that was executed.
    */
   lastNodeName: Annotation<string | undefined>,
+  /**
+   * The ID of the custom quick action to use.
+   */
+  customQuickActionId: Annotation<string | undefined>,
 });
 
 export type OpenCanvasGraphReturnType = Partial<

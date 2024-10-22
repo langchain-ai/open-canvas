@@ -7,7 +7,7 @@ import {
   useExternalStoreRuntime,
 } from "@assistant-ui/react";
 import { v4 as uuidv4 } from "uuid";
-import { MyThread } from "./Primitives";
+import { Thread } from "./Primitives";
 import { useExternalMessageConverter } from "@assistant-ui/react";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import {
@@ -17,13 +17,13 @@ import {
 import { GraphInput } from "@/hooks/useGraph";
 import { Toaster } from "./ui/toaster";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
-import { Thread } from "@langchain/langgraph-sdk";
+import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  createThread: () => Promise<Thread>;
+  createThread: () => Promise<ThreadType | undefined>;
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
   showNewThreadButton: boolean;
   handleQuickStart: (
@@ -35,8 +35,8 @@ export interface ContentComposerChatInterfaceProps {
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
   isUserThreadsLoading: boolean;
-  userThreads: Thread[];
-  switchSelectedThread: (thread: Thread) => void;
+  userThreads: ThreadType[];
+  switchSelectedThread: (thread: ThreadType) => void;
   deleteThread: (id: string) => Promise<void>;
   getUserThreads: (id: string) => Promise<void>;
   userId: string;
@@ -49,7 +49,7 @@ export function ContentComposerChatInterface(
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
-    if (message.content[0]?.type !== "text") {
+    if (message.content?.[0]?.type !== "text") {
       throw new Error("Only text messages are supported");
     }
     props.setChatStarted(true);
@@ -88,7 +88,7 @@ export function ContentComposerChatInterface(
   return (
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
-        <MyThread
+        <Thread
           handleGetReflections={props.handleGetReflections}
           handleDeleteReflections={props.handleDeleteReflections}
           reflections={props.reflections}

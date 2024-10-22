@@ -1,7 +1,7 @@
 import { GraphInput } from "@/hooks/useGraph";
 import { ProgrammingLanguageOptions } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguageList } from "@/components/ProgrammingLanguageList";
+import { ProgrammingLanguageList } from "@/components/ProgrammingLangDropdown";
 
 export interface PortToLanguageOptionsProps {
   streamMessage: (input: GraphInput) => Promise<void>;
@@ -25,6 +25,8 @@ const prettifyLanguage = (language: ProgrammingLanguageOptions) => {
       return "Python";
     case "html":
       return "HTML";
+    case "sql":
+      return "SQL";
     default:
       return language;
   }

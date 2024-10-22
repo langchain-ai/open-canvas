@@ -76,6 +76,7 @@ export const rewriteArtifact = async (
         "php",
         "python",
         "html",
+        "sql",
         "other",
       ])
       .optional()
