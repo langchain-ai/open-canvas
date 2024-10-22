@@ -8,7 +8,7 @@ import {
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { type FC } from "react";
+import { Dispatch, SetStateAction, useState, type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,62 @@ interface QuickStartButtonsProps {
   composer: React.ReactNode;
 }
 
+const QuickStartPrompts = () => {
+  const threadRuntime = useThreadRuntime();
+
+  const handleClick = (text: string) => {
+    threadRuntime.append({
+      role: "user",
+      content: [{ type: "text", text }],
+    });
+  };
+
+  return (
+    <div className="flex flex-col w-full gap-2 text-gray-700">
+      <div className="flex gap-2 w-full">
+        <Button
+          onClick={(e) =>
+            handleClick((e.target as HTMLButtonElement).textContent || "")
+          }
+          variant="outline"
+          className="flex-1"
+        >
+          Write me a TODO app in React
+        </Button>
+        <Button
+          onClick={(e) =>
+            handleClick((e.target as HTMLButtonElement).textContent || "")
+          }
+          variant="outline"
+          className="flex-1"
+        >
+          Explain why the sky is blue in a short essay
+        </Button>
+      </div>
+      <div className="flex gap-2 w-full">
+        <Button
+          onClick={(e) =>
+            handleClick((e.target as HTMLButtonElement).textContent || "")
+          }
+          variant="outline"
+          className="flex-1"
+        >
+          Help me draft an email to my professor Craig
+        </Button>
+        <Button
+          onClick={(e) =>
+            handleClick((e.target as HTMLButtonElement).textContent || "")
+          }
+          variant="outline"
+          className="flex-1"
+        >
+          Write a web scraping program in Python
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const QuickStartButtons = (props: QuickStartButtonsProps) => {
   const handleLanguageSubmit = (language: ProgrammingLanguageOptions) => {
     props.handleQuickStart("code", language);
@@ -73,6 +129,7 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
         <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
       </div>
       <p className="text-gray-600 text-sm">or start with a message</p>
+      <QuickStartPrompts />
       {props.composer}
     </div>
   );
@@ -80,6 +137,7 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   const { toast } = useToast();
+
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
@@ -177,7 +235,7 @@ const ThreadWelcome: FC<ThreadWelcomeProps> = (props: ThreadWelcomeProps) => {
   return (
     <ThreadPrimitive.Empty>
       <div className="flex items-center justify-center mt-24 w-full">
-        <div className="text-center max-w-lg w-full">
+        <div className="text-center max-w-3xl w-full">
           <Avatar className="mx-auto">
             <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
             <AvatarFallback>LC</AvatarFallback>
