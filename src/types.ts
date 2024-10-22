@@ -1,5 +1,3 @@
-import { Block } from "@blocknote/core";
-
 export type Message = {
   id: string;
   text?: string;
@@ -56,12 +54,6 @@ export interface MarkdownBlock {
 export interface ArtifactMarkdownContent {
   index: number;
   blocks: MarkdownBlock[];
-  // markdownBlocks: {
-  //   startingContent: string;
-  //   markdown: string;
-  //   blockId: string;
-  //   block: Block;
-  // }[];
   title: string;
   type: "text";
 }

@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid";
 import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 
 import {
-  ArtifactCodeContent,
   ArtifactContent,
   ArtifactMarkdownContent,
   ArtifactV2,
