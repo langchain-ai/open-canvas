@@ -281,8 +281,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               return;
             }
 
-            newArtifactText += chunk.data.data.chunk?.[1]?.content;
-            if (!newArtifactText) return;
+            newArtifactText += chunk.data.data.chunk?.[1]?.content || "";
 
             // Ensure we have the language to update the artifact with
             let artifactLanguage = params.portLanguage || undefined;
@@ -362,8 +361,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               return;
             }
 
-            newArtifactText += chunk.data.data.chunk?.[1]?.content;
-            if (!newArtifactText) return;
+            newArtifactText += chunk.data.data.chunk?.[1]?.content || "";
 
             // Ensure we have the language to update the artifact with
             const artifactLanguage = params.portLanguage || undefined;
@@ -585,7 +583,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     };
     if (!castValues?.messages?.length) {
       setMessages([]);
-      setArtifact(castValues.artifact);
+      setArtifact(castValues?.artifact || undefined);
       return;
     }
     setArtifact(castValues.artifact);

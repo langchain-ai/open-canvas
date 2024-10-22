@@ -8,7 +8,7 @@ import {
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { Dispatch, SetStateAction, useState, type FC } from "react";
+import { type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
