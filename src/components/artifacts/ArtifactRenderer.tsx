@@ -1,7 +1,10 @@
 import { useToast } from "@/hooks/use-toast";
 import { GraphInput } from "@/hooks/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import { emptyLineCount, newlineToCarriageReturn } from "@/lib/normalize_string";
+import {
+  emptyLineCount,
+  newlineToCarriageReturn,
+} from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { EditorView } from "@codemirror/view";
@@ -37,10 +40,6 @@ interface SelectionBox {
   top: number;
   left: number;
   text: string;
-}
-
-function loadSectionContent(content:string,start:number,end:number){
-  return content.substring(start,end)
 }
 
 export function ArtifactRenderer(props: ArtifactRendererProps) {
@@ -219,14 +218,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   node = node.parentNode;
                 }
               }
-              const startOffset =  emptyLineCount(
-                currentArtifactContent?.content.substring(0, startIndex+1)??"",
-              )*2
-              const endOffset =  emptyLineCount(
-                currentArtifactContent?.content.substring(0,endIndex+1)??"",
-              )*2
-              startIndex+=startOffset
-              endIndex+=endOffset
+              const startOffset =
+                emptyLineCount(
+                  currentArtifactContent?.content.substring(
+                    0,
+                    startIndex + 1
+                  ) ?? ""
+                ) * 2;
+              const endOffset =
+                emptyLineCount(
+                  currentArtifactContent?.content.substring(0, endIndex + 1) ??
+                    ""
+                ) * 2;
+              startIndex += startOffset;
+              endIndex += endOffset;
             }
 
             setSelectionIndexes({ start: startIndex, end: endIndex });
@@ -408,13 +413,15 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   />
                 </Button>
               </form>
-            ) : (<Button
-              variant="ghost"
-              onClick={() => setIsInputVisible(true)}
-              className="transition-all duration-300 ease-in-out w-full"
-            >
-              Ask Open Canvas
-            </Button>)}
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => setIsInputVisible(true)}
+                className="transition-all duration-300 ease-in-out w-full"
+              >
+                Ask Open Canvas
+              </Button>
+            )}
           </div>
         )}
       </div>

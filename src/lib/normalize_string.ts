@@ -13,9 +13,7 @@ export const newlineToCarriageReturn = (str: string) =>
   // str.replace(actualNewline, "\r\n");
   str.replace(actualNewline, [actualNewline, actualNewline].join(""));
 
-
 export const emptyLineCount = (content: string): number => {
   const liens = content.split("\n");
-  return liens.filter(line => line.trim() == "").length
+  return liens.filter((line) => line.trim() == "").length;
 };
-  

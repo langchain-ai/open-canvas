@@ -1,23 +1,62 @@
-import { Dispatch, SetStateAction, useEffect, useRef } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 import { ArtifactContent } from "@/types";
 import "@blocknote/core/fonts/inter.css";
-import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote } from "@blocknote/react";
+import {
+  FormattingToolbar,
+  FormattingToolbarController,
+  getDefaultReactSlashMenuItems,
+  SuggestionMenuController,
+  useCreateBlockNote,
+} from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
+import { Block } from "@blocknote/core";
 
-export interface TextRenderer {
+export interface TextRendererProps {
   artifactContent: ArtifactContent;
   isEditing: boolean;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
   setArtifactContent: (index: number, content: string) => void;
 }
 
-export function TextRenderer(props: TextRenderer) {
+export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
-  const isComposition = useRef(false)
+
+  // Add state to store selection for later use
+  const lastSelectionRef = useRef<{
+    text: string;
+    selection: {
+      blocks: Block[];
+    } | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const selectedText = editor.getSelectedText();
+    const selection = editor.getSelection();
+    if (selectedText && selection) {
+      lastSelectionRef.current = {
+        text: selectedText,
+        selection: {
+          blocks: selection.blocks,
+        },
+      };
+    }
+  }, [editor.getSelectedText()]);
+
+  const replaceSelectedText = async (newText: string) => {
+    if (!lastSelectionRef.current?.selection?.blocks[0]) return;
+
+    const tiptapEditor = editor._tiptapEditor;
+
+    tiptapEditor.commands.insertContent(newText, {
+      updateSelection: true,
+    });
+  };
+
+  const isComposition = useRef(false);
   const onChange = async () => {
-    if(isComposition.current){
+    if (isComposition.current) {
       return;
     }
     const markdown = await editor.blocksToMarkdownLossy(editor.document);
@@ -39,9 +78,10 @@ export function TextRenderer(props: TextRenderer) {
       data-color-mode="light"
     >
       <BlockNoteView
+        formattingToolbar={false}
         slashMenu={false}
-        onCompositionStartCapture={()=>isComposition.current = true}
-        onCompositionEndCapture={()=>isComposition.current = false}
+        onCompositionStartCapture={() => (isComposition.current = true)}
+        onCompositionEndCapture={() => (isComposition.current = false)}
         onChange={onChange}
         editable={props.isEditing}
         editor={editor}

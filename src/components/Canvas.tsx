@@ -80,7 +80,7 @@ export function Canvas(props: CanvasProps) {
           content:
             type === "code"
               ? getLanguageTemplate(language ?? "javascript")
-              : "# Hello world",
+              : "",
           type,
           language: language ?? "english",
         },
