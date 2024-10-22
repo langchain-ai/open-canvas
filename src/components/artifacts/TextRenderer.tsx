@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 
 import { ArtifactContent } from "@/types";
 import "@blocknote/core/fonts/inter.css";
@@ -15,8 +15,11 @@ export interface TextRenderer {
 
 export function TextRenderer(props: TextRenderer) {
   const editor = useCreateBlockNote({});
-
+  const isComposition = useRef(false)
   const onChange = async () => {
+    if(isComposition.current){
+      return;
+    }
     const markdown = await editor.blocksToMarkdownLossy(editor.document);
     props.setArtifactContent(props.artifactContent.index, markdown);
   };
@@ -37,7 +40,9 @@ export function TextRenderer(props: TextRenderer) {
     >
       <BlockNoteView
         slashMenu={false}
-        onCompositionEnd={onChange}
+        onCompositionStartCapture={()=>isComposition.current = true}
+        onCompositionEndCapture={()=>isComposition.current = false}
+        onChange={onChange}
         editable={props.isEditing}
         editor={editor}
       >
