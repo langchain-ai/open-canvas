@@ -193,7 +193,10 @@ export function ThreadHistory(props: ThreadHistoryProps) {
           variant="ghost"
           className="w-fit h-fit p-2"
         >
-          <PiChatsCircleLight className="w-6 h-6 text-gray-600" />
+          <PiChatsCircleLight
+            className="w-6 h-6 text-gray-600"
+            strokeWidth={8}
+          />
         </TooltipIconButton>
       </SheetTrigger>
       <SheetContent
