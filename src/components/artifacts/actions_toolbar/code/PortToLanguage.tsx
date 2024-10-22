@@ -1,7 +1,7 @@
 import { GraphInput } from "@/hooks/useGraph";
 import { ProgrammingLanguageOptions } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguageList } from "@/components/ProgrammingLanguageList";
+import { ProgrammingLanguagesDropdown } from "@/components/ProgrammingLangDropdown";
 
 export interface PortToLanguageOptionsProps {
   streamMessage: (input: GraphInput) => Promise<void>;
@@ -52,5 +52,7 @@ export function PortToLanguageOptions(props: PortToLanguageOptionsProps) {
     });
   };
 
-  return <ProgrammingLanguageList handleSubmit={handleSubmit} />;
+  return (
+    <ProgrammingLanguagesDropdown trigger={<></>} handleSubmit={handleSubmit} />
+  );
 }

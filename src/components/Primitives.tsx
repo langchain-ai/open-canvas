@@ -8,7 +8,7 @@ import {
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { useEffect, useState, type FC } from "react";
+import { type FC } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,29 +16,20 @@ import {
   ArrowDownIcon,
   SendHorizontalIcon,
   SquarePen,
-  Code,
   NotebookPen,
 } from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { Thread } from "@langchain/langgraph-sdk";
+import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
-import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 
-export interface MyThreadProps {
-  createThread: () => Promise<Thread | undefined>;
+export interface ThreadProps {
+  createThread: () => Promise<ThreadType | undefined>;
   showNewThreadButton: boolean;
   handleQuickStart: (
     type: "text" | "code",
@@ -49,8 +40,8 @@ export interface MyThreadProps {
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
   isUserThreadsLoading: boolean;
-  userThreads: Thread[];
-  switchSelectedThread: (thread: Thread) => void;
+  userThreads: ThreadType[];
+  switchSelectedThread: (thread: ThreadType) => void;
   deleteThread: (id: string) => Promise<void>;
 }
 
@@ -61,49 +52,6 @@ interface QuickStartButtonsProps {
   ) => void;
   composer: React.ReactNode;
 }
-
-const LANGUAGES: Array<{ label: string; key: ProgrammingLanguageOptions }> = [
-  { label: "PHP", key: "php" },
-  { label: "TypeScript", key: "typescript" },
-  { label: "JavaScript", key: "javascript" },
-  { label: "C++", key: "cpp" },
-  { label: "Java", key: "java" },
-  { label: "Python", key: "python" },
-  { label: "HTML", key: "html" },
-  { label: "SQL", key: "sql" },
-];
-
-const CodeSessionDropdown = ({
-  handleSubmit,
-}: {
-  handleSubmit: (portLanguage: ProgrammingLanguageOptions) => void;
-}) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
-        >
-          New Code File
-          <Code />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="max-h-[600px] w-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        <DropdownMenuLabel>Custom Quick Actions</DropdownMenuLabel>
-        {LANGUAGES.map((lang) => (
-          <DropdownMenuItem
-            key={lang.key}
-            onSelect={() => handleSubmit(lang.key)}
-            className="flex items-center justify-start gap-1"
-          >
-            {lang.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
 
 const QuickStartButtons = (props: QuickStartButtonsProps) => {
   const handleLanguageSubmit = (language: ProgrammingLanguageOptions) => {
@@ -122,7 +70,7 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
           New Markdown
           <NotebookPen />
         </Button>
-        <CodeSessionDropdown handleSubmit={handleLanguageSubmit} />
+        <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
       </div>
       <p className="text-gray-600 text-sm">or start with a message</p>
       {props.composer}
@@ -130,7 +78,7 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
   );
 };
 
-export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
+export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   const { toast } = useToast();
   useLangSmithLinkToolUI();
 
@@ -180,30 +128,30 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
       </div>
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
         {!props.showNewThreadButton && (
-          <MyThreadWelcome
+          <ThreadWelcome
             handleQuickStart={props.handleQuickStart}
-            composer={<MyComposer />}
+            composer={<Composer />}
           />
         )}
         <ThreadPrimitive.Messages
           components={{
-            UserMessage: MyUserMessage,
-            EditComposer: MyEditComposer,
-            AssistantMessage: MyAssistantMessage,
+            UserMessage: UserMessage,
+            EditComposer: EditComposer,
+            AssistantMessage: AssistantMessage,
           }}
         />
       </ThreadPrimitive.Viewport>
       <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
-        <MyThreadScrollToBottom />
+        <ThreadScrollToBottom />
         <div className="w-full max-w-2xl">
-          {props.showNewThreadButton && <MyComposer />}
+          {props.showNewThreadButton && <Composer />}
         </div>
       </div>
     </ThreadPrimitive.Root>
   );
 };
 
-const MyThreadScrollToBottom: FC = () => {
+const ThreadScrollToBottom: FC = () => {
   return (
     <ThreadPrimitive.ScrollToBottom asChild>
       <TooltipIconButton
@@ -217,7 +165,7 @@ const MyThreadScrollToBottom: FC = () => {
   );
 };
 
-interface MyThreadWelcomeProps {
+interface ThreadWelcomeProps {
   handleQuickStart: (
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
@@ -225,9 +173,7 @@ interface MyThreadWelcomeProps {
   composer: React.ReactNode;
 }
 
-const MyThreadWelcome: FC<MyThreadWelcomeProps> = (
-  props: MyThreadWelcomeProps
-) => {
+const ThreadWelcome: FC<ThreadWelcomeProps> = (props: ThreadWelcomeProps) => {
   return (
     <ThreadPrimitive.Empty>
       <div className="flex items-center justify-center mt-24 w-full">
@@ -251,7 +197,7 @@ const MyThreadWelcome: FC<MyThreadWelcomeProps> = (
   );
 };
 
-const MyComposer: FC = () => {
+const Composer: FC = () => {
   return (
     <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex w-full min-h-[64px] flex-wrap items-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
       <ComposerPrimitive.Input
@@ -286,7 +232,7 @@ const MyComposer: FC = () => {
   );
 };
 
-const MyUserMessage: FC = () => {
+const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-4">
       <div className="bg-muted text-foreground col-start-2 row-start-1 max-w-xl break-words rounded-3xl px-5 py-2.5">
@@ -296,7 +242,7 @@ const MyUserMessage: FC = () => {
   );
 };
 
-const MyComposerSend = () => {
+const ComposerSend = () => {
   const messageStore = useMessageStore();
   const composerStore = useComposerStore();
   const threadRuntime = useThreadRuntime();
@@ -316,7 +262,7 @@ const MyComposerSend = () => {
   return <Button onClick={handleSend}>Save</Button>;
 };
 
-const MyEditComposer: FC = () => {
+const EditComposer: FC = () => {
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-full max-w-2xl flex-col gap-2 rounded-xl">
       <ComposerPrimitive.Input
@@ -329,13 +275,13 @@ const MyEditComposer: FC = () => {
         <ComposerPrimitive.Cancel asChild>
           <Button variant="ghost">Cancel</Button>
         </ComposerPrimitive.Cancel>
-        <MyComposerSend />
+        <ComposerSend />
       </div>
     </ComposerPrimitive.Root>
   );
 };
 
-const MyAssistantMessage: FC = () => {
+const AssistantMessage: FC = () => {
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
