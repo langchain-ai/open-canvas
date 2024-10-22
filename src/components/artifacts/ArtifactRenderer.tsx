@@ -225,7 +225,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               const endOffset =  emptyLineCount(
                 currentArtifactContent?.content.substring(0,endIndex+1)??"",
               )*2
-              console.log('startOffset',startOffset)
               startIndex+=startOffset
               endIndex+=endOffset
             }
@@ -381,7 +380,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             style={{
               top: `${selectionBox.top + 60}px`,
               left: `${selectionBox.left}px`,
-              width: isInputVisible ? "400px" : "850px",
+              width: isInputVisible ? "400px" : "250px",
               marginLeft: isInputVisible ? "0" : "150px",
             }}
             onMouseDown={handleSelectionBoxMouseDown}
@@ -409,28 +408,13 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   />
                 </Button>
               </form>
-            ) : (
-              <div className="w-full ">
-                <div className="h-[500px]">
-                  <div>
-                    {JSON.stringify(selectionIndexes)}
-                  </div>
-                  {
-                     loadSectionContent((currentArtifactContent.content),selectionIndexes?.start??0 , selectionIndexes?.end??0)
-                  }
-                </div>
-
-                <hr />
-                 <Button
-                variant="ghost"
-                onClick={() => setIsInputVisible(true)}
-                className="transition-all duration-300 ease-in-out w-full"
-              >
-                Ask Open Canvas
-              </Button>
-
-              </div>
-)}
+            ) : (<Button
+              variant="ghost"
+              onClick={() => setIsInputVisible(true)}
+              className="transition-all duration-300 ease-in-out w-full"
+            >
+              Ask Open Canvas
+            </Button>)}
           </div>
         )}
       </div>
