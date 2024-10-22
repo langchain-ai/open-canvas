@@ -115,22 +115,26 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-4 items-center justify-center w-full relative quickstart-buttons">
-      <p className="text-gray-600 text-sm">Start with a blank canvas</p>
-      <div className="flex flex-row gap-1 items-center justify-center w-full">
-        <Button
-          variant="outline"
-          className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
-          onClick={() => props.handleQuickStart("text")}
-        >
-          New Markdown
-          <NotebookPen />
-        </Button>
-        <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
+    <div className="flex flex-col gap-8 items-center justify-center w-full">
+      <div className="flex flex-col gap-6">
+        <p className="text-gray-600 text-sm">Start with a blank canvas</p>
+        <div className="flex flex-row gap-1 items-center justify-center w-full">
+          <Button
+            variant="outline"
+            className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
+            onClick={() => props.handleQuickStart("text")}
+          >
+            New Markdown
+            <NotebookPen />
+          </Button>
+          <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
+        </div>
       </div>
-      <p className="text-gray-600 text-sm">or start with a message</p>
-      <QuickStartPrompts />
-      {props.composer}
+      <div className="flex flex-col gap-6 mt-2 w-full">
+        <p className="text-gray-600 text-sm">or with a message</p>
+        <QuickStartPrompts />
+        {props.composer}
+      </div>
     </div>
   );
 };
@@ -234,16 +238,16 @@ interface ThreadWelcomeProps {
 const ThreadWelcome: FC<ThreadWelcomeProps> = (props: ThreadWelcomeProps) => {
   return (
     <ThreadPrimitive.Empty>
-      <div className="flex items-center justify-center mt-24 w-full">
+      <div className="flex items-center justify-center mt-16 w-full">
         <div className="text-center max-w-3xl w-full">
           <Avatar className="mx-auto">
             <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
             <AvatarFallback>LC</AvatarFallback>
           </Avatar>
-          <p className="mt-4 font-medium">
+          <p className="mt-4 text-lg font-medium">
             What would you like to write today?
           </p>
-          <div className="mt-4">
+          <div className="mt-8 w-full">
             <QuickStartButtons
               composer={props.composer}
               handleQuickStart={props.handleQuickStart}
