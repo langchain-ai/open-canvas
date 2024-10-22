@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   Artifact,
   ArtifactV2,
+  MarkdownBlock,
   ProgrammingLanguageOptions,
   Reflections,
 } from "@/types";

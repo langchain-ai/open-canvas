@@ -53,28 +53,13 @@ export const updateHighlightedText = async (
   state: typeof OpenCanvasGraphAnnotation.State
 ): Promise<OpenCanvasGraphReturnType> => {
   const model = new ChatOpenAI({
-    // const model = new ChatAnthropic({
-    // model: "claude-3-5-sonnet-20241022",
     model: "gpt-4o",
-    // model: "claude-3-5-sonnet-20240620",
     temperature: 0,
   })
     .bindTools([updateBlocksTool], {
       tool_choice: "update_blocks",
     })
     .withConfig({ runName: "update_highlighted_markdown" });
-
-  // const store = ensureStoreInConfig(config);
-  // const assistantId = config.configurable?.assistant_id;
-  // if (!assistantId) {
-  //   throw new Error("`assistant_id` not found in configurable");
-  // }
-  // const memoryNamespace = ["memories", assistantId];
-  // const memoryKey = "reflection";
-  // const memories = await store.get(memoryNamespace, memoryKey);
-  // const memoriesAsString = memories?.value
-  //   ? formatReflections(memories.value as Reflections)
-  //   : "No reflections found.";
 
   let currentArtifactContent: ArtifactMarkdownContent | undefined;
   if (state.artifact_v2) {

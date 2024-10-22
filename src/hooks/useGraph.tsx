@@ -11,6 +11,7 @@ import {
   ArtifactV2,
   Highlight,
   LanguageOptions,
+  MarkdownBlock,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
 } from "@/types";
@@ -225,7 +226,13 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 blocks?: Array<{ block_id?: string; new_text?: string }>;
               } = parsePartialJson(markdownHighlightUpdateAggregateStr);
               if (parsed.blocks?.length) {
-                if (newIndexUpdatedMarkdown === undefined && artifact_v2) {
+                if (!artifact_v2) {
+                  console.error(
+                    "No artifacts found when updating highlighted markdown..."
+                  );
+                  continue;
+                }
+                if (newIndexUpdatedMarkdown === undefined) {
                   newIndexUpdatedMarkdown = artifact_v2.contents.length + 1;
                 }
 
@@ -236,8 +243,11 @@ export function useGraph(useGraphInput: UseGraphInput) {
                     );
                     return prev;
                   }
-                  if (newIndexUpdatedMarkdown === undefined) {
-                    newIndexUpdatedMarkdown = prev.contents.length + 1;
+                  if (!newIndexUpdatedMarkdown) {
+                    console.error(
+                      "newIndexUpdatedMarkdown is undefined when setting artifact state"
+                    );
+                    return prev;
                   }
 
                   if (
@@ -245,76 +255,95 @@ export function useGraph(useGraphInput: UseGraphInput) {
                       (c) => c.index === newIndexUpdatedMarkdown
                     )
                   ) {
+                    // Update has already started
                     return {
                       ...prev,
                       currentContentIndex: newIndexUpdatedMarkdown,
                       contents: prev.contents.map((c) => {
                         if (c.index === newIndexUpdatedMarkdown) {
                           const castC = c as ArtifactMarkdownContent;
-                          const newMarkdownBlocks = castC.markdownBlocks.map(
-                            (mb) => {
+                          const newMarkdownBlocks: MarkdownBlock[] =
+                            castC.blocks.map((block) => {
                               const generatedBlock = parsed?.blocks?.find(
-                                (b) => b.block_id === mb.blockId
+                                (b) => b.block_id === block.id
                               );
                               if (!generatedBlock) {
-                                // console.log("generated block NOT found (alr in state)")
-                                return mb;
+                                console.log(
+                                  "generated block NOT found (alr in state)"
+                                );
+                                return block;
                               }
                               console.log(
                                 "GENERATED BLOCK FOUND (alr in state)",
                                 generatedBlock.new_text?.slice(0, 10)
                               );
                               return {
-                                ...mb,
-                                markdown:
-                                  generatedBlock.new_text ?? mb.markdown,
+                                ...block,
+                                content: [
+                                  {
+                                    ...block.content[0],
+                                    text:
+                                      generatedBlock.new_text ??
+                                      block.content[0].text,
+                                  },
+                                ],
                               };
-                            }
-                          );
+                            });
+
                           return {
                             ...castC,
-                            markdownBlocks: newMarkdownBlocks,
+                            blocks: newMarkdownBlocks,
                           };
                         }
                         return c;
                       }),
                     };
                   } else {
-                    const castContents =
-                      prev.contents as ArtifactMarkdownContent[];
-                    const oldMarkdownBlocks = castContents.find(
-                      (c) => c.index === (newIndexUpdatedMarkdown || 0) - 1
-                    )?.markdownBlocks;
-                    if (!oldMarkdownBlocks) {
-                      throw new Error("No markdown blocks found");
+                    // update has not yet started
+                    const prevBlocks = prev.contents.find(
+                      (c) => c.index === (newIndexUpdatedMarkdown as number) - 1
+                    ) as ArtifactMarkdownContent | undefined;
+                    if (!prevBlocks) {
+                      throw new Error(
+                        "No prev blocks found when updating highlighted markdown state for the first time"
+                      );
                     }
-                    const newMarkdownBlocks = oldMarkdownBlocks.map((mb) => {
-                      const generatedBlock = parsed?.blocks?.find(
-                        (b) => b.block_id === mb.blockId
-                      );
-                      if (!generatedBlock) {
-                        // console.log("generated block NOT found (NOT in state)")
-                        return mb;
-                      }
-                      console.log(
-                        "GENERATED BLOCK FOUND (NOT in state)",
-                        generatedBlock.new_text?.slice(0, 10)
-                      );
-                      return {
-                        ...mb,
-                        markdown: generatedBlock.new_text ?? mb.markdown,
-                      };
-                    });
-
+                    const newMarkdownBlocks: MarkdownBlock[] =
+                      prevBlocks.blocks.map((block) => {
+                        const generatedBlock = parsed?.blocks?.find(
+                          (b) => b.block_id === block.id
+                        );
+                        if (!generatedBlock) {
+                          console.log(
+                            "generated block NOT found (alr in state)"
+                          );
+                          return block;
+                        }
+                        console.log(
+                          "GENERATED BLOCK FOUND (alr in state)",
+                          generatedBlock.new_text?.slice(0, 10)
+                        );
+                        return {
+                          ...block,
+                          content: [
+                            {
+                              ...block.content[0],
+                              text:
+                                generatedBlock.new_text ??
+                                block.content[0].text,
+                            },
+                          ],
+                        };
+                      });
                     return {
                       ...prev,
-                      currentContentIndex: newIndexUpdatedMarkdown,
+                      currentContentIndex: newIndexUpdatedMarkdown as number,
                       contents: [
                         ...prev.contents,
                         {
-                          index: newIndexUpdatedMarkdown,
-                          markdownBlocks: newMarkdownBlocks,
-                          title: "",
+                          index: newIndexUpdatedMarkdown as number,
+                          blocks: newMarkdownBlocks,
+                          title: prevBlocks.title ?? "Untitled",
                           type: "text",
                         },
                       ],

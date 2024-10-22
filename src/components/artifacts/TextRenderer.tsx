@@ -1,7 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 
-import { ArtifactContent, ArtifactMarkdownContent, ArtifactV2 } from "@/types";
+import {
+  ArtifactCodeContent,
+  ArtifactContent,
+  ArtifactMarkdownContent,
+  ArtifactV2,
+  MarkdownBlock,
+} from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
   getDefaultReactSlashMenuItems,
@@ -10,6 +16,7 @@ import {
 } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
+import { Block } from "@blocknote/core";
 
 export interface TextRendererProps {
   userId: string;
@@ -56,50 +63,22 @@ export function TextRenderer(props: TextRendererProps) {
 
       const selectedBlocks = (
         currentContent as ArtifactMarkdownContent
-      ).markdownBlocks.filter((b) => {
+      ).blocks.filter((b) => {
         const selectedBlockIds = selection.blocks.map((b) => b.id);
-        if (selectedBlockIds.includes(b.blockId)) {
+        if (selectedBlockIds.includes(b.id)) {
           return true;
         }
         return false;
       });
       props.setSelectedBlocks({
-        blocks: selectedBlocks,
+        blocks: selectedBlocks.map((b) => ({
+          blockId: b.id,
+          markdown: b.content.map((c) => c.text).join(""),
+        })),
         selectedText: selectedText,
       });
     }
   }, [editor.getSelectedText()]);
-
-  // const updateSelectedBlocks = async (newTextBlocks: Array<{ blockId: string, newText: string }>) => {
-  //   if (!selectedBlocks) return;
-
-  //   selectedBlocks.forEach((block) => {
-  //     const newBlockText = newTextBlocks.find((b) => b.blockId === block.id)?.newText;
-  //     if (!newBlockText || !block.content) return;
-  //     const castBlockContent = block.content as ContentType[];
-  //     const updatedBlock = {
-  //       ...block,
-  //       content: [
-  //         {
-  //           type: "text",
-  //           styles: castBlockContent[0].styles,
-  //           text: newBlockText,
-  //         }
-  //       ]
-  //     } as PartialBlock;
-  //     editor.updateBlock(block, updatedBlock);
-  //   })
-  // }
-
-  // const replaceSelectedText = async (newText: string) => {
-  //   if (!lastSelectionRef.current?.selection?.blocks[0]) return;
-
-  //   const tiptapEditor = editor._tiptapEditor;
-
-  //   tiptapEditor.commands.insertContent(newText, {
-  //     updateSelection: true,
-  //   });
-  // };
 
   const isComposition = useRef(false);
 
@@ -107,15 +86,27 @@ export function TextRenderer(props: TextRendererProps) {
     if (isComposition.current) {
       return;
     }
+    console.log("Use effect running");
     const blockIdsAndMarkdown = await Promise.all(
       editor.document.map(async (doc) => {
+        const md = await editor.blocksToMarkdownLossy([doc]);
         return {
           blockId: doc.id,
-          markdown: await editor.blocksToMarkdownLossy([doc]),
+          startingContent: md,
+          markdown: md,
           block: doc,
         };
       })
     );
+
+    const currentBlocks = blockIdsAndMarkdown
+      .map((b) => editor.getBlock(b.blockId))
+      .filter((b): b is Block => !!b)
+      .map((b) => ({
+        id: b.id,
+        content: b.content,
+        type: b.type,
+      })) as MarkdownBlock[];
 
     props.setArtifact_v2((prev) => {
       if (!prev) {
@@ -125,6 +116,7 @@ export function TextRenderer(props: TextRendererProps) {
           contents: [
             {
               index: 1,
+              blocks: currentBlocks,
               markdownBlocks: blockIdsAndMarkdown,
               title: "Untitled",
               type: "text",
@@ -139,6 +131,7 @@ export function TextRenderer(props: TextRendererProps) {
             if (c.index === currentIndex) {
               return {
                 ...c,
+                blocks: currentBlocks,
                 markdownBlocks: blockIdsAndMarkdown,
               };
             }
@@ -150,36 +143,54 @@ export function TextRenderer(props: TextRendererProps) {
   };
 
   useEffect(() => {
-    (async () => {
-      console.log("useEffect to update rendered content running!");
+    async function loadInitialHTML() {
       if (!props.artifact_v2?.currentContentIndex) return;
-      const newMarkdownBlocks = props.artifact_v2?.contents.find(
+      const markdownContent = props.artifact_v2.contents.find(
         (c) => c.index === props.artifact_v2?.currentContentIndex
       ) as ArtifactMarkdownContent | undefined;
-      if (!newMarkdownBlocks) return;
-      console.log("found new markdown blocks", newMarkdownBlocks);
+      if (!markdownContent) return;
 
-      newMarkdownBlocks.markdownBlocks.forEach(async (b) => {
-        const existingBlock = editor.getBlock(b.blockId);
-        if (existingBlock) {
-          console.log("Block exists, updating now.");
-          editor.updateBlock(existingBlock, {
-            content: b.markdown,
+      if (markdownContent.blocks.length) {
+        markdownContent.blocks.map((b) => {
+          console.log("Updating block");
+          editor.updateBlock(b.id, {
+            content: b.content as any[],
+            type: b.type as any,
           });
-        } else {
-          console.log("\n\n\n\nBLOCK DOES NOT EXIST, CREATING NOW\n\n\n\n");
-          const blocks = await editor.tryParseMarkdownToBlocks(
-            newMarkdownBlocks.markdownBlocks.map((b) => b.markdown).join("\r\n")
-          );
-          editor.replaceBlocks(editor.document, blocks);
-        }
-      });
+        });
+        return;
+      }
 
-      // const blocks = await editor.tryParseMarkdownToBlocks(
-      //   newMarkdownBlocks.markdownBlocks.map((b) => b.markdown).join("\r\n")
-      // );
+      console.log("No blocks found...");
+      // let markdownString = markdownContent.blocks?.map((b) => b.content.map((c) => c.text).join("")).join("\r\n");
+      // if (!markdownString) {
+      //   console.error("No markdown found. Falling back to markdownBlocks");
+
+      // }
+      // const blocks = await editor.tryParseMarkdownToBlocks(markdownString);
+      // props.setArtifact_v2((prev) => {
+      //   if (!prev) return prev;
+      //   return {
+      //     ...prev,
+      //     contents: prev.contents.map((c) => {
+      //       if (c.index === prev.currentContentIndex) {
+      //         const mdBlocks = blocks.map((b) => ({
+      //           id: b.id,
+      //           content: b.content,
+      //           type: b.type,
+      //         })) as MarkdownBlock[];
+      //         return {
+      //           ...c as ArtifactMarkdownContent,
+      //           blocks: mdBlocks
+      //         }
+      //       }
+      //       return c;
+      //     })
+      //   }
+      // })
       // editor.replaceBlocks(editor.document, blocks);
-    })();
+    }
+    loadInitialHTML();
   }, [props.artifact_v2?.currentContentIndex, editor]);
 
   return (

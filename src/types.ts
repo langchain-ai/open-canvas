@@ -42,13 +42,26 @@ export interface ArtifactV2 {
   currentContentIndex: number;
 }
 
+export interface MarkdownBlock {
+  id: string;
+  content: Array<{
+    id: string;
+    type: string;
+    text: string;
+    styles: Record<string, any>;
+  }>;
+  type: string;
+}
+
 export interface ArtifactMarkdownContent {
   index: number;
-  markdownBlocks: {
-    markdown: string;
-    blockId: string;
-    block: Block;
-  }[];
+  blocks: MarkdownBlock[];
+  // markdownBlocks: {
+  //   startingContent: string;
+  //   markdown: string;
+  //   blockId: string;
+  //   block: Block;
+  // }[];
   title: string;
   type: "text";
 }
