@@ -124,7 +124,7 @@ export function UserAuthForm({
       <Button
         onClick={async () => {
           setGithubIsLoading(true);
-          await onLoginWithOauth("google");
+          await onLoginWithOauth("github");
           setGithubIsLoading(false);
         }}
         variant="outline"
