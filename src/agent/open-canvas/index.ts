@@ -14,9 +14,10 @@ import { updateHighlightedText } from "./nodes/updateHighlightedText";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
-  "messages" | "artifact" | "artifact_v2"
+  "messages" | "artifact"
 > = {
-  highlighted: undefined,
+  highlightedCode: undefined,
+  highlightedText: undefined,
   next: undefined,
   language: undefined,
   artifactLength: undefined,
@@ -26,7 +27,6 @@ const defaultInputs: Omit<
   addLogs: undefined,
   fixBugs: undefined,
   portLanguage: undefined,
-  lastNodeName: undefined,
   customQuickActionId: undefined,
 };
 
@@ -80,6 +80,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("rewriteArtifact", "generateFollowup")
   .addEdge("rewriteArtifactTheme", "generateFollowup")
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
+  .addEdge("customAction", "generateFollowup")
   // End edges
   .addEdge("respondToQuery", "cleanState")
   // Only reflect if an artifact was generated/updated.

@@ -14,7 +14,7 @@ import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { Toaster } from "./ui/toaster";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";

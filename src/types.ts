@@ -77,22 +77,6 @@ export interface Highlight {
    * The index of the last character of the highlighted text
    */
   endCharIndex: number;
-  /**
-   * Data from the highlighted text
-   */
-  textData?: {
-    /**
-     * The blocks in which the selected text is found
-     */
-    blocks: {
-      markdown: string;
-      blockId: string;
-    }[];
-    /**
-     * The selected text.
-     */
-    selectedText: string;
-  };
 }
 
 export type LanguageOptions =
@@ -202,3 +186,56 @@ export interface CustomQuickAction {
    */
   includeRecentHistory: boolean;
 }
+
+export interface ArtifactV3 {
+  currentIndex: number;
+  contents: (ArtifactMarkdownV3 | ArtifactCodeV3)[];
+}
+
+export interface ArtifactMarkdownV3 {
+  index: number;
+  type: "text";
+  title: string;
+  fullMarkdown: string;
+}
+
+export interface ArtifactCodeV3 {
+  index: number;
+  type: "code";
+  title: string;
+  language: ProgrammingLanguageOptions;
+  code: string;
+}
+
+export interface CodeHighlight {
+  startCharIndex: number;
+  endCharIndex: number;
+}
+
+export interface TextHighlight {
+  fullMarkdown: string;
+  markdownBlock: string;
+  selectedText: string;
+}
+
+export interface ArtifactToolResponse {
+  artifact?: string;
+  title?: string;
+  language?: string;
+  type?: string;
+}
+
+export interface NewMarkdownToolResponse {
+  blocks: Array<{ block_id?: string; new_text?: string }>;
+}
+
+export type RewriteArtifactMetaToolResponse =
+  | {
+      type: "text";
+      title?: string;
+    }
+  | {
+      type: "code";
+      title: string;
+      programmingLanguage: string;
+    };

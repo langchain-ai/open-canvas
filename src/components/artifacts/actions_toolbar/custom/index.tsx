@@ -5,7 +5,7 @@ import {
   LoaderCircle,
   Pencil,
 } from "lucide-react";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,

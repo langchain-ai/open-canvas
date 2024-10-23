@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
 

@@ -1,22 +1,21 @@
 import { useToast } from "@/hooks/use-toast";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import {
-  emptyLineCount,
-  newlineToCarriageReturn,
-} from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import {
-  Artifact,
-  ArtifactV2,
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ArtifactV3,
   ProgrammingLanguageOptions,
   Reflections,
+  TextHighlight,
 } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { CircleArrowUp, Eye, PencilLine, Forward } from "lucide-react";
 import {
   Dispatch,
+  FormEvent,
   SetStateAction,
   useCallback,
   useEffect,
@@ -31,12 +30,14 @@ import { Input } from "../ui/input";
 import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { CodeRenderer } from "./CodeRenderer";
 import { TextRenderer } from "./TextRenderer";
-import { getCurrentArtifactContent } from "@/lib/get_current_artifact";
 import { CustomQuickActions } from "./actions_toolbar/custom";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 
 export interface ArtifactRendererProps {
   assistantId: string | undefined;
-  artifact: Artifact | undefined;
+  artifact: ArtifactV3 | undefined;
+  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
   setArtifactContent: (index: number, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
@@ -48,21 +49,7 @@ export interface ArtifactRendererProps {
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
-  userId: string;
-  artifact_v2: ArtifactV2 | undefined;
-  setArtifact_v2: Dispatch<SetStateAction<ArtifactV2 | undefined>>;
-  setSelectedBlocks: Dispatch<
-    SetStateAction<
-      | {
-          blocks: {
-            markdown: string;
-            blockId: string;
-          }[];
-          selectedText: string;
-        }
-      | undefined
-    >
-  >;
+  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   isStreaming: boolean;
 }
 
@@ -140,8 +127,24 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     event.stopPropagation();
   }, []);
 
-  const handleSubmit = async () => {
-    if (!selectionIndexes) {
+  const handleSubmit = async (
+    e:
+      | FormEvent<HTMLFormElement>
+      | React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+
+    let artifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
+    try {
+      artifactContent = getArtifactContent(props.artifact);
+    } catch (_) {
+      // no-op
+    }
+    if (
+      !selectionIndexes &&
+      artifactContent &&
+      isArtifactCodeContent(artifactContent)
+    ) {
       toast({
         title: "Selection error",
         description:
@@ -166,10 +169,12 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
-        highlighted: {
-          startCharIndex: selectionIndexes.start,
-          endCharIndex: selectionIndexes.end,
-        },
+        ...(selectionIndexes && {
+          highlightedCode: {
+            startCharIndex: selectionIndexes.start,
+            endCharIndex: selectionIndexes.end,
+          },
+        }),
       });
     }
   };
@@ -202,11 +207,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             const layerRect = highlightLayer.getBoundingClientRect();
 
             // Calculate start and end indexes
-            let startIndex, endIndex;
+            let startIndex = 0;
+            let endIndex = 0;
             const currentArtifactContent = props.artifact
-              ? getCurrentArtifactContent(props.artifact)
+              ? getArtifactContent(props.artifact)
               : undefined;
-            if (currentArtifactContent?.type === "code" && editorRef.current) {
+
+            if (
+              !currentArtifactContent ||
+              currentArtifactContent.type !== "code"
+            ) {
+              // Selections for text are managed inside the `TextRenderer` component
+              return;
+            }
+            if (editorRef.current) {
               const from = editorRef.current.posAtDOM(
                 range.startContainer,
                 range.startOffset
@@ -217,51 +231,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               );
               startIndex = from;
               endIndex = to;
-            } else {
-              // Calculate start and end indexes
-              const startContainer = range.startContainer;
-              const endContainer = range.endContainer;
-              startIndex = range.startOffset;
-              endIndex = range.endOffset;
-
-              // Traverse up to find the common ancestor
-              let node: Node | null = startContainer;
-              while (node && node !== content) {
-                if (node.previousSibling) {
-                  node = node.previousSibling;
-                  startIndex += node.textContent
-                    ? newlineToCarriageReturn(node.textContent)?.length
-                    : 0;
-                } else {
-                  node = node.parentNode;
-                }
-              }
-
-              node = endContainer;
-              while (node && node !== content) {
-                if (node.previousSibling) {
-                  node = node.previousSibling;
-                  endIndex += node.textContent
-                    ? newlineToCarriageReturn(node.textContent)?.length
-                    : 0;
-                } else {
-                  node = node.parentNode;
-                }
-              }
-              const startOffset =
-                emptyLineCount(
-                  currentArtifactContent?.content.substring(
-                    0,
-                    startIndex + 1
-                  ) ?? ""
-                ) * 2;
-              const endOffset =
-                emptyLineCount(
-                  currentArtifactContent?.content.substring(0, endIndex + 1) ??
-                    ""
-                ) * 2;
-              startIndex += startOffset;
-              endIndex += endOffset;
             }
 
             setSelectionIndexes({ start: startIndex, end: endIndex });
@@ -290,7 +259,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   if (!props.artifact) {
     return <div className="w-full h-full"></div>;
   }
-  const currentArtifactContent = getCurrentArtifactContent(props.artifact);
+  const currentArtifactContent = getArtifactContent(props.artifact);
   const isBackwardsDisabled =
     props.artifact.contents.length === 1 || currentArtifactContent.index === 1;
   const isForwardDisabled =
@@ -386,15 +355,12 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <div className="h-[85%]" ref={markdownRef}>
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
+                isInputVisible={isInputVisible}
                 isStreaming={props.isStreaming}
-                artifact_v2={props.artifact_v2}
-                setArtifact_v2={props.setArtifact_v2}
+                artifact={props.artifact}
+                setArtifact={props.setArtifact}
                 setSelectedBlocks={props.setSelectedBlocks}
-                userId={props.userId}
                 isEditing={props.isEditing}
-                setIsEditing={props.setIsEditing}
-                artifactContent={currentArtifactContent}
-                setArtifactContent={props.setArtifactContent}
               />
             ) : null}
             {currentArtifactContent.type === "code" ? (
@@ -426,7 +392,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             onMouseDown={handleSelectionBoxMouseDown}
           >
             {isInputVisible ? (
-              <form className="relative w-full overflow-hidden flex flex-row items-center gap-1">
+              <form
+                onSubmit={handleSubmit}
+                className="relative w-full overflow-hidden flex flex-row items-center gap-1"
+              >
                 <Input
                   className="w-full transition-all duration-300 focus:ring-0 ease-in-out p-1 focus:outline-none border-0 focus-visible:ring-0"
                   placeholder="Ask Open Canvas..."
@@ -435,7 +404,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   onChange={(e) => setInputValue(e.target.value)}
                 />
                 <Button
-                  onClick={handleSubmit}
+                  onClick={(e) => handleSubmit(e)}
                   type="submit"
                   variant="ghost"
                   size="icon"

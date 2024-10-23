@@ -6,7 +6,7 @@ import {
   FrenchFlag,
 } from "@/components/icons/flags";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { LanguageOptions } from "@/types";
 
 export interface TranslateOptionsProps {

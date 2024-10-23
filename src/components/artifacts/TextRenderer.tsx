@@ -1,11 +1,10 @@
-import { v4 as uuidv4 } from "uuid";
-import { Dispatch, SetStateAction, useEffect, useRef } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 import {
-  ArtifactContent,
-  ArtifactMarkdownContent,
-  ArtifactV2,
+  ArtifactMarkdownV3,
+  ArtifactV3,
   MarkdownBlock,
+  TextHighlight,
 } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
@@ -15,134 +14,135 @@ import {
 } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
+import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+
+const cleanText = (text: string) => {
+  return text.replaceAll("\\\n", "\n");
+};
 
 export interface TextRendererProps {
-  userId: string;
-  artifactContent: ArtifactContent;
   isEditing: boolean;
-  setIsEditing: Dispatch<SetStateAction<boolean>>;
-  setArtifactContent: (index: number, content: string) => void;
-  artifact_v2: ArtifactV2 | undefined;
-  setArtifact_v2: Dispatch<SetStateAction<ArtifactV2 | undefined>>;
-  setSelectedBlocks: Dispatch<
-    SetStateAction<
-      | {
-          blocks: {
-            markdown: string;
-            blockId: string;
-          }[];
-          selectedText: string;
-        }
-      | undefined
-    >
-  >;
+  artifact: ArtifactV3 | undefined;
+  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
+  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   isStreaming: boolean;
+  isInputVisible: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
+  const [canEdit, setCanEdit] = useState(true);
+  const [shouldUpdateArtifactBlocks, setShouldUpdateArtifactBlocks] =
+    useState(false);
+  const currentContentIndex = useRef<number | undefined>(undefined);
+  const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
+    useState(false);
 
   useEffect(() => {
     const selectedText = editor.getSelectedText();
     const selection = editor.getSelection();
 
     if (selectedText && selection) {
-      if (!props.artifact_v2) {
+      if (!props.artifact) {
         console.error("Artifact not found");
         return;
       }
-      const currentBlockIdx = props.artifact_v2.currentContentIndex;
-      const currentContent = props.artifact_v2.contents.find(
+
+      const currentBlockIdx = props.artifact.currentIndex;
+      const currentContent = props.artifact.contents.find(
         (c) => c.index === currentBlockIdx
       );
       if (!currentContent) {
         console.error("Current content not found");
         return;
       }
+      if (!isArtifactMarkdownContent(currentContent)) {
+        console.error("Current content is not markdown");
+        return;
+      }
 
-      const selectedBlocks = (
-        currentContent as ArtifactMarkdownContent
-      ).blocks.filter((b) => {
-        const selectedBlockIds = selection.blocks.map((b) => b.id);
-        if (selectedBlockIds.includes(b.id)) {
-          return true;
-        }
-        return false;
-      });
-      props.setSelectedBlocks({
-        blocks: selectedBlocks.map((b) => ({
-          blockId: b.id,
-          markdown: b.content.map((c) => c.text).join(""),
-        })),
-        selectedText: selectedText,
-      });
+      (async () => {
+        const [markdownBlock, fullMarkdown] = await Promise.all([
+          editor.blocksToMarkdownLossy(selection.blocks),
+          editor.blocksToMarkdownLossy(editor.document),
+        ]);
+        props.setSelectedBlocks({
+          fullMarkdown: cleanText(fullMarkdown),
+          markdownBlock: cleanText(markdownBlock),
+          selectedText: cleanText(selectedText),
+        });
+      })();
     }
   }, [editor.getSelectedText()]);
 
   useEffect(() => {
-    if (!props.artifact_v2) {
+    if (!props.isInputVisible) {
+      props.setSelectedBlocks(undefined);
+    }
+  }, [props.isInputVisible]);
+
+  useEffect(() => {
+    if (!props.artifact) {
       return;
     }
-    if (!props.isStreaming) {
+    if (!props.isStreaming && !manuallyUpdatingArtifact) {
       console.error("Can only update via useEffect when streaming");
       return;
     }
 
-    const currentIndex = props.artifact_v2.currentContentIndex;
-    const currentContent = props.artifact_v2.contents.find(
-      (c) => c.index === currentIndex && c.type === "text"
-    ) as ArtifactMarkdownContent | undefined;
-    if (!currentContent) return;
+    try {
+      const currentIndex = props.artifact.currentIndex;
+      const currentContent = props.artifact.contents.find(
+        (c) => c.index === currentIndex && c.type === "text"
+      ) as ArtifactMarkdownV3 | undefined;
+      if (!currentContent) return;
 
-    currentContent.blocks.forEach((b) => {
-      editor.updateBlock(b.id, {
-        content: b.content as any[],
-        type: b.type as any,
-      });
-    });
-  }, [props.artifact_v2]);
+      // Blocks are not found in the artifact, so once streaming is done we should update the artifact state with the blocks
+      (async () => {
+        const markdownAsBlocks = await editor.tryParseMarkdownToBlocks(
+          currentContent.fullMarkdown
+        );
+        editor.replaceBlocks(editor.document, markdownAsBlocks);
+      })();
+    } finally {
+      setManuallyUpdatingArtifact(false);
+    }
+  }, [props.artifact]);
+
+  useEffect(() => {
+    if (props.isStreaming) return;
+    if (props.artifact?.currentIndex === currentContentIndex.current) return;
+    currentContentIndex.current = props.artifact?.currentIndex;
+    setManuallyUpdatingArtifact(true);
+  }, [props.artifact?.currentIndex]);
 
   const isComposition = useRef(false);
 
-  const onChange2 = () => {
-    if (props.isStreaming) return;
+  const onChange = async () => {
+    if (props.isStreaming || manuallyUpdatingArtifact) return;
 
-    const markdownBlocks: MarkdownBlock[] = editor.document.map((doc) => {
-      return {
-        id: doc.id,
-        content: (doc.content as any[]).map((c) => ({
-          id: c.id,
-          type: c.type,
-          text: c.text,
-          styles: c.styles,
-        })),
-        type: doc.type,
-      } as MarkdownBlock;
-    });
-
-    props.setArtifact_v2((prev) => {
+    const fullMarkdown = await editor.blocksToMarkdownLossy(editor.document);
+    props.setArtifact((prev) => {
       if (!prev) {
         return {
-          id: uuidv4(),
-          currentContentIndex: 1,
+          currentIndex: 1,
           contents: [
             {
               index: 1,
-              blocks: markdownBlocks,
+              fullMarkdown: fullMarkdown,
               title: "Untitled",
               type: "text",
             },
           ],
         };
       } else {
-        const currentIndex = prev.currentContentIndex;
         return {
           ...prev,
           contents: prev.contents.map((c) => {
-            if (c.index === currentIndex) {
+            if (c.index === prev.currentIndex) {
               return {
                 ...c,
-                blocks: markdownBlocks,
+                fullMarkdown: fullMarkdown,
               };
             }
             return c;
@@ -162,8 +162,8 @@ export function TextRenderer(props: TextRendererProps) {
         slashMenu={false}
         onCompositionStartCapture={() => (isComposition.current = true)}
         onCompositionEndCapture={() => (isComposition.current = false)}
-        onChange={onChange2}
-        editable={!props.isStreaming || props.isEditing}
+        onChange={onChange}
+        editable={!props.isStreaming || props.isEditing || canEdit}
         editor={editor}
       >
         <SuggestionMenuController

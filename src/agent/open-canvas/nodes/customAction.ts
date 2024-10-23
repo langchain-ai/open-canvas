@@ -8,12 +8,16 @@ import {
 } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "../../utils";
 import {
-  ArtifactContent,
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ArtifactV3,
   CustomQuickAction,
   Reflections,
 } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
 
 const formatMessages = (messages: BaseMessage[]): string =>
   messages
@@ -63,15 +67,7 @@ export const customAction = async (
     );
   }
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact.currentContentIndex
-    );
-  }
-  if (!currentArtifactContent) {
-    throw new Error("No artifact content found.");
-  }
+  const currentArtifactContent = getArtifactContent(state.artifact);
 
   let formattedPrompt = `<custom-instructions>\n${customQuickAction.prompt}\n</custom-instructions>`;
   if (customQuickAction.includeReflections && memories?.value) {
@@ -96,23 +92,27 @@ export const customAction = async (
     formattedPrompt += `\n\n${formattedConversationHistory}`;
   }
 
-  formattedPrompt += `\n\n${CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT.replace("{artifactContent}", currentArtifactContent.content)}`;
+  const artifactContent = isArtifactMarkdownContent(currentArtifactContent)
+    ? currentArtifactContent.fullMarkdown
+    : currentArtifactContent.code;
+  formattedPrompt += `\n\n${CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT.replace("{artifactContent}", artifactContent)}`;
 
   const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);
 
-  const newArtifact = {
+  const newArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 = {
+    ...currentArtifactContent,
+    index: state.artifact.contents.length + 1,
+    ...(isArtifactMarkdownContent(currentArtifactContent)
+      ? { fullMarkdown: newArtifactValues.content as string }
+      : { code: newArtifactValues.content as string }),
+  };
+
+  const newArtifact: ArtifactV3 = {
     ...state.artifact,
-    currentContentIndex: state.artifact.contents.length + 1,
-    contents: [
-      ...state.artifact.contents,
-      {
-        ...currentArtifactContent,
-        index: state.artifact.contents.length + 1,
-        content: newArtifactValues.content as string,
-      },
-    ],
+    currentIndex: state.artifact.contents.length + 1,
+    contents: [...state.artifact.contents, newArtifactContent],
   };
 
   return {

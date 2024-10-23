@@ -5,10 +5,12 @@ import {
   START,
 } from "@langchain/langgraph";
 import { ReflectionGraphAnnotation, ReflectionGraphReturnType } from "./state";
-import { ArtifactContent, Reflections } from "../../types";
+import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../../types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts";
 import { z } from "zod";
 import { ensureStoreInConfig, formatReflections } from "../utils";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
 
 export const reflect = async (
   state: typeof ReflectionGraphAnnotation.State,
@@ -45,16 +47,24 @@ export const reflect = async (
     temperature: 0,
   }).bindTools([generateReflectionTool]);
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact?.currentContentIndex
-    );
+  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
+  try {
+    currentArtifactContent = state.artifact
+      ? getArtifactContent(state.artifact)
+      : undefined;
+  } catch (_) {
+    // no-op
   }
+
+  const artifactContent = currentArtifactContent
+    ? isArtifactMarkdownContent(currentArtifactContent)
+      ? currentArtifactContent.fullMarkdown
+      : currentArtifactContent.code
+    : undefined;
 
   const formattedSystemPrompt = REFLECT_SYSTEM_PROMPT.replace(
     "{artifact}",
-    currentArtifactContent?.content ?? "No artifact found."
+    artifactContent ?? "No artifact found."
   ).replace("{reflections}", memoriesAsString);
 
   const formattedUserPrompt = REFLECT_USER_PROMPT.replace(

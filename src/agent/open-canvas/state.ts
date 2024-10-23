@@ -1,11 +1,11 @@
 import {
-  Artifact,
-  ArtifactV2,
   ArtifactLengthOptions,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
-  Highlight,
+  CodeHighlight,
+  ArtifactV3,
+  TextHighlight,
 } from "../../types";
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
@@ -15,16 +15,16 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * The part of the artifact the user highlighted. Use the `selectedArtifactId`
    * to determine which artifact the highlight belongs to.
    */
-  highlighted: Annotation<Highlight | undefined>,
+  highlightedCode: Annotation<CodeHighlight | undefined>,
+  /**
+   * The highlighted text. This includes the markdown blocks which the highlighted
+   * text belongs to, along with the entire plain text content of highlight.
+   */
+  highlightedText: Annotation<TextHighlight | undefined>,
   /**
    * The artifacts that have been generated in the conversation.
    */
-  artifact: Annotation<Artifact>,
-  /**
-   * The artifacts that have been generated in the conversation.
-   * Schema version 2
-   */
-  artifact_v2: Annotation<ArtifactV2>,
+  artifact: Annotation<ArtifactV3>,
   /**
    * The next node to route to. Only used for the first routing node/conditional edge.
    */
@@ -61,10 +61,6 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * Whether or not to fix bugs in the code artifact.
    */
   fixBugs: Annotation<boolean | undefined>,
-  /**
-   * The name of the last node that was executed.
-   */
-  lastNodeName: Annotation<string | undefined>,
   /**
    * The ID of the custom quick action to use.
    */
