@@ -63,6 +63,7 @@ export interface ArtifactRendererProps {
       | undefined
     >
   >;
+  isStreaming: boolean;
 }
 
 interface SelectionBox {
@@ -385,6 +386,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <div className="h-[85%]" ref={markdownRef}>
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
+                isStreaming={props.isStreaming}
                 artifact_v2={props.artifact_v2}
                 setArtifact_v2={props.setArtifact_v2}
                 setSelectedBlocks={props.setSelectedBlocks}

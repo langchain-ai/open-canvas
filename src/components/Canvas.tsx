@@ -47,6 +47,7 @@ export function Canvas(props: CanvasProps) {
     setSelectedBlocks,
     artifact_v2,
     setArtifact_v2,
+    isStreaming,
   } = useGraph({
     userId: props.user.id,
     threadId,
@@ -179,6 +180,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            isStreaming={isStreaming}
             artifact_v2={artifact_v2}
             setArtifact_v2={setArtifact_v2}
             setSelectedBlocks={setSelectedBlocks}
