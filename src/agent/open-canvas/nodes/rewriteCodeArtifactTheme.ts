@@ -1,20 +1,28 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
+import { createModelInstance } from "@/agent/lib";
+import { ArtifactContent } from "../../../types";
 import {
   ADD_COMMENTS_TO_CODE_ARTIFACT_PROMPT,
   ADD_LOGS_TO_CODE_ARTIFACT_PROMPT,
   FIX_BUGS_CODE_ARTIFACT_PROMPT,
   PORT_LANGUAGE_CODE_ARTIFACT_PROMPT,
 } from "../prompts";
-import { ArtifactContent } from "../../../types";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 export const rewriteCodeArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  console.log("LOG rewriteCodeArtifactTheme state: ", state);
+  console.log("LOG generating model instance with model: ", state.model);
+  const model = createModelInstance(state.model ?? "gpt-4o-mini", {
     temperature: 0.5,
   });
+  console.log("LOG model generated: ");
+  const smallModel = model;
+
+  // const smallModel = new ChatOpenAI({
+  //   model: "gpt-4o-mini",
+  //   temperature: 0.5,
+  // });
 
   let currentArtifactContent: ArtifactContent | undefined;
   if (state.artifact) {

@@ -1,11 +1,11 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { NEW_ARTIFACT_PROMPT } from "../prompts";
-import { Reflections } from "../../../types";
-import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
+import { createModelInstance } from "@/agent/lib";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+import { Reflections } from "../../../types";
+import { ensureStoreInConfig, formatReflections } from "../../utils";
+import { NEW_ARTIFACT_PROMPT } from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -14,10 +14,13 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const smallModel = createModelInstance(state.model ?? "gpt-4o-mini", {
     temperature: 0.5,
   });
+  // const smallModel = new ChatOpenAI({
+  //   model: "gpt-4o-mini",
+  //   temperature: 0.5,
+  // });
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;

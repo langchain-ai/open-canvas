@@ -1,3 +1,4 @@
+import { AllModelNames } from "@/agent/lib";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { Thread } from "@langchain/langgraph-sdk";
@@ -9,6 +10,7 @@ export function useThread(userId: string) {
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
+  const [model, setModel] = useState<AllModelNames>("gpt-4o-mini");
 
   useEffect(() => {
     if (threadId || typeof window === "undefined") return;
@@ -83,7 +85,11 @@ export function useThread(userId: string) {
 
   const getThreadById = async (id: string) => {
     const client = createClient();
-    return await client.threads.get(id);
+    const thread = await client.threads.get(id);
+    if (thread.metadata && thread.metadata.model) {
+      setModel(thread.metadata.model as AllModelNames);
+    }
+    return thread;
   };
 
   const deleteThread = async (id: string, clearMessages: () => void) => {
@@ -118,5 +124,7 @@ export function useThread(userId: string) {
     deleteThread,
     getThreadById,
     setThreadId,
+    model,
+    setModel,
   };
 }

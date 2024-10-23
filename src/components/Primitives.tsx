@@ -10,21 +10,23 @@ import {
 } from "@assistant-ui/react";
 import { useEffect, useState, type FC } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowDownIcon,
-  SendHorizontalIcon,
-  SquarePen,
-  Code,
-  NotebookPen,
-} from "lucide-react";
+import { AllModelNames } from "@/agent/lib";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { Thread } from "@langchain/langgraph-sdk";
-import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
-import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import { Thread } from "@langchain/langgraph-sdk";
+import {
+  ArrowDownIcon,
+  Code,
+  NotebookPen,
+  SendHorizontalIcon,
+  SquarePen,
+} from "lucide-react";
+import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
+import ModelSelector from "./ModelSelector";
+import { ProgrammingLanguageList } from "./ProgrammingLanguageList";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
 
@@ -43,6 +45,8 @@ export interface MyThreadProps {
   userThreads: Thread[];
   switchSelectedThread: (thread: Thread) => void;
   deleteThread: (id: string) => Promise<void>;
+  model: AllModelNames;
+  setModel: React.Dispatch<React.SetStateAction<AllModelNames>>;
 }
 
 interface QuickStartButtonsProps {
@@ -168,7 +172,12 @@ export const MyThread: FC<MyThreadProps> = (props: MyThreadProps) => {
       </ThreadPrimitive.Viewport>
       <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
         <MyThreadScrollToBottom />
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl space-y-2">
+          <ModelSelector
+            model={props.model}
+            setModel={props.setModel}
+            createThread={props.createThread}
+          />
           <MyComposer />
         </div>
       </div>

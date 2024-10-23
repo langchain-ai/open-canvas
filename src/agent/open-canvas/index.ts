@@ -1,14 +1,14 @@
 import { END, Send, START, StateGraph } from "@langchain/langgraph";
-import { OpenCanvasGraphAnnotation } from "./state";
-import { generatePath } from "./nodes/generatePath";
-import { generateFollowup } from "./nodes/generateFollowup";
 import { generateArtifact } from "./nodes/generateArtifact";
+import { generateFollowup } from "./nodes/generateFollowup";
+import { generatePath } from "./nodes/generatePath";
+import { reflectNode } from "./nodes/reflect";
+import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteArtifact } from "./nodes/rewriteArtifact";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
-import { updateArtifact } from "./nodes/updateArtifact";
-import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
-import { reflectNode } from "./nodes/reflect";
+import { updateArtifact } from "./nodes/updateArtifact";
+import { OpenCanvasGraphAnnotation } from "./state";
 
 const defaultInputs: Omit<
   typeof OpenCanvasGraphAnnotation.State,
@@ -25,6 +25,7 @@ const defaultInputs: Omit<
   fixBugs: undefined,
   portLanguage: undefined,
   lastNodeName: undefined,
+  model: undefined,
 };
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { AllModelNames } from "@/agent/lib";
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +29,8 @@ export function Canvas(props: CanvasProps) {
     isUserThreadsLoading,
     getUserThreads,
     setThreadId,
+    model,
+    setModel,
   } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +44,12 @@ export function Canvas(props: CanvasProps) {
     clearState,
     switchSelectedThread,
     artifact,
-  } = useGraph({ threadId, assistantId, userId: props.user.id });
+  } = useGraph({
+    threadId,
+    assistantId,
+    userId: props.user.id,
+    model: model,
+  });
   const {
     reflections,
     deleteReflections,
@@ -114,6 +122,7 @@ export function Canvas(props: CanvasProps) {
             // Chat should only be "started" if there are messages present
             if ((thread.values as Record<string, any>)?.messages?.length) {
               setChatStarted(true);
+              setModel(thread?.metadata?.model as AllModelNames);
             } else {
               setChatStarted(false);
             }
@@ -130,6 +139,8 @@ export function Canvas(props: CanvasProps) {
           setChatStarted={setChatStarted}
           showNewThreadButton={chatStarted}
           handleQuickStart={handleQuickStart}
+          setModel={setModel}
+          model={model}
         />
       </div>
       {chatStarted && (
