@@ -23,7 +23,7 @@ export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  createThread: () => Promise<Thread>;
+  createThread: (modelName: AllModelNames) => Promise<Thread>;
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
   showNewThreadButton: boolean;
   handleQuickStart: (

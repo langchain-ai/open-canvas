@@ -49,10 +49,12 @@ export function Canvas(props: CanvasProps) {
     isLoadingReflections,
   } = useStore(assistantId);
 
-  const createThreadWithChatStarted = async () => {
+  const createThreadWithChatStarted = async (
+    modelName: AllModelNames = model
+  ) => {
     setChatStarted(false);
     clearState();
-    return createThread();
+    return createThread(modelName);
   };
 
   const handleQuickStart = (
