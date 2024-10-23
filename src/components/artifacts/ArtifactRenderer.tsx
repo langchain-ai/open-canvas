@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { CircleArrowUp, Eye, PencilLine, Forward } from "lucide-react";
+import { CircleArrowUp, Eye, PencilLine, Forward, Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
@@ -304,6 +304,27 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             reflections={props.reflections}
             handleDeleteReflections={props.handleDeleteReflections}
           />
+        </div>
+        <div className="pr-4 pt-3">
+          <TooltipIconButton
+            tooltip="Copy"
+            variant="ghost"
+            className="transition-colors w-fit h-fit p-2"
+            delayDuration={400}
+            onClick={() => {
+              navigator.clipboard
+                .writeText(currentArtifactContent.content)
+                .then(() => {
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "The canvas content has been copied.",
+                    duration: 5000,
+                  });
+                });
+            }}
+          >
+            <Copy className="w-6 h-6 text-gray-600" />
+          </TooltipIconButton>
         </div>
         {currentArtifactContent.type === "text" ? (
           <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
