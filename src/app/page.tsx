@@ -6,7 +6,11 @@ import { CanvasLoading } from "@/components/CanvasLoading";
 import { useUser } from "@/hooks/useUser";
 
 export default function Home() {
-  const { user } = useUser();
+  const { user, getUser } = useUser();
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;

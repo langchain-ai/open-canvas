@@ -8,8 +8,9 @@ import {
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
-import { ArtifactContent } from "../../../types";
 import { formatArtifactContentWithTemplate } from "../../utils";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@/types";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
@@ -17,9 +18,14 @@ import { formatArtifactContentWithTemplate } from "../../utils";
 export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State
 ) => {
-  if (state.highlighted) {
+  if (state.highlightedCode) {
     return {
       next: "updateArtifact",
+    };
+  }
+  if (state.highlightedText) {
+    return {
+      next: "updateHighlightedText",
     };
   }
 
@@ -45,11 +51,17 @@ export const generatePath = async (
     };
   }
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact.currentContentIndex
-    );
+  if (state.customQuickActionId) {
+    return {
+      next: "customAction",
+    };
+  }
+
+  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
+  try {
+    currentArtifactContent = getArtifactContent(state.artifact);
+  } catch (_) {
+    // no-op
   }
 
   // Call model and decide if we need to respond to a users query, or generate a new artifact
@@ -63,7 +75,7 @@ export const generatePath = async (
       "{recentMessages}",
       state.messages
         .slice(-3)
-        .map((message) => `${message._getType()}: ${message.content}`)
+        .map((message) => `${message.getType()}: ${message.content}`)
         .join("\n\n")
     )
     .replace(

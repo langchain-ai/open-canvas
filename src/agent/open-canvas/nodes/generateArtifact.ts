@@ -1,9 +1,13 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { NEW_ARTIFACT_PROMPT } from "../prompts";
-import { Reflections } from "../../../types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ArtifactV3,
+  Reflections,
+} from "../../../types";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 import { ensureStoreInConfig, formatReflections } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
@@ -45,7 +49,7 @@ export const generateArtifact = async (
               "The language of the artifact to generate. " +
                 " If generating code, it should be the programming language. " +
                 "For programming languages, ensure it's one of the following" +
-                "'javascript' | 'typescript' | 'cpp' | 'java' | 'php' | 'python' | 'html' | 'other'"
+                "'javascript' | 'typescript' | 'cpp' | 'java' | 'php' | 'python' | 'html' | 'sql' | 'other'"
             ),
           artifact: z
             .string()
@@ -74,22 +78,31 @@ export const generateArtifact = async (
     { runName: "generate_artifact" }
   );
 
-  const newArtifact = {
-    id: response.id ?? uuidv4(),
-    currentContentIndex: 1,
-    contents: [
-      {
-        index: 1,
-        content: response.tool_calls?.[0]?.args.artifact,
-        title: response.tool_calls?.[0]?.args.title,
-        type: response.tool_calls?.[0]?.args.type,
-        language: response.tool_calls?.[0]?.args.language,
-      },
-    ],
+  const newArtifactType = response.tool_calls?.[0]?.args.type;
+  let newArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3;
+  if (newArtifactType === "code") {
+    newArtifactContent = {
+      index: 1,
+      type: "code",
+      title: response.tool_calls?.[0]?.args.title,
+      code: response.tool_calls?.[0]?.args.artifact,
+      language: response.tool_calls?.[0]?.args.language,
+    };
+  } else {
+    newArtifactContent = {
+      index: 1,
+      type: "text",
+      title: response.tool_calls?.[0]?.args.title,
+      fullMarkdown: response.tool_calls?.[0]?.args.artifact,
+    };
+  }
+
+  const newArtifact: ArtifactV3 = {
+    currentIndex: 1,
+    contents: [newArtifactContent],
   };
 
   return {
-    lastNodeName: "generateArtifact",
     artifact: newArtifact,
   };
 };

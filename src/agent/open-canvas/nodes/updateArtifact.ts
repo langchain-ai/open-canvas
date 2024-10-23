@@ -2,8 +2,10 @@ import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "../../utils";
-import { ArtifactContent, Reflections } from "../../../types";
+import { ArtifactCodeV3, ArtifactV3, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 
 /**
  * Update an existing artifact based on the user's query.
@@ -29,39 +31,34 @@ export const updateArtifact = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact.currentContentIndex
-    );
-  }
-  if (!currentArtifactContent) {
-    throw new Error("No artifact content found.");
+  const currentArtifactContent = getArtifactContent(state.artifact);
+  if (!isArtifactCodeContent(currentArtifactContent)) {
+    throw new Error("Current artifact content is not markdown");
   }
 
-  if (!state.highlighted) {
+  if (!state.highlightedCode) {
     throw new Error(
       "Can not partially regenerate an artifact without a highlight"
     );
   }
 
   // Highlighted text is present, so we need to update the highlighted text.
-  const start = Math.max(0, state.highlighted.startCharIndex - 500);
+  const start = Math.max(0, state.highlightedCode.startCharIndex - 500);
   const end = Math.min(
-    currentArtifactContent.content.length,
-    state.highlighted.endCharIndex + 500
+    currentArtifactContent.code.length,
+    state.highlightedCode.endCharIndex + 500
   );
 
-  const beforeHighlight = currentArtifactContent.content.slice(
+  const beforeHighlight = currentArtifactContent.code.slice(
     start,
-    state.highlighted.startCharIndex
+    state.highlightedCode.startCharIndex
   ) as string;
-  const highlightedText = currentArtifactContent.content.slice(
-    state.highlighted.startCharIndex,
-    state.highlighted.endCharIndex
+  const highlightedText = currentArtifactContent.code.slice(
+    state.highlightedCode.startCharIndex,
+    state.highlightedCode.endCharIndex
   ) as string;
-  const afterHighlight = currentArtifactContent.content.slice(
-    state.highlighted.endCharIndex,
+  const afterHighlight = currentArtifactContent.code.slice(
+    state.highlightedCode.endCharIndex,
     end
   ) as string;
 
@@ -74,7 +71,7 @@ export const updateArtifact = async (
     .replace("{reflections}", memoriesAsString);
 
   const recentHumanMessage = state.messages.findLast(
-    (message) => message._getType() === "human"
+    (message) => message.getType() === "human"
   );
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
@@ -84,26 +81,25 @@ export const updateArtifact = async (
     recentHumanMessage,
   ]);
 
-  const entireTextBefore = currentArtifactContent.content.slice(
+  const entireTextBefore = currentArtifactContent.code.slice(
     0,
-    state.highlighted.startCharIndex
+    state.highlightedCode.startCharIndex
   );
-  const entireTextAfter = currentArtifactContent.content.slice(
-    state.highlighted.endCharIndex
+  const entireTextAfter = currentArtifactContent.code.slice(
+    state.highlightedCode.endCharIndex
   );
   const entireUpdatedContent = `${entireTextBefore}${updatedArtifact.content}${entireTextAfter}`;
 
-  const newArtifact = {
+  const newArtifactContent: ArtifactCodeV3 = {
+    ...currentArtifactContent,
+    index: state.artifact.contents.length + 1,
+    code: entireUpdatedContent,
+  };
+
+  const newArtifact: ArtifactV3 = {
     ...state.artifact,
-    currentContentIndex: state.artifact.contents.length + 1,
-    contents: [
-      ...state.artifact.contents,
-      {
-        ...currentArtifactContent,
-        index: state.artifact.contents.length + 1,
-        content: entireUpdatedContent,
-      },
-    ],
+    currentIndex: state.artifact.contents.length + 1,
+    contents: [...state.artifact.contents, newArtifactContent],
   };
 
   return {

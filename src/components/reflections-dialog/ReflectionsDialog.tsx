@@ -96,13 +96,13 @@ export function ReflectionsDialog(props: ReflectionsProps) {
             </div>
           ) : reflections?.content || reflections?.styleRules ? (
             <>
-              {reflections.styleRules && (
+              {reflections?.styleRules && (
                 <div className="mb-6">
                   <h2 className="text-xl font-light text-gray-800 sticky top-0 bg-white py-2 mb-3">
                     Style Reflections:
                   </h2>
                   <ul className="list-disc list-inside space-y-2">
-                    {reflections.styleRules.map((rule, index) => (
+                    {reflections.styleRules?.map((rule, index) => (
                       <li key={index} className="text-gray-600 font-light">
                         {rule}
                       </li>
@@ -110,7 +110,7 @@ export function ReflectionsDialog(props: ReflectionsProps) {
                   </ul>
                 </div>
               )}
-              {reflections.content && (
+              {reflections?.content && (
                 <div className="mb-6">
                   <h2 className="text-xl font-light text-gray-800 sticky top-0 bg-white py-2 mb-3">
                     Content Reflections:

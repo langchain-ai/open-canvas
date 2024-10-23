@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircleCode, Code, ScrollText, Bug, BookA } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@/types";
