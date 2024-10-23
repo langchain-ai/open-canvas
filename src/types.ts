@@ -34,6 +34,38 @@ export interface ArtifactContent {
   language: string;
 }
 
+export interface ArtifactV2 {
+  id: string;
+  contents: (ArtifactMarkdownContent | ArtifactCodeContent)[];
+  currentContentIndex: number;
+}
+
+export interface MarkdownBlock {
+  id: string;
+  content: Array<{
+    id: string;
+    type: string;
+    text: string;
+    styles: Record<string, any>;
+  }>;
+  type: string;
+}
+
+export interface ArtifactMarkdownContent {
+  index: number;
+  blocks: MarkdownBlock[];
+  title: string;
+  type: "text";
+}
+
+export interface ArtifactCodeContent {
+  index: number;
+  code: string;
+  title: string;
+  type: "code";
+  language: ProgrammingLanguageOptions;
+}
+
 export type ArtifactType = "code" | "text";
 
 export interface Highlight {
@@ -62,7 +94,50 @@ export type ProgrammingLanguageOptions =
   | "php"
   | "python"
   | "html"
-  | "sql";
+  | "sql"
+  | "other";
+
+export const PROGRAMMING_LANGUAGES: Array<{
+  language: ProgrammingLanguageOptions;
+  label: string;
+}> = [
+  {
+    language: "typescript",
+    label: "TypeScript",
+  },
+  {
+    language: "javascript",
+    label: "JavaScript",
+  },
+  {
+    language: "cpp",
+    label: "C++",
+  },
+  {
+    language: "java",
+    label: "Java",
+  },
+  {
+    language: "php",
+    label: "PHP",
+  },
+  {
+    language: "python",
+    label: "Python",
+  },
+  {
+    language: "html",
+    label: "HTML",
+  },
+  {
+    language: "sql",
+    label: "SQL",
+  },
+  {
+    language: "other",
+    label: "Other",
+  },
+];
 
 export type ArtifactLengthOptions = "shortest" | "short" | "long" | "longest";
 
@@ -111,3 +186,56 @@ export interface CustomQuickAction {
    */
   includeRecentHistory: boolean;
 }
+
+export interface ArtifactV3 {
+  currentIndex: number;
+  contents: (ArtifactMarkdownV3 | ArtifactCodeV3)[];
+}
+
+export interface ArtifactMarkdownV3 {
+  index: number;
+  type: "text";
+  title: string;
+  fullMarkdown: string;
+}
+
+export interface ArtifactCodeV3 {
+  index: number;
+  type: "code";
+  title: string;
+  language: ProgrammingLanguageOptions;
+  code: string;
+}
+
+export interface CodeHighlight {
+  startCharIndex: number;
+  endCharIndex: number;
+}
+
+export interface TextHighlight {
+  fullMarkdown: string;
+  markdownBlock: string;
+  selectedText: string;
+}
+
+export interface ArtifactToolResponse {
+  artifact?: string;
+  title?: string;
+  language?: string;
+  type?: string;
+}
+
+export interface NewMarkdownToolResponse {
+  blocks: Array<{ block_id?: string; new_text?: string }>;
+}
+
+export type RewriteArtifactMetaToolResponse =
+  | {
+      type: "text";
+      title?: string;
+    }
+  | {
+      type: "code";
+      title: string;
+      programmingLanguage: string;
+    };

@@ -1,4 +1,4 @@
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { ProgrammingLanguageOptions } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageList } from "@/components/ProgrammingLangDropdown";

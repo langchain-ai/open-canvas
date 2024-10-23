@@ -3,15 +3,19 @@
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { useToast } from "@/hooks/use-toast";
-import { useGraph } from "@/hooks/useGraph";
+import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useStore } from "@/hooks/useStore";
 import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
-import { Artifact, ProgrammingLanguageOptions } from "@/types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ArtifactV3,
+  ProgrammingLanguageOptions,
+} from "@/types";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 
 interface CanvasProps {
   user: User;
@@ -44,7 +48,13 @@ export function Canvas(props: CanvasProps) {
     clearState,
     switchSelectedThread,
     artifact,
-  } = useGraph({ threadId, assistantId, userId: props.user.id });
+    setSelectedBlocks,
+    isStreaming,
+  } = useGraph({
+    userId: props.user.id,
+    threadId,
+    assistantId,
+  });
   const {
     reflections,
     deleteReflections,
@@ -108,22 +118,27 @@ export function Canvas(props: CanvasProps) {
     }
     setChatStarted(true);
 
-    const artifactId = uuidv4();
-    const newArtifact: Artifact = {
-      id: artifactId,
-      currentContentIndex: 1,
-      contents: [
-        {
-          index: 1,
-          title: `Quickstart ${type}`,
-          content:
-            type === "code"
-              ? getLanguageTemplate(language ?? "javascript")
-              : "# Hello world",
-          type,
-          language: language ?? "english",
-        },
-      ],
+    let artifactContent: ArtifactCodeV3 | ArtifactMarkdownV3;
+    if (type === "code" && language) {
+      artifactContent = {
+        index: 1,
+        type: "code",
+        title: `Quick start ${type}`,
+        code: getLanguageTemplate(language),
+        language,
+      };
+    } else {
+      artifactContent = {
+        index: 1,
+        type: "text",
+        title: `Quick start ${type}`,
+        fullMarkdown: "",
+      };
+    }
+
+    const newArtifact: ArtifactV3 = {
+      currentIndex: 1,
+      contents: [artifactContent],
     };
     // Do not worry about existing items in state. This should
     // never occur since this action can only be invoked if
@@ -172,6 +187,9 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            artifact={artifact}
+            setArtifact={setArtifact}
+            setSelectedBlocks={setSelectedBlocks}
             assistantId={assistantId}
             handleGetReflections={getReflections}
             handleDeleteReflections={deleteReflections}
@@ -183,8 +201,8 @@ export function Canvas(props: CanvasProps) {
             setSelectedArtifact={setSelectedArtifact}
             messages={messages}
             setMessages={setMessages}
-            artifact={artifact}
             streamMessage={streamMessage}
+            isStreaming={isStreaming}
           />
         </div>
       )}

@@ -91,7 +91,7 @@ export function useThread(userId: string) {
     ) {
       // No values = no activity. Can keep.
       setThreadId(threadIdCookie);
-      return;
+      return threadIdCookie;
     } else {
       // Current thread has activity. Create a new thread.
       await createThread(id);

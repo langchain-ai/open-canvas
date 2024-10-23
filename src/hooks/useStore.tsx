@@ -38,8 +38,22 @@ export function useStore(assistantId: string | undefined) {
       return;
     }
 
+    let styleRules = item.value.styleRules ?? [];
+    let content = item.value.content ?? [];
+    try {
+      styleRules =
+        typeof styleRules === "string" ? JSON.parse(styleRules) : styleRules;
+      content = typeof content === "string" ? JSON.parse(content) : content;
+    } catch (e) {
+      console.error("Failed to parse reflections", e);
+      styleRules = [];
+      content = [];
+    }
+
     setReflections({
       ...item.value,
+      styleRules,
+      content,
       updatedAt: new Date(item.updatedAt),
       assistantId,
     });

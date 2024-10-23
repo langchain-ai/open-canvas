@@ -1,4 +1,4 @@
-import { ArtifactContent } from "@/types";
+import { ArtifactCodeV3 } from "@/types";
 import { MutableRefObject } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -12,7 +12,7 @@ import { html } from "@codemirror/lang-html";
 import { sql } from "@codemirror/lang-sql";
 
 export interface CodeRendererProps {
-  artifactContent: ArtifactContent;
+  artifactContent: ArtifactCodeV3;
   setArtifactContent: (index: number, content: string) => void;
   editorRef: MutableRefObject<EditorView | null>;
 }
@@ -37,7 +37,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     extensions = [sql()];
   }
 
-  if (!props.artifactContent?.content) {
+  if (!props.artifactContent.code) {
     return null;
   }
 
@@ -45,7 +45,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     <CodeMirror
       editable={true}
       className={`w-full min-h-full ${styles.codeMirrorCustom}`}
-      value={cleanContent(props.artifactContent.content)}
+      value={cleanContent(props.artifactContent.code)}
       height="800px"
       extensions={extensions}
       onChange={(c) => props.setArtifactContent(props.artifactContent.index, c)}

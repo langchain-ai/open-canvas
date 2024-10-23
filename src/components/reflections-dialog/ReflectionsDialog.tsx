@@ -102,7 +102,7 @@ export function ReflectionsDialog(props: ReflectionsProps) {
                     Style Reflections:
                   </h2>
                   <ul className="list-disc list-inside space-y-2">
-                    {reflections.styleRules.map((rule, index) => (
+                    {reflections.styleRules?.map((rule, index) => (
                       <li key={index} className="text-gray-600 font-light">
                         {rule}
                       </li>

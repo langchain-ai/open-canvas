@@ -1,4 +1,4 @@
-import { Artifact } from "../../types";
+import { ArtifactV3 } from "../../types";
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
 export const ReflectionGraphAnnotation = Annotation.Root({
@@ -9,7 +9,7 @@ export const ReflectionGraphAnnotation = Annotation.Root({
   /**
    * The artifact to reflect on.
    */
-  artifact: Annotation<Artifact | undefined>,
+  artifact: Annotation<ArtifactV3 | undefined>,
 });
 
 export type ReflectionGraphReturnType = Partial<

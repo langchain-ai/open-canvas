@@ -10,9 +10,20 @@ import {
   formatArtifactContent,
   formatReflections,
 } from "../../utils";
-import { ArtifactContent, Reflections } from "../../../types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ArtifactV3,
+  PROGRAMMING_LANGUAGES,
+  Reflections,
+} from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import {
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+} from "@/lib/artifact_content_types";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -35,15 +46,7 @@ export const rewriteArtifact = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact.currentContentIndex
-    );
-  }
-  if (!currentArtifactContent) {
-    throw new Error("No current artifact content found");
-  }
+  const currentArtifactContent = getArtifactContent(state.artifact);
 
   const optionallyUpdateArtifactMetaPrompt =
     GET_TITLE_TYPE_REWRITE_ARTIFACT.replace(
@@ -52,7 +55,7 @@ export const rewriteArtifact = async (
     ).replace("{reflections}", memoriesAsString);
 
   const recentHumanMessage = state.messages.findLast(
-    (message) => message._getType() === "human"
+    (message) => message.getType() === "human"
   );
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
@@ -68,17 +71,12 @@ export const rewriteArtifact = async (
         "The new title to give the artifact. ONLY update this if the user is making a request which changes the subject/topic of the artifact."
       ),
     programmingLanguage: z
-      .enum([
-        "javascript",
-        "typescript",
-        "cpp",
-        "java",
-        "php",
-        "python",
-        "html",
-        "sql",
-        "other",
-      ])
+      .enum(
+        PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
+          string,
+          ...string[],
+        ]
+      )
       .optional()
       .describe(
         "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
@@ -100,12 +98,16 @@ export const rewriteArtifact = async (
       recentHumanMessage,
     ]);
   const artifactMetaToolCall = optionallyUpdateArtifactResponse.tool_calls?.[0];
-  const isNewType =
-    artifactMetaToolCall?.args?.type !== currentArtifactContent.type;
+  const artifactType = artifactMetaToolCall?.args?.type;
+  const isNewType = artifactType !== currentArtifactContent.type;
+
+  const artifactContent = isArtifactMarkdownContent(currentArtifactContent)
+    ? currentArtifactContent.fullMarkdown
+    : currentArtifactContent.code;
 
   const formattedPrompt = UPDATE_ENTIRE_ARTIFACT_PROMPT.replace(
     "{artifactContent}",
-    currentArtifactContent.content
+    artifactContent
   )
     .replace("{reflections}", memoriesAsString)
     .replace(
@@ -116,7 +118,8 @@ export const rewriteArtifact = async (
             artifactMetaToolCall?.args?.type
           ).replace(
             "{artifactTitle}",
-            artifactMetaToolCall?.args?.title
+            artifactMetaToolCall?.args?.title &&
+              artifactMetaToolCall?.args?.type !== "code"
               ? `And its title is (do NOT include this in your response):\n${artifactMetaToolCall?.args?.title}`
               : ""
           )
@@ -127,27 +130,37 @@ export const rewriteArtifact = async (
     runName: "rewrite_artifact_model_call",
   });
 
-  const newArtifactContent = await smallModelWithConfig.invoke([
+  const newArtifactResponse = await smallModelWithConfig.invoke([
     { role: "system", content: formattedPrompt },
     recentHumanMessage,
   ]);
 
-  const newArtifact = {
+  let newArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3;
+  if (artifactType === "code") {
+    newArtifactContent = {
+      index: state.artifact.contents.length + 1,
+      type: "code",
+      title: artifactMetaToolCall?.args?.title || currentArtifactContent.title,
+      language:
+        artifactMetaToolCall?.args?.programmingLanguage ||
+        (isArtifactCodeContent(currentArtifactContent)
+          ? currentArtifactContent.language
+          : "other"),
+      code: newArtifactResponse.content as string,
+    };
+  } else {
+    newArtifactContent = {
+      index: state.artifact.contents.length + 1,
+      type: "text",
+      title: artifactMetaToolCall?.args?.title || currentArtifactContent.title,
+      fullMarkdown: newArtifactResponse.content as string,
+    };
+  }
+
+  const newArtifact: ArtifactV3 = {
     ...state.artifact,
-    currentContentIndex: state.artifact.contents.length + 1,
-    contents: [
-      ...state.artifact.contents,
-      {
-        index: state.artifact.contents.length + 1,
-        content: newArtifactContent.content as string,
-        type: artifactMetaToolCall?.args?.type as "text" | "code",
-        title:
-          artifactMetaToolCall?.args?.title || currentArtifactContent.title,
-        language:
-          artifactMetaToolCall?.args?.programmingLanguage ||
-          currentArtifactContent.language,
-      },
-    ],
+    currentIndex: state.artifact.contents.length + 1,
+    contents: [...state.artifact.contents, newArtifactContent],
   };
 
   return {

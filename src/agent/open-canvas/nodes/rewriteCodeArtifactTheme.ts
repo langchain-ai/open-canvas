@@ -6,7 +6,9 @@ import {
   FIX_BUGS_CODE_ARTIFACT_PROMPT,
   PORT_LANGUAGE_CODE_ARTIFACT_PROMPT,
 } from "../prompts";
-import { ArtifactContent } from "../../../types";
+import { ArtifactCodeV3, ArtifactV3 } from "../../../types";
+import { isArtifactCodeContent } from "@/lib/artifact_content_types";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
 
 export const rewriteCodeArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State
@@ -16,14 +18,9 @@ export const rewriteCodeArtifactTheme = async (
     temperature: 0.5,
   });
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact.currentContentIndex
-    );
-  }
-  if (!currentArtifactContent) {
-    throw new Error("No artifact content found.");
+  const currentArtifactContent = getArtifactContent(state.artifact);
+  if (!isArtifactCodeContent(currentArtifactContent)) {
+    throw new Error("Current artifact content is not code");
   }
 
   let formattedPrompt = "";
@@ -72,26 +69,26 @@ export const rewriteCodeArtifactTheme = async (
   // Insert the code into the artifact placeholder in the prompt
   formattedPrompt = formattedPrompt.replace(
     "{artifactContent}",
-    currentArtifactContent.content
+    currentArtifactContent.code
   );
 
   const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);
 
-  const newArtifact = {
+  const newArtifactContent: ArtifactCodeV3 = {
+    index: state.artifact.contents.length + 1,
+    type: "code",
+    title: currentArtifactContent.title,
+    // Ensure the new artifact's language is updated, if necessary
+    language: state.portLanguage || currentArtifactContent.language,
+    code: newArtifactValues.content as string,
+  };
+
+  const newArtifact: ArtifactV3 = {
     ...state.artifact,
-    currentContentIndex: state.artifact.contents.length + 1,
-    contents: [
-      ...state.artifact.contents,
-      {
-        ...currentArtifactContent,
-        index: state.artifact.contents.length + 1,
-        content: newArtifactValues.content as string,
-        // Ensure the new artifact's language is updated, if necessary
-        language: state.portLanguage || currentArtifactContent.language,
-      },
-    ],
+    currentIndex: state.artifact.contents.length + 1,
+    contents: [...state.artifact.contents, newArtifactContent],
   };
 
   return {
