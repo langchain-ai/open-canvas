@@ -11,7 +11,6 @@ import {
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
   ArtifactToolResponse,
-  NewMarkdownToolResponse,
   RewriteArtifactMetaToolResponse,
   TextHighlight,
 } from "@/types";
@@ -145,9 +144,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
       // For generating an artifact
       let generateArtifactToolCallStr = "";
-
-      // For updating an artifact based on highlighted text
-      let markdownHighlightUpdateToolCallStr = "";
 
       // For updating code artifacts
       // All the text up until the startCharIndex

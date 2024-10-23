@@ -1,11 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
-import {
-  ArtifactMarkdownV3,
-  ArtifactV3,
-  MarkdownBlock,
-  TextHighlight,
-} from "@/types";
+import { ArtifactMarkdownV3, ArtifactV3, TextHighlight } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
   getDefaultReactSlashMenuItems,
@@ -31,9 +26,6 @@ export interface TextRendererProps {
 
 export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
-  const [canEdit, setCanEdit] = useState(true);
-  const [shouldUpdateArtifactBlocks, setShouldUpdateArtifactBlocks] =
-    useState(false);
   const currentContentIndex = useRef<number | undefined>(undefined);
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
@@ -163,7 +155,9 @@ export function TextRenderer(props: TextRendererProps) {
         onCompositionStartCapture={() => (isComposition.current = true)}
         onCompositionEndCapture={() => (isComposition.current = false)}
         onChange={onChange}
-        editable={!props.isStreaming || props.isEditing || canEdit}
+        editable={
+          !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
+        }
         editor={editor}
       >
         <SuggestionMenuController

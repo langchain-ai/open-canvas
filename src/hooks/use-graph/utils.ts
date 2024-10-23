@@ -4,8 +4,6 @@ import {
   ArtifactMarkdownV3,
   ArtifactToolResponse,
   ArtifactV3,
-  MarkdownBlock,
-  NewMarkdownToolResponse,
   ProgrammingLanguageOptions,
   RewriteArtifactMetaToolResponse,
 } from "@/types";
@@ -77,117 +75,6 @@ export const createNewGeneratedArtifactFromTool = (
       title: artifactTool.title || "",
       code: artifactTool.artifact || "",
       language: artifactTool.language as ProgrammingLanguageOptions,
-    };
-  }
-};
-
-export const updateHighlightedMarkdownold = (
-  prevArtifact: ArtifactV3 | undefined,
-  newMdToolCall: NewMarkdownToolResponse,
-  newArtifactIndex: number | undefined,
-  prevArtifactIndex: number | undefined
-): ArtifactV3 | undefined => {
-  if (!prevArtifact) {
-    console.error("No artifact found when re-setting artifacts v2");
-    return prevArtifact;
-  }
-
-  if (newArtifactIndex === undefined) {
-    console.error(
-      "No new artifact index found when updating highlighted markdown state"
-    );
-    return prevArtifact;
-  }
-
-  if (prevArtifactIndex === undefined) {
-    console.error(
-      "No prev artifact index found when updating highlighted markdown state"
-    );
-    return prevArtifact;
-  }
-
-  if (prevArtifact.contents.some((c) => c.index === newArtifactIndex)) {
-    // Update has already started
-    return {
-      ...prevArtifact,
-      currentIndex: newArtifactIndex,
-      contents: prevArtifact.contents.map((c) => {
-        if (c.index === newArtifactIndex && c.type === "text") {
-          const newMarkdownBlocks: MarkdownBlock[] | undefined = c.blocks?.map(
-            (block) => {
-              const generatedBlock = newMdToolCall.blocks.find(
-                (b) => b.block_id === block.id
-              );
-              if (!generatedBlock) {
-                return block;
-              }
-              return {
-                ...block,
-                content: [
-                  {
-                    ...block.content[0],
-                    text: generatedBlock.new_text ?? block.content[0].text,
-                  },
-                ],
-              };
-            }
-          );
-
-          if (!newMarkdownBlocks || !newMarkdownBlocks.length) {
-            console.error(
-              "No new markdown blocks found when updating highlighted markdown state"
-            );
-            return c;
-          }
-          return {
-            ...c,
-            blocks: newMarkdownBlocks,
-          };
-        }
-        return c;
-      }),
-    };
-  } else {
-    // update has not yet started
-    const prevBlocks = prevArtifact.contents.find(
-      (c) => c.index === prevArtifactIndex && c.type === "text"
-    ) as ArtifactMarkdownV3 | undefined;
-    if (!prevBlocks) {
-      throw new Error(
-        "No prev blocks found when updating highlighted markdown state for the first time"
-      );
-    }
-    const newMarkdownBlocks: MarkdownBlock[] | undefined =
-      prevBlocks.blocks?.map((block) => {
-        const generatedBlock = newMdToolCall.blocks.find(
-          (b) => b.block_id === block.id
-        );
-        if (!generatedBlock) {
-          return block;
-        }
-        return {
-          ...block,
-          content: [
-            {
-              ...block.content[0],
-              text: generatedBlock.new_text ?? block.content[0].text,
-            },
-          ],
-        };
-      });
-    return {
-      ...prevArtifact,
-      currentIndex: newArtifactIndex,
-      contents: [
-        ...prevArtifact.contents,
-        {
-          ...prevBlocks,
-          index: newArtifactIndex,
-          blocks: newMarkdownBlocks,
-          fullMarkdown: prevBlocks.fullMarkdown,
-          type: "text",
-        },
-      ],
     };
   }
 };

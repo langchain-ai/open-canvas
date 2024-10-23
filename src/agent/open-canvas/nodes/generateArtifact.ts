@@ -94,7 +94,6 @@ export const generateArtifact = async (
       type: "text",
       title: response.tool_calls?.[0]?.args.title,
       fullMarkdown: response.tool_calls?.[0]?.args.artifact,
-      blocks: undefined,
     };
   }
 

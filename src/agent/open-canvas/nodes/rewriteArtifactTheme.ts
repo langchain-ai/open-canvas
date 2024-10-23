@@ -112,7 +112,6 @@ export const rewriteArtifactTheme = async (
       ...state.artifact.contents,
       {
         ...currentArtifactContent,
-        blocks: undefined,
         index: state.artifact.contents.length + 1,
         fullMarkdown: newArtifactValues.content as string,
       },

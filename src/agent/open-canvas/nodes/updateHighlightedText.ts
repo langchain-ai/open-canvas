@@ -1,7 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { ArtifactMarkdownV3, MarkdownBlock } from "../../../types";
-import { z } from "zod";
+import { ArtifactMarkdownV3 } from "../../../types";
 import { getArtifactContent } from "@/hooks/use-graph/utils";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
 
