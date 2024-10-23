@@ -1,18 +1,20 @@
+import { AllModelNames } from "@/agent/lib";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
+import { getCookie, setCookie } from "@/lib/cookies";
+import { Thread } from "@langchain/langgraph-sdk";
 import { useEffect, useState } from "react";
 import { createClient } from "./utils";
-import { getCookie, setCookie } from "@/lib/cookies";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
-import { Thread } from "@langchain/langgraph-sdk";
 
 export function useThread(userId: string) {
   const [assistantId, setAssistantId] = useState<string>();
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
+  const [model, setModel] = useState<AllModelNames>("gpt-4o-mini");
 
   useEffect(() => {
     if (threadId || typeof window === "undefined") return;
-    createThread();
+    createThread(model);
   }, []);
 
   useEffect(() => {
@@ -25,12 +27,16 @@ export function useThread(userId: string) {
     getUserThreads(userId);
   }, [userId]);
 
-  const createThread = async (clearState?: () => void) => {
+  const createThread = async (
+    modelName: AllModelNames,
+    clearState?: () => void
+  ) => {
     clearState?.();
     const client = createClient();
     const thread = await client.threads.create({
       metadata: {
         supabase_user_id: userId,
+        model: modelName,
       },
     });
     setThreadId(thread.thread_id);
@@ -79,7 +85,11 @@ export function useThread(userId: string) {
 
   const getThreadById = async (id: string) => {
     const client = createClient();
-    return await client.threads.get(id);
+    const thread = await client.threads.get(id);
+    if (thread.metadata && thread.metadata.model) {
+      setModel(thread.metadata.model as AllModelNames);
+    }
+    return thread;
   };
 
   const deleteThread = async (id: string, clearMessages: () => void) => {
@@ -96,7 +106,7 @@ export function useThread(userId: string) {
       clearMessages();
       // Create a new thread. Use .then to avoid blocking the UI.
       // Once completed re-fetch threads to update UI.
-      createThread().then(async () => {
+      createThread(model).then(async () => {
         await getUserThreads(userId);
       });
     }
@@ -114,5 +124,7 @@ export function useThread(userId: string) {
     deleteThread,
     getThreadById,
     setThreadId,
+    model,
+    setModel,
   };
 }

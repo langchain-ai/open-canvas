@@ -1,12 +1,13 @@
+import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 import {
   Artifact,
   ArtifactLengthOptions,
+  Highlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
-  Highlight,
 } from "../../types";
-import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
+import { AllModelNames } from "../lib";
 
 export const OpenCanvasGraphAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -59,6 +60,11 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * The name of the last node that was executed.
    */
   lastNodeName: Annotation<string | undefined>,
+
+  /**
+   * The model selected by user.
+   */
+  model: Annotation<AllModelNames | undefined>,
 });
 
 export type OpenCanvasGraphReturnType = Partial<

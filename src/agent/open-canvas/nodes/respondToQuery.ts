@@ -1,13 +1,13 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
+import { createModelInstance } from "@/agent/lib";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { ArtifactContent, Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatArtifactContentWithTemplate,
   formatReflections,
 } from "../../utils";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ArtifactContent, Reflections } from "../../../types";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 /**
  * Generate responses to questions. Does not generate artifacts.
@@ -16,10 +16,14 @@ export const respondToQuery = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const smallModel = createModelInstance(state.model ?? "gpt-4o-mini", {
     temperature: 0.5,
   });
+
+  // const smallModel = new ChatOpenAI({
+  //   model: "gpt-4o-mini",
+  //   temperature: 0.5,
+  // });
 
   const prompt = `You are an AI assistant tasked with responding to the users question.
   
