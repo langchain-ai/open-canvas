@@ -60,6 +60,7 @@ export interface ArtifactRendererProps {
   updateRenderedArtifactRequired: boolean;
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
   isArtifactSaved: boolean;
+  firstTokenReceived: boolean;
 }
 
 interface SelectionBox {
@@ -218,9 +219,21 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             // Calculate start and end indexes
             let startIndex = 0;
             let endIndex = 0;
-            const currentArtifactContent = props.artifact
-              ? getArtifactContent(props.artifact)
-              : undefined;
+            let currentArtifactContent:
+              | ArtifactCodeV3
+              | ArtifactMarkdownV3
+              | undefined = undefined;
+            try {
+              currentArtifactContent = props.artifact
+                ? getArtifactContent(props.artifact)
+                : undefined;
+            } catch (_) {
+              console.error(
+                "[ArtifactRenderer.tsx L229]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n",
+                props.artifact
+              );
+              // no-op
+            }
 
             if (
               !currentArtifactContent ||
@@ -265,10 +278,19 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     }
   }, [isSelectionActive, selectionBox]);
 
-  if (!props.artifact) {
+  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined =
+    undefined;
+  try {
+    currentArtifactContent = getArtifactContent(props.artifact);
+  } catch (_) {
+    // console.error("[ArtifactRenderer.tsx L280]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n", props.artifact)
+    // no-op
+  }
+
+  if (!props.artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }
-  const currentArtifactContent = getArtifactContent(props.artifact);
+
   const isBackwardsDisabled =
     props.artifact.contents.length === 1 ||
     currentArtifactContent.index === 1 ||
@@ -398,6 +420,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           <div className="h-full" ref={markdownRef}>
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
+                firstTokenReceived={props.firstTokenReceived}
                 isInputVisible={isInputVisible}
                 isStreaming={props.isStreaming}
                 artifact={props.artifact}
@@ -414,6 +437,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             ) : null}
             {currentArtifactContent.type === "code" ? (
               <CodeRenderer
+                firstTokenReceived={props.firstTokenReceived}
                 setArtifactContent={props.setArtifactContent}
                 editorRef={editorRef}
                 artifactContent={currentArtifactContent}

@@ -15,6 +15,7 @@ export interface CodeRendererProps {
   artifactContent: ArtifactCodeV3;
   setArtifactContent: (index: number, content: string) => void;
   editorRef: MutableRefObject<EditorView | null>;
+  firstTokenReceived: boolean;
 }
 
 export function CodeRenderer(props: Readonly<CodeRendererProps>) {

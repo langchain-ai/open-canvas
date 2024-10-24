@@ -53,6 +53,7 @@ export function Canvas(props: CanvasProps) {
     updateRenderedArtifactRequired,
     setUpdateRenderedArtifactRequired,
     isArtifactSaved,
+    firstTokenReceived,
   } = useGraph({
     userId: props.user.id,
     threadId,
@@ -190,6 +191,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            firstTokenReceived={firstTokenReceived}
             isArtifactSaved={isArtifactSaved}
             artifact={artifact}
             setArtifact={setArtifact}

@@ -23,6 +23,7 @@ export interface TextRendererProps {
   isInputVisible: boolean;
   updateRenderedArtifactRequired: boolean;
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+  firstTokenReceived: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
@@ -152,6 +153,21 @@ export function TextRenderer(props: TextRendererProps) {
 
   return (
     <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5">
+      <style jsx global>{`
+        .pulse-text .bn-block-group {
+          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.3;
+          }
+        }
+      `}</style>
       <BlockNoteView
         theme="light"
         formattingToolbar={false}
@@ -163,6 +179,9 @@ export function TextRenderer(props: TextRendererProps) {
           !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
         }
         editor={editor}
+        className={
+          props.isStreaming && !props.firstTokenReceived ? "pulse-text" : ""
+        }
       >
         <SuggestionMenuController
           getItems={async () =>

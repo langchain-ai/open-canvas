@@ -93,6 +93,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
   ).current;
   const [isArtifactSaved, setIsArtifactSaved] = useState(true);
   const [threadSwitched, setThreadSwitched] = useState(false);
+  const [firstTokenReceived, setFirstTokenReceived] = useState(false);
 
   // Very hacky way of ensuring updateState is not called when a thread is switched
   useEffect(() => {
@@ -153,9 +154,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const clearState = () => {
     setMessages([]);
     setArtifact(undefined);
+    setFirstTokenReceived(true);
   };
 
   const streamMessageV2 = async (params: GraphInput) => {
+    setFirstTokenReceived(false);
+
     if (!useGraphInput.threadId) {
       toast({
         title: "Error",
@@ -203,9 +207,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
         : undefined;
 
       // The new index of the artifact that is generating
-      let newArtifactIndex = artifact
-        ? artifact.contents.length + 1
-        : undefined;
+      let newArtifactIndex = 1;
+      if (artifact) {
+        newArtifactIndex = artifact.contents.length + 1;
+      }
 
       // The metadata generated when re-writing an artifact
       let rewriteArtifactMeta: RewriteArtifactMetaToolResponse | undefined =
@@ -282,6 +287,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 (newArtifactText.type === "text" ||
                   (newArtifactText.type === "code" && newArtifactText.language))
               ) {
+                setFirstTokenReceived(true);
                 setArtifact(() => {
                   const content =
                     createNewGeneratedArtifactFromTool(newArtifactText);
@@ -363,14 +369,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 updatedArtifactStartContent += partialUpdatedContent;
               }
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 return updateHighlightedMarkdown(
                   prev ?? artifact,
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
-                  newArtifactIndex ?? artifact.contents.length + 1,
+                  newArtifactIndex,
                   prevCurrentContent,
                   isFirstUpdate
                 );
@@ -395,10 +399,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   description: "No highlighted text found",
                 });
                 return;
-              }
-
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
               }
 
               const partialUpdatedContent = chunk.data.data.chunk?.[1]?.content;
@@ -434,7 +434,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 // One of the above have been populated, now we can update the start to contain the new text.
                 updatedArtifactStartContent += partialUpdatedContent;
               }
-
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 const content = removeCodeBlockFormatting(
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`
@@ -442,7 +442,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 return updateHighlightedCode(
                   prev ?? artifact,
                   content,
-                  newArtifactIndex ?? artifact.contents.length + 1,
+                  newArtifactIndex,
                   prevCurrentContent,
                   isFirstUpdate
                 );
@@ -485,10 +485,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   "other";
               }
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
-
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 let content = newArtifactContent;
                 if (!rewriteArtifactMeta) {
@@ -506,8 +503,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   newArtifactContent: content,
                   rewriteArtifactMeta: rewriteArtifactMeta,
                   prevCurrentContent,
-                  newArtifactIndex:
-                    newArtifactIndex || artifact.contents.length + 1,
+                  newArtifactIndex,
                   isFirstUpdate,
                   artifactLanguage,
                 });
@@ -549,10 +545,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   ? prevCurrentContent.language
                   : "other");
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
-
               const langGraphNode = chunk.data.metadata.langgraph_node;
               let artifactType: ArtifactType;
               if (langGraphNode === "rewriteCodeArtifactTheme") {
@@ -562,7 +554,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               } else {
                 artifactType = prevCurrentContent.type;
               }
-
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 let content = newArtifactContent;
                 if (artifactType === "code") {
@@ -578,8 +570,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                     programmingLanguage: artifactLanguage,
                   },
                   prevCurrentContent,
-                  newArtifactIndex:
-                    newArtifactIndex || artifact.contents.length + 1,
+                  newArtifactIndex,
                   isFirstUpdate,
                   artifactLanguage,
                 });
@@ -796,5 +787,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
     updateRenderedArtifactRequired,
     setUpdateRenderedArtifactRequired,
     isArtifactSaved,
+    firstTokenReceived,
   };
 }
