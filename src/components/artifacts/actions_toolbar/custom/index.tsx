@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface CustomQuickActionsProps {
   assistantId: string | undefined;
+  userId: string;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
 
@@ -74,7 +75,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     getCustomQuickActions,
     deleteCustomQuickAction,
     isLoadingQuickActions,
-  } = useStore(props.assistantId);
+  } = useStore({ assistantId: props.assistantId, userId: props.userId });
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -191,6 +192,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
+        userId={props.userId}
         allQuickActions={customQuickActions || []}
         isEditing={isEditing}
         open={dialogOpen}

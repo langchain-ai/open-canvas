@@ -41,6 +41,7 @@ import { getArtifactContent } from "@/hooks/use-graph/utils";
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 
 export interface ArtifactRendererProps {
+  userId: string;
   assistantId: string | undefined;
   artifact: ArtifactV3 | undefined;
   setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
@@ -504,6 +505,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         )}
       </div>
       <CustomQuickActions
+        userId={props.userId}
         assistantId={props.assistantId}
         streamMessage={props.streamMessage}
       />

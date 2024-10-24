@@ -27,6 +27,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CustomQuickAction } from "@/types";
 
 interface NewCustomQuickActionDialogProps {
+  userId: string;
   isEditing: boolean;
   allQuickActions: CustomQuickAction[];
   customQuickAction?: CustomQuickAction;
@@ -65,9 +66,10 @@ export function NewCustomQuickActionDialog(
   props: NewCustomQuickActionDialogProps
 ) {
   const { toast } = useToast();
-  const { createCustomQuickAction, editCustomQuickAction } = useStore(
-    props.assistantId
-  );
+  const { createCustomQuickAction, editCustomQuickAction } = useStore({
+    assistantId: props.assistantId,
+    userId: props.userId,
+  });
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");

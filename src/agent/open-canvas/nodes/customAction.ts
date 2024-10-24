@@ -42,10 +42,14 @@ export const customAction = async (
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
+  const userId = config.configurable?.supabase_user_id;
   if (!assistantId) {
     throw new Error("`assistant_id` not found in configurable");
   }
-  const customActionsNamespace = ["custom_actions", assistantId];
+  if (!userId) {
+    throw new Error("`supabase_user_id` not found in configurable");
+  }
+  const customActionsNamespace = ["custom_actions", userId];
   const actionsKey = "actions";
 
   const memoryNamespace = ["memories", assistantId];

@@ -64,7 +64,10 @@ export function Canvas(props: CanvasProps) {
     deleteReflections,
     getReflections,
     isLoadingReflections,
-  } = useStore(assistantId);
+  } = useStore({
+    assistantId,
+    userId: props.user.id,
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -191,6 +194,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            userId={props.user.id}
             firstTokenReceived={firstTokenReceived}
             isArtifactSaved={isArtifactSaved}
             artifact={artifact}
