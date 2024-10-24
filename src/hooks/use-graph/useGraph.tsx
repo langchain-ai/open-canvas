@@ -92,6 +92,18 @@ export function useGraph(useGraphInput: UseGraphInput) {
     )
   ).current;
   const [isArtifactSaved, setIsArtifactSaved] = useState(true);
+  const [threadSwitched, setThreadSwitched] = useState(false);
+
+  // Very hacky way of ensuring updateState is not called when a thread is switched
+  useEffect(() => {
+    if (threadSwitched) {
+      const timer = setTimeout(() => {
+        setThreadSwitched(false);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [threadSwitched]);
 
   useEffect(() => {
     return () => {
@@ -100,10 +112,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
   }, [debouncedAPIUpdate]);
 
   useEffect(() => {
-    if (!artifact) return;
-    if (!useGraphInput.threadId) return;
-    if (isStreaming) return;
-    if (updateRenderedArtifactRequired) return;
+    if (!artifact || !useGraphInput.threadId) return;
+    if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
     const currentIndex = artifact.currentIndex;
     const currentContent = artifact.contents.find(
       (c) => c.index === currentIndex
@@ -670,6 +680,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
   const setSelectedArtifact = (index: number) => {
     setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
+
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -689,6 +701,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
   const setArtifactContent = (index: number, content: string) => {
     setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
+
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -720,6 +734,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setThreadId: (id: string) => void
   ) => {
     setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
     setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
 
