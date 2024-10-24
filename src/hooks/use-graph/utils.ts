@@ -97,7 +97,6 @@ const validateNewArtifactIndex = (
       return prevArtifactContentsLength;
     }
   }
-
   // If the guess is correct, return the guess
   return newArtifactIndexGuess;
 };

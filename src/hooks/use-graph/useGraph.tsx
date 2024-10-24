@@ -383,6 +383,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 updatedArtifactStartContent += partialUpdatedContent;
               }
 
+              const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
                 return updateHighlightedMarkdown(
@@ -390,7 +391,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
                   newArtifactIndex,
                   prevCurrentContent,
-                  isFirstUpdate
+                  firstUpdateCopy
                 );
               });
 
@@ -448,6 +449,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 // One of the above have been populated, now we can update the start to contain the new text.
                 updatedArtifactStartContent += partialUpdatedContent;
               }
+              const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
                 const content = removeCodeBlockFormatting(
@@ -458,7 +460,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   content,
                   newArtifactIndex,
                   prevCurrentContent,
-                  isFirstUpdate
+                  firstUpdateCopy
                 );
               });
 
@@ -499,6 +501,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   "other";
               }
 
+              const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
                 let content = newArtifactContent;
@@ -518,7 +521,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   rewriteArtifactMeta: rewriteArtifactMeta,
                   prevCurrentContent,
                   newArtifactIndex,
-                  isFirstUpdate,
+                  isFirstUpdate: firstUpdateCopy,
                   artifactLanguage,
                 });
               });
@@ -568,6 +571,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               } else {
                 artifactType = prevCurrentContent.type;
               }
+              const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
                 let content = newArtifactContent;
@@ -585,7 +589,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   },
                   prevCurrentContent,
                   newArtifactIndex,
-                  isFirstUpdate,
+                  isFirstUpdate: firstUpdateCopy,
                   artifactLanguage,
                 });
               });
