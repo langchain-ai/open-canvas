@@ -10,6 +10,11 @@ Open Canvas is an open source web application for collaborating with agents to b
 2. **Built in memory**: Open Canvas ships out of the box with a [reflection agent](https://langchain-ai.github.io/langgraphjs/tutorials/reflection/reflection/) which stores style rules and user insights in a [shared memory store](https://langchain-ai.github.io/langgraphjs/concepts/memory/). This allows Open Canvas to remember facts about you across sessions.
 3. **Start from existing documents**: Open Canvas allows users to start with a blank text, or code editor in the language of their choice, allowing you to start the session with your existing content, instead of being forced to start with a chat interaction. We believe this is an ideal UX because many times you will already have some content to start with, and want to iterate on-top of it.
 
+## Features
+- **Artifact versioning**: Like in Google Docs, you can go back in time and see previous versions of your artifact.
+- **Custom quick actions**: Users can define their own quick actions which will persist across sessions. These are prompts that can be applied to artifacts.
+- **Live markdown renderer**: Markdown text is rendered live and is editable at the same time.
+
 ## How to use
 
 You can use our deployed version for free by visiting [opencanvas.langchain.com](https://opencanvas.langchain.com/)
@@ -77,12 +82,9 @@ You can also watch a short (2 min) video walkthrough on how to setup Open Canvas
 
 Below is a list of features we'd like to add to Open Canvas in the near future:
 
-- **Artifact versioning**: Like in Google Docs, you should be able to go back in time and see previous versions of your artifact.
-- **Render React in the editor**: Ideally, if you have Open Canvas generate React (or HTML) code, we should be able to render it live in the editor.
-- **Custom quick actions**: Allow users to define their own quick actions which will persist across sessions.
+- **Render React in the editor**: Ideally, if you have Open Canvas generate React (or HTML) code, we should be able to render it live in the editor. **Edit**: This is in the planning stage now!
 - **Multiple assistants**: Users should be able to create multiple assistants, each having their own memory store.
 - **Give assistants custom 'tools'**: Once we've implemented `RemoteGraph` in LangGraph.js, users should be able to give assistants access to call their own graphs as tools. This means you could customize your assistant to have access to current events, your own personal knowledge graph, etc.
-- **Live markdown renderer**: Markdown code should be rendered live and be editable at the same time.
 
 Do you have a feature request? Please [open an issue](https://github.com/langchain-ai/open-canvas/issues/new)!
 
