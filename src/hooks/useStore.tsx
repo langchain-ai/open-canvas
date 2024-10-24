@@ -2,7 +2,12 @@ import { CustomQuickAction, Reflections } from "@/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
 
-export function useStore(assistantId: string | undefined) {
+interface UseStoreInput {
+  assistantId: string | undefined;
+  userId: string;
+}
+
+export function useStore(useStoreInput: UseStoreInput) {
   const { toast } = useToast();
   const [isLoadingReflections, setIsLoadingReflections] = useState(false);
   const [isLoadingQuickActions, setIsLoadingQuickActions] = useState(false);
@@ -11,14 +16,14 @@ export function useStore(assistantId: string | undefined) {
   >();
 
   const getReflections = async (): Promise<void> => {
-    if (!assistantId) {
+    if (!useStoreInput.assistantId) {
       return;
     }
     setIsLoadingReflections(true);
     const res = await fetch("/api/store/get", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["memories", assistantId],
+        namespace: ["memories", useStoreInput.assistantId],
         key: "reflection",
       }),
       headers: {
@@ -55,19 +60,19 @@ export function useStore(assistantId: string | undefined) {
       styleRules,
       content,
       updatedAt: new Date(item.updatedAt),
-      assistantId,
+      assistantId: useStoreInput.assistantId,
     });
     setIsLoadingReflections(false);
   };
 
   const deleteReflections = async (): Promise<boolean> => {
-    if (!assistantId) {
+    if (!useStoreInput.assistantId) {
       return false;
     }
     const res = await fetch("/api/store/delete", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["memories", assistantId],
+        namespace: ["memories", useStoreInput.assistantId],
         key: "reflection",
       }),
       headers: {
@@ -94,15 +99,12 @@ export function useStore(assistantId: string | undefined) {
   const getCustomQuickActions = async (): Promise<
     CustomQuickAction[] | undefined
   > => {
-    if (!assistantId) {
-      return undefined;
-    }
     setIsLoadingQuickActions(true);
     try {
       const res = await fetch("/api/store/get", {
         method: "POST",
         body: JSON.stringify({
-          namespace: ["custom_actions", assistantId],
+          namespace: ["custom_actions", useStoreInput.userId],
           key: "actions",
         }),
         headers: {
@@ -128,9 +130,6 @@ export function useStore(assistantId: string | undefined) {
     id: string,
     rest: CustomQuickAction[]
   ): Promise<boolean> => {
-    if (!assistantId) {
-      return false;
-    }
     const valuesWithoutDeleted = rest.reduce<Record<string, CustomQuickAction>>(
       (acc, action) => {
         if (action.id !== id) {
@@ -144,7 +143,7 @@ export function useStore(assistantId: string | undefined) {
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["custom_actions", assistantId],
+        namespace: ["custom_actions", useStoreInput.userId],
         key: "actions",
         value: valuesWithoutDeleted,
       }),
@@ -165,9 +164,6 @@ export function useStore(assistantId: string | undefined) {
     newAction: CustomQuickAction,
     rest: CustomQuickAction[]
   ): Promise<boolean> => {
-    if (!assistantId) {
-      return false;
-    }
     const newValue = rest.reduce<Record<string, CustomQuickAction>>(
       (acc, action) => {
         acc[action.id] = action;
@@ -180,7 +176,7 @@ export function useStore(assistantId: string | undefined) {
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["custom_actions", assistantId],
+        namespace: ["custom_actions", useStoreInput.userId],
         key: "actions",
         value: newValue,
       }),
@@ -201,9 +197,6 @@ export function useStore(assistantId: string | undefined) {
     editedAction: CustomQuickAction,
     rest: CustomQuickAction[]
   ): Promise<boolean> => {
-    if (!assistantId) {
-      return false;
-    }
     const newValue = rest.reduce<Record<string, CustomQuickAction>>(
       (acc, action) => {
         acc[action.id] = action;
@@ -216,7 +209,7 @@ export function useStore(assistantId: string | undefined) {
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["custom_actions", assistantId],
+        namespace: ["custom_actions", useStoreInput.userId],
         key: "actions",
         value: newValue,
       }),
