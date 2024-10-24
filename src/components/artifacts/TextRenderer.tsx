@@ -145,11 +145,9 @@ export function TextRenderer(props: TextRendererProps) {
   };
 
   return (
-    <div
-      className="w-full h-full mt-2 flex flex-col border-[1px] border-gray-200 rounded-2xl overflow-hidden py-5"
-      data-color-mode="light"
-    >
+    <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5">
       <BlockNoteView
+        theme="light"
         formattingToolbar={false}
         slashMenu={false}
         onCompositionStartCapture={() => (isComposition.current = true)}
