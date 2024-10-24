@@ -150,6 +150,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     artifactToUpdate: ArtifactV3,
     threadId: string
   ) => {
+    if (isStreaming) return;
     try {
       const client = createClient();
       await client.threads.updateState(threadId, {
