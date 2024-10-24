@@ -5,6 +5,7 @@ import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
   ArtifactV3,
+  PROGRAMMING_LANGUAGES,
   Reflections,
 } from "../../../types";
 import { z } from "zod";
@@ -44,12 +45,23 @@ export const generateArtifact = async (
             .enum(["code", "text"])
             .describe("The content type of the artifact generated."),
           language: z
-            .string()
+            .enum(
+              PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
+                string,
+                ...string[],
+              ]
+            )
+            .optional()
             .describe(
-              "The language of the artifact to generate. " +
-                " If generating code, it should be the programming language. " +
-                "For programming languages, ensure it's one of the following" +
-                "'javascript' | 'typescript' | 'cpp' | 'java' | 'php' | 'python' | 'html' | 'sql' | 'other'"
+              "The language/programming language of the artifact generated.\n" +
+                "If generating code, it should be one of the options, or 'other'.\n" +
+                "If not generating code, the language should ALWAYS be 'other'."
+            ),
+          isValidReact: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether or not the generated code is valid React code. Only populate this field if generating code."
             ),
           artifact: z
             .string()
