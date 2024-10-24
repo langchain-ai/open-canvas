@@ -13,13 +13,11 @@ Open Canvas is an open source web application for collaborating with agents to b
 ## Features
 
 - **Memory**: Open Canvas has a built in memory system which will automatically generate reflections and memories on you, and your chat history. These are then included in subsequent chat interactions to give a more personalized experience.
+- **Custom quick actions**: Custom quick actions allow you to define your own prompts which are tied to your user, and persist across sessions. These then can be easily invoked through a single click, and apply to the artifact you're currently viewing.
+- **Pre-built quick actions**: There are also a series of pre-built quick actions for common writing and coding tasks that are always available.
 - **Artifact versioning**: All artifacts have a "version" tied to them, allowing you to travel back in time and see previous versions of your artifact.
 - **Code, Markdown, or both**: The artifact view allows for viewing and editing both code, and markdown. You can even have chats which generate code, and markdown artifacts, and switch between them.
-- **Custom quick actions**: Custom quick actions allow you to define your own prompts which are tied to your user, and persist across sessions. These then can be easily invoked 
-
-- **Artifact versioning**: Like in Google Docs, you can go back in time and see previous versions of your artifact.
-- **Custom quick actions**: Users can define their own quick actions which will persist across sessions. These are prompts that can be applied to artifacts.
-- **Live markdown renderer**: Markdown text is rendered live and is editable at the same time.
+- **Live markdown rendering & editing**: Open Canvas's markdown editor allows you to view the rendered markdown while you're editing, without having to toggle back and fourth.
 
 ## How to use
 
