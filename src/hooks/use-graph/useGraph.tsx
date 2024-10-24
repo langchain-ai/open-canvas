@@ -6,7 +6,6 @@ import {
   ArtifactLengthOptions,
   ArtifactType,
   ArtifactV3,
-  Highlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,

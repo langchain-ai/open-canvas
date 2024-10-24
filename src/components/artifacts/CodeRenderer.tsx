@@ -42,15 +42,15 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     extensions = [sql()];
   }
 
-  if (!props.artifactContent.code) {
-    return null;
-  }
-
   useEffect(() => {
     if (props.updateRenderedArtifactRequired) {
       props.setUpdateRenderedArtifactRequired(false);
     }
   }, [props.updateRenderedArtifactRequired]);
+
+  if (!props.artifactContent.code) {
+    return null;
+  }
 
   const isEditable = !props.isStreaming;
 
