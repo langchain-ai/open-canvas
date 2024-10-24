@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-
 import { ArtifactMarkdownV3, ArtifactV3, TextHighlight } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
@@ -22,11 +21,13 @@ export interface TextRendererProps {
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   isStreaming: boolean;
   isInputVisible: boolean;
+  updateRenderedArtifactRequired: boolean;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
 }
 
 export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
-  const currentContentIndex = useRef<number | undefined>(undefined);
+
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
 
@@ -77,7 +78,11 @@ export function TextRenderer(props: TextRendererProps) {
     if (!props.artifact) {
       return;
     }
-    if (!props.isStreaming && !manuallyUpdatingArtifact) {
+    if (
+      !props.isStreaming &&
+      !manuallyUpdatingArtifact &&
+      !props.updateRenderedArtifactRequired
+    ) {
       console.error("Can only update via useEffect when streaming");
       return;
     }
@@ -95,23 +100,24 @@ export function TextRenderer(props: TextRendererProps) {
           currentContent.fullMarkdown
         );
         editor.replaceBlocks(editor.document, markdownAsBlocks);
+        props.setUpdateRenderedArtifactRequired(false);
+        setManuallyUpdatingArtifact(false);
       })();
     } finally {
       setManuallyUpdatingArtifact(false);
+      props.setUpdateRenderedArtifactRequired(false);
     }
-  }, [props.artifact]);
-
-  useEffect(() => {
-    if (props.isStreaming) return;
-    if (props.artifact?.currentIndex === currentContentIndex.current) return;
-    currentContentIndex.current = props.artifact?.currentIndex;
-    setManuallyUpdatingArtifact(true);
-  }, [props.artifact?.currentIndex]);
+  }, [props.artifact, props.updateRenderedArtifactRequired]);
 
   const isComposition = useRef(false);
 
   const onChange = async () => {
-    if (props.isStreaming || manuallyUpdatingArtifact) return;
+    if (
+      props.isStreaming ||
+      manuallyUpdatingArtifact ||
+      props.updateRenderedArtifactRequired
+    )
+      return;
 
     const fullMarkdown = await editor.blocksToMarkdownLossy(editor.document);
     props.setArtifact((prev) => {

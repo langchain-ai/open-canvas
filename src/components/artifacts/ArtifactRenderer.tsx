@@ -12,7 +12,13 @@ import {
 } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { CircleArrowUp, Forward, Copy } from "lucide-react";
+import {
+  CircleArrowUp,
+  Forward,
+  Copy,
+  LoaderCircle,
+  CircleCheck,
+} from "lucide-react";
 import {
   Dispatch,
   FormEvent,
@@ -51,6 +57,9 @@ export interface ArtifactRendererProps {
   handleGetReflections: () => Promise<void>;
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   isStreaming: boolean;
+  updateRenderedArtifactRequired: boolean;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+  isArtifactSaved: boolean;
 }
 
 interface SelectionBox {
@@ -261,18 +270,34 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }
   const currentArtifactContent = getArtifactContent(props.artifact);
   const isBackwardsDisabled =
-    props.artifact.contents.length === 1 || currentArtifactContent.index === 1;
+    props.artifact.contents.length === 1 ||
+    currentArtifactContent.index === 1 ||
+    props.isStreaming;
   const isForwardDisabled =
     props.artifact.contents.length === 1 ||
-    currentArtifactContent.index === props.artifact.contents.length;
+    currentArtifactContent.index === props.artifact.contents.length ||
+    props.isStreaming;
 
   return (
     <div className="relative w-full h-full max-h-screen overflow-auto">
       <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-row items-center justify-start">
-          <h1 className="text-xl font-medium text-gray-600 ml-[6px]">
+        <div className="pl-[6px] pt-3 flex flex-col items-start justify-start ml-[6px] gap-1">
+          <h1 className="text-xl font-medium text-gray-600 ">
             {currentArtifactContent.title}
           </h1>
+          <span className="mt-auto">
+            {props.isArtifactSaved ? (
+              <span className="flex items-center justify-start gap-1 text-gray-400">
+                <p className="text-xs font-light">Saved</p>
+                <CircleCheck className="w-[10px] h-[10px]" />
+              </span>
+            ) : (
+              <span className="flex items-center justify-start gap-1 text-gray-400">
+                <p className="text-xs font-light">Saving</p>
+                <LoaderCircle className="animate-spin w-[10px] h-[10px]" />
+              </span>
+            )}
+          </span>
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-3 text-gray-600">
           <TooltipIconButton
@@ -281,9 +306,11 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             variant="ghost"
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
-            onClick={() =>
-              props.setSelectedArtifact(currentArtifactContent.index - 1)
-            }
+            onClick={() => {
+              if (!isBackwardsDisabled) {
+                props.setSelectedArtifact(currentArtifactContent.index - 1);
+              }
+            }}
             disabled={isBackwardsDisabled}
           >
             <Forward
@@ -302,9 +329,11 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             side="right"
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
-            onClick={() =>
-              props.setSelectedArtifact(currentArtifactContent.index + 1)
-            }
+            onClick={() => {
+              if (!isForwardDisabled) {
+                props.setSelectedArtifact(currentArtifactContent.index + 1);
+              }
+            }}
             disabled={isForwardDisabled}
           >
             <Forward
@@ -375,6 +404,12 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                 setArtifact={props.setArtifact}
                 setSelectedBlocks={props.setSelectedBlocks}
                 isEditing={props.isEditing}
+                updateRenderedArtifactRequired={
+                  props.updateRenderedArtifactRequired
+                }
+                setUpdateRenderedArtifactRequired={
+                  props.setUpdateRenderedArtifactRequired
+                }
               />
             ) : null}
             {currentArtifactContent.type === "code" ? (

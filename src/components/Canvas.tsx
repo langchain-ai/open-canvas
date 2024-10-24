@@ -50,6 +50,9 @@ export function Canvas(props: CanvasProps) {
     artifact,
     setSelectedBlocks,
     isStreaming,
+    updateRenderedArtifactRequired,
+    setUpdateRenderedArtifactRequired,
+    isArtifactSaved,
   } = useGraph({
     userId: props.user.id,
     threadId,
@@ -187,6 +190,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
+            isArtifactSaved={isArtifactSaved}
             artifact={artifact}
             setArtifact={setArtifact}
             setSelectedBlocks={setSelectedBlocks}
@@ -203,6 +207,10 @@ export function Canvas(props: CanvasProps) {
             setMessages={setMessages}
             streamMessage={streamMessage}
             isStreaming={isStreaming}
+            updateRenderedArtifactRequired={updateRenderedArtifactRequired}
+            setUpdateRenderedArtifactRequired={
+              setUpdateRenderedArtifactRequired
+            }
           />
         </div>
       )}

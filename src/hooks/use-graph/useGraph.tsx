@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "../use-toast";
 import { createClient } from "../utils";
@@ -33,6 +33,7 @@ import {
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
 } from "@/lib/artifact_content_types";
+import { debounce } from "lodash";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
@@ -80,6 +81,64 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const [artifact, setArtifact] = useState<ArtifactV3>();
   const [selectedBlocks, setSelectedBlocks] = useState<TextHighlight>();
   const [isStreaming, setIsStreaming] = useState(false);
+  const [updateRenderedArtifactRequired, setUpdateRenderedArtifactRequired] =
+    useState(false);
+  const lastSavedArtifact = useRef<ArtifactV3 | undefined>(undefined);
+  const debouncedAPIUpdate = useRef(
+    debounce(
+      (artifact: ArtifactV3, threadId: string) =>
+        updateArtifact(artifact, threadId),
+      5000
+    )
+  ).current;
+  const [isArtifactSaved, setIsArtifactSaved] = useState(true);
+
+  useEffect(() => {
+    return () => {
+      debouncedAPIUpdate.cancel();
+    };
+  }, [debouncedAPIUpdate]);
+
+  useEffect(() => {
+    if (!artifact) return;
+    if (!useGraphInput.threadId) return;
+    if (isStreaming) return;
+    if (updateRenderedArtifactRequired) return;
+    const currentIndex = artifact.currentIndex;
+    const currentContent = artifact.contents.find(
+      (c) => c.index === currentIndex
+    );
+    if (!currentContent) return;
+
+    if (
+      !lastSavedArtifact.current ||
+      lastSavedArtifact.current.contents !== artifact.contents
+    ) {
+      setIsArtifactSaved(false);
+      // This means the artifact in state does not match the last saved artifact
+      // We need to update
+      debouncedAPIUpdate(artifact, useGraphInput.threadId);
+    }
+  }, [artifact]);
+
+  const updateArtifact = async (
+    artifactToUpdate: ArtifactV3,
+    threadId: string
+  ) => {
+    try {
+      const client = createClient();
+      await client.threads.updateState(threadId, {
+        values: {
+          artifact: artifactToUpdate,
+        },
+      });
+      setIsArtifactSaved(true);
+      lastSavedArtifact.current = artifactToUpdate;
+    } catch (e) {
+      console.error("Failed to update artifact", e);
+      console.error("Artifact:", artifactToUpdate);
+    }
+  };
 
   const clearState = () => {
     setMessages([]);
@@ -539,6 +598,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           );
         }
       }
+      lastSavedArtifact.current = artifact;
     } catch (e) {
       console.error("Failed to stream message", e);
     } finally {
@@ -609,7 +669,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
   };
 
   const setSelectedArtifact = (index: number) => {
-    setIsStreaming(true);
+    setUpdateRenderedArtifactRequired(true);
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -618,16 +678,17 @@ export function useGraph(useGraphInput: UseGraphInput) {
         });
         return prev;
       }
-      return {
+      const newArtifact = {
         ...prev,
         currentIndex: index,
       };
+      lastSavedArtifact.current = newArtifact;
+      return newArtifact;
     });
-    setIsStreaming(false);
   };
 
   const setArtifactContent = (index: number, content: string) => {
-    setIsStreaming(true);
+    setUpdateRenderedArtifactRequired(true);
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -636,7 +697,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
         });
         return prev;
       }
-      return {
+      const newArtifact = {
         ...prev,
         currentIndex: index,
         contents: prev.contents.map((a) => {
@@ -649,17 +710,19 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return a;
         }),
       };
+      lastSavedArtifact.current = newArtifact;
+      return newArtifact;
     });
-    setIsStreaming(false);
   };
 
   const switchSelectedThread = (
     thread: Thread,
     setThreadId: (id: string) => void
   ) => {
+    setUpdateRenderedArtifactRequired(true);
     setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
-    console.log("thrad.values", thread.values);
+
     const castValues: {
       artifact: ArtifactV3 | undefined;
       messages: Record<string, any>[] | undefined;
@@ -677,6 +740,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     } else {
       castValues.artifact = undefined;
     }
+    lastSavedArtifact.current = castValues?.artifact;
 
     if (!castValues?.messages?.length) {
       setMessages([]);
@@ -696,7 +760,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
               .split("/")[0],
           });
         }
-
         return msg as BaseMessage;
       })
     );
@@ -715,5 +778,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setArtifactContent,
     clearState,
     switchSelectedThread,
+    updateRenderedArtifactRequired,
+    setUpdateRenderedArtifactRequired,
+    isArtifactSaved,
   };
 }
