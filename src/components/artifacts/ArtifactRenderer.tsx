@@ -437,10 +437,17 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             ) : null}
             {currentArtifactContent.type === "code" ? (
               <CodeRenderer
+                isStreaming={props.isStreaming}
                 firstTokenReceived={props.firstTokenReceived}
                 setArtifactContent={props.setArtifactContent}
                 editorRef={editorRef}
                 artifactContent={currentArtifactContent}
+                updateRenderedArtifactRequired={
+                  props.updateRenderedArtifactRequired
+                }
+                setUpdateRenderedArtifactRequired={
+                  props.setUpdateRenderedArtifactRequired
+                }
               />
             ) : null}
           </div>

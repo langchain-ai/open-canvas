@@ -1,5 +1,5 @@
 import { ArtifactCodeV3 } from "@/types";
-import { MutableRefObject } from "react";
+import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
@@ -10,12 +10,16 @@ import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
 import { html } from "@codemirror/lang-html";
 import { sql } from "@codemirror/lang-sql";
+import { cn } from "@/lib/utils";
 
 export interface CodeRendererProps {
   artifactContent: ArtifactCodeV3;
   setArtifactContent: (index: number, content: string) => void;
   editorRef: MutableRefObject<EditorView | null>;
   firstTokenReceived: boolean;
+  isStreaming: boolean;
+  updateRenderedArtifactRequired: boolean;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
 }
 
 export function CodeRenderer(props: Readonly<CodeRendererProps>) {
@@ -42,17 +46,48 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     return null;
   }
 
+  useEffect(() => {
+    if (props.updateRenderedArtifactRequired) {
+      props.setUpdateRenderedArtifactRequired(false);
+    }
+  }, [props.updateRenderedArtifactRequired]);
+
+  const isEditable = !props.isStreaming;
+
   return (
-    <CodeMirror
-      editable={true}
-      className={`w-full min-h-full ${styles.codeMirrorCustom}`}
-      value={cleanContent(props.artifactContent.code)}
-      height="800px"
-      extensions={extensions}
-      onChange={(c) => props.setArtifactContent(props.artifactContent.index, c)}
-      onCreateEditor={(view) => {
-        props.editorRef.current = view;
-      }}
-    />
+    <>
+      <style jsx global>{`
+        .pulse-code .cm-content {
+          animation: codePulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes codePulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.3;
+          }
+        }
+      `}</style>
+      <CodeMirror
+        editable={isEditable}
+        className={cn(
+          "w-full min-h-full",
+          styles.codeMirrorCustom,
+          props.isStreaming && !props.firstTokenReceived ? "pulse-code" : ""
+        )}
+        value={cleanContent(props.artifactContent.code)}
+        height="800px"
+        extensions={extensions}
+        onChange={(c) =>
+          props.setArtifactContent(props.artifactContent.index, c)
+        }
+        onCreateEditor={(view) => {
+          props.editorRef.current = view;
+        }}
+      />
+    </>
   );
 }

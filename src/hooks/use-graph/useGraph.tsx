@@ -13,6 +13,7 @@ import {
   ArtifactToolResponse,
   RewriteArtifactMetaToolResponse,
   TextHighlight,
+  CodeHighlight,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "../useRuns";
@@ -37,13 +38,18 @@ import { debounce } from "lodash";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
-  selectedArtifactId?: string;
+  messages?: Record<string, any>[];
+
+  highlightedCode?: CodeHighlight;
+  highlightedText?: TextHighlight;
+
+  artifact?: ArtifactV3;
+
+  language?: LanguageOptions;
+  artifactLength?: ArtifactLengthOptions;
   regenerateWithEmojis?: boolean;
   readingLevel?: ReadingLevelOptions;
-  artifactLength?: ArtifactLengthOptions;
-  language?: LanguageOptions;
-  messages?: Record<string, any>[];
-  highlighted?: Highlight;
+
   addComments?: boolean;
   addLogs?: boolean;
   portLanguage?: ProgrammingLanguageOptions;
@@ -393,17 +399,17 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 });
                 return;
               }
-              if (!params.highlighted) {
+              if (!params.highlightedCode) {
                 toast({
                   title: "Error",
-                  description: "No highlighted text found",
+                  description: "No highlighted code found",
                 });
                 return;
               }
 
               const partialUpdatedContent = chunk.data.data.chunk?.[1]?.content;
               if (!partialUpdatedContent) return;
-              const { startCharIndex, endCharIndex } = params.highlighted;
+              const { startCharIndex, endCharIndex } = params.highlightedCode;
 
               if (!prevCurrentContent) {
                 toast({
@@ -691,9 +697,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
   };
 
   const setArtifactContent = (index: number, content: string) => {
-    setUpdateRenderedArtifactRequired(true);
-    setThreadSwitched(true);
-
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -715,7 +718,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return a;
         }),
       };
-      lastSavedArtifact.current = newArtifact;
       return newArtifact;
     });
   };
