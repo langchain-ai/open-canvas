@@ -235,27 +235,21 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
               // no-op
             }
 
-            if (
-              !currentArtifactContent ||
-              currentArtifactContent.type !== "code"
-            ) {
-              // Selections for text are managed inside the `TextRenderer` component
-              return;
+            if (currentArtifactContent?.type === "code") {
+              if (editorRef.current) {
+                const from = editorRef.current.posAtDOM(
+                  range.startContainer,
+                  range.startOffset
+                );
+                const to = editorRef.current.posAtDOM(
+                  range.endContainer,
+                  range.endOffset
+                );
+                startIndex = from;
+                endIndex = to;
+              }
+              setSelectionIndexes({ start: startIndex, end: endIndex });
             }
-            if (editorRef.current) {
-              const from = editorRef.current.posAtDOM(
-                range.startContainer,
-                range.startOffset
-              );
-              const to = editorRef.current.posAtDOM(
-                range.endContainer,
-                range.endOffset
-              );
-              startIndex = from;
-              endIndex = to;
-            }
-
-            setSelectionIndexes({ start: startIndex, end: endIndex });
 
             for (let i = 0; i < rects.length; i++) {
               const rect = rects[i];
