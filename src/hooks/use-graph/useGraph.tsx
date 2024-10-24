@@ -118,13 +118,22 @@ export function useGraph(useGraphInput: UseGraphInput) {
   }, [debouncedAPIUpdate]);
 
   useEffect(() => {
-    if (!artifact || !useGraphInput.threadId) return;
+    if (!messages.length || !artifact || !useGraphInput.threadId) return;
     if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
     const currentIndex = artifact.currentIndex;
     const currentContent = artifact.contents.find(
       (c) => c.index === currentIndex
     );
     if (!currentContent) return;
+    if (
+      (artifact.contents.length === 1 &&
+        artifact.contents[0].type === "text" &&
+        !artifact.contents[0].fullMarkdown) ||
+      (artifact.contents[0].type === "code" && !artifact.contents[0].code)
+    ) {
+      // If the artifact has only one content and it's empty, we shouldn't update the state
+      return;
+    }
 
     if (
       !lastSavedArtifact.current ||
