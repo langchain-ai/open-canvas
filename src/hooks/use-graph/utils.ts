@@ -84,29 +84,19 @@ const validateNewArtifactIndex = (
   prevArtifactContentsLength: number,
   isFirstUpdate: boolean
 ): number => {
-  console.log("isFirstUpdate", isFirstUpdate);
   if (isFirstUpdate) {
     // For first updates, currentIndex should be one more than the total prev contents
     // to append the new content at the end
     if (newArtifactIndexGuess !== prevArtifactContentsLength + 1) {
-      console.log(
-        "is first update and its not the full length. setting it to",
-        prevArtifactContentsLength + 1
-      );
       return prevArtifactContentsLength + 1;
     }
   } else {
     if (newArtifactIndexGuess !== prevArtifactContentsLength) {
-      console.log(
-        "is NOT the first update and its not the full length. setting it to",
-        prevArtifactContentsLength
-      );
       // For subsequent updates, currentIndex should match the total contents
       // to update the latest content in place
       return prevArtifactContentsLength;
     }
   }
-  console.log("returning the guess", newArtifactIndexGuess);
   // If the guess is correct, return the guess
   return newArtifactIndexGuess;
 };

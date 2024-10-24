@@ -396,7 +396,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
               });
 
               if (isFirstUpdate) {
-                console.log("setting isFirstUpdate to false");
                 isFirstUpdate = false;
               }
             }
