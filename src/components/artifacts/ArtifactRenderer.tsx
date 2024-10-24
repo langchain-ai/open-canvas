@@ -328,37 +328,30 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
             onClick={() => {
-              navigator.clipboard
-                .writeText(currentArtifactContent.content)
-                .then(() => {
+              try {
+                const text = isArtifactCodeContent(currentArtifactContent)
+                  ? currentArtifactContent.code
+                  : currentArtifactContent.fullMarkdown;
+                navigator.clipboard.writeText(text).then(() => {
                   toast({
                     title: "Copied to clipboard",
                     description: "The canvas content has been copied.",
                     duration: 5000,
                   });
                 });
+              } catch (_) {
+                toast({
+                  title: "Copy error",
+                  description:
+                    "Failed to copy the canvas content. Please try again.",
+                  duration: 5000,
+                });
+              }
             }}
           >
             <Copy className="w-6 h-6 text-gray-600" />
           </TooltipIconButton>
         </div>
-        {currentArtifactContent.type === "text" ? (
-          <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
-            <TooltipIconButton
-              tooltip={props.isEditing ? "Preview" : "Edit"}
-              variant="ghost"
-              className="transition-colors w-fit h-fit p-2"
-              delayDuration={400}
-              onClick={() => props.setIsEditing((v) => !v)}
-            >
-              {props.isEditing ? (
-                <Eye className="w-6 h-6 text-gray-600" />
-              ) : (
-                <PencilLine className="w-6 h-6 text-gray-600" />
-              )}
-            </TooltipIconButton>
-          </div>
-        ) : null}
       </div>
       <div
         ref={contentRef}
