@@ -12,7 +12,7 @@ import {
 } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { CircleArrowUp, Eye, PencilLine, Forward, Copy } from "lucide-react";
+import { CircleArrowUp, Forward, Copy } from "lucide-react";
 import {
   Dispatch,
   FormEvent,
