@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-
 import { ArtifactMarkdownV3, ArtifactV3, TextHighlight } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
@@ -22,11 +21,14 @@ export interface TextRendererProps {
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   isStreaming: boolean;
   isInputVisible: boolean;
+  updateRenderedArtifactRequired: boolean;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+  firstTokenReceived: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
-  const currentContentIndex = useRef<number | undefined>(undefined);
+
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
 
@@ -77,7 +79,11 @@ export function TextRenderer(props: TextRendererProps) {
     if (!props.artifact) {
       return;
     }
-    if (!props.isStreaming && !manuallyUpdatingArtifact) {
+    if (
+      !props.isStreaming &&
+      !manuallyUpdatingArtifact &&
+      !props.updateRenderedArtifactRequired
+    ) {
       console.error("Can only update via useEffect when streaming");
       return;
     }
@@ -95,23 +101,24 @@ export function TextRenderer(props: TextRendererProps) {
           currentContent.fullMarkdown
         );
         editor.replaceBlocks(editor.document, markdownAsBlocks);
+        props.setUpdateRenderedArtifactRequired(false);
+        setManuallyUpdatingArtifact(false);
       })();
     } finally {
       setManuallyUpdatingArtifact(false);
+      props.setUpdateRenderedArtifactRequired(false);
     }
-  }, [props.artifact]);
-
-  useEffect(() => {
-    if (props.isStreaming) return;
-    if (props.artifact?.currentIndex === currentContentIndex.current) return;
-    currentContentIndex.current = props.artifact?.currentIndex;
-    setManuallyUpdatingArtifact(true);
-  }, [props.artifact?.currentIndex]);
+  }, [props.artifact, props.updateRenderedArtifactRequired]);
 
   const isComposition = useRef(false);
 
   const onChange = async () => {
-    if (props.isStreaming || manuallyUpdatingArtifact) return;
+    if (
+      props.isStreaming ||
+      manuallyUpdatingArtifact ||
+      props.updateRenderedArtifactRequired
+    )
+      return;
 
     const fullMarkdown = await editor.blocksToMarkdownLossy(editor.document);
     props.setArtifact((prev) => {
@@ -146,6 +153,21 @@ export function TextRenderer(props: TextRendererProps) {
 
   return (
     <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5">
+      <style jsx global>{`
+        .pulse-text .bn-block-group {
+          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.3;
+          }
+        }
+      `}</style>
       <BlockNoteView
         theme="light"
         formattingToolbar={false}
@@ -157,6 +179,9 @@ export function TextRenderer(props: TextRendererProps) {
           !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
         }
         editor={editor}
+        className={
+          props.isStreaming && !props.firstTokenReceived ? "pulse-text" : ""
+        }
       >
         <SuggestionMenuController
           getItems={async () =>

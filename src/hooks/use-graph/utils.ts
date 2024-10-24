@@ -79,6 +79,29 @@ export const createNewGeneratedArtifactFromTool = (
   }
 };
 
+const validateNewArtifactIndex = (
+  newArtifactIndexGuess: number,
+  prevArtifactContentsLength: number,
+  isFirstUpdate: boolean
+): number => {
+  if (isFirstUpdate) {
+    // For first updates, currentIndex should be one more than the total prev contents
+    // to append the new content at the end
+    if (newArtifactIndexGuess !== prevArtifactContentsLength + 1) {
+      return prevArtifactContentsLength + 1;
+    }
+  } else {
+    if (newArtifactIndexGuess !== prevArtifactContentsLength) {
+      // For subsequent updates, currentIndex should match the total contents
+      // to update the latest content in place
+      return prevArtifactContentsLength;
+    }
+  }
+
+  // If the guess is correct, return the guess
+  return newArtifactIndexGuess;
+};
+
 export const updateHighlightedMarkdown = (
   prevArtifact: ArtifactV3,
   content: string,
@@ -87,17 +110,22 @@ export const updateHighlightedMarkdown = (
   isFirstUpdate: boolean
 ): ArtifactV3 | undefined => {
   let newContents: (ArtifactCodeV3 | ArtifactMarkdownV3)[];
+  const currentIndex = validateNewArtifactIndex(
+    newArtifactIndex,
+    prevArtifact.contents.length,
+    isFirstUpdate
+  );
 
   if (isFirstUpdate) {
     const newMarkdownContent: ArtifactMarkdownV3 = {
       ...prevCurrentContent,
-      index: newArtifactIndex,
+      index: currentIndex,
       fullMarkdown: content,
     };
     newContents = [...prevArtifact.contents, newMarkdownContent];
   } else {
     newContents = prevArtifact.contents.map((c) => {
-      if (c.index === newArtifactIndex) {
+      if (c.index === currentIndex) {
         return {
           ...c,
           fullMarkdown: content,
@@ -109,7 +137,7 @@ export const updateHighlightedMarkdown = (
 
   return {
     ...prevArtifact,
-    currentIndex: newArtifactIndex,
+    currentIndex,
     contents: newContents,
   };
 };
@@ -122,17 +150,22 @@ export const updateHighlightedCode = (
   isFirstUpdate: boolean
 ): ArtifactV3 | undefined => {
   let newContents: (ArtifactCodeV3 | ArtifactMarkdownV3)[];
+  const currentIndex = validateNewArtifactIndex(
+    newArtifactIndex,
+    prevArtifact.contents.length,
+    isFirstUpdate
+  );
 
   if (isFirstUpdate) {
     const newCodeContent: ArtifactCodeV3 = {
       ...prevCurrentContent,
-      index: newArtifactIndex,
+      index: currentIndex,
       code: content,
     };
     newContents = [...prevArtifact.contents, newCodeContent];
   } else {
     newContents = prevArtifact.contents.map((c) => {
-      if (c.index === newArtifactIndex) {
+      if (c.index === currentIndex) {
         return {
           ...c,
           code: content,
@@ -144,7 +177,7 @@ export const updateHighlightedCode = (
 
   return {
     ...prevArtifact,
-    currentIndex: newArtifactIndex,
+    currentIndex,
     contents: newContents,
   };
 };
@@ -169,6 +202,11 @@ export const updateRewrittenArtifact = ({
   artifactLanguage,
 }: UpdateRewrittenArtifactArgs): ArtifactV3 => {
   let artifactContents: (ArtifactMarkdownV3 | ArtifactCodeV3)[] = [];
+  const currentIndex = validateNewArtifactIndex(
+    newArtifactIndex,
+    prevArtifact.contents.length,
+    isFirstUpdate
+  );
 
   if (isFirstUpdate) {
     if (rewriteArtifactMeta.type === "code") {
@@ -177,7 +215,7 @@ export const updateRewrittenArtifact = ({
         {
           type: "code",
           title: rewriteArtifactMeta.title || prevCurrentContent?.title || "",
-          index: newArtifactIndex,
+          index: currentIndex,
           language: artifactLanguage as ProgrammingLanguageOptions,
           code: newArtifactContent,
         },
@@ -186,7 +224,7 @@ export const updateRewrittenArtifact = ({
       artifactContents = [
         ...prevArtifact.contents,
         {
-          index: newArtifactIndex,
+          index: currentIndex,
           type: "text",
           title: rewriteArtifactMeta?.title ?? prevCurrentContent?.title ?? "",
           fullMarkdown: newArtifactContent,
@@ -196,7 +234,7 @@ export const updateRewrittenArtifact = ({
   } else {
     if (rewriteArtifactMeta?.type === "code") {
       artifactContents = prevArtifact.contents.map((c) => {
-        if (c.index === newArtifactIndex) {
+        if (c.index === currentIndex) {
           return {
             ...c,
             code: newArtifactContent,
@@ -206,7 +244,7 @@ export const updateRewrittenArtifact = ({
       });
     } else {
       artifactContents = prevArtifact.contents.map((c) => {
-        if (c.index === newArtifactIndex) {
+        if (c.index === currentIndex) {
           return {
             ...c,
             fullMarkdown: newArtifactContent,
@@ -219,14 +257,21 @@ export const updateRewrittenArtifact = ({
 
   return {
     ...prevArtifact,
-    currentIndex: newArtifactIndex,
+    currentIndex,
     contents: artifactContents,
   };
 };
 
 export const convertToArtifactV3 = (oldArtifact: Artifact): ArtifactV3 => {
+  let currentIndex = oldArtifact.currentContentIndex;
+  if (currentIndex > oldArtifact.contents.length) {
+    // If the value to be set in `currentIndex` is greater than the total number of contents,
+    // set it to the last index so that the user can see the latest content.
+    currentIndex = oldArtifact.contents.length;
+  }
+
   const v3: ArtifactV3 = {
-    currentIndex: oldArtifact.currentContentIndex,
+    currentIndex,
     contents: oldArtifact.contents.map((content) => {
       if (content.type === "code") {
         return {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useToast } from "../use-toast";
 import { createClient } from "../utils";
@@ -6,13 +6,13 @@ import {
   ArtifactLengthOptions,
   ArtifactType,
   ArtifactV3,
-  Highlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
   ArtifactToolResponse,
   RewriteArtifactMetaToolResponse,
   TextHighlight,
+  CodeHighlight,
 } from "@/types";
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useRuns } from "../useRuns";
@@ -33,16 +33,22 @@ import {
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
 } from "@/lib/artifact_content_types";
+import { debounce } from "lodash";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
-  selectedArtifactId?: string;
+  messages?: Record<string, any>[];
+
+  highlightedCode?: CodeHighlight;
+  highlightedText?: TextHighlight;
+
+  artifact?: ArtifactV3;
+
+  language?: LanguageOptions;
+  artifactLength?: ArtifactLengthOptions;
   regenerateWithEmojis?: boolean;
   readingLevel?: ReadingLevelOptions;
-  artifactLength?: ArtifactLengthOptions;
-  language?: LanguageOptions;
-  messages?: Record<string, any>[];
-  highlighted?: Highlight;
+
   addComments?: boolean;
   addLogs?: boolean;
   portLanguage?: ProgrammingLanguageOptions;
@@ -80,13 +86,85 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const [artifact, setArtifact] = useState<ArtifactV3>();
   const [selectedBlocks, setSelectedBlocks] = useState<TextHighlight>();
   const [isStreaming, setIsStreaming] = useState(false);
+  const [updateRenderedArtifactRequired, setUpdateRenderedArtifactRequired] =
+    useState(false);
+  const lastSavedArtifact = useRef<ArtifactV3 | undefined>(undefined);
+  const debouncedAPIUpdate = useRef(
+    debounce(
+      (artifact: ArtifactV3, threadId: string) =>
+        updateArtifact(artifact, threadId),
+      5000
+    )
+  ).current;
+  const [isArtifactSaved, setIsArtifactSaved] = useState(true);
+  const [threadSwitched, setThreadSwitched] = useState(false);
+  const [firstTokenReceived, setFirstTokenReceived] = useState(false);
+
+  // Very hacky way of ensuring updateState is not called when a thread is switched
+  useEffect(() => {
+    if (threadSwitched) {
+      const timer = setTimeout(() => {
+        setThreadSwitched(false);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [threadSwitched]);
+
+  useEffect(() => {
+    return () => {
+      debouncedAPIUpdate.cancel();
+    };
+  }, [debouncedAPIUpdate]);
+
+  useEffect(() => {
+    if (!artifact || !useGraphInput.threadId) return;
+    if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
+    const currentIndex = artifact.currentIndex;
+    const currentContent = artifact.contents.find(
+      (c) => c.index === currentIndex
+    );
+    if (!currentContent) return;
+
+    if (
+      !lastSavedArtifact.current ||
+      lastSavedArtifact.current.contents !== artifact.contents
+    ) {
+      setIsArtifactSaved(false);
+      // This means the artifact in state does not match the last saved artifact
+      // We need to update
+      debouncedAPIUpdate(artifact, useGraphInput.threadId);
+    }
+  }, [artifact]);
+
+  const updateArtifact = async (
+    artifactToUpdate: ArtifactV3,
+    threadId: string
+  ) => {
+    try {
+      const client = createClient();
+      await client.threads.updateState(threadId, {
+        values: {
+          artifact: artifactToUpdate,
+        },
+      });
+      setIsArtifactSaved(true);
+      lastSavedArtifact.current = artifactToUpdate;
+    } catch (e) {
+      console.error("Failed to update artifact", e);
+      console.error("Artifact:", artifactToUpdate);
+    }
+  };
 
   const clearState = () => {
     setMessages([]);
     setArtifact(undefined);
+    setFirstTokenReceived(true);
   };
 
   const streamMessageV2 = async (params: GraphInput) => {
+    setFirstTokenReceived(false);
+
     if (!useGraphInput.threadId) {
       toast({
         title: "Error",
@@ -134,9 +212,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
         : undefined;
 
       // The new index of the artifact that is generating
-      let newArtifactIndex = artifact
-        ? artifact.contents.length + 1
-        : undefined;
+      let newArtifactIndex = 1;
+      if (artifact) {
+        newArtifactIndex = artifact.contents.length + 1;
+      }
 
       // The metadata generated when re-writing an artifact
       let rewriteArtifactMeta: RewriteArtifactMetaToolResponse | undefined =
@@ -213,6 +292,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 (newArtifactText.type === "text" ||
                   (newArtifactText.type === "code" && newArtifactText.language))
               ) {
+                setFirstTokenReceived(true);
                 setArtifact(() => {
                   const content =
                     createNewGeneratedArtifactFromTool(newArtifactText);
@@ -294,14 +374,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 updatedArtifactStartContent += partialUpdatedContent;
               }
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 return updateHighlightedMarkdown(
                   prev ?? artifact,
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
-                  newArtifactIndex ?? artifact.contents.length + 1,
+                  newArtifactIndex,
                   prevCurrentContent,
                   isFirstUpdate
                 );
@@ -320,21 +398,17 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 });
                 return;
               }
-              if (!params.highlighted) {
+              if (!params.highlightedCode) {
                 toast({
                   title: "Error",
-                  description: "No highlighted text found",
+                  description: "No highlighted code found",
                 });
                 return;
               }
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
-
               const partialUpdatedContent = chunk.data.data.chunk?.[1]?.content;
               if (!partialUpdatedContent) return;
-              const { startCharIndex, endCharIndex } = params.highlighted;
+              const { startCharIndex, endCharIndex } = params.highlightedCode;
 
               if (!prevCurrentContent) {
                 toast({
@@ -365,7 +439,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 // One of the above have been populated, now we can update the start to contain the new text.
                 updatedArtifactStartContent += partialUpdatedContent;
               }
-
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 const content = removeCodeBlockFormatting(
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`
@@ -373,7 +447,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 return updateHighlightedCode(
                   prev ?? artifact,
                   content,
-                  newArtifactIndex ?? artifact.contents.length + 1,
+                  newArtifactIndex,
                   prevCurrentContent,
                   isFirstUpdate
                 );
@@ -416,10 +490,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   "other";
               }
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
-
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 let content = newArtifactContent;
                 if (!rewriteArtifactMeta) {
@@ -437,8 +508,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   newArtifactContent: content,
                   rewriteArtifactMeta: rewriteArtifactMeta,
                   prevCurrentContent,
-                  newArtifactIndex:
-                    newArtifactIndex || artifact.contents.length + 1,
+                  newArtifactIndex,
                   isFirstUpdate,
                   artifactLanguage,
                 });
@@ -480,10 +550,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   ? prevCurrentContent.language
                   : "other");
 
-              if (newArtifactIndex === undefined) {
-                newArtifactIndex = artifact.contents.length + 1;
-              }
-
               const langGraphNode = chunk.data.metadata.langgraph_node;
               let artifactType: ArtifactType;
               if (langGraphNode === "rewriteCodeArtifactTheme") {
@@ -493,7 +559,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               } else {
                 artifactType = prevCurrentContent.type;
               }
-
+              setFirstTokenReceived(true);
               setArtifact((prev) => {
                 let content = newArtifactContent;
                 if (artifactType === "code") {
@@ -509,8 +575,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                     programmingLanguage: artifactLanguage,
                   },
                   prevCurrentContent,
-                  newArtifactIndex:
-                    newArtifactIndex || artifact.contents.length + 1,
+                  newArtifactIndex,
                   isFirstUpdate,
                   artifactLanguage,
                 });
@@ -539,6 +604,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           );
         }
       }
+      lastSavedArtifact.current = artifact;
     } catch (e) {
       console.error("Failed to stream message", e);
     } finally {
@@ -609,7 +675,9 @@ export function useGraph(useGraphInput: UseGraphInput) {
   };
 
   const setSelectedArtifact = (index: number) => {
-    setIsStreaming(true);
+    setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
+
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -618,16 +686,16 @@ export function useGraph(useGraphInput: UseGraphInput) {
         });
         return prev;
       }
-      return {
+      const newArtifact = {
         ...prev,
         currentIndex: index,
       };
+      lastSavedArtifact.current = newArtifact;
+      return newArtifact;
     });
-    setIsStreaming(false);
   };
 
   const setArtifactContent = (index: number, content: string) => {
-    setIsStreaming(true);
     setArtifact((prev) => {
       if (!prev) {
         toast({
@@ -636,7 +704,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
         });
         return prev;
       }
-      return {
+      const newArtifact = {
         ...prev,
         currentIndex: index,
         contents: prev.contents.map((a) => {
@@ -649,17 +717,19 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return a;
         }),
       };
+      return newArtifact;
     });
-    setIsStreaming(false);
   };
 
   const switchSelectedThread = (
     thread: Thread,
     setThreadId: (id: string) => void
   ) => {
+    setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
     setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
-    console.log("thrad.values", thread.values);
+
     const castValues: {
       artifact: ArtifactV3 | undefined;
       messages: Record<string, any>[] | undefined;
@@ -677,6 +747,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     } else {
       castValues.artifact = undefined;
     }
+    lastSavedArtifact.current = castValues?.artifact;
 
     if (!castValues?.messages?.length) {
       setMessages([]);
@@ -696,7 +767,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
               .split("/")[0],
           });
         }
-
         return msg as BaseMessage;
       })
     );
@@ -715,5 +785,9 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setArtifactContent,
     clearState,
     switchSelectedThread,
+    updateRenderedArtifactRequired,
+    setUpdateRenderedArtifactRequired,
+    isArtifactSaved,
+    firstTokenReceived,
   };
 }
