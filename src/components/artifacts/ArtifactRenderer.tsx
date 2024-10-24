@@ -267,10 +267,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     currentArtifactContent.index === props.artifact.contents.length;
 
   return (
-    <div className="relative w-full h-full overflow-auto">
+    <div className="relative w-full h-full max-h-screen overflow-auto">
       <div className="flex flex-row items-center justify-between">
         <div className="pl-[6px] pt-3 flex flex-row items-center justify-start">
-          <h1 className="text-xl font-medium text-gray-600">
+          <h1 className="text-xl font-medium text-gray-600 ml-[6px]">
             {currentArtifactContent.title}
           </h1>
         </div>
@@ -366,7 +366,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             currentArtifactContent.type === "code" ? "min-w-full" : "min-w-full"
           )}
         >
-          <div className="h-[85%]" ref={markdownRef}>
+          <div className="h-full" ref={markdownRef}>
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
                 isInputVisible={isInputVisible}
