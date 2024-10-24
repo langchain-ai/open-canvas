@@ -12,7 +12,7 @@ import {
 } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { CircleArrowUp, Eye, PencilLine, Forward } from "lucide-react";
+import { CircleArrowUp, Forward, Copy } from "lucide-react";
 import {
   Dispatch,
   FormEvent,
@@ -321,23 +321,37 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             handleDeleteReflections={props.handleDeleteReflections}
           />
         </div>
-        {currentArtifactContent.type === "text" ? (
-          <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
-            <TooltipIconButton
-              tooltip={props.isEditing ? "Preview" : "Edit"}
-              variant="ghost"
-              className="transition-colors w-fit h-fit p-2"
-              delayDuration={400}
-              onClick={() => props.setIsEditing((v) => !v)}
-            >
-              {props.isEditing ? (
-                <Eye className="w-6 h-6 text-gray-600" />
-              ) : (
-                <PencilLine className="w-6 h-6 text-gray-600" />
-              )}
-            </TooltipIconButton>
-          </div>
-        ) : null}
+        <div className="pr-4 pt-3">
+          <TooltipIconButton
+            tooltip="Copy"
+            variant="ghost"
+            className="transition-colors w-fit h-fit p-2"
+            delayDuration={400}
+            onClick={() => {
+              try {
+                const text = isArtifactCodeContent(currentArtifactContent)
+                  ? currentArtifactContent.code
+                  : currentArtifactContent.fullMarkdown;
+                navigator.clipboard.writeText(text).then(() => {
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "The canvas content has been copied.",
+                    duration: 5000,
+                  });
+                });
+              } catch (_) {
+                toast({
+                  title: "Copy error",
+                  description:
+                    "Failed to copy the canvas content. Please try again.",
+                  duration: 5000,
+                });
+              }
+            }}
+          >
+            <Copy className="w-6 h-6 text-gray-600" />
+          </TooltipIconButton>
+        </div>
       </div>
       <div
         ref={contentRef}
