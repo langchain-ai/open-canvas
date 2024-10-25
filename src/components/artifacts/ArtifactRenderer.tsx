@@ -146,12 +146,9 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   ) => {
     e.preventDefault();
 
-    let artifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-    try {
-      artifactContent = getArtifactContent(props.artifact);
-    } catch (_) {
-      // no-op
-    }
+    const artifactContent = props.artifact
+      ? getArtifactContent(props.artifact)
+      : undefined;
     if (
       !selectionIndexes &&
       artifactContent &&
@@ -178,6 +175,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       setInputValue("");
       setSelectionBox(undefined);
       setSelectionIndexes(undefined);
+      setIsSelectionActive(false);
 
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
@@ -279,21 +277,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [isSelectionActive, selectionBox]);
 
   useEffect(() => {
+    console.log(
+      "!!props.selectedBlocks && !isSelectionActive",
+      !!props.selectedBlocks,
+      isSelectionActive
+    );
     if (!!props.selectedBlocks && !isSelectionActive) {
       // Selection is not active but selected blocks are present. Clear them.
       props.setSelectedBlocks(undefined);
     }
   }, [props.selectedBlocks, isSelectionActive]);
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined =
-    undefined;
-  try {
-    currentArtifactContent = getArtifactContent(props.artifact);
-  } catch (_) {
-    // console.error("[ArtifactRenderer.tsx L280]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n", props.artifact)
-    // no-op
-  }
-
+  const currentArtifactContent = props.artifact
+    ? getArtifactContent(props.artifact)
+    : undefined;
   if (!props.artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }

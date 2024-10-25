@@ -71,7 +71,9 @@ export const customAction = async (
     );
   }
 
-  const currentArtifactContent = getArtifactContent(state.artifact);
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   let formattedPrompt = `<custom-instructions>\n${customQuickAction.prompt}\n</custom-instructions>`;
   if (customQuickAction.includeReflections && memories?.value) {
@@ -98,12 +100,17 @@ export const customAction = async (
 
   const artifactContent = isArtifactMarkdownContent(currentArtifactContent)
     ? currentArtifactContent.fullMarkdown
-    : currentArtifactContent.code;
-  formattedPrompt += `\n\n${CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT.replace("{artifactContent}", artifactContent)}`;
+    : currentArtifactContent?.code;
+  formattedPrompt += `\n\n${CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT.replace("{artifactContent}", artifactContent || "No artifacts generated yet.")}`;
 
   const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
   ]);
+
+  if (!currentArtifactContent) {
+    console.error("No current artifact content found.");
+    return {};
+  }
 
   const newArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 = {
     ...currentArtifactContent,

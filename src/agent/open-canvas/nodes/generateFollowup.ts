@@ -2,11 +2,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "../../utils";
-import {
-  ArtifactCodeV3,
-  ArtifactMarkdownV3,
-  Reflections,
-} from "../../../types";
+import { Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "../../../hooks/use-graph/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
@@ -38,12 +34,9 @@ export const generateFollowup = async (
       })
     : "No reflections found.";
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = getArtifactContent(state.artifact);
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   const artifactContent = currentArtifactContent
     ? isArtifactMarkdownContent(currentArtifactContent)

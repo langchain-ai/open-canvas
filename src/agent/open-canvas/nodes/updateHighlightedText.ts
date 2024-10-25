@@ -34,7 +34,12 @@ export const updateHighlightedText = async (
     temperature: 0,
   }).withConfig({ runName: "update_highlighted_markdown" });
 
-  const currentArtifactContent = getArtifactContent(state.artifact);
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
+  if (!currentArtifactContent) {
+    throw new Error("No artifact found");
+  }
   if (!isArtifactMarkdownContent(currentArtifactContent)) {
     throw new Error("Artifact is not markdown content");
   }

@@ -6,11 +6,7 @@ import {
   formatReflections,
 } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import {
-  ArtifactCodeV3,
-  ArtifactMarkdownV3,
-  Reflections,
-} from "../../../types";
+import { Reflections } from "../../../types";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
 import { getArtifactContent } from "../../../hooks/use-graph/utils";
 
@@ -37,12 +33,9 @@ You also have the following reflections on style guidelines and general memories
 
 {currentArtifactPrompt}`;
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = getArtifactContent(state.artifact);
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;

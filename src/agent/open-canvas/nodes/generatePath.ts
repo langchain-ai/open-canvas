@@ -10,7 +10,6 @@ import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
 import { formatArtifactContentWithTemplate } from "../../utils";
 import { getArtifactContent } from "../../../hooks/use-graph/utils";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "../../../types";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
@@ -57,12 +56,9 @@ export const generatePath = async (
     };
   }
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = getArtifactContent(state.artifact);
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   // Call model and decide if we need to respond to a users query, or generate a new artifact
   const formattedPrompt = ROUTE_QUERY_PROMPT.replace(

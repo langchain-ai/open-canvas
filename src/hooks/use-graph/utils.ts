@@ -295,7 +295,7 @@ export const convertToArtifactV3 = (oldArtifact: Artifact): ArtifactV3 => {
 };
 
 export const getArtifactContent = (
-  artifact: ArtifactV3 | undefined
+  artifact: ArtifactV3
 ): ArtifactCodeV3 | ArtifactMarkdownV3 => {
   if (!artifact) {
     throw new Error("No artifact found.");

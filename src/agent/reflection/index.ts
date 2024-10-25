@@ -5,7 +5,7 @@ import {
   START,
 } from "@langchain/langgraph";
 import { ReflectionGraphAnnotation, ReflectionGraphReturnType } from "./state";
-import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../../types";
+import { Reflections } from "../../types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts";
 import { z } from "zod";
 import { ensureStoreInConfig, formatReflections } from "../utils";
@@ -47,14 +47,9 @@ export const reflect = async (
     temperature: 0,
   }).bindTools([generateReflectionTool]);
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = state.artifact
-      ? getArtifactContent(state.artifact)
-      : undefined;
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   const artifactContent = currentArtifactContent
     ? isArtifactMarkdownContent(currentArtifactContent)
