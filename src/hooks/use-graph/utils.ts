@@ -297,11 +297,14 @@ export const convertToArtifactV3 = (oldArtifact: Artifact): ArtifactV3 => {
 export const getArtifactContent = (
   artifact: ArtifactV3 | undefined
 ): ArtifactCodeV3 | ArtifactMarkdownV3 => {
-  const currentContent = artifact?.contents?.find(
+  if (!artifact) {
+    throw new Error("No artifact found.");
+  }
+  const currentContent = artifact.contents.find(
     (a) => a.index === artifact.currentIndex
   );
   if (!currentContent) {
-    throw new Error("Current content not found.");
+    return artifact.contents[artifact.contents.length - 1];
   }
   return currentContent;
 };
