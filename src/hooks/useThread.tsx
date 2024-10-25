@@ -20,18 +20,19 @@ export function useThread(userId: string) {
 
   const createThread = async (
     supabaseUserId: string,
-    customModelName: ALL_MODEL_NAMES
+    customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME
   ): Promise<Thread | undefined> => {
     const client = createClient();
     try {
       const thread = await client.threads.create({
         metadata: {
           supabase_user_id: supabaseUserId,
-          customModelName: customModelName,
+          customModelName,
         },
       });
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+      setModelName(customModelName);
       await getUserThreads(userId);
       return thread;
     } catch (e) {
@@ -173,7 +174,7 @@ export function useThread(userId: string) {
     try {
       const client = createClient();
       const thread = await client.threads.get(id);
-      if (thread.metadata && thread.metadata.model) {
+      if (thread.metadata && thread.metadata.customModelName) {
         setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
       }
       return thread;

@@ -2,7 +2,7 @@
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
-import { ALL_MODEL_NAMES } from "@/constants";
+import { ALL_MODEL_NAMES, DEFAULT_MODEL_NAME } from "@/constants";
 import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/hooks/useStore";
@@ -63,6 +63,7 @@ export function Canvas(props: CanvasProps) {
     threadId,
     assistantId,
     modelName,
+    setModelName,
   });
   const {
     reflections,
@@ -111,7 +112,7 @@ export function Canvas(props: CanvasProps) {
   }, [assistantId]);
 
   const createThreadWithChatStarted = async (
-    customModelName: ALL_MODEL_NAMES
+    customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME
   ) => {
     setChatStarted(false);
     clearState();

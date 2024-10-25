@@ -1,6 +1,7 @@
 import {
   ALL_MODEL_NAMES,
   DEFAULT_INPUTS,
+  DEFAULT_MODEL_NAME,
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
 import {
@@ -26,7 +27,7 @@ import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { Thread } from "@langchain/langgraph-sdk";
 import { debounce } from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useToast } from "../use-toast";
 import { useRuns } from "../useRuns";
 import { createClient } from "../utils";
@@ -82,6 +83,7 @@ export interface UseGraphInput {
   threadId: string | undefined;
   assistantId: string | undefined;
   modelName: ALL_MODEL_NAMES;
+  setModelName: Dispatch<SetStateAction<ALL_MODEL_NAMES>>;
 }
 
 export function useGraph(useGraphInput: UseGraphInput) {
@@ -811,6 +813,13 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setThreadSwitched(true);
     setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+    if (thread.metadata?.customModelName) {
+      useGraphInput.setModelName(
+        thread.metadata.customModelName as ALL_MODEL_NAMES
+      );
+    } else {
+      useGraphInput.setModelName(DEFAULT_MODEL_NAME);
+    }
 
     const castValues: {
       artifact: ArtifactV3 | undefined;

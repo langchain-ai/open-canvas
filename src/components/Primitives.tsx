@@ -14,7 +14,7 @@ import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ALL_MODEL_NAMES, DEFAULT_MODEL_NAME } from "@/constants";
+import { ALL_MODEL_NAMES } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
@@ -149,8 +149,8 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
-    props.setModelName(DEFAULT_MODEL_NAME);
-    const thread = await props.createThread(DEFAULT_MODEL_NAME);
+    props.setModelName(props.modelName);
+    const thread = await props.createThread(props.modelName);
     if (!thread) {
       toast({
         title: "Failed to create a new thread",
@@ -171,6 +171,12 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
             deleteThread={props.deleteThread}
           />
           <p className="text-xl">Open Canvas</p>
+          {!props.showNewThreadButton && (
+            <ModelSelector
+              model={props.modelName}
+              setModel={props.setModelName}
+            />
+          )}
         </div>
         {props.showNewThreadButton ? (
           <TooltipIconButton
@@ -197,16 +203,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         {!props.showNewThreadButton && (
           <ThreadWelcome
             handleQuickStart={props.handleQuickStart}
-            composer={
-              <div className="flex flex-col space-y-2">
-                <ModelSelector
-                  createThread={props.createThread}
-                  model={props.modelName}
-                  setModel={props.setModelName}
-                />
-                <Composer />
-              </div>
-            }
+            composer={<Composer />}
           />
         )}
         <ThreadPrimitive.Messages
@@ -223,7 +220,6 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           {props.showNewThreadButton && (
             <div className="flex flex-col space-y-2">
               <ModelSelector
-                createThread={props.createThread}
                 model={props.modelName}
                 setModel={props.setModelName}
               />

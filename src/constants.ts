@@ -1,5 +1,5 @@
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:53974";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:59811";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -21,16 +21,33 @@ export const DEFAULT_INPUTS = {
   customQuickActionId: undefined,
 };
 
+export const OPENAI_MODELS = [
+  {
+    name: "gpt-4o-mini",
+    label: "GPT-4o mini",
+  },
+];
+export const ANTHROPIC_MODELS = [
+  {
+    name: "claude-3-haiku-20240307",
+    label: "Claude 3 Haiku",
+  },
+];
+export const FIREWORKS_MODELS = [
+  {
+    name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
+    label: "Fireworks Llama 70B",
+  },
+  {
+    name: "accounts/fireworks/models/llama-v3p1-8b-instruct",
+    label: "Fireworks Llama 8B",
+  },
+];
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "claude-3-haiku-20240307";
-export const OPENAI_MODEL_NAMES = ["gpt-4o-mini"] as const;
-export const ANTHROPIC_MODEL_NAMES = ["claude-3-haiku-20240307"] as const;
-export const FIREWORKS_MODEL_NAMES = [
-  "accounts/fireworks/models/llama-v3p1-70b-instruct",
-  "accounts/fireworks/models/llama-v3p1-8b-instruct",
-] as const;
-
-export type OPENAI_MODEL = (typeof OPENAI_MODEL_NAMES)[number];
-export type ANTHROPIC_MODEL = (typeof ANTHROPIC_MODEL_NAMES)[number];
-export type FIREWORKS_MODEL = (typeof FIREWORKS_MODEL_NAMES)[number];
-
-export type ALL_MODEL_NAMES = OPENAI_MODEL | ANTHROPIC_MODEL | FIREWORKS_MODEL;
+export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
+export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
+export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];
+export type ALL_MODEL_NAMES =
+  | OPENAI_MODEL_NAMES
+  | ANTHROPIC_MODEL_NAMES
+  | FIREWORKS_MODEL_NAMES;
