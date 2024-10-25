@@ -6,10 +6,15 @@ import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
 import { php } from "@codemirror/lang-php";
 import { python } from "@codemirror/lang-python";
-import styles from "./CodeRenderer.module.css";
-import { cleanContent } from "@/lib/normalize_string";
 import { html } from "@codemirror/lang-html";
 import { sql } from "@codemirror/lang-sql";
+import { json } from "@codemirror/lang-json";
+import { rust } from "@codemirror/lang-rust";
+import { xml } from "@codemirror/lang-xml";
+import { clojure } from "@nextjournal/lang-clojure";
+import { csharp } from "@replit/codemirror-lang-csharp";
+import styles from "./CodeRenderer.module.css";
+import { cleanContent } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 
 export interface CodeRendererProps {
@@ -22,25 +27,41 @@ export interface CodeRendererProps {
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
 }
 
-export function CodeRenderer(props: Readonly<CodeRendererProps>) {
-  let extensions: any[] = [];
-  if (props.artifactContent.language === "javascript") {
-    extensions = [javascript({ jsx: true, typescript: false })];
-  } else if (props.artifactContent.language === "typescript") {
-    extensions = [javascript({ jsx: true, typescript: true })];
-  } else if (props.artifactContent.language === "cpp") {
-    extensions = [cpp()];
-  } else if (props.artifactContent.language === "java") {
-    extensions = [java()];
-  } else if (props.artifactContent.language === "php") {
-    extensions = [php()];
-  } else if (props.artifactContent.language === "python") {
-    extensions = [python()];
-  } else if (props.artifactContent.language === "html") {
-    extensions = [html()];
-  } else if (props.artifactContent.language === "sql") {
-    extensions = [sql()];
+const getLanguageExtension = (language: string) => {
+  switch (language) {
+    case "javascript":
+      return javascript({ jsx: true, typescript: false });
+    case "typescript":
+      return javascript({ jsx: true, typescript: true });
+    case "cpp":
+      return cpp();
+    case "java":
+      return java();
+    case "php":
+      return php();
+    case "python":
+      return python();
+    case "html":
+      return html();
+    case "sql":
+      return sql();
+    case "json":
+      return json();
+    case "rust":
+      return rust();
+    case "xml":
+      return xml();
+    case "clojure":
+      return clojure();
+    case "csharp":
+      return csharp();
+    default:
+      return [];
   }
+};
+
+export function CodeRenderer(props: Readonly<CodeRendererProps>) {
+  const extensions = [getLanguageExtension(props.artifactContent.language)];
 
   useEffect(() => {
     if (props.updateRenderedArtifactRequired) {
