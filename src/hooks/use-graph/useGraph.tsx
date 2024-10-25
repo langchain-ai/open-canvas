@@ -214,16 +214,17 @@ export function useGraph(useGraphInput: UseGraphInput) {
       input.addLogs,
       input.fixBugs,
       input.portLanguage,
-      input.customQuickActionId
+      input.customQuickActionId,
     ];
-    
-    if (fieldsToCheck.filter(field => field !== undefined).length >= 2) {
+
+    if (fieldsToCheck.filter((field) => field !== undefined).length >= 2) {
       toast({
         title: "Error",
-        description: "Can not use multiple fields (quick actions, highlights, etc.) at once. Please try again.",
+        description:
+          "Can not use multiple fields (quick actions, highlights, etc.) at once. Please try again.",
         variant: "destructive",
         duration: 5000,
-      })
+      });
       return;
     }
 
