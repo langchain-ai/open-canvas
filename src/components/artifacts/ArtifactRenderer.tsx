@@ -146,7 +146,9 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   ) => {
     e.preventDefault();
 
-    const artifactContent = getArtifactContent(props.artifact);
+    const artifactContent = props.artifact
+      ? getArtifactContent(props.artifact)
+      : undefined;
     if (
       !selectionIndexes &&
       artifactContent &&
@@ -280,7 +282,9 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     }
   }, [props.selectedBlocks, isSelectionActive]);
 
-  const currentArtifactContent = getArtifactContent(props.artifact);
+  const currentArtifactContent = props.artifact
+    ? getArtifactContent(props.artifact)
+    : undefined;
   if (!props.artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }
