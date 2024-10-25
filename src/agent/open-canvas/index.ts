@@ -11,24 +11,7 @@ import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { reflectNode } from "./nodes/reflect";
 import { customAction } from "./nodes/customAction";
 import { updateHighlightedText } from "./nodes/updateHighlightedText";
-
-const defaultInputs: Omit<
-  typeof OpenCanvasGraphAnnotation.State,
-  "messages" | "artifact"
-> = {
-  highlightedCode: undefined,
-  highlightedText: undefined,
-  next: undefined,
-  language: undefined,
-  artifactLength: undefined,
-  regenerateWithEmojis: undefined,
-  readingLevel: undefined,
-  addComments: undefined,
-  addLogs: undefined,
-  fixBugs: undefined,
-  portLanguage: undefined,
-  customQuickActionId: undefined,
-};
+import { DEFAULT_INPUTS } from "../../constants";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -42,7 +25,7 @@ const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
 
 const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
   return {
-    ...defaultInputs,
+    ...DEFAULT_INPUTS,
   };
 };
 
