@@ -1,8 +1,8 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { ArtifactMarkdownV3 } from "../../../types";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
-import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 
 const PROMPT = `You are an expert AI writing assistant, tasked with rewriting some text a user has selected. The selected text is nested inside a larger 'block'. You should always respond with ONLY the updated text block in accordance with the user's request.
 You should always respond with the full markdown text block, as it will simply replace the existing block in the artifact.

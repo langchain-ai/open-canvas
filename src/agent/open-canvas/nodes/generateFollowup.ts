@@ -8,8 +8,8 @@ import {
   Reflections,
 } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
-import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 
 /**
  * Generate a followup message after generating or updating an artifact.

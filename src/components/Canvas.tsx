@@ -54,6 +54,7 @@ export function Canvas(props: CanvasProps) {
     setUpdateRenderedArtifactRequired,
     isArtifactSaved,
     firstTokenReceived,
+    selectedBlocks,
   } = useGraph({
     userId: props.user.id,
     threadId,
@@ -200,6 +201,7 @@ export function Canvas(props: CanvasProps) {
             artifact={artifact}
             setArtifact={setArtifact}
             setSelectedBlocks={setSelectedBlocks}
+            selectedBlocks={selectedBlocks}
             assistantId={assistantId}
             handleGetReflections={getReflections}
             handleDeleteReflections={deleteReflections}

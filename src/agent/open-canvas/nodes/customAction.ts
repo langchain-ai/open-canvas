@@ -16,8 +16,8 @@ import {
 } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
-import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 
 const formatMessages = (messages: BaseMessage[]): string =>
   messages
