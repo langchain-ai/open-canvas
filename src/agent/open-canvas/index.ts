@@ -9,23 +9,9 @@ import { updateArtifact } from "./nodes/updateArtifact";
 import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { reflectNode } from "./nodes/reflect";
-
-const defaultInputs: Omit<
-  typeof OpenCanvasGraphAnnotation.State,
-  "messages" | "artifact"
-> = {
-  highlighted: undefined,
-  next: undefined,
-  language: undefined,
-  artifactLength: undefined,
-  regenerateWithEmojis: undefined,
-  readingLevel: undefined,
-  addComments: undefined,
-  addLogs: undefined,
-  fixBugs: undefined,
-  portLanguage: undefined,
-  lastNodeName: undefined,
-};
+import { customAction } from "./nodes/customAction";
+import { updateHighlightedText } from "./nodes/updateHighlightedText";
+import { DEFAULT_INPUTS } from "../../constants";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -39,7 +25,7 @@ const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
 
 const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
   return {
-    ...defaultInputs,
+    ...DEFAULT_INPUTS,
   };
 };
 
@@ -53,7 +39,9 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
   .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
   .addNode("updateArtifact", updateArtifact)
+  .addNode("updateHighlightedText", updateHighlightedText)
   .addNode("generateArtifact", generateArtifact)
+  .addNode("customAction", customAction)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
   .addNode("reflect", reflectNode)
@@ -65,13 +53,17 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "respondToQuery",
     "generateArtifact",
     "rewriteArtifact",
+    "customAction",
+    "updateHighlightedText",
   ])
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
+  .addEdge("updateHighlightedText", "generateFollowup")
   .addEdge("rewriteArtifact", "generateFollowup")
   .addEdge("rewriteArtifactTheme", "generateFollowup")
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
+  .addEdge("customAction", "generateFollowup")
   // End edges
   .addEdge("respondToQuery", "cleanState")
   // Only reflect if an artifact was generated/updated.

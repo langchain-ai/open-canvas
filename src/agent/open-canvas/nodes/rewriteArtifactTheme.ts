@@ -8,8 +8,10 @@ import {
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
 import { ensureStoreInConfig, formatReflections } from "../../utils";
-import { ArtifactContent, Reflections } from "../../../types";
+import { ArtifactV3, Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 
 export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -32,14 +34,9 @@ export const rewriteArtifactTheme = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  let currentArtifactContent: ArtifactContent | undefined;
-  if (state.artifact) {
-    currentArtifactContent = state.artifact.contents.find(
-      (art) => art.index === state.artifact.currentContentIndex
-    );
-  }
-  if (!currentArtifactContent) {
-    throw new Error("No artifact content found.");
+  const currentArtifactContent = getArtifactContent(state.artifact);
+  if (!isArtifactMarkdownContent(currentArtifactContent)) {
+    throw new Error("Current artifact content is not markdown");
   }
 
   let formattedPrompt = "";
@@ -47,7 +44,7 @@ export const rewriteArtifactTheme = async (
     formattedPrompt = CHANGE_ARTIFACT_LANGUAGE_PROMPT.replace(
       "{newLanguage}",
       state.language
-    ).replace("{artifactContent}", currentArtifactContent.content);
+    ).replace("{artifactContent}", currentArtifactContent.fullMarkdown);
   } else if (state.readingLevel && state.readingLevel !== "pirate") {
     let newReadingLevel = "";
     switch (state.readingLevel) {
@@ -67,11 +64,11 @@ export const rewriteArtifactTheme = async (
     formattedPrompt = CHANGE_ARTIFACT_READING_LEVEL_PROMPT.replace(
       "{newReadingLevel}",
       newReadingLevel
-    ).replace("{artifactContent}", currentArtifactContent.content);
+    ).replace("{artifactContent}", currentArtifactContent.fullMarkdown);
   } else if (state.readingLevel && state.readingLevel === "pirate") {
     formattedPrompt = CHANGE_ARTIFACT_TO_PIRATE_PROMPT.replace(
       "{artifactContent}",
-      currentArtifactContent.content
+      currentArtifactContent.fullMarkdown
     );
   } else if (state.artifactLength) {
     let newLength = "";
@@ -92,11 +89,11 @@ export const rewriteArtifactTheme = async (
     formattedPrompt = CHANGE_ARTIFACT_LENGTH_PROMPT.replace(
       "{newLength}",
       newLength
-    ).replace("{artifactContent}", currentArtifactContent.content);
+    ).replace("{artifactContent}", currentArtifactContent.fullMarkdown);
   } else if (state.regenerateWithEmojis) {
     formattedPrompt = ADD_EMOJIS_TO_ARTIFACT_PROMPT.replace(
       "{artifactContent}",
-      currentArtifactContent.content
+      currentArtifactContent.fullMarkdown
     );
   } else {
     throw new Error("No theme selected");
@@ -108,15 +105,15 @@ export const rewriteArtifactTheme = async (
     { role: "user", content: formattedPrompt },
   ]);
 
-  const newArtifact = {
+  const newArtifact: ArtifactV3 = {
     ...state.artifact,
-    currentContentIndex: state.artifact.contents.length + 1,
+    currentIndex: state.artifact.contents.length + 1,
     contents: [
       ...state.artifact.contents,
       {
         ...currentArtifactContent,
         index: state.artifact.contents.length + 1,
-        content: newArtifactValues.content as string,
+        fullMarkdown: newArtifactValues.content as string,
       },
     ],
   };

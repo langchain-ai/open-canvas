@@ -1,20 +1,16 @@
-/**
- * Add comments
- * Add logs
- * Fix bugs
- * Port to a lang
- * Code review (p1)
- */
-
 import { useEffect, useRef, useState } from "react";
 import { MessageCircleCode, Code, ScrollText, Bug, BookA } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@/types";
 
-type SharedComponentProps = CodeToolbarProps & { handleClose: () => void };
+type SharedComponentProps = {
+  handleClose: () => void;
+  language: ProgrammingLanguageOptions;
+  streamMessage: (input: GraphInput) => Promise<void>;
+};
 
 type ToolbarOption = {
   id: string;
@@ -24,6 +20,7 @@ type ToolbarOption = {
 };
 
 export interface CodeToolbarProps {
+  isTextSelected: boolean;
   language: ProgrammingLanguageOptions;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
@@ -81,6 +78,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
 
   const toggleExpand = (event: React.MouseEvent) => {
     event.stopPropagation();
+    if (props.isTextSelected) return;
     setIsExpanded(!isExpanded);
     setActiveOption(null);
   };
@@ -151,9 +149,16 @@ export function CodeToolBar(props: CodeToolbarProps) {
         </div>
       ) : (
         <TooltipIconButton
-          tooltip="Code tools"
+          tooltip={
+            props.isTextSelected
+              ? "Quick actions disabled while text is selected"
+              : "Code tools"
+          }
           variant="outline"
-          className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
+          className={cn(
+            "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
+            props.isTextSelected ? "cursor-default" : "cursor-pointer"
+          )}
           delayDuration={400}
         >
           <Code className="w-[26px] h-[26px]" />

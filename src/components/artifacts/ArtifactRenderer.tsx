@@ -1,13 +1,33 @@
 import { useToast } from "@/hooks/use-toast";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
-import { newlineToCarriageReturn } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
-import { Artifact, ProgrammingLanguageOptions, Reflections } from "@/types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ArtifactV3,
+  ProgrammingLanguageOptions,
+  Reflections,
+  TextHighlight,
+} from "@/types";
 import { EditorView } from "@codemirror/view";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { CircleArrowUp, Eye, PencilLine, Forward } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  CircleArrowUp,
+  Forward,
+  Copy,
+  LoaderCircle,
+  CircleCheck,
+} from "lucide-react";
+import {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
@@ -16,10 +36,15 @@ import { Input } from "../ui/input";
 import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { CodeRenderer } from "./CodeRenderer";
 import { TextRenderer } from "./TextRenderer";
-import { getCurrentArtifactContent } from "@/lib/get_current_artifact";
+import { CustomQuickActions } from "./actions_toolbar/custom";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 
 export interface ArtifactRendererProps {
-  artifact: Artifact | undefined;
+  userId: string;
+  assistantId: string | undefined;
+  artifact: ArtifactV3 | undefined;
+  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
   setArtifactContent: (index: number, content: string) => void;
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
@@ -31,6 +56,13 @@ export interface ArtifactRendererProps {
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
+  selectedBlocks: TextHighlight | undefined;
+  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
+  isStreaming: boolean;
+  updateRenderedArtifactRequired: boolean;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+  isArtifactSaved: boolean;
+  firstTokenReceived: boolean;
 }
 
 interface SelectionBox {
@@ -107,8 +139,24 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     event.stopPropagation();
   }, []);
 
-  const handleSubmit = async () => {
-    if (!selectionIndexes) {
+  const handleSubmit = async (
+    e:
+      | FormEvent<HTMLFormElement>
+      | React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+
+    let artifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
+    try {
+      artifactContent = getArtifactContent(props.artifact);
+    } catch (_) {
+      // no-op
+    }
+    if (
+      !selectionIndexes &&
+      artifactContent &&
+      isArtifactCodeContent(artifactContent)
+    ) {
       toast({
         title: "Selection error",
         description:
@@ -133,10 +181,12 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
-        highlighted: {
-          startCharIndex: selectionIndexes.start,
-          endCharIndex: selectionIndexes.end,
-        },
+        ...(selectionIndexes && {
+          highlightedCode: {
+            startCharIndex: selectionIndexes.start,
+            endCharIndex: selectionIndexes.end,
+          },
+        }),
       });
     }
   };
@@ -152,111 +202,131 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [handleMouseUp, handleDocumentMouseDown]);
 
   useEffect(() => {
-    if (markdownRef.current && highlightLayerRef.current) {
-      const content = markdownRef.current;
-      const highlightLayer = highlightLayerRef.current;
+    try {
+      if (markdownRef.current && highlightLayerRef.current) {
+        const content = markdownRef.current;
+        const highlightLayer = highlightLayerRef.current;
 
-      // Clear existing highlights
-      highlightLayer.innerHTML = "";
+        // Clear existing highlights
+        highlightLayer.innerHTML = "";
 
-      if (isSelectionActive && selectionBox) {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
+        if (isSelectionActive && selectionBox) {
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
 
-          if (content.contains(range.commonAncestorContainer)) {
-            const rects = range.getClientRects();
-            const layerRect = highlightLayer.getBoundingClientRect();
+            if (content.contains(range.commonAncestorContainer)) {
+              const rects = range.getClientRects();
+              const layerRect = highlightLayer.getBoundingClientRect();
 
-            // Calculate start and end indexes
-            let startIndex, endIndex;
-            const currentArtifactContent = props.artifact
-              ? getCurrentArtifactContent(props.artifact)
-              : undefined;
-            if (currentArtifactContent?.type === "code" && editorRef.current) {
-              const from = editorRef.current.posAtDOM(
-                range.startContainer,
-                range.startOffset
-              );
-              const to = editorRef.current.posAtDOM(
-                range.endContainer,
-                range.endOffset
-              );
-              startIndex = from;
-              endIndex = to;
-            } else {
               // Calculate start and end indexes
-              const startContainer = range.startContainer;
-              const endContainer = range.endContainer;
-              startIndex = range.startOffset;
-              endIndex = range.endOffset;
-
-              // Traverse up to find the common ancestor
-              let node: Node | null = startContainer;
-              while (node && node !== content) {
-                if (node.previousSibling) {
-                  node = node.previousSibling;
-                  startIndex += node.textContent
-                    ? newlineToCarriageReturn(node.textContent)?.length
-                    : 0;
-                } else {
-                  node = node.parentNode;
-                }
+              let startIndex = 0;
+              let endIndex = 0;
+              let currentArtifactContent:
+                | ArtifactCodeV3
+                | ArtifactMarkdownV3
+                | undefined = undefined;
+              try {
+                currentArtifactContent = props.artifact
+                  ? getArtifactContent(props.artifact)
+                  : undefined;
+              } catch (_) {
+                console.error(
+                  "[ArtifactRenderer.tsx L229]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n",
+                  props.artifact
+                );
+                // no-op
               }
 
-              node = endContainer;
-              while (node && node !== content) {
-                if (node.previousSibling) {
-                  node = node.previousSibling;
-                  endIndex += node.textContent
-                    ? newlineToCarriageReturn(node.textContent)?.length
-                    : 0;
-                } else {
-                  node = node.parentNode;
+              if (currentArtifactContent?.type === "code") {
+                if (editorRef.current) {
+                  const from = editorRef.current.posAtDOM(
+                    range.startContainer,
+                    range.startOffset
+                  );
+                  const to = editorRef.current.posAtDOM(
+                    range.endContainer,
+                    range.endOffset
+                  );
+                  startIndex = from;
+                  endIndex = to;
                 }
+                setSelectionIndexes({ start: startIndex, end: endIndex });
               }
-            }
 
-            setSelectionIndexes({ start: startIndex, end: endIndex });
+              for (let i = 0; i < rects.length; i++) {
+                const rect = rects[i];
+                const highlightEl = document.createElement("div");
+                highlightEl.className =
+                  "absolute bg-[#3597934d] pointer-events-none";
 
-            for (let i = 0; i < rects.length; i++) {
-              const rect = rects[i];
-              const highlightEl = document.createElement("div");
-              highlightEl.className =
-                "absolute bg-[#3597934d] pointer-events-none";
+                // Adjust the positioning and size
+                const verticalPadding = 3;
+                highlightEl.style.left = `${rect.left - layerRect.left}px`;
+                highlightEl.style.top = `${rect.top - layerRect.top - verticalPadding}px`;
+                highlightEl.style.width = `${rect.width}px`;
+                highlightEl.style.height = `${rect.height + verticalPadding * 2}px`;
 
-              // Adjust the positioning and size
-              const verticalPadding = 3;
-              highlightEl.style.left = `${rect.left - layerRect.left}px`;
-              highlightEl.style.top = `${rect.top - layerRect.top - verticalPadding}px`;
-              highlightEl.style.width = `${rect.width}px`;
-              highlightEl.style.height = `${rect.height + verticalPadding * 2}px`;
-
-              highlightLayer.appendChild(highlightEl);
+                highlightLayer.appendChild(highlightEl);
+              }
             }
           }
         }
       }
+    } catch (e) {
+      console.error("Failed to get artifact selection", e);
     }
   }, [isSelectionActive, selectionBox]);
 
-  if (!props.artifact) {
+  useEffect(() => {
+    if (!!props.selectedBlocks && !isSelectionActive) {
+      // Selection is not active but selected blocks are present. Clear them.
+      props.setSelectedBlocks(undefined);
+    }
+  }, [props.selectedBlocks, isSelectionActive]);
+
+  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined =
+    undefined;
+  try {
+    currentArtifactContent = getArtifactContent(props.artifact);
+  } catch (_) {
+    // console.error("[ArtifactRenderer.tsx L280]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n", props.artifact)
+    // no-op
+  }
+
+  if (!props.artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }
-  const currentArtifactContent = getCurrentArtifactContent(props.artifact);
+
   const isBackwardsDisabled =
-    props.artifact.contents.length === 1 || currentArtifactContent.index === 1;
+    props.artifact.contents.length === 1 ||
+    currentArtifactContent.index === 1 ||
+    props.isStreaming;
   const isForwardDisabled =
     props.artifact.contents.length === 1 ||
-    currentArtifactContent.index === props.artifact.contents.length;
+    currentArtifactContent.index === props.artifact.contents.length ||
+    props.isStreaming;
 
   return (
-    <div className="relative w-full h-full overflow-auto">
+    <div className="relative w-full h-full max-h-screen overflow-auto">
       <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-row items-center justify-start">
-          <h1 className="text-xl font-medium text-gray-600">
+        <div className="pl-[6px] pt-3 flex flex-col items-start justify-start ml-[6px] gap-1">
+          <h1 className="text-xl font-medium text-gray-600 ">
             {currentArtifactContent.title}
           </h1>
+          <span className="mt-auto">
+            {props.isArtifactSaved ? (
+              <span className="flex items-center justify-start gap-1 text-gray-400">
+                <p className="text-xs font-light">Saved</p>
+                <CircleCheck className="w-[10px] h-[10px]" />
+              </span>
+            ) : (
+              <span className="flex items-center justify-start gap-1 text-gray-400">
+                <p className="text-xs font-light">Saving</p>
+                <LoaderCircle className="animate-spin w-[10px] h-[10px]" />
+              </span>
+            )}
+          </span>
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-3 text-gray-600">
           <TooltipIconButton
@@ -265,9 +335,11 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             variant="ghost"
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
-            onClick={() =>
-              props.setSelectedArtifact(currentArtifactContent.index - 1)
-            }
+            onClick={() => {
+              if (!isBackwardsDisabled) {
+                props.setSelectedArtifact(currentArtifactContent.index - 1);
+              }
+            }}
             disabled={isBackwardsDisabled}
           >
             <Forward
@@ -286,9 +358,11 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             side="right"
             className="transition-colors w-fit h-fit p-2"
             delayDuration={400}
-            onClick={() =>
-              props.setSelectedArtifact(currentArtifactContent.index + 1)
-            }
+            onClick={() => {
+              if (!isForwardDisabled) {
+                props.setSelectedArtifact(currentArtifactContent.index + 1);
+              }
+            }}
             disabled={isForwardDisabled}
           >
             <Forward
@@ -305,23 +379,37 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             handleDeleteReflections={props.handleDeleteReflections}
           />
         </div>
-        {currentArtifactContent.type === "text" ? (
-          <div className="pr-4 pt-3 flex flex-row gap-4 items-center justify-end">
-            <TooltipIconButton
-              tooltip={props.isEditing ? "Preview" : "Edit"}
-              variant="ghost"
-              className="transition-colors w-fit h-fit p-2"
-              delayDuration={400}
-              onClick={() => props.setIsEditing((v) => !v)}
-            >
-              {props.isEditing ? (
-                <Eye className="w-6 h-6 text-gray-600" />
-              ) : (
-                <PencilLine className="w-6 h-6 text-gray-600" />
-              )}
-            </TooltipIconButton>
-          </div>
-        ) : null}
+        <div className="pr-4 pt-3">
+          <TooltipIconButton
+            tooltip="Copy"
+            variant="ghost"
+            className="transition-colors w-fit h-fit p-2"
+            delayDuration={400}
+            onClick={() => {
+              try {
+                const text = isArtifactCodeContent(currentArtifactContent)
+                  ? currentArtifactContent.code
+                  : currentArtifactContent.fullMarkdown;
+                navigator.clipboard.writeText(text).then(() => {
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "The canvas content has been copied.",
+                    duration: 5000,
+                  });
+                });
+              } catch (_) {
+                toast({
+                  title: "Copy error",
+                  description:
+                    "Failed to copy the canvas content. Please try again.",
+                  duration: 5000,
+                });
+              }
+            }}
+          >
+            <Copy className="w-6 h-6 text-gray-600" />
+          </TooltipIconButton>
+        </div>
       </div>
       <div
         ref={contentRef}
@@ -336,20 +424,37 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             currentArtifactContent.type === "code" ? "min-w-full" : "min-w-full"
           )}
         >
-          <div className="h-[85%]" ref={markdownRef}>
+          <div className="h-full" ref={markdownRef}>
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
+                firstTokenReceived={props.firstTokenReceived}
+                isInputVisible={isInputVisible}
+                isStreaming={props.isStreaming}
+                artifact={props.artifact}
+                setArtifact={props.setArtifact}
+                setSelectedBlocks={props.setSelectedBlocks}
                 isEditing={props.isEditing}
-                setIsEditing={props.setIsEditing}
-                artifactContent={currentArtifactContent}
-                setArtifactContent={props.setArtifactContent}
+                updateRenderedArtifactRequired={
+                  props.updateRenderedArtifactRequired
+                }
+                setUpdateRenderedArtifactRequired={
+                  props.setUpdateRenderedArtifactRequired
+                }
               />
             ) : null}
             {currentArtifactContent.type === "code" ? (
               <CodeRenderer
+                isStreaming={props.isStreaming}
+                firstTokenReceived={props.firstTokenReceived}
                 setArtifactContent={props.setArtifactContent}
                 editorRef={editorRef}
                 artifactContent={currentArtifactContent}
+                updateRenderedArtifactRequired={
+                  props.updateRenderedArtifactRequired
+                }
+                setUpdateRenderedArtifactRequired={
+                  props.setUpdateRenderedArtifactRequired
+                }
               />
             ) : null}
           </div>
@@ -374,7 +479,10 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             onMouseDown={handleSelectionBoxMouseDown}
           >
             {isInputVisible ? (
-              <form className="relative w-full overflow-hidden flex flex-row items-center gap-1">
+              <form
+                onSubmit={handleSubmit}
+                className="relative w-full overflow-hidden flex flex-row items-center gap-1"
+              >
                 <Input
                   className="w-full transition-all duration-300 focus:ring-0 ease-in-out p-1 focus:outline-none border-0 focus-visible:ring-0"
                   placeholder="Ask Open Canvas..."
@@ -383,7 +491,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                   onChange={(e) => setInputValue(e.target.value)}
                 />
                 <Button
-                  onClick={handleSubmit}
+                  onClick={(e) => handleSubmit(e)}
                   type="submit"
                   variant="ghost"
                   size="icon"
@@ -408,11 +516,25 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           </div>
         )}
       </div>
+      <CustomQuickActions
+        isTextSelected={isSelectionActive || props.selectedBlocks !== undefined}
+        userId={props.userId}
+        assistantId={props.assistantId}
+        streamMessage={props.streamMessage}
+      />
       {currentArtifactContent.type === "text" ? (
-        <ActionsToolbar streamMessage={props.streamMessage} />
+        <ActionsToolbar
+          isTextSelected={
+            isSelectionActive || props.selectedBlocks !== undefined
+          }
+          streamMessage={props.streamMessage}
+        />
       ) : null}
       {currentArtifactContent.type === "code" ? (
         <CodeToolBar
+          isTextSelected={
+            isSelectionActive || props.selectedBlocks !== undefined
+          }
           language={
             currentArtifactContent.language as ProgrammingLanguageOptions
           }

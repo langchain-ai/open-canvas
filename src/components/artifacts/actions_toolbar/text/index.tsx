@@ -4,11 +4,14 @@ import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
 
-type SharedComponentProps = ActionsToolbarProps & { handleClose: () => void };
+type SharedComponentProps = {
+  handleClose: () => void;
+  streamMessage: (input: GraphInput) => Promise<void>;
+};
 
 type ToolbarOption = {
   id: string;
@@ -18,6 +21,7 @@ type ToolbarOption = {
 };
 
 export interface ActionsToolbarProps {
+  isTextSelected: boolean;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
 
@@ -74,6 +78,7 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
 
   const toggleExpand = (event: React.MouseEvent) => {
     event.stopPropagation();
+    if (props.isTextSelected) return;
     setIsExpanded(!isExpanded);
     setActiveOption(null);
   };
@@ -134,9 +139,16 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
         </div>
       ) : (
         <TooltipIconButton
-          tooltip="Writing tools"
+          tooltip={
+            props.isTextSelected
+              ? "Quick actions disabled while text is selected"
+              : "Writing tools"
+          }
           variant="outline"
-          className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
+          className={cn(
+            "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
+            props.isTextSelected ? "cursor-default" : "cursor-pointer"
+          )}
           delayDuration={400}
         >
           <MagicPencilSVG className="w-[26px] h-[26px]" />

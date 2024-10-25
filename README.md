@@ -10,6 +10,15 @@ Open Canvas is an open source web application for collaborating with agents to b
 2. **Built in memory**: Open Canvas ships out of the box with a [reflection agent](https://langchain-ai.github.io/langgraphjs/tutorials/reflection/reflection/) which stores style rules and user insights in a [shared memory store](https://langchain-ai.github.io/langgraphjs/concepts/memory/). This allows Open Canvas to remember facts about you across sessions.
 3. **Start from existing documents**: Open Canvas allows users to start with a blank text, or code editor in the language of their choice, allowing you to start the session with your existing content, instead of being forced to start with a chat interaction. We believe this is an ideal UX because many times you will already have some content to start with, and want to iterate on-top of it.
 
+## Features
+
+- **Memory**: Open Canvas has a built in memory system which will automatically generate reflections and memories on you, and your chat history. These are then included in subsequent chat interactions to give a more personalized experience.
+- **Custom quick actions**: Custom quick actions allow you to define your own prompts which are tied to your user, and persist across sessions. These then can be easily invoked through a single click, and apply to the artifact you're currently viewing.
+- **Pre-built quick actions**: There are also a series of pre-built quick actions for common writing and coding tasks that are always available.
+- **Artifact versioning**: All artifacts have a "version" tied to them, allowing you to travel back in time and see previous versions of your artifact.
+- **Code, Markdown, or both**: The artifact view allows for viewing and editing both code, and markdown. You can even have chats which generate code, and markdown artifacts, and switch between them.
+- **Live markdown rendering & editing**: Open Canvas's markdown editor allows you to view the rendered markdown while you're editing, without having to toggle back and fourth.
+
 ## How to use
 
 You can use our deployed version for free by visiting [opencanvas.langchain.com](https://opencanvas.langchain.com/)
@@ -77,12 +86,9 @@ You can also watch a short (2 min) video walkthrough on how to setup Open Canvas
 
 Below is a list of features we'd like to add to Open Canvas in the near future:
 
-- **Artifact versioning**: Like in Google Docs, you should be able to go back in time and see previous versions of your artifact.
-- **Render React in the editor**: Ideally, if you have Open Canvas generate React (or HTML) code, we should be able to render it live in the editor.
-- **Custom quick actions**: Allow users to define their own quick actions which will persist across sessions.
+- **Render React in the editor**: Ideally, if you have Open Canvas generate React (or HTML) code, we should be able to render it live in the editor. **Edit**: This is in the planning stage now!
 - **Multiple assistants**: Users should be able to create multiple assistants, each having their own memory store.
 - **Give assistants custom 'tools'**: Once we've implemented `RemoteGraph` in LangGraph.js, users should be able to give assistants access to call their own graphs as tools. This means you could customize your assistant to have access to current events, your own personal knowledge graph, etc.
-- **Live markdown renderer**: Markdown code should be rendered live and be editable at the same time.
 
 Do you have a feature request? Please [open an issue](https://github.com/langchain-ai/open-canvas/issues/new)!
 

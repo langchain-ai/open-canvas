@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { GraphInput } from "@/hooks/useGraph";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { ArtifactLengthOptions } from "@/types";
 import {
   Tooltip,
