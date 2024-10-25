@@ -95,6 +95,11 @@ export type ProgrammingLanguageOptions =
   | "python"
   | "html"
   | "sql"
+  | "json"
+  | "rust"
+  | "xml"
+  | "clojure"
+  | "csharp"
   | "other";
 
 export const PROGRAMMING_LANGUAGES: Array<{
@@ -132,6 +137,26 @@ export const PROGRAMMING_LANGUAGES: Array<{
   {
     language: "sql",
     label: "SQL",
+  },
+  {
+    language: "json",
+    label: "JSON",
+  },
+  {
+    language: "rust",
+    label: "Rust",
+  },
+  {
+    language: "xml",
+    label: "XML",
+  },
+  {
+    language: "clojure",
+    label: "Clojure",
+  },
+  {
+    language: "csharp",
+    label: "C#",
   },
   {
     language: "other",
