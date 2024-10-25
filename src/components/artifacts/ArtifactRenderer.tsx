@@ -202,75 +202,79 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [handleMouseUp, handleDocumentMouseDown]);
 
   useEffect(() => {
-    if (markdownRef.current && highlightLayerRef.current) {
-      const content = markdownRef.current;
-      const highlightLayer = highlightLayerRef.current;
+    try {
+      if (markdownRef.current && highlightLayerRef.current) {
+        const content = markdownRef.current;
+        const highlightLayer = highlightLayerRef.current;
 
-      // Clear existing highlights
-      highlightLayer.innerHTML = "";
+        // Clear existing highlights
+        highlightLayer.innerHTML = "";
 
-      if (isSelectionActive && selectionBox) {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
+        if (isSelectionActive && selectionBox) {
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
 
-          if (content.contains(range.commonAncestorContainer)) {
-            const rects = range.getClientRects();
-            const layerRect = highlightLayer.getBoundingClientRect();
+            if (content.contains(range.commonAncestorContainer)) {
+              const rects = range.getClientRects();
+              const layerRect = highlightLayer.getBoundingClientRect();
 
-            // Calculate start and end indexes
-            let startIndex = 0;
-            let endIndex = 0;
-            let currentArtifactContent:
-              | ArtifactCodeV3
-              | ArtifactMarkdownV3
-              | undefined = undefined;
-            try {
-              currentArtifactContent = props.artifact
-                ? getArtifactContent(props.artifact)
-                : undefined;
-            } catch (_) {
-              console.error(
-                "[ArtifactRenderer.tsx L229]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n",
-                props.artifact
-              );
-              // no-op
-            }
-
-            if (currentArtifactContent?.type === "code") {
-              if (editorRef.current) {
-                const from = editorRef.current.posAtDOM(
-                  range.startContainer,
-                  range.startOffset
+              // Calculate start and end indexes
+              let startIndex = 0;
+              let endIndex = 0;
+              let currentArtifactContent:
+                | ArtifactCodeV3
+                | ArtifactMarkdownV3
+                | undefined = undefined;
+              try {
+                currentArtifactContent = props.artifact
+                  ? getArtifactContent(props.artifact)
+                  : undefined;
+              } catch (_) {
+                console.error(
+                  "[ArtifactRenderer.tsx L229]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n",
+                  props.artifact
                 );
-                const to = editorRef.current.posAtDOM(
-                  range.endContainer,
-                  range.endOffset
-                );
-                startIndex = from;
-                endIndex = to;
+                // no-op
               }
-              setSelectionIndexes({ start: startIndex, end: endIndex });
-            }
 
-            for (let i = 0; i < rects.length; i++) {
-              const rect = rects[i];
-              const highlightEl = document.createElement("div");
-              highlightEl.className =
-                "absolute bg-[#3597934d] pointer-events-none";
+              if (currentArtifactContent?.type === "code") {
+                if (editorRef.current) {
+                  const from = editorRef.current.posAtDOM(
+                    range.startContainer,
+                    range.startOffset
+                  );
+                  const to = editorRef.current.posAtDOM(
+                    range.endContainer,
+                    range.endOffset
+                  );
+                  startIndex = from;
+                  endIndex = to;
+                }
+                setSelectionIndexes({ start: startIndex, end: endIndex });
+              }
 
-              // Adjust the positioning and size
-              const verticalPadding = 3;
-              highlightEl.style.left = `${rect.left - layerRect.left}px`;
-              highlightEl.style.top = `${rect.top - layerRect.top - verticalPadding}px`;
-              highlightEl.style.width = `${rect.width}px`;
-              highlightEl.style.height = `${rect.height + verticalPadding * 2}px`;
+              for (let i = 0; i < rects.length; i++) {
+                const rect = rects[i];
+                const highlightEl = document.createElement("div");
+                highlightEl.className =
+                  "absolute bg-[#3597934d] pointer-events-none";
 
-              highlightLayer.appendChild(highlightEl);
+                // Adjust the positioning and size
+                const verticalPadding = 3;
+                highlightEl.style.left = `${rect.left - layerRect.left}px`;
+                highlightEl.style.top = `${rect.top - layerRect.top - verticalPadding}px`;
+                highlightEl.style.width = `${rect.width}px`;
+                highlightEl.style.height = `${rect.height + verticalPadding * 2}px`;
+
+                highlightLayer.appendChild(highlightEl);
+              }
             }
           }
         }
       }
+    } catch (e) {
+      console.error("Failed to get artifact selection", e);
     }
   }, [isSelectionActive, selectionBox]);
 

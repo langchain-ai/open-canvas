@@ -19,7 +19,7 @@ import { useRuns } from "../useRuns";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
 import { setCookie } from "@/lib/cookies";
-import { THREAD_ID_COOKIE_NAME } from "@/constants";
+import { DEFAULT_INPUTS, THREAD_ID_COOKIE_NAME } from "@/constants";
 import {
   convertToArtifactV3,
   createNewGeneratedArtifactFromTool,
@@ -195,17 +195,44 @@ export function useGraph(useGraphInput: UseGraphInput) {
     // TODO: update to properly pass the highlight data back
     // one field for highlighted text, and one for code
     const input = {
+      ...DEFAULT_INPUTS,
       artifact,
       ...params,
       ...(selectedBlocks && {
         highlightedText: selectedBlocks,
       }),
     };
+    // Add check for multiple defined fields
+    const fieldsToCheck = [
+      input.highlightedCode,
+      input.highlightedText,
+      input.language,
+      input.artifactLength,
+      input.regenerateWithEmojis,
+      input.readingLevel,
+      input.addComments,
+      input.addLogs,
+      input.fixBugs,
+      input.portLanguage,
+      input.customQuickActionId,
+    ];
+
+    if (fieldsToCheck.filter((field) => field !== undefined).length >= 2) {
+      toast({
+        title: "Error",
+        description:
+          "Can not use multiple fields (quick actions, highlights, etc.) at once. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
 
     setIsStreaming(true);
     // The root level run ID of this stream
     let runId = "";
     let followupMessageId = "";
+    // let lastMessage: AIMessage | undefined = undefined;
     try {
       const stream = client.runs.stream(
         useGraphInput.threadId,
@@ -608,6 +635,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
             ) {
               rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
             }
+            // if (chunk.data?.data.output && "type" in chunk.data.data.output && chunk.data.data.output.type === "ai") {
+            //   lastMessage = new AIMessage({
+            //     ...chunk.data.data.output,
+            //   });
+            //   console.log("last message", lastMessage);
+            // }
           }
         } catch (e) {
           console.error(
@@ -664,25 +697,24 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return newMsgs;
         });
 
-        // if (useGraphInput.threadId && lastMessage) {
+        // if (useGraphInput.threadId && lastMessage && lastMessage.id) {
         //   // Update the state of the last message to include the run URL
         //   // for proper rendering when loading history.
-        //   if (lastMessage.type === "ai") {
-        //     const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
-        //       ...lastMessage,
-        //       content: lastMessage.content,
-        //       response_metadata: {
-        //         ...lastMessage.response_metadata,
-        //         langSmithRunURL: sharedRunURL,
-        //       }
-        //     })];
-        //     await client.threads.updateState(useGraphInput.threadId, {
-        //       values: {
-        //         messages: newMessages
-        //       },
-        //     });
-        //     const newState = await client.threads.getState(useGraphInput.threadId);
-        //   }
+        //   const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
+        //     ...lastMessage,
+        //     content: lastMessage.content,
+        //     response_metadata: {
+        //       ...lastMessage.response_metadata,
+        //       langSmithRunURL: sharedRunURL,
+        //     }
+        //   })];
+        //   await client.threads.updateState(useGraphInput.threadId, {
+        //     values: {
+        //       messages: newMessages
+        //     },
+        //   });
+        //   const newState = await client.threads.getState(useGraphInput.threadId);
+        //   console.log("new state", newState.values);
         // }
       });
     }
