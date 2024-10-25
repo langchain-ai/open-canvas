@@ -6,11 +6,7 @@ import {
   formatReflections,
 } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import {
-  ArtifactCodeV3,
-  ArtifactMarkdownV3,
-  Reflections,
-} from "../../../types";
+import { Reflections } from "../../../types";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
 import { getArtifactContent } from "../../../hooks/use-graph/utils";
 

@@ -655,6 +655,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     } catch (e) {
       console.error("Failed to stream message", e);
     } finally {
+      setSelectedBlocks(undefined);
       setIsStreaming(false);
     }
 
