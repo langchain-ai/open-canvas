@@ -33,7 +33,9 @@ You also have the following reflections on style guidelines and general memories
 
 {currentArtifactPrompt}`;
 
-  const currentArtifactContent = getArtifactContent(state.artifact);
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;

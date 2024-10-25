@@ -18,7 +18,12 @@ export const rewriteCodeArtifactTheme = async (
     temperature: 0.5,
   });
 
-  const currentArtifactContent = getArtifactContent(state.artifact);
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
+  if (!currentArtifactContent) {
+    throw new Error("No artifact found");
+  }
   if (!isArtifactCodeContent(currentArtifactContent)) {
     throw new Error("Current artifact content is not code");
   }

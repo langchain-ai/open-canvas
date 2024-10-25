@@ -31,7 +31,12 @@ export const updateArtifact = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  const currentArtifactContent = getArtifactContent(state.artifact);
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
+  if (!currentArtifactContent) {
+    throw new Error("No artifact found");
+  }
   if (!isArtifactCodeContent(currentArtifactContent)) {
     throw new Error("Current artifact content is not markdown");
   }

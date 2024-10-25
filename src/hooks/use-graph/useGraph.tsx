@@ -179,6 +179,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
       toast({
         title: "Error",
         description: "Thread ID not found",
+        variant: "destructive",
+        duration: 5000,
       });
       return undefined;
     }
@@ -186,6 +188,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
       toast({
         title: "Error",
         description: "Assistant ID not found",
+        variant: "destructive",
+        duration: 5000,
       });
       return undefined;
     }
@@ -361,6 +365,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "No highlighted text found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 continue;
               }
@@ -368,6 +374,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -375,14 +383,13 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Received non markdown block update",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
 
-              const partialUpdatedContent = message.content;
-              if (!partialUpdatedContent) {
-                continue;
-              }
+              const partialUpdatedContent = message.content || "";
               const startIndexOfHighlightedText =
                 highlightedText.fullMarkdown.indexOf(
                   highlightedText.markdownBlock
@@ -433,6 +440,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -440,18 +449,22 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "No highlighted code found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
 
-              const partialUpdatedContent = chunk.data.data.chunk?.[1]?.content;
-              if (!partialUpdatedContent) return;
+              const partialUpdatedContent =
+                chunk.data.data.chunk?.[1]?.content || "";
               const { startCharIndex, endCharIndex } = params.highlightedCode;
 
               if (!prevCurrentContent) {
                 toast({
                   title: "Error",
                   description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -459,6 +472,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Received non code block update",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -506,6 +521,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -570,6 +587,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -577,6 +596,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 toast({
                   title: "Error",
                   description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
                 });
                 return;
               }
@@ -730,6 +751,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
         toast({
           title: "Error",
           description: "No artifactV2 found",
+          variant: "destructive",
+          duration: 5000,
         });
         return prev;
       }
@@ -748,6 +771,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
         toast({
           title: "Error",
           description: "No artifact found",
+          variant: "destructive",
+          duration: 5000,
         });
         return prev;
       }

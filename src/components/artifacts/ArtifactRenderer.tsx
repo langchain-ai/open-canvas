@@ -175,6 +175,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       setInputValue("");
       setSelectionBox(undefined);
       setSelectionIndexes(undefined);
+      setIsSelectionActive(false);
 
       await props.streamMessage({
         messages: [convertToOpenAIFormat(humanMessage)],
@@ -276,6 +277,11 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [isSelectionActive, selectionBox]);
 
   useEffect(() => {
+    console.log(
+      "!!props.selectedBlocks && !isSelectionActive",
+      !!props.selectedBlocks,
+      isSelectionActive
+    );
     if (!!props.selectedBlocks && !isSelectionActive) {
       // Selection is not active but selected blocks are present. Clear them.
       props.setSelectedBlocks(undefined);

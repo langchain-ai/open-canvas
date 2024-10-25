@@ -46,7 +46,12 @@ export const rewriteArtifact = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  const currentArtifactContent = getArtifactContent(state.artifact);
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
+  if (!currentArtifactContent) {
+    throw new Error("No artifact found");
+  }
 
   const optionallyUpdateArtifactMetaPrompt =
     GET_TITLE_TYPE_REWRITE_ARTIFACT.replace(
