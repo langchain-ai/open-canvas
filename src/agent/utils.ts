@@ -1,5 +1,6 @@
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
+import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -56,13 +57,13 @@ export const formatArtifactContent = (
 ): string => {
   let artifactContent: string;
 
-  if (content.type === "code") {
+  if (isArtifactCodeContent(content)) {
     artifactContent = shortenContent
-      ? content.code.slice(0, 500)
+      ? content.code?.slice(0, 500)
       : content.code;
   } else {
     artifactContent = shortenContent
-      ? content.fullMarkdown.slice(0, 500)
+      ? content.fullMarkdown?.slice(0, 500)
       : content.fullMarkdown;
   }
   return `Title: ${content.title}\nArtifact type: ${content.type}\nContent: ${artifactContent}`;
