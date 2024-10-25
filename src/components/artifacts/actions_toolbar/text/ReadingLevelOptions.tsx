@@ -5,12 +5,12 @@ import {
   School,
   Swords,
 } from "lucide-react";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { ReadingLevelOptions as ReadingLevelOptionsType } from "@/types";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 
 export interface ReadingLevelOptionsProps {
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
   handleClose: () => void;
 }
 

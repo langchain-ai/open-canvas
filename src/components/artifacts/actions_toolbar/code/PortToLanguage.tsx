@@ -1,10 +1,10 @@
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { ProgrammingLanguageOptions } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageList } from "@/components/ProgrammingLangDropdown";
 
 export interface PortToLanguageOptionsProps {
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
   handleClose: () => void;
   language: ProgrammingLanguageOptions;
 }

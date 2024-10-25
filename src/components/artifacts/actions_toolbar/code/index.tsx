@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircleCode, Code, ScrollText, Bug, BookA } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@/types";
@@ -9,7 +9,7 @@ import { ProgrammingLanguageOptions } from "@/types";
 type SharedComponentProps = {
   handleClose: () => void;
   language: ProgrammingLanguageOptions;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
 };
 
 type ToolbarOption = {
@@ -22,7 +22,7 @@ type ToolbarOption = {
 export interface CodeToolbarProps {
   isTextSelected: boolean;
   language: ProgrammingLanguageOptions;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
 }
 
 const toolbarOptions: ToolbarOption[] = [

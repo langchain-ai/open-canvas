@@ -5,7 +5,7 @@ import {
   LoaderCircle,
   Pencil,
 } from "lucide-react";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,
@@ -26,7 +26,7 @@ export interface CustomQuickActionsProps {
   isTextSelected: boolean;
   assistantId: string | undefined;
   userId: string;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
 }
 
 const DropdownMenuItemWithDelete = ({

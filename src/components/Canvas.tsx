@@ -2,8 +2,9 @@
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
+import { ALL_MODEL_NAMES, DEFAULT_MODEL_NAME } from "@/constants";
+import { GraphConfig, GraphInput, useGraph } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
-import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useStore } from "@/hooks/useStore";
 import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
@@ -35,6 +36,8 @@ export function Canvas(props: CanvasProps) {
     setThreadId,
     getOrCreateAssistant,
     clearThreadsWithNoValues,
+    modelName,
+    setModelName,
   } = useThread(props.user.id);
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -59,6 +62,8 @@ export function Canvas(props: CanvasProps) {
     userId: props.user.id,
     threadId,
     assistantId,
+    modelName,
+    setModelName,
   });
   const {
     reflections,
@@ -106,10 +111,12 @@ export function Canvas(props: CanvasProps) {
     getReflections();
   }, [assistantId]);
 
-  const createThreadWithChatStarted = async () => {
+  const createThreadWithChatStarted = async (
+    customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME
+  ) => {
     setChatStarted(false);
     clearState();
-    return createThread(props.user.id);
+    return createThread(props.user.id, customModelName);
   };
 
   const handleQuickStart = (
@@ -174,6 +181,9 @@ export function Canvas(props: CanvasProps) {
             // Chat should only be "started" if there are messages present
             if ((thread.values as Record<string, any>)?.messages?.length) {
               setChatStarted(true);
+              setModelName(
+                thread?.metadata?.customModelName as ALL_MODEL_NAMES
+              );
             } else {
               setChatStarted(false);
             }
@@ -183,13 +193,20 @@ export function Canvas(props: CanvasProps) {
           handleDeleteReflections={deleteReflections}
           reflections={reflections}
           isLoadingReflections={isLoadingReflections}
-          streamMessage={streamMessage}
+          streamMessage={(input: GraphInput, config?: GraphConfig) =>
+            streamMessage(input, {
+              customModelName: modelName,
+              ...(config || {}),
+            })
+          }
           messages={messages}
           setMessages={setMessages}
           createThread={createThreadWithChatStarted}
           setChatStarted={setChatStarted}
           showNewThreadButton={chatStarted}
           handleQuickStart={handleQuickStart}
+          modelName={modelName}
+          setModelName={setModelName}
         />
       </div>
       {chatStarted && (
@@ -213,7 +230,12 @@ export function Canvas(props: CanvasProps) {
             setSelectedArtifact={setSelectedArtifact}
             messages={messages}
             setMessages={setMessages}
-            streamMessage={streamMessage}
+            streamMessage={(input: GraphInput, config?: GraphConfig) =>
+              streamMessage(input, {
+                customModelName: modelName,
+                ...(config || {}),
+              })
+            }
             isStreaming={isStreaming}
             updateRenderedArtifactRequired={updateRenderedArtifactRequired}
             setUpdateRenderedArtifactRequired={

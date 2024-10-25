@@ -6,11 +6,11 @@ import {
   FrenchFlag,
 } from "@/components/icons/flags";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { LanguageOptions } from "@/types";
 
 export interface TranslateOptionsProps {
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
   handleClose: () => void;
 }
 

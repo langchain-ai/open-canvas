@@ -9,6 +9,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContent,
   formatReflections,
+  getModelNameFromConfig,
 } from "../../utils";
 import {
   ArtifactCodeV3,
@@ -24,13 +25,50 @@ import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
 } from "../../../lib/artifact_content_types";
+import { initChatModel } from "langchain/chat_models/universal";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
+  const optionallyUpdateArtifactMetaSchema = z.object({
+    type: z
+      .enum(["text", "code"])
+      .describe("The type of the artifact content."),
+    title: z
+      .string()
+      .optional()
+      .describe(
+        "The new title to give the artifact. ONLY update this if the user is making a request which changes the subject/topic of the artifact."
+      ),
+    programmingLanguage: z
+      .enum(
+        PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
+          string,
+          ...string[],
+        ]
+      )
+      .optional()
+      .describe(
+        "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
+      ),
+  });
+  // TODO: Once Anthropic tool call streaming is supported, use the custom model here.
+  const toolCallingModel = new ChatOpenAI({
     model: "gpt-4o-mini",
+    temperature: 0,
+  })
+    .bindTools([
+      {
+        name: "optionallyUpdateArtifactMeta",
+        schema: optionallyUpdateArtifactMetaSchema,
+        description: "Update the artifact meta information, if necessary.",
+      },
+    ])
+    .withConfig({ runName: "optionally_update_artifact_meta" });
+
+  const modelName = getModelNameFromConfig(config);
+  const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
   });
 
@@ -65,43 +103,11 @@ export const rewriteArtifact = async (
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
   }
-  const optionallyUpdateArtifactMetaSchema = z.object({
-    type: z
-      .enum(["text", "code"])
-      .describe("The type of the artifact content."),
-    title: z
-      .string()
-      .optional()
-      .describe(
-        "The new title to give the artifact. ONLY update this if the user is making a request which changes the subject/topic of the artifact."
-      ),
-    programmingLanguage: z
-      .enum(
-        PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
-          string,
-          ...string[],
-        ]
-      )
-      .optional()
-      .describe(
-        "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
-      ),
-  });
-  const optionallyUpdateModelWithTool = smallModel
-    .bindTools([
-      {
-        name: "optionallyUpdateArtifactMeta",
-        schema: optionallyUpdateArtifactMetaSchema,
-        description: "Update the artifact meta information, if necessary.",
-      },
-    ])
-    .withConfig({ runName: "optionally_update_artifact_meta" });
 
-  const optionallyUpdateArtifactResponse =
-    await optionallyUpdateModelWithTool.invoke([
-      { role: "system", content: optionallyUpdateArtifactMetaPrompt },
-      recentHumanMessage,
-    ]);
+  const optionallyUpdateArtifactResponse = await toolCallingModel.invoke([
+    { role: "system", content: optionallyUpdateArtifactMetaPrompt },
+    recentHumanMessage,
+  ]);
   const artifactMetaToolCall = optionallyUpdateArtifactResponse.tool_calls?.[0];
   const artifactType = artifactMetaToolCall?.args?.type;
   const isNewType = artifactType !== currentArtifactContent.type;
