@@ -157,11 +157,20 @@ export function CodeToolBar(props: CodeToolbarProps) {
           variant="outline"
           className={cn(
             "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
-            props.isTextSelected ? "cursor-default" : "cursor-pointer"
+            props.isTextSelected
+              ? "cursor-default opacity-50 text-gray-400 hover:bg-background"
+              : "cursor-pointer"
           )}
           delayDuration={400}
         >
-          <Code className="w-[26px] h-[26px]" />
+          <Code
+            className={cn(
+              "w-[26px] h-[26px]",
+              props.isTextSelected
+                ? "text-gray-400"
+                : "hover:text-gray-900 transition-colors"
+            )}
+          />
         </TooltipIconButton>
       )}
     </div>
