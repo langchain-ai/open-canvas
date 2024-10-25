@@ -68,6 +68,7 @@ export const rewriteArtifact = async (
     .withConfig({ runName: "optionally_update_artifact_meta" });
 
   const modelName = getModelNameFromConfig(config);
+  console.log("USING\n\n\n", modelName, "\n\n\n");
   const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
   });
