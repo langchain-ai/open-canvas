@@ -1,25 +1,35 @@
-import { useEffect, useRef, useState } from "react";
-import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { useToast } from "../use-toast";
-import { createClient } from "../utils";
+import {
+  ALL_MODEL_NAMES,
+  DEFAULT_INPUTS,
+  THREAD_ID_COOKIE_NAME,
+} from "@/constants";
+import {
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+  isDeprecatedArtifactType,
+} from "@/lib/artifact_content_types";
+import { setCookie } from "@/lib/cookies";
+import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
+  ArtifactToolResponse,
   ArtifactType,
   ArtifactV3,
+  CodeHighlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
-  ArtifactToolResponse,
   RewriteArtifactMetaToolResponse,
   TextHighlight,
-  CodeHighlight,
 } from "@/types";
+import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { parsePartialJson } from "@langchain/core/output_parsers";
-import { useRuns } from "../useRuns";
-import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
-import { setCookie } from "@/lib/cookies";
-import { DEFAULT_INPUTS, THREAD_ID_COOKIE_NAME } from "@/constants";
+import { debounce } from "lodash";
+import { useEffect, useRef, useState } from "react";
+import { useToast } from "../use-toast";
+import { useRuns } from "../useRuns";
+import { createClient } from "../utils";
 import {
   convertToArtifactV3,
   createNewGeneratedArtifactFromTool,
@@ -28,12 +38,6 @@ import {
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
-import {
-  isArtifactCodeContent,
-  isArtifactMarkdownContent,
-  isDeprecatedArtifactType,
-} from "@/lib/artifact_content_types";
-import { debounce } from "lodash";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
@@ -77,6 +81,7 @@ export interface UseGraphInput {
   userId: string;
   threadId: string | undefined;
   assistantId: string | undefined;
+  modelName: ALL_MODEL_NAMES;
 }
 
 export function useGraph(useGraphInput: UseGraphInput) {
@@ -244,6 +249,11 @@ export function useGraph(useGraphInput: UseGraphInput) {
         {
           input,
           streamMode: "events",
+          config: {
+            configurable: {
+              customModelName: useGraphInput.modelName,
+            },
+          },
         }
       );
 

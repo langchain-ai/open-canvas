@@ -20,3 +20,17 @@ export const DEFAULT_INPUTS = {
   portLanguage: undefined,
   customQuickActionId: undefined,
 };
+
+export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "claude-3-haiku-20240307";
+export const OPENAI_MODEL_NAMES = ["gpt-4o-mini"] as const;
+export const ANTHROPIC_MODEL_NAMES = ["claude-3-haiku-20240307"] as const;
+export const FIREWORKS_MODEL_NAMES = [
+  "accounts/fireworks/models/llama-v3p1-70b-instruct",
+  "accounts/fireworks/models/llama-v3p1-8b-instruct",
+] as const;
+
+export type OPENAI_MODEL = (typeof OPENAI_MODEL_NAMES)[number];
+export type ANTHROPIC_MODEL = (typeof ANTHROPIC_MODEL_NAMES)[number];
+export type FIREWORKS_MODEL = (typeof FIREWORKS_MODEL_NAMES)[number];
+
+export type ALL_MODEL_NAMES = OPENAI_MODEL | ANTHROPIC_MODEL | FIREWORKS_MODEL;

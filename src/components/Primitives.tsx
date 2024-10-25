@@ -10,26 +10,28 @@ import {
 } from "@assistant-ui/react";
 import { type FC } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowDownIcon,
-  SendHorizontalIcon,
-  SquarePen,
-  NotebookPen,
-} from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { ALL_MODEL_NAMES, DEFAULT_MODEL_NAME } from "@/constants";
+import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import { Thread as ThreadType } from "@langchain/langgraph-sdk";
+import {
+  ArrowDownIcon,
+  NotebookPen,
+  SendHorizontalIcon,
+  SquarePen,
+} from "lucide-react";
+import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
+import ModelSelector from "./ModelSelector";
+import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
-import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 
 export interface ThreadProps {
-  createThread: () => Promise<ThreadType | undefined>;
+  createThread: (modelName: ALL_MODEL_NAMES) => Promise<ThreadType | undefined>;
   showNewThreadButton: boolean;
   handleQuickStart: (
     type: "text" | "code",
@@ -43,6 +45,8 @@ export interface ThreadProps {
   userThreads: ThreadType[];
   switchSelectedThread: (thread: ThreadType) => void;
   deleteThread: (id: string) => Promise<void>;
+  modelName: ALL_MODEL_NAMES;
+  setModelName: React.Dispatch<React.SetStateAction<ALL_MODEL_NAMES>>;
 }
 
 interface QuickStartButtonsProps {
@@ -145,7 +149,8 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
-    const thread = await props.createThread();
+    props.setModelName(DEFAULT_MODEL_NAME);
+    const thread = await props.createThread(DEFAULT_MODEL_NAME);
     if (!thread) {
       toast({
         title: "Failed to create a new thread",
@@ -192,7 +197,16 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         {!props.showNewThreadButton && (
           <ThreadWelcome
             handleQuickStart={props.handleQuickStart}
-            composer={<Composer />}
+            composer={
+              <div className="flex flex-col space-y-2">
+                <ModelSelector
+                  createThread={props.createThread}
+                  model={props.modelName}
+                  setModel={props.setModelName}
+                />
+                <Composer />
+              </div>
+            }
           />
         )}
         <ThreadPrimitive.Messages
@@ -206,7 +220,16 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
         <ThreadScrollToBottom />
         <div className="w-full max-w-2xl">
-          {props.showNewThreadButton && <Composer />}
+          {props.showNewThreadButton && (
+            <div className="flex flex-col space-y-2">
+              <ModelSelector
+                createThread={props.createThread}
+                model={props.modelName}
+                setModel={props.setModelName}
+              />
+              <Composer />
+            </div>
+          )}
         </div>
       </div>
     </ThreadPrimitive.Root>

@@ -1,6 +1,6 @@
+import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
-import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -78,4 +78,14 @@ export const formatArtifactContentWithTemplate = (
     "{artifact}",
     formatArtifactContent(content, shortenContent)
   );
+};
+
+export const getModelNameFromConfig = (
+  config: LangGraphRunnableConfig
+): string => {
+  const customModelName = config.metadata?.customModelName as string;
+  if (!customModelName) {
+    throw new Error("Model name is missing in config.");
+  }
+  return customModelName;
 };

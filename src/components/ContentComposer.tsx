@@ -1,30 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  AppendMessage,
-  AssistantRuntimeProvider,
-  useExternalStoreRuntime,
-} from "@assistant-ui/react";
-import { v4 as uuidv4 } from "uuid";
-import { Thread } from "./Primitives";
-import { useExternalMessageConverter } from "@assistant-ui/react";
-import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { ALL_MODEL_NAMES } from "@/constants";
+import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { useToast } from "@/hooks/use-toast";
 import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
-import { Toaster } from "./ui/toaster";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import {
+  AppendMessage,
+  AssistantRuntimeProvider,
+  useExternalMessageConverter,
+  useExternalStoreRuntime,
+} from "@assistant-ui/react";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { Thread } from "./Primitives";
+import { Toaster } from "./ui/toaster";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
   streamMessage: (input: GraphInput) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  createThread: () => Promise<ThreadType | undefined>;
+  createThread: (modelName: ALL_MODEL_NAMES) => Promise<ThreadType | undefined>;
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
   showNewThreadButton: boolean;
   handleQuickStart: (
@@ -41,6 +42,8 @@ export interface ContentComposerChatInterfaceProps {
   deleteThread: (id: string) => Promise<void>;
   getUserThreads: (id: string) => Promise<void>;
   userId: string;
+  modelName: ALL_MODEL_NAMES;
+  setModelName: React.Dispatch<React.SetStateAction<ALL_MODEL_NAMES>>;
 }
 
 export function ContentComposerChatInterface(
@@ -106,6 +109,8 @@ export function ContentComposerChatInterface(
           userThreads={props.userThreads}
           switchSelectedThread={props.switchSelectedThread}
           deleteThread={props.deleteThread}
+          modelName={props.modelName}
+          setModelName={props.setModelName}
         />
       </AssistantRuntimeProvider>
       <Toaster />

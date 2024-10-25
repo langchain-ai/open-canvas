@@ -57,6 +57,7 @@
     "dotenv": "^16.4.5",
     "framer-motion": "^11.11.9",
     "js-cookie": "^3.0.5",
+    "langchain": "^0.3.4",
     "langsmith": "^0.1.61",
     "lodash": "^4.17.21",
     "lucide-react": "^0.441.0",
