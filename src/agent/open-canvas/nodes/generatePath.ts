@@ -57,12 +57,7 @@ export const generatePath = async (
     };
   }
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = getArtifactContent(state.artifact);
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = getArtifactContent(state.artifact);
 
   // Call model and decide if we need to respond to a users query, or generate a new artifact
   const formattedPrompt = ROUTE_QUERY_PROMPT.replace(

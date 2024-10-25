@@ -146,12 +146,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   ) => {
     e.preventDefault();
 
-    let artifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-    try {
-      artifactContent = getArtifactContent(props.artifact);
-    } catch (_) {
-      // no-op
-    }
+    const artifactContent = getArtifactContent(props.artifact);
     if (
       !selectionIndexes &&
       artifactContent &&
@@ -285,15 +280,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     }
   }, [props.selectedBlocks, isSelectionActive]);
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined =
-    undefined;
-  try {
-    currentArtifactContent = getArtifactContent(props.artifact);
-  } catch (_) {
-    // console.error("[ArtifactRenderer.tsx L280]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n", props.artifact)
-    // no-op
-  }
-
+  const currentArtifactContent = getArtifactContent(props.artifact);
   if (!props.artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }

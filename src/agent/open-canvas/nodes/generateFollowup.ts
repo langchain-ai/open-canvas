@@ -38,12 +38,7 @@ export const generateFollowup = async (
       })
     : "No reflections found.";
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = getArtifactContent(state.artifact);
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = getArtifactContent(state.artifact);
 
   const artifactContent = currentArtifactContent
     ? isArtifactMarkdownContent(currentArtifactContent)

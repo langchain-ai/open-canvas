@@ -47,14 +47,9 @@ export const reflect = async (
     temperature: 0,
   }).bindTools([generateReflectionTool]);
 
-  let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined;
-  try {
-    currentArtifactContent = state.artifact
-      ? getArtifactContent(state.artifact)
-      : undefined;
-  } catch (_) {
-    // no-op
-  }
+  const currentArtifactContent = state.artifact
+    ? getArtifactContent(state.artifact)
+    : undefined;
 
   const artifactContent = currentArtifactContent
     ? isArtifactMarkdownContent(currentArtifactContent)
