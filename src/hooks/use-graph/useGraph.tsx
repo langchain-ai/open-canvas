@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { AIMessage, BaseMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  BaseMessage,
+  isAIMessage,
+  RemoveMessage,
+} from "@langchain/core/messages";
 import { useToast } from "../use-toast";
 import { createClient } from "../utils";
 import {
@@ -232,6 +237,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     // The root level run ID of this stream
     let runId = "";
     let followupMessageId = "";
+    // let lastMessage: AIMessage | undefined = undefined;
     try {
       const stream = client.runs.stream(
         useGraphInput.threadId,
@@ -634,6 +640,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
             ) {
               rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
             }
+            // if (chunk.data?.data.output && "type" in chunk.data.data.output && chunk.data.data.output.type === "ai") {
+            //   lastMessage = new AIMessage({
+            //     ...chunk.data.data.output,
+            //   });
+            //   console.log("last message", lastMessage);
+            // }
           }
         } catch (e) {
           console.error(
@@ -690,25 +702,24 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return newMsgs;
         });
 
-        // if (useGraphInput.threadId && lastMessage) {
+        // if (useGraphInput.threadId && lastMessage && lastMessage.id) {
         //   // Update the state of the last message to include the run URL
         //   // for proper rendering when loading history.
-        //   if (lastMessage.type === "ai") {
-        //     const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
-        //       ...lastMessage,
-        //       content: lastMessage.content,
-        //       response_metadata: {
-        //         ...lastMessage.response_metadata,
-        //         langSmithRunURL: sharedRunURL,
-        //       }
-        //     })];
-        //     await client.threads.updateState(useGraphInput.threadId, {
-        //       values: {
-        //         messages: newMessages
-        //       },
-        //     });
-        //     const newState = await client.threads.getState(useGraphInput.threadId);
-        //   }
+        //   const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
+        //     ...lastMessage,
+        //     content: lastMessage.content,
+        //     response_metadata: {
+        //       ...lastMessage.response_metadata,
+        //       langSmithRunURL: sharedRunURL,
+        //     }
+        //   })];
+        //   await client.threads.updateState(useGraphInput.threadId, {
+        //     values: {
+        //       messages: newMessages
+        //     },
+        //   });
+        //   const newState = await client.threads.getState(useGraphInput.threadId);
+        //   console.log("new state", newState.values);
         // }
       });
     }
