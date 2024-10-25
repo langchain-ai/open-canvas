@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
 
 type SharedComponentProps = {
   handleClose: () => void;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
 };
 
 type ToolbarOption = {
@@ -22,7 +22,7 @@ type ToolbarOption = {
 
 export interface ActionsToolbarProps {
   isTextSelected: boolean;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
 }
 
 const toolbarOptions: ToolbarOption[] = [

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { ArtifactLengthOptions } from "@/types";
 import {
   Tooltip,
@@ -11,7 +11,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 
 export interface LengthOptionsProps {
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
   handleClose: () => void;
 }
 

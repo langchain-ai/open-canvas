@@ -3,7 +3,7 @@
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
 import { ALL_MODEL_NAMES, DEFAULT_MODEL_NAME } from "@/constants";
-import { useGraph } from "@/hooks/use-graph/useGraph";
+import { GraphConfig, GraphInput, useGraph } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/hooks/useStore";
 import { useThread } from "@/hooks/useThread";
@@ -193,7 +193,12 @@ export function Canvas(props: CanvasProps) {
           handleDeleteReflections={deleteReflections}
           reflections={reflections}
           isLoadingReflections={isLoadingReflections}
-          streamMessage={streamMessage}
+          streamMessage={(input: GraphInput, config?: GraphConfig) =>
+            streamMessage(input, {
+              customModelName: modelName,
+              ...(config || {}),
+            })
+          }
           messages={messages}
           setMessages={setMessages}
           createThread={createThreadWithChatStarted}
@@ -225,7 +230,12 @@ export function Canvas(props: CanvasProps) {
             setSelectedArtifact={setSelectedArtifact}
             messages={messages}
             setMessages={setMessages}
-            streamMessage={streamMessage}
+            streamMessage={(input: GraphInput, config?: GraphConfig) =>
+              streamMessage(input, {
+                customModelName: modelName,
+                ...(config || {}),
+              })
+            }
             isStreaming={isStreaming}
             updateRenderedArtifactRequired={updateRenderedArtifactRequired}
             setUpdateRenderedArtifactRequired={

@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { cn } from "@/lib/utils";
 import {
@@ -46,7 +46,7 @@ export interface ArtifactRendererProps {
   artifact: ArtifactV3 | undefined;
   setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
   setArtifactContent: (index: number, content: string) => void;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   setSelectedArtifact: (index: number) => void;
   messages: BaseMessage[];
@@ -277,11 +277,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [isSelectionActive, selectionBox]);
 
   useEffect(() => {
-    console.log(
-      "!!props.selectedBlocks && !isSelectionActive",
-      !!props.selectedBlocks,
-      isSelectionActive
-    );
     if (!!props.selectedBlocks && !isSelectionActive) {
       // Selection is not active but selected blocks are present. Clear them.
       props.setSelectedBlocks(undefined);

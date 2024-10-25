@@ -61,6 +61,10 @@ export interface GraphInput {
   customQuickActionId?: string;
 }
 
+export interface GraphConfig {
+  customModelName?: ALL_MODEL_NAMES;
+}
+
 function removeCodeBlockFormatting(text: string): string {
   if (!text) return text;
   // Regular expression to match code blocks
@@ -179,7 +183,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setFirstTokenReceived(true);
   };
 
-  const streamMessageV2 = async (params: GraphInput) => {
+  const streamMessageV2 = async (params: GraphInput, config?: GraphConfig) => {
     setFirstTokenReceived(false);
 
     if (!useGraphInput.threadId) {
@@ -253,7 +257,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
           streamMode: "events",
           config: {
             configurable: {
-              customModelName: useGraphInput.modelName,
+              customModelName:
+                config?.customModelName || useGraphInput.modelName,
             },
           },
         }
@@ -672,7 +677,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
             //   lastMessage = new AIMessage({
             //     ...chunk.data.data.output,
             //   });
-            //   console.log("last message", lastMessage);
             // }
           }
         } catch (e) {
@@ -748,7 +752,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
         //     },
         //   });
         //   const newState = await client.threads.getState(useGraphInput.threadId);
-        //   console.log("new state", newState.values);
         // }
       });
     }

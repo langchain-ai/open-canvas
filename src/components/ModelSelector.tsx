@@ -15,7 +15,6 @@ import {
   OPENAI_MODELS,
   FIREWORKS_MODELS,
 } from "@/constants";
-import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 
 const allModels = [...ANTHROPIC_MODELS, ...OPENAI_MODELS, ...FIREWORKS_MODELS];
 
@@ -43,8 +42,8 @@ export default function ModelSelector({ model, setModel }: ModelSelectorProps) {
             <NextImage
               alt="Model icon"
               src={LLMIcon}
-              width={"14"}
-              height={"14"}
+              width={14}
+              height={14}
               className="mr-2"
             />
             <span className="truncate">{modelNameToLabel(model)}</span>

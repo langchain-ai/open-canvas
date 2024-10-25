@@ -1,7 +1,7 @@
 "use client";
 
 import { ALL_MODEL_NAMES } from "@/constants";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
 import {
   convertLangchainMessages,
@@ -23,7 +23,7 @@ import { Toaster } from "./ui/toaster";
 
 export interface ContentComposerChatInterfaceProps {
   messages: BaseMessage[];
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   createThread: (modelName: ALL_MODEL_NAMES) => Promise<ThreadType | undefined>;
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
