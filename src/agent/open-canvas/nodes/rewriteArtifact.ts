@@ -19,11 +19,11 @@ import {
 } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
 import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
-} from "@/lib/artifact_content_types";
+} from "../../../lib/artifact_content_types";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,

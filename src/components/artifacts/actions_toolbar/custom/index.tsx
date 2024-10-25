@@ -23,17 +23,20 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 export interface CustomQuickActionsProps {
+  isTextSelected: boolean;
   assistantId: string | undefined;
   userId: string;
   streamMessage: (input: GraphInput) => Promise<void>;
 }
 
 const DropdownMenuItemWithDelete = ({
+  disabled,
   title,
   onDelete,
   onEdit,
   onClick,
 }: {
+  disabled: boolean;
   title: string;
   onDelete: () => Promise<void>;
   onEdit: () => void;
@@ -47,10 +50,15 @@ const DropdownMenuItemWithDelete = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <DropdownMenuItem onSelect={onClick} className="w-full truncate">
+      <DropdownMenuItem
+        disabled={disabled}
+        onSelect={onClick}
+        className="w-full truncate"
+      >
         {title}
       </DropdownMenuItem>
       <TooltipIconButton
+        disabled={disabled}
         tooltip="Edit action"
         variant="ghost"
         onClick={onEdit}
@@ -59,6 +67,7 @@ const DropdownMenuItemWithDelete = ({
         <Pencil className="text-[#575757] hover:text-black transition-colors ease-in" />
       </TooltipIconButton>
       <TooltipIconButton
+        disabled={disabled}
         tooltip="Delete action"
         variant="ghost"
         onClick={onDelete}
@@ -146,12 +155,25 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
   };
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(o) => {
+        if (props.isTextSelected) return;
+        setOpen(o);
+      }}
+    >
       <DropdownMenuTrigger className="fixed bottom-4 right-20" asChild>
         <TooltipIconButton
-          tooltip="Custom quick actions"
+          tooltip={
+            props.isTextSelected
+              ? "Quick actions disabled while text is selected"
+              : "Custom quick actions"
+          }
           variant="outline"
-          className="transition-colors w-[48px] h-[48px] p-0 rounded-xl"
+          className={cn(
+            "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
+            props.isTextSelected ? "cursor-default" : "cursor-pointer"
+          )}
           delayDuration={400}
         >
           <WandSparkles className="w-[26px] h-[26px]" />
@@ -174,6 +196,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             {customQuickActions.map((action) => (
               <DropdownMenuItemWithDelete
                 key={action.id}
+                disabled={props.isTextSelected}
                 onDelete={async () => await handleDelete(action.id)}
                 title={action.title}
                 onClick={async () => await handleQuickActionClick(action.id)}
@@ -184,6 +207,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
+          disabled={props.isTextSelected}
           onSelect={handleNewActionClick}
           className="flex items-center justify-start gap-1"
         >

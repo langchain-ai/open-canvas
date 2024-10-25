@@ -12,7 +12,7 @@ import {
   Reflections,
 } from "../../../types";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
 
 /**
  * Generate responses to questions. Does not generate artifacts.

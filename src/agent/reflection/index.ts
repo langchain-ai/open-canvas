@@ -9,8 +9,8 @@ import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../../types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts";
 import { z } from "zod";
 import { ensureStoreInConfig, formatReflections } from "../utils";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
-import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { getArtifactContent } from "../../hooks/use-graph/utils";
+import { isArtifactMarkdownContent } from "../../lib/artifact_content_types";
 
 export const reflect = async (
   state: typeof ReflectionGraphAnnotation.State,

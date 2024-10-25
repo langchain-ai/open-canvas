@@ -56,6 +56,7 @@ export interface ArtifactRendererProps {
   reflections: (Reflections & { updatedAt: Date }) | undefined;
   handleDeleteReflections: () => Promise<boolean>;
   handleGetReflections: () => Promise<void>;
+  selectedBlocks: TextHighlight | undefined;
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   isStreaming: boolean;
   updateRenderedArtifactRequired: boolean;
@@ -272,6 +273,13 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       }
     }
   }, [isSelectionActive, selectionBox]);
+
+  useEffect(() => {
+    if (!!props.selectedBlocks && !isSelectionActive) {
+      // Selection is not active but selected blocks are present. Clear them.
+      props.setSelectedBlocks(undefined);
+    }
+  }, [props.selectedBlocks, isSelectionActive]);
 
   let currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 | undefined =
     undefined;
@@ -505,15 +513,24 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         )}
       </div>
       <CustomQuickActions
+        isTextSelected={isSelectionActive || props.selectedBlocks !== undefined}
         userId={props.userId}
         assistantId={props.assistantId}
         streamMessage={props.streamMessage}
       />
       {currentArtifactContent.type === "text" ? (
-        <ActionsToolbar streamMessage={props.streamMessage} />
+        <ActionsToolbar
+          isTextSelected={
+            isSelectionActive || props.selectedBlocks !== undefined
+          }
+          streamMessage={props.streamMessage}
+        />
       ) : null}
       {currentArtifactContent.type === "code" ? (
         <CodeToolBar
+          isTextSelected={
+            isSelectionActive || props.selectedBlocks !== undefined
+          }
           language={
             currentArtifactContent.language as ProgrammingLanguageOptions
           }

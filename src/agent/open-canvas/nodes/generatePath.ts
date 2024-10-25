@@ -9,8 +9,8 @@ import {
 import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
 import { formatArtifactContentWithTemplate } from "../../utils";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@/types";
+import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { ArtifactCodeV3, ArtifactMarkdownV3 } from "../../../types";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
