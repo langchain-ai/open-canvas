@@ -172,11 +172,20 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
           variant="outline"
           className={cn(
             "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
-            props.isTextSelected ? "cursor-default" : "cursor-pointer"
+            props.isTextSelected
+              ? "cursor-default opacity-50 text-gray-400 hover:bg-background"
+              : "cursor-pointer"
           )}
           delayDuration={400}
         >
-          <WandSparkles className="w-[26px] h-[26px]" />
+          <WandSparkles
+            className={cn(
+              "w-[26px] h-[26px]",
+              props.isTextSelected
+                ? "text-gray-400"
+                : "hover:text-gray-900 transition-colors"
+            )}
+          />
         </TooltipIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
