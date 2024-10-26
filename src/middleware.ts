@@ -2,6 +2,14 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // Check if Supabase credentials are configured
+  const isAuthEnabled = process.env.NEXT_PUBLIC_SUPABASE_URL && 
+                       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!isAuthEnabled) {
+    return; // Skip auth middleware if Supabase is not configured
+  }
+
   return await updateSession(request);
 }
 
