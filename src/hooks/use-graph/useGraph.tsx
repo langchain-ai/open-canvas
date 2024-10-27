@@ -327,11 +327,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
             }
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
-
               generateArtifactToolCallStr +=
                 chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args || "";
               let newArtifactText: ArtifactToolResponse | undefined = undefined;
-              
+
               // Attempt to parse the tool call chunk.
               try {
                 newArtifactText = parsePartialJson(generateArtifactToolCallStr);

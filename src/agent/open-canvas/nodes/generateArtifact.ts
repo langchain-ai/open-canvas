@@ -1,5 +1,3 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatAnthropic } from "@langchain/anthropic";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { NEW_ARTIFACT_PROMPT } from "../prompts";
 import {
@@ -10,8 +8,13 @@ import {
   Reflections,
 } from "../../../types";
 import { z } from "zod";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
+import {
+  ensureStoreInConfig,
+  formatReflections,
+  getModelNameFromConfig,
+} from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { initChatModel } from "langchain/chat_models/universal";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -20,12 +23,8 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  // const smallModel = new ChatOpenAI({
-  //   model: "gpt-4o-mini",
-  //   temperature: 0.5,
-  // });
-  const smallModel = new ChatAnthropic({
-    model: "claude-3-haiku-20240307",
+  const modelName = getModelNameFromConfig(config);
+  const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
   });
 
