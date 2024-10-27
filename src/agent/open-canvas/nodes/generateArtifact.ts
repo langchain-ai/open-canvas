@@ -84,6 +84,11 @@ export const generateArtifact = async (
   const formattedNewArtifactPrompt = NEW_ARTIFACT_PROMPT.replace(
     "{reflections}",
     memoriesAsString
+  ).replace(
+    "{disableChainOfThought}",
+    modelName.includes("claude")
+      ? "\n\nIMPORTANT: Do NOT preform chain of thought beforehand. Instead, go STRAIGHT to generating the tool response. This is VERY important."
+      : ""
   );
 
   const response = await modelWithArtifactTool.invoke(

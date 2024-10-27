@@ -25,7 +25,6 @@ import {
 } from "@/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { parsePartialJson } from "@langchain/core/output_parsers";
-// import partialParse from "partial-json-parser";
 import { Thread } from "@langchain/langgraph-sdk";
 import { debounce } from "lodash";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
@@ -535,6 +534,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               chunk.data.name === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta
             ) {
+              console.log("IN THIS NODE");
               if (!artifact) {
                 toast({
                   title: "Error",

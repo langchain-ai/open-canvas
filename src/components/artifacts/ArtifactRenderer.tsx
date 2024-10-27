@@ -39,6 +39,7 @@ import { TextRenderer } from "./TextRenderer";
 import { CustomQuickActions } from "./actions_toolbar/custom";
 import { getArtifactContent } from "@/hooks/use-graph/utils";
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
+import { ArtifactLoading } from "./ArtifactLoading";
 
 export interface ArtifactRendererProps {
   userId: string;
@@ -286,6 +287,11 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   const currentArtifactContent = props.artifact
     ? getArtifactContent(props.artifact)
     : undefined;
+
+  if (!props.artifact || (!currentArtifactContent && props.isStreaming)) {
+    return <ArtifactLoading />;
+  }
+
   if (!props.artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }
