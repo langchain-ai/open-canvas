@@ -25,6 +25,7 @@ import {
 } from "@/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { parsePartialJson } from "@langchain/core/output_parsers";
+// import partialParse from "partial-json-parser";
 import { Thread } from "@langchain/langgraph-sdk";
 import { debounce } from "lodash";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
@@ -326,10 +327,11 @@ export function useGraph(useGraphInput: UseGraphInput) {
             }
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
-              generateArtifactToolCallStr +=
-                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
-              let newArtifactText: ArtifactToolResponse | undefined = undefined;
 
+              generateArtifactToolCallStr +=
+                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args || "";
+              let newArtifactText: ArtifactToolResponse | undefined = undefined;
+              
               // Attempt to parse the tool call chunk.
               try {
                 newArtifactText = parsePartialJson(generateArtifactToolCallStr);
