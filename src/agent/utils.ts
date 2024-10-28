@@ -114,13 +114,3 @@ export const getModelNameAndProviderFromConfig = (
 
   throw new Error("Unknown model provider");
 };
-
-export const getModelNameFromConfig = (
-  config: LangGraphRunnableConfig
-): string => {
-  const customModelName = config.configurable?.customModelName as string;
-  if (!customModelName) {
-    throw new Error("Model name is missing in config.");
-  }
-  return customModelName;
-};
