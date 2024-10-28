@@ -1,5 +1,5 @@
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:52375";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:53529";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -43,16 +43,16 @@ export const FIREWORKS_MODELS = [
     label: "Fireworks Llama 70B",
   },
   {
-    name: "accounts/fireworks/models/llama-v3p1-8b-instruct",
-    label: "Fireworks Llama 8B",
+    name: "accounts/fireworks/models/llama-v3p1-405b-instruct",
+    label: "Fireworks Llama 405B",
   },
 ];
 
 export const GEMINI_MODELS = [
-  {
-    name: "gemini-1.5-flash",
-    label: "Gemini 1.5 Flash",
-  },
+  // {
+  //   name: "gemini-1.5-flash",
+  //   label: "Gemini 1.5 Flash",
+  // },
 ];
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "gpt-4o-mini";
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];

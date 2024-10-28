@@ -40,25 +40,25 @@ export const rewriteArtifact = async (
       .describe(
         "The new title to give the artifact. ONLY update this if the user is making a request which changes the subject/topic of the artifact."
       ),
-    programmingLanguage: z
+    language: z
       .enum(
         PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
           string,
           ...string[],
         ]
       )
-      .optional()
       .describe(
-        "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
+        "The language of the code artifact. This should be populated with the programming language if the user is requesting code to be written, or 'other', in all other cases."
       ),
   });
   const { modelName, modelProvider } =
     getModelNameAndProviderFromConfig(config);
-  const model = await initChatModel(modelName, {
-    temperature: 0,
-    modelProvider,
-  });
-  const toolCallingModel = model
+  const toolCallingModel = (
+    await initChatModel(modelName, {
+      temperature: 0,
+      modelProvider,
+    })
+  )
     .bindTools(
       [
         {
@@ -70,6 +70,15 @@ export const rewriteArtifact = async (
       { tool_choice: "optionallyUpdateArtifactMeta" }
     )
     .withConfig({ runName: "optionally_update_artifact_meta" });
+
+  const smallModelWithConfig = (
+    await initChatModel(modelName, {
+      temperature: 0,
+      modelProvider,
+    })
+  ).withConfig({
+    runName: "rewrite_artifact_model_call",
+  });
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
@@ -135,10 +144,6 @@ export const rewriteArtifact = async (
           )
         : ""
     );
-
-  const smallModelWithConfig = model.withConfig({
-    runName: "rewrite_artifact_model_call",
-  });
 
   const newArtifactResponse = await smallModelWithConfig.invoke([
     { role: "system", content: formattedPrompt },

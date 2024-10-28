@@ -258,9 +258,10 @@ export type RewriteArtifactMetaToolResponse =
   | {
       type: "text";
       title?: string;
+      language: ProgrammingLanguageOptions;
     }
   | {
       type: "code";
       title: string;
-      programmingLanguage: string;
+      language: ProgrammingLanguageOptions;
     };

@@ -342,13 +342,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   type: newArtifactText.type ?? "",
                 };
               } catch (_) {
-                console.error(
-                  "Failed to parse new artifact text",
-                  generateArtifactToolCallStr
-                );
                 continue;
               }
-              console.log("newArtifactText", newArtifactText);
 
               if (
                 newArtifactText.artifact &&
@@ -539,7 +534,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
               chunk.data.name === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta
             ) {
-              console.log("IN THIS NODE");
               if (!artifact) {
                 toast({
                   title: "Error",
@@ -557,12 +551,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
               if (
                 !artifactLanguage &&
                 rewriteArtifactMeta.type === "code" &&
-                rewriteArtifactMeta.programmingLanguage
+                rewriteArtifactMeta.language
               ) {
                 // If the type is `code` we should have a programming language populated
                 // in the rewriteArtifactMeta and can use that.
                 artifactLanguage =
-                  rewriteArtifactMeta.programmingLanguage as ProgrammingLanguageOptions;
+                  rewriteArtifactMeta.language as ProgrammingLanguageOptions;
               } else if (!artifactLanguage) {
                 artifactLanguage =
                   (prevCurrentContent?.title as ProgrammingLanguageOptions) ??
@@ -657,7 +651,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   rewriteArtifactMeta: {
                     type: artifactType,
                     title: prevCurrentContent.title,
-                    programmingLanguage: artifactLanguage,
+                    language: artifactLanguage,
                   },
                   prevCurrentContent,
                   newArtifactIndex,
