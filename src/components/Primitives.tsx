@@ -29,6 +29,7 @@ import ModelSelector from "./ModelSelector";
 import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
+import { TighterText } from "./ui/header";
 
 export interface ThreadProps {
   createThread: (modelName: ALL_MODEL_NAMES) => Promise<ThreadType | undefined>;
@@ -77,7 +78,7 @@ const QuickStartPrompts = () => {
           variant="outline"
           className="flex-1"
         >
-          Write me a TODO app in React
+          <TighterText>Write me a TODO app in React</TighterText>
         </Button>
         <Button
           onClick={(e) =>
@@ -86,7 +87,9 @@ const QuickStartPrompts = () => {
           variant="outline"
           className="flex-1"
         >
-          Explain why the sky is blue in a short essay
+          <TighterText>
+            Explain why the sky is blue in a short essay
+          </TighterText>
         </Button>
       </div>
       <div className="flex gap-2 w-full">
@@ -97,7 +100,9 @@ const QuickStartPrompts = () => {
           variant="outline"
           className="flex-1"
         >
-          Help me draft an email to my professor Craig
+          <TighterText>
+            Help me draft an email to my professor Craig
+          </TighterText>
         </Button>
         <Button
           onClick={(e) =>
@@ -106,7 +111,7 @@ const QuickStartPrompts = () => {
           variant="outline"
           className="flex-1"
         >
-          Write a web scraping program in Python
+          <TighterText>Write a web scraping program in Python</TighterText>
         </Button>
       </div>
     </div>
@@ -128,7 +133,7 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
             className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
             onClick={() => props.handleQuickStart("text")}
           >
-            New Markdown
+            <TighterText>New Markdown</TighterText>
             <NotebookPen />
           </Button>
           <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
@@ -170,7 +175,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
             switchSelectedThread={props.switchSelectedThread}
             deleteThread={props.deleteThread}
           />
-          <p className="text-xl">Open Canvas</p>
+          <TighterText className="text-xl">Open Canvas</TighterText>
           {!props.showNewThreadButton && (
             <ModelSelector
               model={props.modelName}
@@ -263,9 +268,9 @@ const ThreadWelcome: FC<ThreadWelcomeProps> = (props: ThreadWelcomeProps) => {
             <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
             <AvatarFallback>LC</AvatarFallback>
           </Avatar>
-          <p className="mt-4 text-lg font-medium">
+          <TighterText className="mt-4 text-lg font-medium">
             What would you like to write today?
-          </p>
+          </TighterText>
           <div className="mt-8 w-full">
             <QuickStartButtons
               composer={props.composer}

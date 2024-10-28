@@ -7,6 +7,7 @@ import { Skeleton } from "./ui/skeleton";
 import { useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";
 import { PiChatsCircleLight } from "react-icons/pi";
+import { TighterText } from "./ui/header";
 
 interface ThreadHistoryProps {
   isUserThreadsLoading: boolean;
@@ -38,9 +39,9 @@ const ThreadItem = (props: ThreadProps) => {
         variant="ghost"
         onClick={props.onClick}
       >
-        <p className="truncate text-sm font-light w-full text-left">
+        <TighterText className="truncate text-sm font-light w-full text-left">
           {props.label}
-        </p>
+        </TighterText>
       </Button>
       {isHovering && (
         <TooltipIconButton
@@ -159,9 +160,9 @@ function ThreadsList(props: ThreadsListProps) {
       {Object.entries(props.groupedThreads).map(([group, threads]) =>
         threads.length > 0 ? (
           <div key={group}>
-            <h3 className="text-sm font-medium mb-1 pl-2">
+            <TighterText className="text-sm font-medium mb-1 pl-2">
               {prettifyDateLabel(group)}
-            </h3>
+            </TighterText>
             <div className="flex flex-col gap-1">
               {threads.map((thread) => (
                 <ThreadItem key={thread.id} {...thread} />
@@ -203,7 +204,9 @@ export function ThreadHistory(props: ThreadHistoryProps) {
         side="left"
         className="border-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
       >
-        <p className="px-2 text-lg text-gray-600">Chat History</p>
+        <TighterText className="px-2 text-lg text-gray-600">
+          Chat History
+        </TighterText>
         {props.isUserThreadsLoading && !props.userThreads.length ? (
           <div className="flex flex-col gap-1 px-2 pt-3">
             {Array.from({ length: 25 }).map((_, i) => (
