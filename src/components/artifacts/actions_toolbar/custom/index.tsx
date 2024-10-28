@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { TighterText } from "@/components/ui/header";
 
 export interface CustomQuickActionsProps {
   isTextSelected: boolean;
@@ -189,7 +190,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         </TooltipIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        <DropdownMenuLabel>Custom Quick Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          <TighterText>Custom Quick Actions</TighterText>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {isLoadingQuickActions && !customQuickActions?.length ? (
           <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
@@ -197,9 +200,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             <LoaderCircle className="w-4 h-4 animate-spin" />
           </span>
         ) : !customQuickActions?.length ? (
-          <p className="text-sm text-gray-600 p-2">
+          <TighterText className="text-sm text-gray-600 p-2">
             No custom quick actions found.
-          </p>
+          </TighterText>
         ) : (
           <div className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {customQuickActions.map((action) => (
@@ -221,7 +224,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
           className="flex items-center justify-start gap-1"
         >
           <CirclePlus className="w-4 h-4" />
-          <p className="font-medium">New</p>
+          <TighterText className="font-medium">New</TighterText>
         </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog

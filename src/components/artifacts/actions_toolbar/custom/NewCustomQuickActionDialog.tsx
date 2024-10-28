@@ -25,6 +25,7 @@ import { useStore } from "@/hooks/useStore";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
 import { CustomQuickAction } from "@/types";
+import { TighterText } from "@/components/ui/header";
 
 interface NewCustomQuickActionDialogProps {
   userId: string;
@@ -162,11 +163,15 @@ export function NewCustomQuickActionDialog(
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl min-w-[70vw]">
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
-            {props.isEditing ? "Edit" : "Create"} Quick Action
+            <TighterText>
+              {props.isEditing ? "Edit" : "Create"} Quick Action
+            </TighterText>
           </DialogTitle>
           <DialogDescription className="mt-2 text-md font-light text-gray-600">
-            Custom quick actions are a way to create your own actions to take
-            against the selected artifact.
+            <TighterText>
+              Custom quick actions are a way to create your own actions to take
+              against the selected artifact.
+            </TighterText>
           </DialogDescription>
         </DialogHeader>
         <form
@@ -174,7 +179,9 @@ export function NewCustomQuickActionDialog(
           className="flex flex-col items-start justify-start gap-4 w-full"
         >
           <Label htmlFor="name">
-            Name <span className="text-red-500">*</span>
+            <TighterText>
+              Name <span className="text-red-500">*</span>
+            </TighterText>
           </Label>
           <Input
             disabled={isSubmitLoading}
@@ -189,27 +196,27 @@ export function NewCustomQuickActionDialog(
               htmlFor="prompt"
               className="flex items-center justify-between w-full"
             >
-              <span>
+              <TighterText>
                 Prompt <span className="text-red-500 mr-2">*</span>
-              </span>
+              </TighterText>
               <ViewOrHidePromptIcon
                 showFullPrompt={showFullPrompt}
                 setShowFullPrompt={setShowFullPrompt}
               />
             </Label>
-            <p className="text-gray-500 text-sm whitespace-normal">
+            <TighterText className="text-gray-500 text-sm whitespace-normal">
               The full prompt includes predefined variables in curly braces
               (e.g., <code className="inline-code">{`{artifactContent}`}</code>)
               that will be replaced at runtime. Custom variables are not
               supported yet.
-            </p>
+            </TighterText>
             <span className="my-1" />
             <div className="flex items-center justify-center w-full h-[350px] gap-2 transition-all duration-300 ease-in-out">
               <div className="w-full h-full flex flex-col gap-1">
-                <p className="text-gray-500 text-sm flex items-center">
+                <TighterText className="text-gray-500 text-sm flex items-center">
                   Custom instructions
                   <InlineContextTooltip type="custom_instructions" />
-                </p>
+                </TighterText>
                 <Textarea
                   disabled={isSubmitLoading}
                   required
@@ -223,10 +230,10 @@ export function NewCustomQuickActionDialog(
 
               {showFullPrompt && (
                 <div className="w-full h-full flex flex-col gap-1">
-                  <p className="text-gray-500 text-sm flex items-center">
+                  <TighterText className="text-gray-500 text-sm flex items-center">
                     Full prompt
                     <InlineContextTooltip type="full_prompt" />
-                  </p>
+                  </TighterText>
                   <FullPrompt
                     customQuickAction={{
                       title: name,
@@ -255,7 +262,7 @@ export function NewCustomQuickActionDialog(
               htmlFor="includeReflections"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Include prefix in prompt
+              <TighterText>Include prefix in prompt</TighterText>
             </label>
           </div>
           <div className="flex items-center space-x-2">
@@ -269,7 +276,7 @@ export function NewCustomQuickActionDialog(
               htmlFor="includeReflections"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Include reflections in prompt
+              <TighterText>Include reflections in prompt</TighterText>
             </label>
           </div>
 
@@ -284,12 +291,12 @@ export function NewCustomQuickActionDialog(
               htmlFor="includeReflections"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Include recent history in prompt
+              <TighterText>Include recent history in prompt</TighterText>
             </label>
           </div>
           <div className="flex items-center justify-center w-full mt-4 gap-3">
             <Button disabled={isSubmitLoading} className="w-full" type="submit">
-              Save
+              <TighterText>Save</TighterText>
             </Button>
             <Button
               disabled={isSubmitLoading}
@@ -301,7 +308,7 @@ export function NewCustomQuickActionDialog(
               className="w-[20%]"
               type="button"
             >
-              Cancel
+              <TighterText>Cancel</TighterText>
             </Button>
           </div>
         </form>
