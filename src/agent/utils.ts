@@ -80,6 +80,41 @@ export const formatArtifactContentWithTemplate = (
   );
 };
 
+export const getModelNameAndProviderFromConfig = (
+  config: LangGraphRunnableConfig
+): { modelName: string; modelProvider: string } => {
+  const customModelName = config.configurable?.customModelName as string;
+  if (!customModelName) {
+    throw new Error("Model name is missing in config.");
+  }
+  if (customModelName.includes("gpt-")) {
+    return {
+      modelName: customModelName,
+      modelProvider: "openai",
+    };
+  }
+  if (customModelName.includes("claude-")) {
+    return {
+      modelName: customModelName,
+      modelProvider: "anthropic",
+    };
+  }
+  if (customModelName.includes("fireworks/")) {
+    return {
+      modelName: customModelName,
+      modelProvider: "fireworks",
+    };
+  }
+  if (customModelName.includes("gemini-")) {
+    return {
+      modelName: customModelName,
+      modelProvider: "google-genai",
+    };
+  }
+
+  throw new Error("Unknown model provider");
+};
+
 export const getModelNameFromConfig = (
   config: LangGraphRunnableConfig
 ): string => {

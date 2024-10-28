@@ -8,7 +8,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContent,
   formatReflections,
-  getModelNameFromConfig,
+  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import {
   ArtifactCodeV3,
@@ -52,9 +52,11 @@ export const rewriteArtifact = async (
         "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
       ),
   });
-  const modelName = getModelNameFromConfig(config);
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
   const model = await initChatModel(modelName, {
     temperature: 0,
+    modelProvider,
   });
   const toolCallingModel = model
     .bindTools(

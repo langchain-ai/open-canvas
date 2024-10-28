@@ -6,7 +6,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContentWithTemplate,
   formatReflections,
-  getModelNameFromConfig,
+  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
@@ -18,9 +18,11 @@ export const respondToQuery = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const modelName = getModelNameFromConfig(config);
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
+    modelProvider,
   });
 
   const prompt = `You are an AI assistant tasked with responding to the users question.
