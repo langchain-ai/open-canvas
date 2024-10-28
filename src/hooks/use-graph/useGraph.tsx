@@ -312,7 +312,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           if (chunk.data.event === "on_chat_model_stream") {
             // These are generating new messages to insert to the chat window.
             if (
-              ["generateFollowup", "respondToQuery"].includes(
+              ["generateFollowup", "replyToGeneralInput"].includes(
                 chunk.data.metadata.langgraph_node
               )
             ) {
@@ -342,8 +342,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   type: newArtifactText.type ?? "",
                 };
               } catch (_) {
+                console.error("Failed to parse new artifact text", generateArtifactToolCallStr);
                 continue;
               }
+              console.log("newArtifactText", newArtifactText)
 
               if (
                 newArtifactText.artifact &&
