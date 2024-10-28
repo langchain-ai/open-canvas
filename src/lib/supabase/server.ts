@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isAuthEnabled } from "../auth-config";
 
 export function createClient() {
+  if (!isAuthEnabled()) {
+    return null;
+  }
+  
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     throw new Error("NEXT_PUBLIC_SUPABASE_URL is not defined");
   }

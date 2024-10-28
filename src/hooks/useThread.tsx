@@ -7,6 +7,7 @@ import {
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
 import { Thread } from "@langchain/langgraph-sdk";
+import { isAuthEnabled } from "@/lib/auth-config";
 
 export function useThread(userId: string) {
   const [assistantId, setAssistantId] = useState<string>();
@@ -19,10 +20,13 @@ export function useThread(userId: string) {
   ): Promise<Thread | undefined> => {
     const client = createClient();
     try {
+      // For non-auth mode, we still need to pass some identifier
+      const metadata = isAuthEnabled() 
+        ? { supabase_user_id: supabaseUserId }
+        : { anonymous_user_id: 'anonymous' };
+
       const thread = await client.threads.create({
-        metadata: {
-          supabase_user_id: supabaseUserId,
-        },
+        metadata,
       });
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
@@ -55,11 +59,14 @@ export function useThread(userId: string) {
     setIsUserThreadsLoading(true);
     try {
       const client = createClient();
+      
+      // Adjust the search criteria based on auth status
+      const searchMetadata = isAuthEnabled()
+        ? { supabase_user_id: id }
+        : { anonymous_user_id: 'anonymous' };
 
       const userThreads = await client.threads.search({
-        metadata: {
-          supabase_user_id: id,
-        },
+        metadata: searchMetadata,
         limit: 100,
       });
 

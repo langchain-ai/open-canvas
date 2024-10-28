@@ -1,6 +1,10 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { isAuthEnabled } from "../auth-config";
 
 export function createSupabaseClient() {
+  if (!isAuthEnabled()) {
+    return null;
+  }
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     throw new Error("NEXT_PUBLIC_SUPABASE_URL is not defined");
   }

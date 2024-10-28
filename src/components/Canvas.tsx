@@ -16,6 +16,7 @@ import {
 } from "@/types";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { isAuthEnabled } from "@/lib/auth-config";
 
 interface CanvasProps {
   user: User;
@@ -23,6 +24,7 @@ interface CanvasProps {
 
 export function Canvas(props: CanvasProps) {
   const { toast } = useToast();
+  const effectiveUserId = isAuthEnabled() ? props.user.id : 'anonymous';
   const {
     threadId,
     assistantId,
@@ -35,7 +37,7 @@ export function Canvas(props: CanvasProps) {
     setThreadId,
     getOrCreateAssistant,
     clearThreadsWithNoValues,
-  } = useThread(props.user.id);
+  } = useThread(effectiveUserId);
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const {
@@ -56,7 +58,7 @@ export function Canvas(props: CanvasProps) {
     firstTokenReceived,
     selectedBlocks,
   } = useGraph({
-    userId: props.user.id,
+    userId: effectiveUserId,
     threadId,
     assistantId,
   });
@@ -67,14 +69,14 @@ export function Canvas(props: CanvasProps) {
     isLoadingReflections,
   } = useStore({
     assistantId,
-    userId: props.user.id,
+    userId: effectiveUserId,
   });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     if (!threadId) {
-      searchOrCreateThread(props.user.id);
+      searchOrCreateThread(effectiveUserId);
     }
 
     if (!assistantId) {
@@ -85,14 +87,14 @@ export function Canvas(props: CanvasProps) {
   useEffect(() => {
     if (!threadId) return;
     // Clear threads with no values
-    clearThreadsWithNoValues(props.user.id);
+    clearThreadsWithNoValues(effectiveUserId);
   }, [threadId]);
 
   useEffect(() => {
-    if (typeof window == "undefined" || !props.user.id || userThreads.length)
+    if (typeof window == "undefined" || !effectiveUserId || userThreads.length)
       return;
-    getUserThreads(props.user.id);
-  }, [props.user.id]);
+    getUserThreads(effectiveUserId);
+  }, [effectiveUserId]);
 
   useEffect(() => {
     if (!assistantId || typeof window === "undefined") return;
@@ -109,7 +111,7 @@ export function Canvas(props: CanvasProps) {
   const createThreadWithChatStarted = async () => {
     setChatStarted(false);
     clearState();
-    return createThread(props.user.id);
+    return createThread(effectiveUserId);
   };
 
   const handleQuickStart = (
@@ -165,7 +167,7 @@ export function Canvas(props: CanvasProps) {
         )}
       >
         <ContentComposerChatInterface
-          userId={props.user.id}
+          userId={effectiveUserId}
           getUserThreads={getUserThreads}
           isUserThreadsLoading={isUserThreadsLoading}
           userThreads={userThreads}
@@ -195,7 +197,7 @@ export function Canvas(props: CanvasProps) {
       {chatStarted && (
         <div className="w-full ml-auto">
           <ArtifactRenderer
-            userId={props.user.id}
+            userId={effectiveUserId}
             firstTokenReceived={firstTokenReceived}
             isArtifactSaved={isArtifactSaved}
             artifact={artifact}
