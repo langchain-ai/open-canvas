@@ -6,7 +6,7 @@ import { Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatReflections,
-  getModelNameFromConfig,
+  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
@@ -18,10 +18,12 @@ export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const modelName = getModelNameFromConfig(config);
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
     maxTokens: 250,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);

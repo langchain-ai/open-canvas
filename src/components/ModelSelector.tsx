@@ -14,9 +14,15 @@ import {
   ANTHROPIC_MODELS,
   OPENAI_MODELS,
   FIREWORKS_MODELS,
+  GEMINI_MODELS,
 } from "@/constants";
 
-const allModels = [...ANTHROPIC_MODELS, ...OPENAI_MODELS, ...FIREWORKS_MODELS];
+const allModels = [
+  ...ANTHROPIC_MODELS,
+  ...OPENAI_MODELS,
+  ...FIREWORKS_MODELS,
+  ...GEMINI_MODELS,
+];
 
 const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
   const model = allModels.find((m) => m.name === modelName);
