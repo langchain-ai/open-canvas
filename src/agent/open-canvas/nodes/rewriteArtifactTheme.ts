@@ -6,7 +6,7 @@ import { ArtifactV3, Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatReflections,
-  getModelNameFromConfig,
+  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import {
   ADD_EMOJIS_TO_ARTIFACT_PROMPT,
@@ -21,9 +21,11 @@ export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const modelName = getModelNameFromConfig(config);
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);

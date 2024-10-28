@@ -9,7 +9,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContent,
   formatReflections,
-  getModelNameFromConfig,
+  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import {
   ArtifactCodeV3,
@@ -67,9 +67,11 @@ export const rewriteArtifact = async (
     ])
     .withConfig({ runName: "optionally_update_artifact_meta" });
 
-  const modelName = getModelNameFromConfig(config);
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);
