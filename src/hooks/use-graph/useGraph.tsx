@@ -327,7 +327,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
               generateArtifactToolCallStr +=
-                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
+                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args || "";
               let newArtifactText: ArtifactToolResponse | undefined = undefined;
 
               // Attempt to parse the tool call chunk.
@@ -534,6 +534,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               chunk.data.name === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta
             ) {
+              console.log("IN THIS NODE");
               if (!artifact) {
                 toast({
                   title: "Error",

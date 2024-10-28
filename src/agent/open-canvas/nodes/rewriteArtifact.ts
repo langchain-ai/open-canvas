@@ -1,4 +1,3 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import {
   GET_TITLE_TYPE_REWRITE_ARTIFACT,
@@ -53,26 +52,24 @@ export const rewriteArtifact = async (
         "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
       ),
   });
-  // TODO: Once Anthropic tool call streaming is supported, use the custom model here.
-  const toolCallingModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
-    temperature: 0,
-  })
-    .bindTools([
-      {
-        name: "optionallyUpdateArtifactMeta",
-        schema: optionallyUpdateArtifactMetaSchema,
-        description: "Update the artifact meta information, if necessary.",
-      },
-    ])
-    .withConfig({ runName: "optionally_update_artifact_meta" });
-
   const { modelName, modelProvider } =
     getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
-    temperature: 0.5,
+  const model = await initChatModel(modelName, {
+    temperature: 0,
     modelProvider,
   });
+  const toolCallingModel = model
+    .bindTools(
+      [
+        {
+          name: "optionallyUpdateArtifactMeta",
+          schema: optionallyUpdateArtifactMetaSchema,
+          description: "Update the artifact meta information, if necessary.",
+        },
+      ],
+      { tool_choice: "optionallyUpdateArtifactMeta" }
+    )
+    .withConfig({ runName: "optionally_update_artifact_meta" });
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
@@ -139,7 +136,7 @@ export const rewriteArtifact = async (
         : ""
     );
 
-  const smallModelWithConfig = smallModel.withConfig({
+  const smallModelWithConfig = model.withConfig({
     runName: "rewrite_artifact_model_call",
   });
 
