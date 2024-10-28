@@ -710,10 +710,10 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/google-genai@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-0.1.1.tgz#85528c64b518a285ec7d22a8793296f27cec27ff"
-  integrity sha512-uuZJXWXTTTx8FGmhr/utkpiKgOZU4EXvkPIq+opLhpzCN7hYQXXMAIykjZPhAyZjazga1jxH8YOiGonM/3jhDA==
+"@langchain/google-genai@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-0.1.2.tgz#23387d7027b4a787b542fc5cfb7a2469e9f4c845"
+  integrity sha512-oePFjTurY4O2tJiU4cJ3Wu9L+JGVwYib2LovI+SxGJImVyVlQQ1HV2SVek03vqG4d0kiX0XLQTEC7mJ7EBySkg==
   dependencies:
     "@google/generative-ai" "^0.7.0"
     zod-to-json-schema "^3.22.4"

@@ -6,7 +6,7 @@ import { generateArtifact } from "./nodes/generateArtifact";
 import { rewriteArtifact } from "./nodes/rewriteArtifact";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { updateArtifact } from "./nodes/updateArtifact";
-import { respondToQuery } from "./nodes/respondToQuery";
+import { replyToGeneralInput } from "./nodes/replyToGeneralInput";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { reflectNode } from "./nodes/reflect";
 import { customAction } from "./nodes/customAction";
@@ -34,7 +34,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generatePath", generatePath)
   .addEdge(START, "generatePath")
   // Nodes
-  .addNode("respondToQuery", respondToQuery)
+  .addNode("replyToGeneralInput", replyToGeneralInput)
   .addNode("rewriteArtifact", rewriteArtifact)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
   .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
@@ -50,7 +50,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "updateArtifact",
     "rewriteArtifactTheme",
     "rewriteCodeArtifactTheme",
-    "respondToQuery",
+    "replyToGeneralInput",
     "generateArtifact",
     "rewriteArtifact",
     "customAction",
@@ -65,7 +65,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   .addEdge("customAction", "generateFollowup")
   // End edges
-  .addEdge("respondToQuery", "cleanState")
+  .addEdge("replyToGeneralInput", "cleanState")
   // Only reflect if an artifact was generated/updated.
   .addEdge("generateFollowup", "reflect")
   .addEdge("reflect", "cleanState")

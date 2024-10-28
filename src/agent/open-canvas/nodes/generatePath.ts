@@ -102,7 +102,7 @@ export const generatePath = async (
   const modelWithTool = model.withStructuredOutput(
     z.object({
       route: z
-        .enum(["respondToQuery", artifactRoute])
+        .enum(["replyToGeneralInput", artifactRoute])
         .describe("The route to take based on the user's query."),
     }),
     {

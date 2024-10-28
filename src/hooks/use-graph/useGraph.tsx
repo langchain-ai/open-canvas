@@ -312,7 +312,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           if (chunk.data.event === "on_chat_model_stream") {
             // These are generating new messages to insert to the chat window.
             if (
-              ["generateFollowup", "respondToQuery"].includes(
+              ["generateFollowup", "replyToGeneralInput"].includes(
                 chunk.data.metadata.langgraph_node
               )
             ) {
@@ -534,7 +534,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
               chunk.data.name === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta
             ) {
-              console.log("IN THIS NODE");
               if (!artifact) {
                 toast({
                   title: "Error",
@@ -552,12 +551,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
               if (
                 !artifactLanguage &&
                 rewriteArtifactMeta.type === "code" &&
-                rewriteArtifactMeta.programmingLanguage
+                rewriteArtifactMeta.language
               ) {
                 // If the type is `code` we should have a programming language populated
                 // in the rewriteArtifactMeta and can use that.
                 artifactLanguage =
-                  rewriteArtifactMeta.programmingLanguage as ProgrammingLanguageOptions;
+                  rewriteArtifactMeta.language as ProgrammingLanguageOptions;
               } else if (!artifactLanguage) {
                 artifactLanguage =
                   (prevCurrentContent?.title as ProgrammingLanguageOptions) ??
@@ -652,7 +651,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   rewriteArtifactMeta: {
                     type: artifactType,
                     title: prevCurrentContent.title,
-                    programmingLanguage: artifactLanguage,
+                    language: artifactLanguage,
                   },
                   prevCurrentContent,
                   newArtifactIndex,

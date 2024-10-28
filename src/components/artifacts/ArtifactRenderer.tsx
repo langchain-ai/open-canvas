@@ -288,7 +288,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     ? getArtifactContent(props.artifact)
     : undefined;
 
-  if (!props.artifact || (!currentArtifactContent && props.isStreaming)) {
+  if (!props.artifact && props.isStreaming) {
     return <ArtifactLoading />;
   }
 

@@ -14,7 +14,7 @@ import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 /**
  * Generate responses to questions. Does not generate artifacts.
  */
-export const respondToQuery = async (
+export const replyToGeneralInput = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
