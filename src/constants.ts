@@ -1,5 +1,5 @@
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:61248";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:63845";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -32,6 +32,10 @@ export const ANTHROPIC_MODELS = [
     name: "claude-3-haiku-20240307",
     label: "Claude 3 Haiku",
   },
+  // {
+  //   name: "claude-3-5-sonnet-20240620",
+  //   label: "Claude 3.5 Sonnet",
+  // },
 ];
 export const FIREWORKS_MODELS = [
   {

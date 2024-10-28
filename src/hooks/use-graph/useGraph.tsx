@@ -342,10 +342,13 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   type: newArtifactText.type ?? "",
                 };
               } catch (_) {
-                console.error("Failed to parse new artifact text", generateArtifactToolCallStr);
+                console.error(
+                  "Failed to parse new artifact text",
+                  generateArtifactToolCallStr
+                );
                 continue;
               }
-              console.log("newArtifactText", newArtifactText)
+              console.log("newArtifactText", newArtifactText);
 
               if (
                 newArtifactText.artifact &&
