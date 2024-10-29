@@ -50,7 +50,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   const {
     userData: { user },
     threadData: { createThread, modelName, setModelName, assistantId },
-    graphData: { clearState },
+    graphData: { clearState, runId, feedbackSubmitted, setFeedbackSubmitted },
   } = useGraphContext();
 
   useLangSmithLinkToolUI();
@@ -116,7 +116,14 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         <ThreadPrimitive.Messages
           components={{
             UserMessage: UserMessage,
-            AssistantMessage: AssistantMessage,
+            AssistantMessage: (prop) => (
+              <AssistantMessage
+                {...prop}
+                feedbackSubmitted={feedbackSubmitted}
+                setFeedbackSubmitted={setFeedbackSubmitted}
+                runId={runId}
+              />
+            ),
           }}
         />
       </ThreadPrimitive.Viewport>
