@@ -5,7 +5,6 @@ import {
   LoaderCircle,
   Pencil,
 } from "lucide-react";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,
@@ -21,12 +20,15 @@ import { useEffect, useState } from "react";
 import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { TighterText } from "@/components/ui/header";
+import { GraphInput } from "@/contexts/GraphContext";
+import { User } from "@supabase/supabase-js";
 
 export interface CustomQuickActionsProps {
   isTextSelected: boolean;
   assistantId: string | undefined;
-  userId: string;
-  streamMessage: (input: GraphInput) => Promise<void>;
+  user: User | undefined;
+  streamMessage: (params: GraphInput) => Promise<void>;
 }
 
 const DropdownMenuItemWithDelete = ({
@@ -80,11 +82,12 @@ const DropdownMenuItemWithDelete = ({
 };
 
 export function CustomQuickActions(props: CustomQuickActionsProps) {
+  const { user, assistantId, streamMessage } = props;
   const {
     getCustomQuickActions,
     deleteCustomQuickAction,
     isLoadingQuickActions,
-  } = useStore({ assistantId: props.assistantId, userId: props.userId });
+  } = useStore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -99,15 +102,15 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setIsEditingId(id);
   };
 
-  const getAndSetCustomQuickActions = async () => {
-    const actions = await getCustomQuickActions();
+  const getAndSetCustomQuickActions = async (userId: string) => {
+    const actions = await getCustomQuickActions(userId);
     setCustomQuickActions(actions);
   };
 
   useEffect(() => {
-    if (typeof window === undefined || !props.assistantId) return;
-    getAndSetCustomQuickActions();
-  }, [props.assistantId]);
+    if (typeof window === undefined || !assistantId || !user) return;
+    getAndSetCustomQuickActions(user.id);
+  }, [assistantId, user]);
 
   const handleNewActionClick = (e: Event) => {
     e.preventDefault();
@@ -121,16 +124,26 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setOpen(false);
     setIsEditing(false);
     setIsEditingId(undefined);
-    await props.streamMessage({
+    await streamMessage({
       customQuickActionId: id,
     });
   };
 
   const handleDelete = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Failed to delete",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
     try {
       const deletionSuccess = await deleteCustomQuickAction(
         id,
-        customQuickActions || []
+        customQuickActions || [],
+        user.id
       );
       if (deletionSuccess) {
         toast({
@@ -189,7 +202,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         </TooltipIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        <DropdownMenuLabel>Custom Quick Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          <TighterText>Custom Quick Actions</TighterText>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {isLoadingQuickActions && !customQuickActions?.length ? (
           <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
@@ -197,9 +212,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             <LoaderCircle className="w-4 h-4 animate-spin" />
           </span>
         ) : !customQuickActions?.length ? (
-          <p className="text-sm text-gray-600 p-2">
+          <TighterText className="text-sm text-gray-600 p-2">
             No custom quick actions found.
-          </p>
+          </TighterText>
         ) : (
           <div className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {customQuickActions.map((action) => (
@@ -221,11 +236,11 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
           className="flex items-center justify-start gap-1"
         >
           <CirclePlus className="w-4 h-4" />
-          <p className="font-medium">New</p>
+          <TighterText className="font-medium">New</TighterText>
         </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
-        userId={props.userId}
+        user={user}
         allQuickActions={customQuickActions || []}
         isEditing={isEditing}
         open={dialogOpen}
@@ -240,7 +255,6 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             ? customQuickActions?.find((a) => a.id === isEditingId)
             : undefined
         }
-        assistantId={props.assistantId}
         getAndSetCustomQuickActions={getAndSetCustomQuickActions}
       />
     </DropdownMenu>

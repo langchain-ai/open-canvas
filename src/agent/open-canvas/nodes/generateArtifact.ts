@@ -1,4 +1,3 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { NEW_ARTIFACT_PROMPT } from "../prompts";
 import {
@@ -9,8 +8,13 @@ import {
   Reflections,
 } from "../../../types";
 import { z } from "zod";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
+import {
+  ensureStoreInConfig,
+  formatReflections,
+  getModelNameAndProviderFromConfig,
+} from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { initChatModel } from "langchain/chat_models/universal";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -19,9 +23,11 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
+  const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);
@@ -80,6 +86,11 @@ export const generateArtifact = async (
   const formattedNewArtifactPrompt = NEW_ARTIFACT_PROMPT.replace(
     "{reflections}",
     memoriesAsString
+  ).replace(
+    "{disableChainOfThought}",
+    modelName.includes("claude")
+      ? "\n\nIMPORTANT: Do NOT preform chain of thought beforehand. Instead, go STRAIGHT to generating the tool response. This is VERY important."
+      : ""
   );
 
   const response = await modelWithArtifactTool.invoke(

@@ -1,6 +1,6 @@
 import { ExternalLink } from "lucide-react";
-import { LangSmithSVG } from "./icons/langsmith";
-import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
+import { LangSmithSVG } from "../icons/langsmith";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { useAssistantToolUI } from "@assistant-ui/react";
 import { useCallback } from "react";
 
