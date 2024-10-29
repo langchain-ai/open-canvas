@@ -1,14 +1,13 @@
 import { CustomQuickAction, Reflections } from "@/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
+import { useThread } from "./useThread";
+import { useUser } from "./useUser";
 
-interface UseStoreInput {
-  assistantId: string | undefined;
-  userId: string;
-}
-
-export function useStore(useStoreInput: UseStoreInput) {
+export function useStore() {
   const { toast } = useToast();
+  const { user } = useUser();
+  const { assistantId } = useThread();
   const [isLoadingReflections, setIsLoadingReflections] = useState(false);
   const [isLoadingQuickActions, setIsLoadingQuickActions] = useState(false);
   const [reflections, setReflections] = useState<
@@ -16,14 +15,21 @@ export function useStore(useStoreInput: UseStoreInput) {
   >();
 
   const getReflections = async (): Promise<void> => {
-    if (!useStoreInput.assistantId) {
+    if (!assistantId) {
+      toast({
+        title: "Error",
+        description: "Assistant not found",
+        variant: "destructive",
+        duration: 5000,
+      });
       return;
     }
+
     setIsLoadingReflections(true);
     const res = await fetch("/api/store/get", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["memories", useStoreInput.assistantId],
+        namespace: ["memories", assistantId],
         key: "reflection",
       }),
       headers: {
@@ -60,19 +66,26 @@ export function useStore(useStoreInput: UseStoreInput) {
       styleRules,
       content,
       updatedAt: new Date(item.updatedAt),
-      assistantId: useStoreInput.assistantId,
+      assistantId,
     });
     setIsLoadingReflections(false);
   };
 
   const deleteReflections = async (): Promise<boolean> => {
-    if (!useStoreInput.assistantId) {
+    if (!assistantId) {
+      toast({
+        title: "Error",
+        description: "Assistant not found",
+        variant: "destructive",
+        duration: 5000,
+      });
       return false;
     }
+
     const res = await fetch("/api/store/delete", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["memories", useStoreInput.assistantId],
+        namespace: ["memories", assistantId],
         key: "reflection",
       }),
       headers: {
@@ -99,12 +112,22 @@ export function useStore(useStoreInput: UseStoreInput) {
   const getCustomQuickActions = async (): Promise<
     CustomQuickAction[] | undefined
   > => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return undefined;
+    }
+
     setIsLoadingQuickActions(true);
     try {
       const res = await fetch("/api/store/get", {
         method: "POST",
         body: JSON.stringify({
-          namespace: ["custom_actions", useStoreInput.userId],
+          namespace: ["custom_actions", user.id],
           key: "actions",
         }),
         headers: {
@@ -130,6 +153,16 @@ export function useStore(useStoreInput: UseStoreInput) {
     id: string,
     rest: CustomQuickAction[]
   ): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return false;
+    }
+
     const valuesWithoutDeleted = rest.reduce<Record<string, CustomQuickAction>>(
       (acc, action) => {
         if (action.id !== id) {
@@ -143,7 +176,7 @@ export function useStore(useStoreInput: UseStoreInput) {
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["custom_actions", useStoreInput.userId],
+        namespace: ["custom_actions", user.id],
         key: "actions",
         value: valuesWithoutDeleted,
       }),
@@ -164,6 +197,16 @@ export function useStore(useStoreInput: UseStoreInput) {
     newAction: CustomQuickAction,
     rest: CustomQuickAction[]
   ): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return false;
+    }
+
     const newValue = rest.reduce<Record<string, CustomQuickAction>>(
       (acc, action) => {
         acc[action.id] = action;
@@ -176,7 +219,7 @@ export function useStore(useStoreInput: UseStoreInput) {
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["custom_actions", useStoreInput.userId],
+        namespace: ["custom_actions", user.id],
         key: "actions",
         value: newValue,
       }),
@@ -197,6 +240,16 @@ export function useStore(useStoreInput: UseStoreInput) {
     editedAction: CustomQuickAction,
     rest: CustomQuickAction[]
   ): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return false;
+    }
+
     const newValue = rest.reduce<Record<string, CustomQuickAction>>(
       (acc, action) => {
         acc[action.id] = action;
@@ -209,7 +262,7 @@ export function useStore(useStoreInput: UseStoreInput) {
     const res = await fetch("/api/store/put", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["custom_actions", useStoreInput.userId],
+        namespace: ["custom_actions", user.id],
         key: "actions",
         value: newValue,
       }),

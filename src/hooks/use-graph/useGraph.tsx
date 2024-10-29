@@ -27,7 +27,7 @@ import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { parsePartialJson } from "@langchain/core/output_parsers";
 import { Thread } from "@langchain/langgraph-sdk";
 import { debounce } from "lodash";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "../use-toast";
 import { useRuns } from "../useRuns";
 import { createClient } from "../utils";
@@ -39,6 +39,7 @@ import {
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
+import { useThread } from "../useThread";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
@@ -82,16 +83,10 @@ function removeCodeBlockFormatting(text: string): string {
   }
 }
 
-export interface UseGraphInput {
-  userId: string;
-  threadId: string | undefined;
-  assistantId: string | undefined;
-  modelName: ALL_MODEL_NAMES;
-  setModelName: Dispatch<SetStateAction<ALL_MODEL_NAMES>>;
-}
-
-export function useGraph(useGraphInput: UseGraphInput) {
+export function useGraph() {
   const { toast } = useToast();
+  const { threadId, assistantId, modelName, setThreadId, setModelName } =
+    useThread();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<ArtifactV3>();
@@ -101,11 +96,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     useState(false);
   const lastSavedArtifact = useRef<ArtifactV3 | undefined>(undefined);
   const debouncedAPIUpdate = useRef(
-    debounce(
-      (artifact: ArtifactV3, threadId: string) =>
-        updateArtifact(artifact, threadId),
-      5000
-    )
+    debounce((artifact: ArtifactV3) => updateArtifact(artifact), 5000)
   ).current;
   const [isArtifactSaved, setIsArtifactSaved] = useState(true);
   const [threadSwitched, setThreadSwitched] = useState(false);
@@ -129,7 +120,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
   }, [debouncedAPIUpdate]);
 
   useEffect(() => {
-    if (!messages.length || !artifact || !useGraphInput.threadId) return;
+    if (!messages.length || !artifact || !threadId) return;
     if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
     const currentIndex = artifact.currentIndex;
     const currentContent = artifact.contents.find(
@@ -153,15 +144,23 @@ export function useGraph(useGraphInput: UseGraphInput) {
       setIsArtifactSaved(false);
       // This means the artifact in state does not match the last saved artifact
       // We need to update
-      debouncedAPIUpdate(artifact, useGraphInput.threadId);
+      debouncedAPIUpdate(artifact);
     }
   }, [artifact]);
 
-  const updateArtifact = async (
-    artifactToUpdate: ArtifactV3,
-    threadId: string
-  ) => {
+  const updateArtifact = async (artifactToUpdate: ArtifactV3) => {
+    if (!threadId) {
+      toast({
+        title: "Error",
+        description: "Thread ID not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
     if (isStreaming) return;
+
     try {
       const client = createClient();
       await client.threads.updateState(threadId, {
@@ -184,26 +183,26 @@ export function useGraph(useGraphInput: UseGraphInput) {
   };
 
   const streamMessageV2 = async (params: GraphInput, config?: GraphConfig) => {
-    setFirstTokenReceived(false);
-
-    if (!useGraphInput.threadId) {
+    if (!threadId) {
       toast({
         title: "Error",
         description: "Thread ID not found",
         variant: "destructive",
         duration: 5000,
       });
-      return undefined;
+      return;
     }
-    if (!useGraphInput.assistantId) {
+    if (!assistantId) {
       toast({
         title: "Error",
         description: "Assistant ID not found",
         variant: "destructive",
         duration: 5000,
       });
-      return undefined;
+      return;
     }
+
+    setFirstTokenReceived(false);
 
     const client = createClient();
 
@@ -249,20 +248,15 @@ export function useGraph(useGraphInput: UseGraphInput) {
     let followupMessageId = "";
     // let lastMessage: AIMessage | undefined = undefined;
     try {
-      const stream = client.runs.stream(
-        useGraphInput.threadId,
-        useGraphInput.assistantId,
-        {
-          input,
-          streamMode: "events",
-          config: {
-            configurable: {
-              customModelName:
-                config?.customModelName || useGraphInput.modelName,
-            },
+      const stream = client.runs.stream(threadId, assistantId, {
+        input,
+        streamMode: "events",
+        config: {
+          configurable: {
+            customModelName: config?.customModelName || modelName,
           },
-        }
-      );
+        },
+      });
 
       // Variables to keep track of content specific to this stream
       const prevCurrentContent = artifact
@@ -730,7 +724,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return newMsgs;
         });
 
-        // if (useGraphInput.threadId && lastMessage && lastMessage.id) {
+        // if (threadId && lastMessage && lastMessage.id) {
         //   // Update the state of the last message to include the run URL
         //   // for proper rendering when loading history.
         //   const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
@@ -741,12 +735,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
         //       langSmithRunURL: sharedRunURL,
         //     }
         //   })];
-        //   await client.threads.updateState(useGraphInput.threadId, {
+        //   await client.threads.updateState(threadId, {
         //     values: {
         //       messages: newMessages
         //     },
         //   });
-        //   const newState = await client.threads.getState(useGraphInput.threadId);
+        //   const newState = await client.threads.getState(threadId);
         // }
       });
     }
@@ -803,20 +797,15 @@ export function useGraph(useGraphInput: UseGraphInput) {
     });
   };
 
-  const switchSelectedThread = (
-    thread: Thread,
-    setThreadId: (id: string) => void
-  ) => {
+  const switchSelectedThread = (thread: Thread) => {
     setUpdateRenderedArtifactRequired(true);
     setThreadSwitched(true);
     setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
     if (thread.metadata?.customModelName) {
-      useGraphInput.setModelName(
-        thread.metadata.customModelName as ALL_MODEL_NAMES
-      );
+      setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
     } else {
-      useGraphInput.setModelName(DEFAULT_MODEL_NAME);
+      setModelName(DEFAULT_MODEL_NAME);
     }
 
     const castValues: {

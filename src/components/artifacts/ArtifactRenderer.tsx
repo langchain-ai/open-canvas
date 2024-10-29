@@ -1,26 +1,15 @@
-import { useToast } from "@/hooks/use-toast";
-import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
+import { useGraph } from "@/hooks/use-graph/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { cn } from "@/lib/utils";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
-  ArtifactV3,
   ProgrammingLanguageOptions,
-  Reflections,
-  TextHighlight,
 } from "@/types";
 import { EditorView } from "@codemirror/view";
-import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { HumanMessage } from "@langchain/core/messages";
 import { Forward, LoaderCircle, CircleCheck } from "lucide-react";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
@@ -30,32 +19,11 @@ import { TextRenderer } from "./TextRenderer";
 import { CustomQuickActions } from "./actions_toolbar/custom";
 import { getArtifactContent } from "@/hooks/use-graph/utils";
 import { ArtifactLoading } from "./ArtifactLoading";
-import { CopyText } from "./components/CopyText";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
 
 export interface ArtifactRendererProps {
-  userId: string;
-  assistantId: string | undefined;
-  artifact: ArtifactV3 | undefined;
-  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
-  setArtifactContent: (index: number, content: string) => void;
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
-  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  setSelectedArtifact: (index: number) => void;
-  messages: BaseMessage[];
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  isLoadingReflections: boolean;
-  reflections: (Reflections & { updatedAt: Date }) | undefined;
-  handleDeleteReflections: () => Promise<boolean>;
-  handleGetReflections: () => Promise<void>;
-  selectedBlocks: TextHighlight | undefined;
-  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
-  isStreaming: boolean;
-  updateRenderedArtifactRequired: boolean;
-  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
-  isArtifactSaved: boolean;
-  firstTokenReceived: boolean;
 }
 
 interface SelectionBox {
@@ -147,6 +115,16 @@ function NavigateArtifactHistory(props: NavigateArtifactHistoryProps) {
 }
 
 export function ArtifactRenderer(props: ArtifactRendererProps) {
+  const {
+    artifact,
+    selectedBlocks,
+    isStreaming,
+    isArtifactSaved,
+    setSelectedArtifact,
+    setMessages,
+    streamMessage,
+    setSelectedBlocks,
+  } = useGraph();
   const editorRef = useRef<EditorView | null>(null);
   const artifactContentRef = useRef<HTMLDivElement>(null);
   const highlightLayerRef = useRef<HTMLDivElement>(null);
@@ -224,9 +202,9 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
       id: uuidv4(),
     });
 
-    props.setMessages((prevMessages) => [...prevMessages, humanMessage]);
+    setMessages((prevMessages) => [...prevMessages, humanMessage]);
     handleCleanupState();
-    await props.streamMessage({
+    await streamMessage({
       messages: [convertToOpenAIFormat(humanMessage)],
       ...(selectionIndexes && {
         highlightedCode: {
@@ -273,13 +251,13 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                 | ArtifactMarkdownV3
                 | undefined = undefined;
               try {
-                currentArtifactContent = props.artifact
-                  ? getArtifactContent(props.artifact)
+                currentArtifactContent = artifact
+                  ? getArtifactContent(artifact)
                   : undefined;
               } catch (_) {
                 console.error(
                   "[ArtifactRenderer.tsx L229]\n\nERROR NO ARTIFACT CONTENT FOUND\n\n",
-                  props.artifact
+                  artifact
                 );
                 // no-op
               }
@@ -325,32 +303,32 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   }, [isSelectionActive, selectionBox]);
 
   useEffect(() => {
-    if (!!props.selectedBlocks && !isSelectionActive) {
+    if (!!selectedBlocks && !isSelectionActive) {
       // Selection is not active but selected blocks are present. Clear them.
-      props.setSelectedBlocks(undefined);
+      setSelectedBlocks(undefined);
     }
-  }, [props.selectedBlocks, isSelectionActive]);
+  }, [selectedBlocks, isSelectionActive]);
 
-  const currentArtifactContent = props.artifact
-    ? getArtifactContent(props.artifact)
+  const currentArtifactContent = artifact
+    ? getArtifactContent(artifact)
     : undefined;
 
-  if (!props.artifact && props.isStreaming) {
+  if (!artifact && isStreaming) {
     return <ArtifactLoading />;
   }
 
-  if (!props.artifact || !currentArtifactContent) {
+  if (!artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }
 
   const isBackwardsDisabled =
-    props.artifact.contents.length === 1 ||
+    artifact.contents.length === 1 ||
     currentArtifactContent.index === 1 ||
-    props.isStreaming;
+    isStreaming;
   const isForwardDisabled =
-    props.artifact.contents.length === 1 ||
-    currentArtifactContent.index === props.artifact.contents.length ||
-    props.isStreaming;
+    artifact.contents.length === 1 ||
+    currentArtifactContent.index === artifact.contents.length ||
+    isStreaming;
 
   return (
     <div className="relative w-full h-full max-h-screen overflow-auto">
@@ -358,25 +336,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         <div className="pl-[6px] pt-3 flex flex-col items-start justify-start ml-[6px] gap-1">
           <ArtifactTitle
             title={currentArtifactContent.title}
-            isArtifactSaved={props.isArtifactSaved}
+            isArtifactSaved={isArtifactSaved}
           />
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-3 text-gray-600">
           <NavigateArtifactHistory
             isBackwardsDisabled={isBackwardsDisabled}
             isForwardDisabled={isForwardDisabled}
-            setSelectedArtifact={props.setSelectedArtifact}
+            setSelectedArtifact={setSelectedArtifact}
             currentArtifactContent={currentArtifactContent}
-            totalArtifactVersions={props.artifact.contents.length}
+            totalArtifactVersions={artifact.contents.length}
           />
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
-          <ReflectionsDialog
-            handleGetReflections={props.handleGetReflections}
-            isLoadingReflections={props.isLoadingReflections}
-            reflections={props.reflections}
-            handleDeleteReflections={props.handleDeleteReflections}
-          />
+          <ReflectionsDialog />
         </div>
       </div>
       <div
@@ -400,35 +373,14 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           >
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
-                firstTokenReceived={props.firstTokenReceived}
                 isInputVisible={isInputVisible}
-                isStreaming={props.isStreaming}
-                artifact={props.artifact}
-                setArtifact={props.setArtifact}
-                setSelectedBlocks={props.setSelectedBlocks}
                 isEditing={props.isEditing}
-                updateRenderedArtifactRequired={
-                  props.updateRenderedArtifactRequired
-                }
-                setUpdateRenderedArtifactRequired={
-                  props.setUpdateRenderedArtifactRequired
-                }
                 isHovering={isHoveringOverArtifact}
               />
             ) : null}
             {currentArtifactContent.type === "code" ? (
               <CodeRenderer
-                isStreaming={props.isStreaming}
-                firstTokenReceived={props.firstTokenReceived}
-                setArtifactContent={props.setArtifactContent}
                 editorRef={editorRef}
-                artifactContent={currentArtifactContent}
-                updateRenderedArtifactRequired={
-                  props.updateRenderedArtifactRequired
-                }
-                setUpdateRenderedArtifactRequired={
-                  props.setUpdateRenderedArtifactRequired
-                }
                 isHovering={isHoveringOverArtifact}
               />
             ) : null}
@@ -448,35 +400,26 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             setIsInputVisible={setIsInputVisible}
             handleSubmitMessage={handleSubmit}
             handleSelectionBoxMouseDown={handleSelectionBoxMouseDown}
-            artifact={props.artifact}
+            artifact={artifact}
             selectionIndexes={selectionIndexes}
             handleCleanupState={handleCleanupState}
           />
         )}
       </div>
       <CustomQuickActions
-        isTextSelected={isSelectionActive || props.selectedBlocks !== undefined}
-        userId={props.userId}
-        assistantId={props.assistantId}
-        streamMessage={props.streamMessage}
+        isTextSelected={isSelectionActive || selectedBlocks !== undefined}
       />
       {currentArtifactContent.type === "text" ? (
         <ActionsToolbar
-          isTextSelected={
-            isSelectionActive || props.selectedBlocks !== undefined
-          }
-          streamMessage={props.streamMessage}
+          isTextSelected={isSelectionActive || selectedBlocks !== undefined}
         />
       ) : null}
       {currentArtifactContent.type === "code" ? (
         <CodeToolBar
-          isTextSelected={
-            isSelectionActive || props.selectedBlocks !== undefined
-          }
+          isTextSelected={isSelectionActive || selectedBlocks !== undefined}
           language={
             currentArtifactContent.language as ProgrammingLanguageOptions
           }
-          streamMessage={props.streamMessage}
         />
       ) : null}
     </div>

@@ -21,5 +21,5 @@ export default function Home() {
     return <CanvasLoading />;
   }
 
-  return <Canvas user={user} />;
+  return <Canvas />;
 }

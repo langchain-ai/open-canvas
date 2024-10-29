@@ -4,16 +4,16 @@ import { Button } from "./ui/button";
 import { Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { Skeleton } from "./ui/skeleton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";
 import { PiChatsCircleLight } from "react-icons/pi";
 import { TighterText } from "./ui/header";
+import { useGraph } from "@/hooks/use-graph/useGraph";
+import { useThread } from "@/hooks/useThread";
+import { useUser } from "@/hooks/useUser";
 
 interface ThreadHistoryProps {
-  isUserThreadsLoading: boolean;
-  userThreads: Thread[];
-  switchSelectedThread: (thread: Thread) => void;
-  deleteThread: (id: string) => Promise<void>;
+  switchSelectedThreadCallback: (thread: Thread) => void;
 }
 
 interface ThreadProps {
@@ -60,7 +60,7 @@ const LoadingThread = () => <Skeleton className="w-full h-8" />;
 
 const convertThreadActualToThreadProps = (
   thread: Thread,
-  switchSelectedThread: (thread: Thread) => void,
+  switchSelectedThreadCallback: (thread: Thread) => void,
   deleteThread: (id: string) => void
 ): ThreadProps => ({
   id: thread.thread_id,
@@ -69,7 +69,7 @@ const convertThreadActualToThreadProps = (
     "Untitled",
   createdAt: new Date(thread.created_at),
   onClick: () => {
-    return switchSelectedThread(thread);
+    return switchSelectedThreadCallback(thread);
   },
   onDelete: () => {
     return deleteThread(thread.thread_id);
@@ -78,7 +78,7 @@ const convertThreadActualToThreadProps = (
 
 const groupThreads = (
   threads: Thread[],
-  switchSelectedThread: (thread: Thread) => void,
+  switchSelectedThreadCallback: (thread: Thread) => void,
   deleteThread: (id: string) => void
 ) => {
   const today = new Date();
@@ -93,7 +93,11 @@ const groupThreads = (
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
       .map((t) =>
-        convertThreadActualToThreadProps(t, switchSelectedThread, deleteThread)
+        convertThreadActualToThreadProps(
+          t,
+          switchSelectedThreadCallback,
+          deleteThread
+        )
       ),
     yesterday: threads
       .filter((thread) => isYesterday(new Date(thread.created_at)))
@@ -102,7 +106,11 @@ const groupThreads = (
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
       .map((t) =>
-        convertThreadActualToThreadProps(t, switchSelectedThread, deleteThread)
+        convertThreadActualToThreadProps(
+          t,
+          switchSelectedThreadCallback,
+          deleteThread
+        )
       ),
     lastSevenDays: threads
       .filter((thread) =>
@@ -116,7 +124,11 @@ const groupThreads = (
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
       .map((t) =>
-        convertThreadActualToThreadProps(t, switchSelectedThread, deleteThread)
+        convertThreadActualToThreadProps(
+          t,
+          switchSelectedThreadCallback,
+          deleteThread
+        )
       ),
     older: threads
       .filter((thread) => new Date(thread.created_at) < sevenDaysAgo)
@@ -125,7 +137,11 @@ const groupThreads = (
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
       .map((t) =>
-        convertThreadActualToThreadProps(t, switchSelectedThread, deleteThread)
+        convertThreadActualToThreadProps(
+          t,
+          switchSelectedThreadCallback,
+          deleteThread
+        )
       ),
   };
 };
@@ -177,13 +193,29 @@ function ThreadsList(props: ThreadsListProps) {
 
 export function ThreadHistory(props: ThreadHistoryProps) {
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const { setMessages, switchSelectedThread } = useGraph();
+  const { deleteThread, getUserThreads, userThreads, isUserThreadsLoading } =
+    useThread();
+
+  useEffect(() => {
+    if (typeof window == "undefined" || !user || userThreads.length) return;
+
+    getUserThreads();
+  }, [user]);
+
+  const handleDeleteThread = async (id: string) => {
+    await deleteThread(id, () => setMessages([]));
+  };
+
   const groupedThreads = groupThreads(
-    props.userThreads,
+    userThreads,
     (thread) => {
-      props.switchSelectedThread(thread);
+      switchSelectedThread(thread);
+      props.switchSelectedThreadCallback(thread);
       setOpen(false);
     },
-    props.deleteThread
+    handleDeleteThread
   );
 
   return (
@@ -207,13 +239,13 @@ export function ThreadHistory(props: ThreadHistoryProps) {
         <TighterText className="px-2 text-lg text-gray-600">
           Chat History
         </TighterText>
-        {props.isUserThreadsLoading && !props.userThreads.length ? (
+        {isUserThreadsLoading && !userThreads.length ? (
           <div className="flex flex-col gap-1 px-2 pt-3">
             {Array.from({ length: 25 }).map((_, i) => (
               <LoadingThread key={`loading-thread-${i}`} />
             ))}
           </div>
-        ) : !props.userThreads.length ? (
+        ) : !userThreads.length ? (
           <p className="px-3 text-gray-500">No items found in history.</p>
         ) : (
           <ThreadsList groupedThreads={groupedThreads} />

@@ -2,10 +2,9 @@
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
-import { ALL_MODEL_NAMES, DEFAULT_MODEL_NAME } from "@/constants";
-import { GraphConfig, GraphInput, useGraph } from "@/hooks/use-graph/useGraph";
+import { ALL_MODEL_NAMES } from "@/constants";
+import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
-import { useStore } from "@/hooks/useStore";
 import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
@@ -15,71 +14,27 @@ import {
   ArtifactV3,
   ProgrammingLanguageOptions,
 } from "@/types";
-import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
-interface CanvasProps {
-  user: User;
-}
-
-export function Canvas(props: CanvasProps) {
+export function Canvas() {
   const { toast } = useToast();
   const {
     threadId,
     assistantId,
-    createThread,
     searchOrCreateThread,
-    deleteThread,
-    userThreads,
-    isUserThreadsLoading,
-    getUserThreads,
-    setThreadId,
     getOrCreateAssistant,
     clearThreadsWithNoValues,
-    modelName,
     setModelName,
-  } = useThread(props.user.id);
+  } = useThread();
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const {
-    streamMessage,
-    setMessages,
-    setArtifact,
-    messages,
-    setSelectedArtifact,
-    setArtifactContent,
-    clearState,
-    switchSelectedThread,
-    artifact,
-    setSelectedBlocks,
-    isStreaming,
-    updateRenderedArtifactRequired,
-    setUpdateRenderedArtifactRequired,
-    isArtifactSaved,
-    firstTokenReceived,
-    selectedBlocks,
-  } = useGraph({
-    userId: props.user.id,
-    threadId,
-    assistantId,
-    modelName,
-    setModelName,
-  });
-  const {
-    reflections,
-    deleteReflections,
-    getReflections,
-    isLoadingReflections,
-  } = useStore({
-    assistantId,
-    userId: props.user.id,
-  });
+  const { setArtifact } = useGraph();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     if (!threadId) {
-      searchOrCreateThread(props.user.id);
+      searchOrCreateThread();
     }
 
     if (!assistantId) {
@@ -90,34 +45,8 @@ export function Canvas(props: CanvasProps) {
   useEffect(() => {
     if (!threadId) return;
     // Clear threads with no values
-    clearThreadsWithNoValues(props.user.id);
+    clearThreadsWithNoValues();
   }, [threadId]);
-
-  useEffect(() => {
-    if (typeof window == "undefined" || !props.user.id || userThreads.length)
-      return;
-    getUserThreads(props.user.id);
-  }, [props.user.id]);
-
-  useEffect(() => {
-    if (!assistantId || typeof window === "undefined") return;
-    // Don't re-fetch reflections if they already exist & are for the same assistant
-    if (
-      (reflections?.content || reflections?.styleRules) &&
-      reflections.assistantId === assistantId
-    )
-      return;
-
-    getReflections();
-  }, [assistantId]);
-
-  const createThreadWithChatStarted = async (
-    customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME
-  ) => {
-    setChatStarted(false);
-    clearState();
-    return createThread(props.user.id, customModelName);
-  };
 
   const handleQuickStart = (
     type: "text" | "code",
@@ -172,12 +101,7 @@ export function Canvas(props: CanvasProps) {
         )}
       >
         <ContentComposerChatInterface
-          userId={props.user.id}
-          getUserThreads={getUserThreads}
-          isUserThreadsLoading={isUserThreadsLoading}
-          userThreads={userThreads}
-          switchSelectedThread={(thread) => {
-            switchSelectedThread(thread, setThreadId);
+          switchSelectedThreadCallback={(thread) => {
             // Chat should only be "started" if there are messages present
             if ((thread.values as Record<string, any>)?.messages?.length) {
               setChatStarted(true);
@@ -188,60 +112,14 @@ export function Canvas(props: CanvasProps) {
               setChatStarted(false);
             }
           }}
-          deleteThread={(id) => deleteThread(id, () => setMessages([]))}
-          handleGetReflections={getReflections}
-          handleDeleteReflections={deleteReflections}
-          reflections={reflections}
-          isLoadingReflections={isLoadingReflections}
-          streamMessage={(input: GraphInput, config?: GraphConfig) =>
-            streamMessage(input, {
-              customModelName: modelName,
-              ...(config || {}),
-            })
-          }
-          messages={messages}
-          setMessages={setMessages}
-          createThread={createThreadWithChatStarted}
           setChatStarted={setChatStarted}
-          showNewThreadButton={chatStarted}
+          hasChatStarted={chatStarted}
           handleQuickStart={handleQuickStart}
-          modelName={modelName}
-          setModelName={setModelName}
         />
       </div>
       {chatStarted && (
         <div className="w-full ml-auto">
-          <ArtifactRenderer
-            userId={props.user.id}
-            firstTokenReceived={firstTokenReceived}
-            isArtifactSaved={isArtifactSaved}
-            artifact={artifact}
-            setArtifact={setArtifact}
-            setSelectedBlocks={setSelectedBlocks}
-            selectedBlocks={selectedBlocks}
-            assistantId={assistantId}
-            handleGetReflections={getReflections}
-            handleDeleteReflections={deleteReflections}
-            reflections={reflections}
-            isLoadingReflections={isLoadingReflections}
-            setIsEditing={setIsEditing}
-            isEditing={isEditing}
-            setArtifactContent={setArtifactContent}
-            setSelectedArtifact={setSelectedArtifact}
-            messages={messages}
-            setMessages={setMessages}
-            streamMessage={(input: GraphInput, config?: GraphConfig) =>
-              streamMessage(input, {
-                customModelName: modelName,
-                ...(config || {}),
-              })
-            }
-            isStreaming={isStreaming}
-            updateRenderedArtifactRequired={updateRenderedArtifactRequired}
-            setUpdateRenderedArtifactRequired={
-              setUpdateRenderedArtifactRequired
-            }
-          />
+          <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
         </div>
       )}
     </main>

@@ -9,8 +9,12 @@ import { getCookie, setCookie } from "@/lib/cookies";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useState } from "react";
 import { createClient } from "./utils";
+import { useUser } from "./useUser";
+import { useToast } from "./use-toast";
 
-export function useThread(userId: string) {
+export function useThread() {
+  const { user } = useUser();
+  const { toast } = useToast();
   const [assistantId, setAssistantId] = useState<string>();
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
@@ -19,21 +23,29 @@ export function useThread(userId: string) {
     useState<ALL_MODEL_NAMES>(DEFAULT_MODEL_NAME);
 
   const createThread = async (
-    supabaseUserId: string,
     customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME
   ): Promise<Thread | undefined> => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return undefined;
+    }
     const client = createClient();
     try {
       const thread = await client.threads.create({
         metadata: {
-          supabase_user_id: supabaseUserId,
+          supabase_user_id: user.id,
           customModelName,
         },
       });
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
       setModelName(customModelName);
-      await getUserThreads(userId);
+      await getUserThreads();
       return thread;
     } catch (e) {
       console.error("Failed to create thread", e);
@@ -58,14 +70,23 @@ export function useThread(userId: string) {
     }
   };
 
-  const getUserThreads = async (id: string) => {
+  const getUserThreads = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return undefined;
+    }
     setIsUserThreadsLoading(true);
     try {
       const client = createClient();
 
       const userThreads = await client.threads.search({
         metadata: {
-          supabase_user_id: id,
+          supabase_user_id: user.id,
         },
         limit: 100,
       });
@@ -83,10 +104,10 @@ export function useThread(userId: string) {
     }
   };
 
-  const searchOrCreateThread = async (id: string) => {
+  const searchOrCreateThread = async () => {
     const threadIdCookie = getCookie(THREAD_ID_COOKIE_NAME);
     if (!threadIdCookie) {
-      await createThread(id, modelName);
+      await createThread(modelName);
       return;
     }
 
@@ -101,12 +122,22 @@ export function useThread(userId: string) {
       return threadIdCookie;
     } else {
       // Current thread has activity. Create a new thread.
-      await createThread(id, modelName);
+      await createThread(modelName);
       return;
     }
   };
 
-  const clearThreadsWithNoValues = async (userId: string) => {
+  const clearThreadsWithNoValues = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return undefined;
+    }
+
     const hasBeenClearedCookie = getCookie(HAS_EMPTY_THREADS_CLEARED_COOKIE);
     if (hasBeenClearedCookie === "true") {
       return;
@@ -118,7 +149,7 @@ export function useThread(userId: string) {
     const fetchAndDeleteThreads = async (offset = 0) => {
       const userThreads = await client.threads.search({
         metadata: {
-          supabase_user_id: userId,
+          supabase_user_id: user.id,
         },
         limit: 100,
         offset: offset,
@@ -184,9 +215,16 @@ export function useThread(userId: string) {
   };
 
   const deleteThread = async (id: string, clearMessages: () => void) => {
-    if (!userId) {
-      throw new Error("User ID not found");
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return undefined;
     }
+
     setUserThreads((prevThreads) => {
       const newThreads = prevThreads.filter(
         (thread) => thread.thread_id !== id
@@ -198,7 +236,7 @@ export function useThread(userId: string) {
       // Create a new thread. Use .then to avoid blocking the UI.
       // Once completed, `createThread` will re-fetch all user
       // threads to update UI.
-      void createThread(userId, modelName);
+      void createThread(modelName);
     }
     const client = createClient();
     try {

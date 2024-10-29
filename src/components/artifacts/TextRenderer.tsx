@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { ArtifactMarkdownV3, ArtifactV3, TextHighlight } from "@/types";
+import { useEffect, useRef, useState } from "react";
+import { ArtifactMarkdownV3 } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
   getDefaultReactSlashMenuItems,
@@ -11,6 +11,7 @@ import "@blocknote/shadcn/style.css";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
 import { CopyText } from "./components/CopyText";
 import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { useGraph } from "@/hooks/use-graph/useGraph";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
@@ -18,19 +19,21 @@ const cleanText = (text: string) => {
 
 export interface TextRendererProps {
   isEditing: boolean;
-  artifact: ArtifactV3 | undefined;
-  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
-  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
-  isStreaming: boolean;
-  isInputVisible: boolean;
-  updateRenderedArtifactRequired: boolean;
-  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
-  firstTokenReceived: boolean;
   isHovering: boolean;
+  isInputVisible: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
+  const {
+    artifact,
+    isStreaming,
+    updateRenderedArtifactRequired,
+    firstTokenReceived,
+    setArtifact,
+    setSelectedBlocks,
+    setUpdateRenderedArtifactRequired,
+  } = useGraph();
 
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
@@ -40,13 +43,13 @@ export function TextRenderer(props: TextRendererProps) {
     const selection = editor.getSelection();
 
     if (selectedText && selection) {
-      if (!props.artifact) {
+      if (!artifact) {
         console.error("Artifact not found");
         return;
       }
 
-      const currentBlockIdx = props.artifact.currentIndex;
-      const currentContent = props.artifact.contents.find(
+      const currentBlockIdx = artifact.currentIndex;
+      const currentContent = artifact.contents.find(
         (c) => c.index === currentBlockIdx
       );
       if (!currentContent) {
@@ -63,7 +66,7 @@ export function TextRenderer(props: TextRendererProps) {
           editor.blocksToMarkdownLossy(selection.blocks),
           editor.blocksToMarkdownLossy(editor.document),
         ]);
-        props.setSelectedBlocks({
+        setSelectedBlocks({
           fullMarkdown: cleanText(fullMarkdown),
           markdownBlock: cleanText(markdownBlock),
           selectedText: cleanText(selectedText),
@@ -74,26 +77,26 @@ export function TextRenderer(props: TextRendererProps) {
 
   useEffect(() => {
     if (!props.isInputVisible) {
-      props.setSelectedBlocks(undefined);
+      setSelectedBlocks(undefined);
     }
   }, [props.isInputVisible]);
 
   useEffect(() => {
-    if (!props.artifact) {
+    if (!artifact) {
       return;
     }
     if (
-      !props.isStreaming &&
+      !isStreaming &&
       !manuallyUpdatingArtifact &&
-      !props.updateRenderedArtifactRequired
+      !updateRenderedArtifactRequired
     ) {
       console.error("Can only update via useEffect when streaming");
       return;
     }
 
     try {
-      const currentIndex = props.artifact.currentIndex;
-      const currentContent = props.artifact.contents.find(
+      const currentIndex = artifact.currentIndex;
+      const currentContent = artifact.contents.find(
         (c) => c.index === currentIndex && c.type === "text"
       ) as ArtifactMarkdownV3 | undefined;
       if (!currentContent) return;
@@ -104,27 +107,27 @@ export function TextRenderer(props: TextRendererProps) {
           currentContent.fullMarkdown
         );
         editor.replaceBlocks(editor.document, markdownAsBlocks);
-        props.setUpdateRenderedArtifactRequired(false);
+        setUpdateRenderedArtifactRequired(false);
         setManuallyUpdatingArtifact(false);
       })();
     } finally {
       setManuallyUpdatingArtifact(false);
-      props.setUpdateRenderedArtifactRequired(false);
+      setUpdateRenderedArtifactRequired(false);
     }
-  }, [props.artifact, props.updateRenderedArtifactRequired]);
+  }, [artifact, updateRenderedArtifactRequired]);
 
   const isComposition = useRef(false);
 
   const onChange = async () => {
     if (
-      props.isStreaming ||
+      isStreaming ||
       manuallyUpdatingArtifact ||
-      props.updateRenderedArtifactRequired
+      updateRenderedArtifactRequired
     )
       return;
 
     const fullMarkdown = await editor.blocksToMarkdownLossy(editor.document);
-    props.setArtifact((prev) => {
+    setArtifact((prev) => {
       if (!prev) {
         return {
           currentIndex: 1,
@@ -156,11 +159,9 @@ export function TextRenderer(props: TextRendererProps) {
 
   return (
     <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5 relative">
-      {props.isHovering && props.artifact && (
+      {props.isHovering && artifact && (
         <div className="absolute top-2 right-4 z-10">
-          <CopyText
-            currentArtifactContent={getArtifactContent(props.artifact)}
-          />
+          <CopyText currentArtifactContent={getArtifactContent(artifact)} />
         </div>
       )}
       <style jsx global>{`
@@ -185,13 +186,9 @@ export function TextRenderer(props: TextRendererProps) {
         onCompositionStartCapture={() => (isComposition.current = true)}
         onCompositionEndCapture={() => (isComposition.current = false)}
         onChange={onChange}
-        editable={
-          !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
-        }
+        editable={!isStreaming || props.isEditing || !manuallyUpdatingArtifact}
         editor={editor}
-        className={
-          props.isStreaming && !props.firstTokenReceived ? "pulse-text" : ""
-        }
+        className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
       >
         <SuggestionMenuController
           getItems={async () =>

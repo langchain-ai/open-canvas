@@ -8,15 +8,14 @@ import {
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { type FC } from "react";
+import { Dispatch, SetStateAction, type FC } from "react";
 
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ALL_MODEL_NAMES } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import { ProgrammingLanguageOptions } from "@/types";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 import {
   ArrowDownIcon,
@@ -30,24 +29,17 @@ import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
 import { TighterText } from "./ui/header";
+import { useThread } from "@/hooks/useThread";
+import { useGraph } from "@/hooks/use-graph/useGraph";
 
 export interface ThreadProps {
-  createThread: (modelName: ALL_MODEL_NAMES) => Promise<ThreadType | undefined>;
-  showNewThreadButton: boolean;
+  hasChatStarted: boolean;
   handleQuickStart: (
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
-  isLoadingReflections: boolean;
-  reflections: (Reflections & { updatedAt: Date }) | undefined;
-  handleDeleteReflections: () => Promise<boolean>;
-  handleGetReflections: () => Promise<void>;
-  isUserThreadsLoading: boolean;
-  userThreads: ThreadType[];
-  switchSelectedThread: (thread: ThreadType) => void;
-  deleteThread: (id: string) => Promise<void>;
-  modelName: ALL_MODEL_NAMES;
-  setModelName: React.Dispatch<React.SetStateAction<ALL_MODEL_NAMES>>;
+  setChatStarted: Dispatch<SetStateAction<boolean>>;
+  switchSelectedThreadCallback: (thread: ThreadType) => void;
 }
 
 interface QuickStartButtonsProps {
@@ -150,12 +142,16 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   const { toast } = useToast();
+  const { clearState } = useGraph();
+  const { createThread, modelName, setModelName } = useThread();
 
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
-    props.setModelName(props.modelName);
-    const thread = await props.createThread(props.modelName);
+    setModelName(modelName);
+    clearState();
+    const thread = await createThread(modelName);
+    props.setChatStarted(true);
     if (!thread) {
       toast({
         title: "Failed to create a new thread",
@@ -170,20 +166,12 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between">
         <div className="flex items-center justify-start gap-2 text-gray-600">
           <ThreadHistory
-            isUserThreadsLoading={props.isUserThreadsLoading}
-            userThreads={props.userThreads}
-            switchSelectedThread={props.switchSelectedThread}
-            deleteThread={props.deleteThread}
+            switchSelectedThreadCallback={props.switchSelectedThreadCallback}
           />
           <TighterText className="text-xl">Open Canvas</TighterText>
-          {!props.showNewThreadButton && (
-            <ModelSelector
-              model={props.modelName}
-              setModel={props.setModelName}
-            />
-          )}
+          {!props.hasChatStarted && <ModelSelector />}
         </div>
-        {props.showNewThreadButton ? (
+        {props.hasChatStarted ? (
           <TooltipIconButton
             tooltip="New chat"
             variant="ghost"
@@ -195,17 +183,12 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           </TooltipIconButton>
         ) : (
           <div className="flex flex-row gap-2 items-center">
-            <ReflectionsDialog
-              handleGetReflections={props.handleGetReflections}
-              isLoadingReflections={props.isLoadingReflections}
-              reflections={props.reflections}
-              handleDeleteReflections={props.handleDeleteReflections}
-            />
+            <ReflectionsDialog />
           </div>
         )}
       </div>
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
-        {!props.showNewThreadButton && (
+        {!props.hasChatStarted && (
           <ThreadWelcome
             handleQuickStart={props.handleQuickStart}
             composer={<Composer />}
@@ -222,12 +205,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
         <ThreadScrollToBottom />
         <div className="w-full max-w-2xl">
-          {props.showNewThreadButton && (
+          {props.hasChatStarted && (
             <div className="flex flex-col space-y-2">
-              <ModelSelector
-                model={props.modelName}
-                setModel={props.setModelName}
-              />
+              <ModelSelector />
               <Composer />
             </div>
           )}

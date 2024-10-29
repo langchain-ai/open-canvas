@@ -5,7 +5,7 @@ import {
   LoaderCircle,
   Pencil,
 } from "lucide-react";
-import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
+import { useGraph } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,
@@ -22,12 +22,10 @@ import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { TighterText } from "@/components/ui/header";
+import { useThread } from "@/hooks/useThread";
 
 export interface CustomQuickActionsProps {
   isTextSelected: boolean;
-  assistantId: string | undefined;
-  userId: string;
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
 }
 
 const DropdownMenuItemWithDelete = ({
@@ -85,7 +83,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     getCustomQuickActions,
     deleteCustomQuickAction,
     isLoadingQuickActions,
-  } = useStore({ assistantId: props.assistantId, userId: props.userId });
+  } = useStore();
+  const { assistantId } = useThread();
+  const { streamMessage } = useGraph();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -106,9 +106,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
   };
 
   useEffect(() => {
-    if (typeof window === undefined || !props.assistantId) return;
+    if (typeof window === undefined || !assistantId) return;
     getAndSetCustomQuickActions();
-  }, [props.assistantId]);
+  }, [assistantId]);
 
   const handleNewActionClick = (e: Event) => {
     e.preventDefault();
@@ -122,7 +122,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setOpen(false);
     setIsEditing(false);
     setIsEditingId(undefined);
-    await props.streamMessage({
+    await streamMessage({
       customQuickActionId: id,
     });
   };
@@ -228,7 +228,6 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
-        userId={props.userId}
         allQuickActions={customQuickActions || []}
         isEditing={isEditing}
         open={dialogOpen}
@@ -243,7 +242,6 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             ? customQuickActions?.find((a) => a.id === isEditingId)
             : undefined
         }
-        assistantId={props.assistantId}
         getAndSetCustomQuickActions={getAndSetCustomQuickActions}
       />
     </DropdownMenu>

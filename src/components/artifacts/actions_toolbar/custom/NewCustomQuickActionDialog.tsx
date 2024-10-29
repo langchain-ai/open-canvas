@@ -28,12 +28,10 @@ import { CustomQuickAction } from "@/types";
 import { TighterText } from "@/components/ui/header";
 
 interface NewCustomQuickActionDialogProps {
-  userId: string;
   isEditing: boolean;
   allQuickActions: CustomQuickAction[];
   customQuickAction?: CustomQuickAction;
   getAndSetCustomQuickActions: () => Promise<void>;
-  assistantId: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -67,10 +65,7 @@ export function NewCustomQuickActionDialog(
   props: NewCustomQuickActionDialogProps
 ) {
   const { toast } = useToast();
-  const { createCustomQuickAction, editCustomQuickAction } = useStore({
-    assistantId: props.assistantId,
-    userId: props.userId,
-  });
+  const { createCustomQuickAction, editCustomQuickAction } = useStore();
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
