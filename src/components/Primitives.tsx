@@ -6,6 +6,7 @@ import {
   MessagePrimitive,
   ThreadPrimitive,
   useComposerStore,
+  useMessage,
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
@@ -355,6 +356,7 @@ interface AssistantMessageProps {
 }
 
 const AssistantMessage: FC<AssistantMessageProps> = ({ runId }) => {
+  const isLast = useMessage().isLast;
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
@@ -363,9 +365,11 @@ const AssistantMessage: FC<AssistantMessageProps> = ({ runId }) => {
 
       <div className="text-foreground col-span-2 col-start-2 row-start-1 my-1.5 max-w-xl break-words leading-7">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
-        <MessagePrimitive.If lastOrHover assistant>
-          <AssistantMessageBar runId={runId} />
-        </MessagePrimitive.If>
+        {isLast && (
+          <MessagePrimitive.If lastOrHover assistant>
+            <AssistantMessageBar runId={runId} />
+          </MessagePrimitive.If>
+        )}
       </div>
     </MessagePrimitive.Root>
   );
