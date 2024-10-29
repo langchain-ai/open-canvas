@@ -6,18 +6,20 @@ import {
   FrenchFlag,
 } from "@/components/icons/flags";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { GraphInput } from "@/hooks/use-graph/useGraph";
+import { GraphInput } from "@/contexts/GraphContext";
 import { LanguageOptions } from "@/types";
 
 export interface TranslateOptionsProps {
-  streamMessage: (input: GraphInput) => Promise<void>;
+  streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
 }
 
 export function TranslateOptions(props: TranslateOptionsProps) {
+  const { streamMessage } = props;
+
   const handleSubmit = async (language: LanguageOptions) => {
     props.handleClose();
-    await props.streamMessage({
+    await streamMessage({
       language,
     });
   };

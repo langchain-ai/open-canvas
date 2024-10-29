@@ -1,12 +1,11 @@
 "use client";
 
-import { GraphInput } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
 import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
-import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import { ProgrammingLanguageOptions } from "@/types";
 import {
   AppendMessage,
   AssistantRuntimeProvider,
@@ -17,45 +16,44 @@ import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Thread } from "./Primitives";
-import { Toaster } from "./ui/toaster";
+import { Toaster } from "../ui/toaster";
+import { Thread } from "@/components/chat-interface";
+import { useGraphContext } from "@/contexts/GraphContext";
 
 export interface ContentComposerChatInterfaceProps {
-  messages: BaseMessage[];
-  streamMessage: (input: GraphInput) => Promise<void>;
-  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
-  createThread: () => Promise<ThreadType | undefined>;
+  switchSelectedThreadCallback: (thread: ThreadType) => void;
   setChatStarted: React.Dispatch<React.SetStateAction<boolean>>;
-  showNewThreadButton: boolean;
+  hasChatStarted: boolean;
   handleQuickStart: (
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
-  isLoadingReflections: boolean;
-  reflections: (Reflections & { updatedAt: Date }) | undefined;
-  handleDeleteReflections: () => Promise<boolean>;
-  handleGetReflections: () => Promise<void>;
-  isUserThreadsLoading: boolean;
-  userThreads: ThreadType[];
-  switchSelectedThread: (thread: ThreadType) => void;
-  deleteThread: (id: string) => Promise<void>;
-  getUserThreads: (id: string) => Promise<void>;
-  userId: string;
-  runId: string;
 }
 
-export function ContentComposerChatInterface(
+export function ContentComposerChatInterfaceComponent(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
   const { toast } = useToast();
-  const { messages, setMessages, streamMessage } = props;
+  const { userData, graphData, threadData } = useGraphContext();
+  const { messages, setMessages, streamMessage } = graphData;
+  const { getUserThreads } = threadData;
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
+    if (!userData.user) {
+      toast({
+        title: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
     if (message.content?.[0]?.type !== "text") {
       toast({
         title: "Only text messages are supported",
         variant: "destructive",
+        duration: 5000,
       });
       return;
     }
@@ -76,7 +74,7 @@ export function ContentComposerChatInterface(
     } finally {
       setIsRunning(false);
       // Re-fetch threads so that the current thread's title is updated.
-      await props.getUserThreads(props.userId);
+      await getUserThreads(userData.user.id);
     }
   }
 
@@ -96,21 +94,17 @@ export function ContentComposerChatInterface(
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <Thread
-          handleGetReflections={props.handleGetReflections}
-          handleDeleteReflections={props.handleDeleteReflections}
-          reflections={props.reflections}
-          isLoadingReflections={props.isLoadingReflections}
+          setChatStarted={props.setChatStarted}
           handleQuickStart={props.handleQuickStart}
-          showNewThreadButton={props.showNewThreadButton}
-          createThread={props.createThread}
-          isUserThreadsLoading={props.isUserThreadsLoading}
-          userThreads={props.userThreads}
-          switchSelectedThread={props.switchSelectedThread}
-          deleteThread={props.deleteThread}
-          runId={props.runId}
+          hasChatStarted={props.hasChatStarted}
+          switchSelectedThreadCallback={props.switchSelectedThreadCallback}
         />
       </AssistantRuntimeProvider>
       <Toaster />
     </div>
   );
 }
+
+export const ContentComposerChatInterface = React.memo(
+  ContentComposerChatInterfaceComponent
+);

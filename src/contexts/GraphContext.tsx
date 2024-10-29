@@ -1,11 +1,26 @@
-import { DEFAULT_INPUTS, THREAD_ID_COOKIE_NAME } from "@/constants";
 import {
-  isArtifactCodeContent,
-  isArtifactMarkdownContent,
-  isDeprecatedArtifactType,
-} from "@/lib/artifact_content_types";
-import { setCookie } from "@/lib/cookies";
-import { reverseCleanContent } from "@/lib/normalize_string";
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+  useState,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
+import {
+  convertToArtifactV3,
+  createNewGeneratedArtifactFromTool,
+  replaceOrInsertMessageChunk,
+  updateHighlightedCode,
+  updateHighlightedMarkdown,
+  updateRewrittenArtifact,
+  removeCodeBlockFormatting,
+} from "./utils";
+import { useUser } from "@/hooks/useUser";
+import { useThread } from "@/hooks/useThread";
+import { addAssistantIdToUser } from "@/lib/supabase/add_assistant_id_to_user";
+import { debounce } from "lodash";
 import {
   ArtifactLengthOptions,
   ArtifactToolResponse,
@@ -19,22 +34,56 @@ import {
   TextHighlight,
 } from "@/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { parsePartialJson } from "@langchain/core/output_parsers";
-import { Thread } from "@langchain/langgraph-sdk";
-import { debounce } from "lodash";
-import { useEffect, useRef, useState } from "react";
-import { useToast } from "../use-toast";
-import { useRuns } from "../useRuns";
-import { createClient } from "../utils";
+import { useRuns } from "@/hooks/useRuns";
+import { createClient } from "@/hooks/utils";
 import {
-  convertToArtifactV3,
-  createNewGeneratedArtifactFromTool,
-  replaceOrInsertMessageChunk,
-  updateHighlightedCode,
-  updateHighlightedMarkdown,
-  updateRewrittenArtifact,
-} from "./utils";
-// import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
+  ALL_MODEL_NAMES,
+  DEFAULT_INPUTS,
+  DEFAULT_MODEL_NAME,
+  THREAD_ID_COOKIE_NAME,
+} from "@/constants";
+import { Thread } from "@langchain/langgraph-sdk";
+import { useToast } from "@/hooks/use-toast";
+import { parsePartialJson } from "@langchain/core/output_parsers";
+import {
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+  isDeprecatedArtifactType,
+} from "@/lib/artifact_content_types";
+import { reverseCleanContent } from "@/lib/normalize_string";
+import { setCookie } from "@/lib/cookies";
+
+interface GraphData {
+  runId: string | undefined;
+  isStreaming: boolean;
+  selectedBlocks: TextHighlight | undefined;
+  messages: BaseMessage[];
+  artifact: ArtifactV3 | undefined;
+  updateRenderedArtifactRequired: boolean;
+  isArtifactSaved: boolean;
+  firstTokenReceived: boolean;
+  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
+  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
+  setSelectedArtifact: (index: number) => void;
+  setMessages: Dispatch<SetStateAction<BaseMessage[]>>;
+  streamMessage: (params: GraphInput) => Promise<void>;
+  setArtifactContent: (index: number, content: string) => void;
+  clearState: () => void;
+  switchSelectedThread: (thread: Thread) => void;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+}
+
+type UserDataContextType = ReturnType<typeof useUser>;
+
+type ThreadDataContextType = ReturnType<typeof useThread>;
+
+type GraphContentType = {
+  graphData: GraphData;
+  userData: UserDataContextType;
+  threadData: ThreadDataContextType;
+};
+
+const GraphContext = createContext<GraphContentType | undefined>(undefined);
 
 export interface GraphInput {
   messages?: Record<string, any>[];
@@ -56,30 +105,9 @@ export interface GraphInput {
   customQuickActionId?: string;
 }
 
-function removeCodeBlockFormatting(text: string): string {
-  if (!text) return text;
-  // Regular expression to match code blocks
-  const codeBlockRegex = /^```[\w-]*\n([\s\S]*?)\n```$/;
-
-  // Check if the text matches the code block pattern
-  const match = text.match(codeBlockRegex);
-
-  if (match) {
-    // If it matches, return the content inside the code block
-    return match[1].trim();
-  } else {
-    // If it doesn't match, return the original text
-    return text;
-  }
-}
-
-export interface UseGraphInput {
-  userId: string;
-  threadId: string | undefined;
-  assistantId: string | undefined;
-}
-
-export function useGraph(useGraphInput: UseGraphInput) {
+export function GraphProvider({ children }: { children: ReactNode }) {
+  const userData = useUser();
+  const threadData = useThread();
   const { toast } = useToast();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
@@ -99,7 +127,35 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const [isArtifactSaved, setIsArtifactSaved] = useState(true);
   const [threadSwitched, setThreadSwitched] = useState(false);
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
-  const [run, setRun] = useState<string>("");
+  const [runId, setRunId] = useState<string>();
+
+  useEffect(() => {
+    if (userData.user) return;
+    userData.getUser();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!userData.user) return;
+
+    if (!threadData.threadId) {
+      threadData.searchOrCreateThread(userData.user.id);
+    }
+
+    if (!threadData.assistantId) {
+      threadData.getOrCreateAssistant();
+    }
+  }, [userData.user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !userData.user) return;
+    addAssistantIdToUser();
+  }, [userData.user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !userData.user) return;
+    addAssistantIdToUser();
+  }, [userData.user]);
 
   // Very hacky way of ensuring updateState is not called when a thread is switched
   useEffect(() => {
@@ -119,7 +175,8 @@ export function useGraph(useGraphInput: UseGraphInput) {
   }, [debouncedAPIUpdate]);
 
   useEffect(() => {
-    if (!messages.length || !artifact || !useGraphInput.threadId) return;
+    if (!threadData.threadId) return;
+    if (!messages.length || !artifact) return;
     if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
     const currentIndex = artifact.currentIndex;
     const currentContent = artifact.contents.find(
@@ -143,15 +200,16 @@ export function useGraph(useGraphInput: UseGraphInput) {
       setIsArtifactSaved(false);
       // This means the artifact in state does not match the last saved artifact
       // We need to update
-      debouncedAPIUpdate(artifact, useGraphInput.threadId);
+      debouncedAPIUpdate(artifact, threadData.threadId);
     }
-  }, [artifact]);
+  }, [artifact, threadData.threadId]);
 
   const updateArtifact = async (
     artifactToUpdate: ArtifactV3,
     threadId: string
   ) => {
     if (isStreaming) return;
+
     try {
       const client = createClient();
       await client.threads.updateState(threadId, {
@@ -175,24 +233,23 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
   const streamMessageV2 = async (params: GraphInput) => {
     setFirstTokenReceived(false);
-
-    if (!useGraphInput.threadId) {
+    if (!threadData.threadId) {
       toast({
         title: "Error",
-        description: "Thread ID not found",
+        description: "No thread ID found",
         variant: "destructive",
         duration: 5000,
       });
-      return undefined;
+      return;
     }
-    if (!useGraphInput.assistantId) {
+    if (!threadData.assistantId) {
       toast({
         title: "Error",
-        description: "Assistant ID not found",
+        description: "No assistant ID found",
         variant: "destructive",
         duration: 5000,
       });
-      return undefined;
+      return;
     }
 
     const client = createClient();
@@ -234,6 +291,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     }
 
     setIsStreaming(true);
+    setRunId(undefined);
     // The root level run ID of this stream
     let runId = "";
     let followupMessageId = "";
@@ -241,11 +299,16 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
     try {
       const stream = client.runs.stream(
-        useGraphInput.threadId,
-        useGraphInput.assistantId,
+        threadData.threadId,
+        threadData.assistantId,
         {
           input,
           streamMode: "events",
+          config: {
+            configurable: {
+              customModelName: threadData.modelName,
+            },
+          },
         }
       );
 
@@ -285,7 +348,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
         try {
           if (!runId && chunk.data?.metadata?.run_id) {
             runId = chunk.data.metadata.run_id;
-            setRun(runId);
+            setRunId(runId);
           }
           if (chunk.data.event === "on_chain_start") {
             if (
@@ -298,7 +361,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           if (chunk.data.event === "on_chat_model_stream") {
             // These are generating new messages to insert to the chat window.
             if (
-              ["generateFollowup", "respondToQuery"].includes(
+              ["generateFollowup", "replyToGeneralInput"].includes(
                 chunk.data.metadata.langgraph_node
               )
             ) {
@@ -313,7 +376,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
               generateArtifactToolCallStr +=
-                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args;
+                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args || "";
               let newArtifactText: ArtifactToolResponse | undefined = undefined;
 
               // Attempt to parse the tool call chunk.
@@ -424,8 +487,11 @@ export function useGraph(useGraphInput: UseGraphInput) {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
                 return updateHighlightedMarkdown(
-                  prev ?? artifact,
+                  prev,
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
                   newArtifactIndex,
                   prevCurrentContent,
@@ -498,11 +564,14 @@ export function useGraph(useGraphInput: UseGraphInput) {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
                 const content = removeCodeBlockFormatting(
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`
                 );
                 return updateHighlightedCode(
-                  prev ?? artifact,
+                  prev,
                   content,
                   newArtifactIndex,
                   prevCurrentContent,
@@ -537,12 +606,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
               if (
                 !artifactLanguage &&
                 rewriteArtifactMeta.type === "code" &&
-                rewriteArtifactMeta.programmingLanguage
+                rewriteArtifactMeta.language
               ) {
                 // If the type is `code` we should have a programming language populated
                 // in the rewriteArtifactMeta and can use that.
                 artifactLanguage =
-                  rewriteArtifactMeta.programmingLanguage as ProgrammingLanguageOptions;
+                  rewriteArtifactMeta.language as ProgrammingLanguageOptions;
               } else if (!artifactLanguage) {
                 artifactLanguage =
                   (prevCurrentContent?.title as ProgrammingLanguageOptions) ??
@@ -552,6 +621,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
                 let content = newArtifactContent;
                 if (!rewriteArtifactMeta) {
                   console.error(
@@ -564,7 +637,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                 }
 
                 return updateRewrittenArtifact({
-                  prevArtifact: prev ?? artifact,
+                  prevArtifact: prev,
                   newArtifactContent: content,
                   rewriteArtifactMeta: rewriteArtifactMeta,
                   prevCurrentContent,
@@ -626,6 +699,10 @@ export function useGraph(useGraphInput: UseGraphInput) {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
                 let content = newArtifactContent;
                 if (artifactType === "code") {
                   content = removeCodeBlockFormatting(content);
@@ -637,7 +714,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
                   rewriteArtifactMeta: {
                     type: artifactType,
                     title: prevCurrentContent.title,
-                    programmingLanguage: artifactLanguage,
+                    language: artifactLanguage,
                   },
                   prevCurrentContent,
                   newArtifactIndex,
@@ -663,7 +740,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
             //   lastMessage = new AIMessage({
             //     ...chunk.data.data.output,
             //   });
-            //   console.log("last message", lastMessage);
             // }
           }
         } catch (e) {
@@ -682,11 +758,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
       setSelectedBlocks(undefined);
       setIsStreaming(false);
     }
-
-    // TODO:
-    // Implement an updateState call after streaming is done to update the state of the artifact
-    // with the full markdown content of the artifact if it's a text artifact. This is required so
-    // users can load the artifact in the future with proper markdown styling.
 
     if (runId) {
       // Chain `.then` to not block the stream
@@ -723,7 +794,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
           return newMsgs;
         });
 
-        // if (useGraphInput.threadId && lastMessage && lastMessage.id) {
+        // if (threadId && lastMessage && lastMessage.id) {
         //   // Update the state of the last message to include the run URL
         //   // for proper rendering when loading history.
         //   const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
@@ -734,13 +805,12 @@ export function useGraph(useGraphInput: UseGraphInput) {
         //       langSmithRunURL: sharedRunURL,
         //     }
         //   })];
-        //   await client.threads.updateState(useGraphInput.threadId, {
+        //   await client.threads.updateState(threadId, {
         //     values: {
         //       messages: newMessages
         //     },
         //   });
-        //   const newState = await client.threads.getState(useGraphInput.threadId);
-        //   console.log("new state", newState.values);
+        //   const newState = await client.threads.getState(threadId);
         // }
       });
     }
@@ -797,14 +867,18 @@ export function useGraph(useGraphInput: UseGraphInput) {
     });
   };
 
-  const switchSelectedThread = (
-    thread: Thread,
-    setThreadId: (id: string) => void
-  ) => {
+  const switchSelectedThread = (thread: Thread) => {
     setUpdateRenderedArtifactRequired(true);
     setThreadSwitched(true);
-    setThreadId(thread.thread_id);
+    threadData.setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+    if (thread.metadata?.customModelName) {
+      threadData.setModelName(
+        thread.metadata.customModelName as ALL_MODEL_NAMES
+      );
+    } else {
+      threadData.setModelName(DEFAULT_MODEL_NAME);
+    }
 
     const castValues: {
       artifact: ArtifactV3 | undefined;
@@ -848,23 +922,41 @@ export function useGraph(useGraphInput: UseGraphInput) {
     );
   };
 
-  return {
-    isStreaming,
-    selectedBlocks,
-    messages,
-    artifact,
-    setArtifact,
-    setSelectedBlocks,
-    setSelectedArtifact,
-    setMessages,
-    streamMessage: streamMessageV2,
-    setArtifactContent,
-    clearState,
-    switchSelectedThread,
-    updateRenderedArtifactRequired,
-    setUpdateRenderedArtifactRequired,
-    isArtifactSaved,
-    firstTokenReceived,
-    run,
+  const contextValue: GraphContentType = {
+    userData,
+    threadData,
+    graphData: {
+      runId,
+      isStreaming,
+      selectedBlocks,
+      messages,
+      artifact,
+      updateRenderedArtifactRequired,
+      isArtifactSaved,
+      firstTokenReceived,
+      setArtifact,
+      setSelectedBlocks,
+      setSelectedArtifact,
+      setMessages,
+      streamMessage: streamMessageV2,
+      setArtifactContent,
+      clearState,
+      switchSelectedThread,
+      setUpdateRenderedArtifactRequired,
+    },
   };
+
+  return (
+    <GraphContext.Provider value={contextValue}>
+      {children}
+    </GraphContext.Provider>
+  );
+}
+
+export function useGraphContext() {
+  const context = useContext(GraphContext);
+  if (context === undefined) {
+    throw new Error("useGraphContext must be used within a GraphProvider");
+  }
+  return context;
 }

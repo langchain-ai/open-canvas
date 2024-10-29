@@ -5,10 +5,11 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "./dropdown-menu";
 import { Code } from "lucide-react";
-import { Button } from "./ui/button";
-import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
+import { Button } from "./button";
+import { TooltipIconButton } from "./assistant-ui/tooltip-icon-button";
+import { TighterText } from "./header";
 
 interface ProgrammingLanguageListProps {
   handleSubmit: (portLanguage: ProgrammingLanguageOptions) => Promise<void>;
@@ -118,7 +119,7 @@ export const ProgrammingLanguagesDropdown = ({
           variant="outline"
           className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
         >
-          New Code File
+          <TighterText>New Code File</TighterText>
           <Code />
         </Button>
       </DropdownMenuTrigger>
