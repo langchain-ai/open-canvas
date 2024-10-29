@@ -5,17 +5,25 @@ import {
   MessagePrimitive,
   useMessage,
 } from "@assistant-ui/react";
-import { useState, type FC } from "react";
+import React, { Dispatch, SetStateAction, type FC } from "react";
 
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FeedbackButton } from "./feedback";
+import { TighterText } from "../ui/header";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface AssistantMessageProps {
   runId: string | undefined;
+  feedbackSubmitted: boolean;
+  setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
 }
 
-export const AssistantMessage: FC<AssistantMessageProps> = ({ runId }) => {
+export const AssistantMessage: FC<AssistantMessageProps> = ({
+  runId,
+  feedbackSubmitted,
+  setFeedbackSubmitted,
+}) => {
   const isLast = useMessage().isLast;
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
@@ -27,7 +35,11 @@ export const AssistantMessage: FC<AssistantMessageProps> = ({ runId }) => {
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
         {isLast && runId && (
           <MessagePrimitive.If lastOrHover assistant>
-            <AssistantMessageBar runId={runId} />
+            <AssistantMessageBar
+              feedbackSubmitted={feedbackSubmitted}
+              setFeedbackSubmitted={setFeedbackSubmitted}
+              runId={runId}
+            />
           </MessagePrimitive.If>
         )}
       </div>
@@ -47,11 +59,16 @@ export const UserMessage: FC = () => {
 
 interface AssistantMessageBarProps {
   runId: string;
+  feedbackSubmitted: boolean;
+  setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
 }
 
-const AssistantMessageBar = ({ runId }: AssistantMessageBarProps) => {
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-
+const AssistantMessageBarComponent = ({
+  runId,
+  feedbackSubmitted,
+  setFeedbackSubmitted,
+}: AssistantMessageBarProps) => {
+  const { isLoading, sendFeedback } = useFeedback();
   return (
     <ActionBarPrimitive.Root
       hideWhenRunning
@@ -59,23 +76,27 @@ const AssistantMessageBar = ({ runId }: AssistantMessageBarProps) => {
       className="flex items-center mt-2"
     >
       {feedbackSubmitted ? (
-        <div className="rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors bg-blue-100 text-secondary-foreground hover:bg-blue-100/80">
+        <TighterText className="text-gray-500 text-sm">
           Feedback received! Thank you!
-        </div>
+        </TighterText>
       ) : (
         <>
           <ActionBarPrimitive.FeedbackPositive asChild>
             <FeedbackButton
-              runId={runId}
+              isLoading={isLoading}
+              sendFeedback={sendFeedback}
               setFeedbackSubmitted={setFeedbackSubmitted}
+              runId={runId}
               feedbackValue={1.0}
               icon="thumbs-up"
             />
           </ActionBarPrimitive.FeedbackPositive>
           <ActionBarPrimitive.FeedbackNegative asChild>
             <FeedbackButton
-              runId={runId}
+              isLoading={isLoading}
+              sendFeedback={sendFeedback}
               setFeedbackSubmitted={setFeedbackSubmitted}
+              runId={runId}
               feedbackValue={0.0}
               icon="thumbs-down"
             />
@@ -85,3 +106,5 @@ const AssistantMessageBar = ({ runId }: AssistantMessageBarProps) => {
     </ActionBarPrimitive.Root>
   );
 };
+
+const AssistantMessageBar = React.memo(AssistantMessageBarComponent);

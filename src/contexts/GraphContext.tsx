@@ -62,6 +62,8 @@ interface GraphData {
   updateRenderedArtifactRequired: boolean;
   isArtifactSaved: boolean;
   firstTokenReceived: boolean;
+  feedbackSubmitted: boolean;
+  setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
   setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
   setSelectedArtifact: (index: number) => void;
@@ -128,6 +130,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [threadSwitched, setThreadSwitched] = useState(false);
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
   const [runId, setRunId] = useState<string>();
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     if (userData.user) return;
@@ -292,6 +295,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
     setIsStreaming(true);
     setRunId(undefined);
+    setFeedbackSubmitted(false);
     // The root level run ID of this stream
     let runId = "";
     let followupMessageId = "";
@@ -934,6 +938,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       updateRenderedArtifactRequired,
       isArtifactSaved,
       firstTokenReceived,
+      feedbackSubmitted,
+      setFeedbackSubmitted,
       setArtifact,
       setSelectedBlocks,
       setSelectedArtifact,

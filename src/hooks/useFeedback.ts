@@ -1,7 +1,7 @@
 import { Feedback } from "langsmith";
 import { useCallback, useState } from "react";
 
-interface FeedbackResponse {
+export interface FeedbackResponse {
   success: boolean;
   feedback: Feedback;
 }

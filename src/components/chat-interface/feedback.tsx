@@ -1,22 +1,32 @@
 import { useToast } from "@/hooks/use-toast";
-import { useFeedback } from "@/hooks/useFeedback";
-import { Button } from "../ui/button";
+import { FeedbackResponse } from "@/hooks/useFeedback";
 import { ThumbsUpIcon, ThumbsDownIcon } from "lucide-react";
+import { Dispatch, FC, SetStateAction } from "react";
+import { cn } from "@/lib/utils";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 
 interface FeedbackButtonProps {
   runId: string;
-  setFeedbackSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
+  sendFeedback: (
+    runId: string,
+    feedbackKey: string,
+    score: number,
+    comment?: string
+  ) => Promise<FeedbackResponse | undefined>;
   feedbackValue: number;
   icon: "thumbs-up" | "thumbs-down";
+  isLoading: boolean;
 }
 
-export const FeedbackButton: React.FC<FeedbackButtonProps> = ({
+export const FeedbackButton: FC<FeedbackButtonProps> = ({
   runId,
   setFeedbackSubmitted,
+  sendFeedback,
+  isLoading,
   feedbackValue,
   icon,
 }) => {
-  const { sendFeedback } = useFeedback();
   const { toast } = useToast();
 
   const handleClick = async () => {
@@ -40,18 +50,24 @@ export const FeedbackButton: React.FC<FeedbackButtonProps> = ({
     }
   };
 
+  const tooltip = `Give ${icon === "thumbs-up" ? "positive" : "negative"} feedback on this run`;
+
   return (
-    <Button
+    <TooltipIconButton
       variant="ghost"
       size="icon"
       onClick={handleClick}
-      aria-label={`Give ${icon === "thumbs-up" ? "positive" : "negative"} feedback`}
+      aria-label={tooltip}
+      tooltip={tooltip}
+      disabled={isLoading}
     >
       {icon === "thumbs-up" ? (
-        <ThumbsUpIcon className="size-4" />
+        <ThumbsUpIcon className={cn("size-4", isLoading && "text-gray-300")} />
       ) : (
-        <ThumbsDownIcon className="size-4" />
+        <ThumbsDownIcon
+          className={cn("size-4", isLoading && "text-gray-300")}
+        />
       )}
-    </Button>
+    </TooltipIconButton>
   );
 };
