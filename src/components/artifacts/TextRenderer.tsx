@@ -195,45 +195,47 @@ export function TextRendererComponent(props: TextRendererProps) {
         </pre>
       ) : (
         <>
-             <style jsx global>{`
-        .pulse-text .bn-block-group {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+          <style jsx global>{`
+            .pulse-text .bn-block-group {
+              animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
 
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.3;
-          }
-        }
-      `}</style>
-      <BlockNoteView
-        theme="light"
-        formattingToolbar={false}
-        slashMenu={false}
-        onCompositionStartCapture={() => (isComposition.current = true)}
-        onCompositionEndCapture={() => (isComposition.current = false)}
-        onChange={onChange}
-        editable={!isStreaming || props.isEditing || !manuallyUpdatingArtifact}
-        editor={editor}
-        className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
-      >
-        <SuggestionMenuController
-          getItems={async () =>
-            getDefaultReactSlashMenuItems(editor).filter(
-              (z) => z.group !== "Media"
-            )
-          }
-          triggerCharacter={"/"}
-        />
-      </BlockNoteView> 
+            @keyframes pulse {
+              0%,
+              100% {
+                opacity: 1;
+              }
+              50% {
+                opacity: 0.3;
+              }
+            }
+          `}</style>
+          <BlockNoteView
+            theme="light"
+            formattingToolbar={false}
+            slashMenu={false}
+            onCompositionStartCapture={() => (isComposition.current = true)}
+            onCompositionEndCapture={() => (isComposition.current = false)}
+            onChange={onChange}
+            editable={
+              !isStreaming || props.isEditing || !manuallyUpdatingArtifact
+            }
+            editor={editor}
+            className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
+          >
+            <SuggestionMenuController
+              getItems={async () =>
+                getDefaultReactSlashMenuItems(editor).filter(
+                  (z) => z.group !== "Media"
+                )
+              }
+              triggerCharacter={"/"}
+            />
+          </BlockNoteView>
         </>
       )}
     </div>
-  )
+  );
 }
 
 export const TextRenderer = React.memo(TextRendererComponent);
