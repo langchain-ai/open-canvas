@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ActionBarPrimitive,
   ComposerPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
@@ -8,25 +9,28 @@ import {
   useMessageStore,
   useThreadRuntime,
 } from "@assistant-ui/react";
-import { type FC } from "react";
+import { useState, type FC } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowDownIcon,
-  SendHorizontalIcon,
-  SquarePen,
-  NotebookPen,
-} from "lucide-react";
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useFeedback } from "@/hooks/useFeedback";
 import { ProgrammingLanguageOptions, Reflections } from "@/types";
+import { Thread as ThreadType } from "@langchain/langgraph-sdk";
+import {
+  ArrowDownIcon,
+  NotebookPen,
+  SendHorizontalIcon,
+  SquarePen,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+} from "lucide-react";
+import { useLangSmithLinkToolUI } from "./LangSmithLinkToolUI";
+import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 import { ReflectionsDialog } from "./reflections-dialog/ReflectionsDialog";
 import { ThreadHistory } from "./ThreadHistory";
-import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguagesDropdown } from "./ProgrammingLangDropdown";
 
 export interface ThreadProps {
   createThread: () => Promise<ThreadType | undefined>;
@@ -43,6 +47,7 @@ export interface ThreadProps {
   userThreads: ThreadType[];
   switchSelectedThread: (thread: ThreadType) => void;
   deleteThread: (id: string) => Promise<void>;
+  runId: string;
 }
 
 interface QuickStartButtonsProps {
@@ -199,7 +204,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           components={{
             UserMessage: UserMessage,
             EditComposer: EditComposer,
-            AssistantMessage: AssistantMessage,
+            AssistantMessage: (prop) => (
+              <AssistantMessage {...prop} runId={props.runId} />
+            ),
           }}
         />
       </ThreadPrimitive.Viewport>
@@ -343,7 +350,11 @@ const EditComposer: FC = () => {
   );
 };
 
-const AssistantMessage: FC = () => {
+interface AssistantMessageProps {
+  runId: string;
+}
+
+const AssistantMessage: FC<AssistantMessageProps> = ({ runId }) => {
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
@@ -352,6 +363,9 @@ const AssistantMessage: FC = () => {
 
       <div className="text-foreground col-span-2 col-start-2 row-start-1 my-1.5 max-w-xl break-words leading-7">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
+        <MessagePrimitive.If lastOrHover assistant>
+          <AssistantMessageBar runId={runId} />
+        </MessagePrimitive.If>
       </div>
     </MessagePrimitive.Root>
   );
@@ -368,5 +382,99 @@ const CircleStopIcon = () => {
     >
       <rect width="10" height="10" x="3" y="3" rx="2" />
     </svg>
+  );
+};
+
+interface AssistantMessageBarProps {
+  runId: string;
+}
+
+const AssistantMessageBar = ({ runId }: AssistantMessageBarProps) => {
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
+
+  return (
+    <ActionBarPrimitive.Root
+      hideWhenRunning
+      autohide="not-last"
+      className="flex items-center mt-2"
+    >
+      {feedbackSubmitted ? (
+        <div className="rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors bg-blue-100 text-secondary-foreground hover:bg-blue-100/80">
+          Feedback received! Thank you!
+        </div>
+      ) : (
+        <>
+          <ActionBarPrimitive.FeedbackPositive asChild>
+            <FeedbackButton
+              runId={runId}
+              setFeedbackSubmitted={setFeedbackSubmitted}
+              feedbackValue={1.0}
+              icon="thumbs-up"
+            />
+          </ActionBarPrimitive.FeedbackPositive>
+          <ActionBarPrimitive.FeedbackNegative asChild>
+            <FeedbackButton
+              runId={runId}
+              setFeedbackSubmitted={setFeedbackSubmitted}
+              feedbackValue={0.0}
+              icon="thumbs-down"
+            />
+          </ActionBarPrimitive.FeedbackNegative>
+        </>
+      )}
+    </ActionBarPrimitive.Root>
+  );
+};
+
+interface FeedbackButtonProps {
+  runId: string;
+  setFeedbackSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  feedbackValue: number;
+  icon: "thumbs-up" | "thumbs-down";
+}
+
+export const FeedbackButton: React.FC<FeedbackButtonProps> = ({
+  runId,
+  setFeedbackSubmitted,
+  feedbackValue,
+  icon,
+}) => {
+  const { sendFeedback } = useFeedback();
+  const { toast } = useToast();
+
+  const handleClick = async () => {
+    try {
+      const res = await sendFeedback(runId, "feedback", feedbackValue);
+      if (res?.success) {
+        setFeedbackSubmitted(true);
+      } else {
+        toast({
+          title: "Failed to submit feedback",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      }
+    } catch (_) {
+      toast({
+        title: "Failed to submit feedback",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleClick}
+      aria-label={`Give ${icon === "thumbs-up" ? "positive" : "negative"} feedback`}
+    >
+      {icon === "thumbs-up" ? (
+        <ThumbsUpIcon className="size-4" />
+      ) : (
+        <ThumbsDownIcon className="size-4" />
+      )}
+    </Button>
   );
 };

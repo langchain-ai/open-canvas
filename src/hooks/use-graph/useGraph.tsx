@@ -1,25 +1,31 @@
-import { useEffect, useRef, useState } from "react";
-import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { useToast } from "../use-toast";
-import { createClient } from "../utils";
+import { DEFAULT_INPUTS, THREAD_ID_COOKIE_NAME } from "@/constants";
+import {
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+  isDeprecatedArtifactType,
+} from "@/lib/artifact_content_types";
+import { setCookie } from "@/lib/cookies";
+import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
+  ArtifactToolResponse,
   ArtifactType,
   ArtifactV3,
+  CodeHighlight,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
-  ArtifactToolResponse,
   RewriteArtifactMetaToolResponse,
   TextHighlight,
-  CodeHighlight,
 } from "@/types";
+import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { parsePartialJson } from "@langchain/core/output_parsers";
-import { useRuns } from "../useRuns";
-import { reverseCleanContent } from "@/lib/normalize_string";
 import { Thread } from "@langchain/langgraph-sdk";
-import { setCookie } from "@/lib/cookies";
-import { DEFAULT_INPUTS, THREAD_ID_COOKIE_NAME } from "@/constants";
+import { debounce } from "lodash";
+import { useEffect, useRef, useState } from "react";
+import { useToast } from "../use-toast";
+import { useRuns } from "../useRuns";
+import { createClient } from "../utils";
 import {
   convertToArtifactV3,
   createNewGeneratedArtifactFromTool,
@@ -28,12 +34,6 @@ import {
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
-import {
-  isArtifactCodeContent,
-  isArtifactMarkdownContent,
-  isDeprecatedArtifactType,
-} from "@/lib/artifact_content_types";
-import { debounce } from "lodash";
 // import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
 
 export interface GraphInput {
@@ -99,6 +99,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
   const [isArtifactSaved, setIsArtifactSaved] = useState(true);
   const [threadSwitched, setThreadSwitched] = useState(false);
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
+  const [run, setRun] = useState<string>("");
 
   // Very hacky way of ensuring updateState is not called when a thread is switched
   useEffect(() => {
@@ -237,6 +238,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
     let runId = "";
     let followupMessageId = "";
     // let lastMessage: AIMessage | undefined = undefined;
+
     try {
       const stream = client.runs.stream(
         useGraphInput.threadId,
@@ -283,6 +285,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
         try {
           if (!runId && chunk.data?.metadata?.run_id) {
             runId = chunk.data.metadata.run_id;
+            setRun(runId);
           }
           if (chunk.data.event === "on_chain_start") {
             if (
@@ -714,6 +717,7 @@ export function useGraph(useGraphInput: UseGraphInput) {
               });
               return newMessageWithToolCall;
             }
+
             return msg;
           });
           return newMsgs;
@@ -861,5 +865,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
     setUpdateRenderedArtifactRequired,
     isArtifactSaved,
     firstTokenReceived,
+    run,
   };
 }

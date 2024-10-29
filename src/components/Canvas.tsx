@@ -2,8 +2,8 @@
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "@/components/ContentComposer";
-import { useToast } from "@/hooks/use-toast";
 import { useGraph } from "@/hooks/use-graph/useGraph";
+import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/hooks/useStore";
 import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
@@ -55,6 +55,7 @@ export function Canvas(props: CanvasProps) {
     isArtifactSaved,
     firstTokenReceived,
     selectedBlocks,
+    run,
   } = useGraph({
     userId: props.user.id,
     threadId,
@@ -190,6 +191,7 @@ export function Canvas(props: CanvasProps) {
           setChatStarted={setChatStarted}
           showNewThreadButton={chatStarted}
           handleQuickStart={handleQuickStart}
+          runId={run}
         />
       </div>
       {chatStarted && (
