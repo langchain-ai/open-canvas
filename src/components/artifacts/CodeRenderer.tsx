@@ -21,6 +21,7 @@ import { useGraph } from "@/hooks/use-graph/useGraph";
 import { getArtifactContent } from "@/hooks/use-graph/utils";
 
 export interface CodeRendererProps {
+  threadId: string;
   editorRef: MutableRefObject<EditorView | null>;
   isHovering: boolean;
 }
@@ -59,6 +60,7 @@ const getLanguageExtension = (language: string) => {
 };
 
 export function CodeRenderer(props: Readonly<CodeRendererProps>) {
+  const { threadId } = props;
   const {
     artifact,
     isStreaming,
@@ -66,7 +68,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     firstTokenReceived,
     setArtifactContent,
     setUpdateRenderedArtifactRequired,
-  } = useGraph();
+  } = useGraph({ threadId });
 
   useEffect(() => {
     if (updateRenderedArtifactRequired) {

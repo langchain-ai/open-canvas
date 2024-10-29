@@ -7,9 +7,11 @@ import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@/types";
 
 type SharedComponentProps = {
+  threadId: string;
+  assistantId: string;
   handleClose: () => void;
   language: ProgrammingLanguageOptions;
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
 };
 
 type ToolbarOption = {
@@ -20,6 +22,8 @@ type ToolbarOption = {
 };
 
 export interface CodeToolbarProps {
+  threadId: string;
+  assistantId: string;
   isTextSelected: boolean;
   language: ProgrammingLanguageOptions;
 }
@@ -54,6 +58,7 @@ const toolbarOptions: ToolbarOption[] = [
 ];
 
 export function CodeToolBar(props: CodeToolbarProps) {
+  const { threadId, assistantId } = props;
   const { streamMessage } = useGraph();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
@@ -93,21 +98,34 @@ export function CodeToolBar(props: CodeToolbarProps) {
       setActiveOption(optionId);
       return;
     }
+    const graphConfig = {
+      threadId,
+      assistantId,
+    };
 
     setIsExpanded(false);
     setActiveOption(null);
     if (optionId === "addComments") {
-      await streamMessage({
-        addComments: true,
-      });
+      await streamMessage(
+        {
+          addComments: true,
+        },
+        graphConfig
+      );
     } else if (optionId === "addLogs") {
-      await streamMessage({
-        addLogs: true,
-      });
+      await streamMessage(
+        {
+          addLogs: true,
+        },
+        graphConfig
+      );
     } else if (optionId === "fixBugs") {
-      await streamMessage({
-        fixBugs: true,
-      });
+      await streamMessage(
+        {
+          fixBugs: true,
+        },
+        graphConfig
+      );
     }
   };
 
@@ -133,6 +151,8 @@ export function CodeToolBar(props: CodeToolbarProps) {
                 ?.component?.({
                   ...props,
                   handleClose,
+                  threadId,
+                  assistantId,
                   streamMessage,
                 })
             : toolbarOptions.map((option) => (

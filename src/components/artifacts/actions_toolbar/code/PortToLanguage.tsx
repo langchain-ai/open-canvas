@@ -1,10 +1,12 @@
 import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { ProgrammingLanguageOptions } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguageList } from "@/components/ProgrammingLangDropdown";
+import { ProgrammingLanguageList } from "@/components/ui/programming-lang-dropdown";
 
 export interface PortToLanguageOptionsProps {
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  threadId: string;
+  assistantId: string;
+  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
   handleClose: () => void;
   language: ProgrammingLanguageOptions;
 }
@@ -33,6 +35,7 @@ const prettifyLanguage = (language: ProgrammingLanguageOptions) => {
 };
 
 export function PortToLanguageOptions(props: PortToLanguageOptionsProps) {
+  const { threadId, assistantId } = props;
   const { toast } = useToast();
 
   const handleSubmit = async (portLanguage: ProgrammingLanguageOptions) => {
@@ -47,9 +50,15 @@ export function PortToLanguageOptions(props: PortToLanguageOptionsProps) {
     }
 
     props.handleClose();
-    await props.streamMessage({
-      portLanguage,
-    });
+    await props.streamMessage(
+      {
+        portLanguage,
+      },
+      {
+        threadId,
+        assistantId,
+      }
+    );
   };
 
   return <ProgrammingLanguageList handleSubmit={handleSubmit} />;

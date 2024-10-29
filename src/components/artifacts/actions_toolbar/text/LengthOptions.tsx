@@ -11,7 +11,9 @@ import {
 import { Slider } from "@/components/ui/slider";
 
 export interface LengthOptionsProps {
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  threadId: string;
+  assistantId: string;
+  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
   handleClose: () => void;
 }
 
@@ -29,9 +31,15 @@ export function LengthOptions(props: LengthOptionsProps) {
 
   const handleSubmit = async (artifactLength: ArtifactLengthOptions) => {
     props.handleClose();
-    await props.streamMessage({
-      artifactLength,
-    });
+    await props.streamMessage(
+      {
+        artifactLength,
+      },
+      {
+        threadId: props.threadId,
+        assistantId: props.assistantId,
+      }
+    );
   };
 
   return (

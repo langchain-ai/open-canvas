@@ -10,16 +10,24 @@ import { ReadingLevelOptions as ReadingLevelOptionsType } from "@/types";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 
 export interface ReadingLevelOptionsProps {
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  threadId: string;
+  assistantId: string;
+  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
   handleClose: () => void;
 }
 
 export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
   const handleSubmit = async (readingLevel: ReadingLevelOptionsType) => {
     props.handleClose();
-    await props.streamMessage({
-      readingLevel,
-    });
+    await props.streamMessage(
+      {
+        readingLevel,
+      },
+      {
+        threadId: props.threadId,
+        assistantId: props.assistantId,
+      }
+    );
   };
 
   return (

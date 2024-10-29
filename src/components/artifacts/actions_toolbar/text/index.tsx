@@ -9,8 +9,10 @@ import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-but
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
 
 type SharedComponentProps = {
+  threadId: string;
+  assistantId: string;
   handleClose: () => void;
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
 };
 
 type ToolbarOption = {
@@ -21,6 +23,8 @@ type ToolbarOption = {
 };
 
 export interface ActionsToolbarProps {
+  threadId: string;
+  assistantId: string;
   isTextSelected: boolean;
 }
 
@@ -54,6 +58,7 @@ const toolbarOptions: ToolbarOption[] = [
 ];
 
 export function ActionsToolbar(props: ActionsToolbarProps) {
+  const { threadId, assistantId } = props;
   const { streamMessage } = useGraph();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
@@ -91,9 +96,15 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     if (optionId === "addEmojis") {
       setIsExpanded(false);
       setActiveOption(null);
-      await streamMessage({
-        regenerateWithEmojis: true,
-      });
+      await streamMessage(
+        {
+          regenerateWithEmojis: true,
+        },
+        {
+          threadId,
+          assistantId,
+        }
+      );
     } else {
       setActiveOption(optionId);
     }

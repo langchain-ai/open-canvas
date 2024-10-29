@@ -26,12 +26,14 @@ import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
 import { CustomQuickAction } from "@/types";
 import { TighterText } from "@/components/ui/header";
+import { User } from "@supabase/supabase-js";
 
 interface NewCustomQuickActionDialogProps {
+  user: User;
   isEditing: boolean;
   allQuickActions: CustomQuickAction[];
   customQuickAction?: CustomQuickAction;
-  getAndSetCustomQuickActions: () => Promise<void>;
+  getAndSetCustomQuickActions: (userId: string) => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -65,6 +67,7 @@ export function NewCustomQuickActionDialog(
   props: NewCustomQuickActionDialogProps
 ) {
   const { toast } = useToast();
+  const { user } = props;
   const { createCustomQuickAction, editCustomQuickAction } = useStore();
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [name, setName] = useState("");
@@ -89,6 +92,7 @@ export function NewCustomQuickActionDialog(
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitLoading(true);
+
     try {
       let success = false;
       if (props.isEditing && props.customQuickAction) {
@@ -101,7 +105,8 @@ export function NewCustomQuickActionDialog(
             includeRecentHistory,
             includeReflections,
           },
-          props.allQuickActions
+          props.allQuickActions,
+          user.id
         );
       } else {
         success = await createCustomQuickAction(
@@ -113,7 +118,8 @@ export function NewCustomQuickActionDialog(
             includeRecentHistory,
             includeReflections,
           },
-          props.allQuickActions
+          props.allQuickActions,
+          user.id
         );
       }
 
@@ -124,7 +130,7 @@ export function NewCustomQuickActionDialog(
         handleClearState();
         props.onOpenChange(false);
         // Re-fetch after creating a new custom quick action to update the list
-        await props.getAndSetCustomQuickActions();
+        await props.getAndSetCustomQuickActions(user.id);
       } else {
         toast({
           title: `Failed to ${props.isEditing ? "edit" : "create"} custom quick action`,

@@ -64,6 +64,8 @@ export interface GraphInput {
 
 export interface GraphConfig {
   customModelName?: ALL_MODEL_NAMES;
+  threadId: string;
+  assistantId: string;
 }
 
 function removeCodeBlockFormatting(text: string): string {
@@ -83,10 +85,12 @@ function removeCodeBlockFormatting(text: string): string {
   }
 }
 
-export function useGraph() {
+export function useGraph(useGraphInput?: {
+  threadId?: string;
+  customModelName?: string;
+}) {
   const { toast } = useToast();
-  const { threadId, assistantId, modelName, setThreadId, setModelName } =
-    useThread();
+  const { setThreadId, setModelName, modelName } = useThread();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<ArtifactV3>();
@@ -96,7 +100,11 @@ export function useGraph() {
     useState(false);
   const lastSavedArtifact = useRef<ArtifactV3 | undefined>(undefined);
   const debouncedAPIUpdate = useRef(
-    debounce((artifact: ArtifactV3) => updateArtifact(artifact), 5000)
+    debounce(
+      (artifact: ArtifactV3, threadId: string) =>
+        updateArtifact(artifact, threadId),
+      5000
+    )
   ).current;
   const [isArtifactSaved, setIsArtifactSaved] = useState(true);
   const [threadSwitched, setThreadSwitched] = useState(false);
@@ -120,7 +128,8 @@ export function useGraph() {
   }, [debouncedAPIUpdate]);
 
   useEffect(() => {
-    if (!messages.length || !artifact || !threadId) return;
+    if (!useGraphInput?.threadId) return;
+    if (!messages.length || !artifact) return;
     if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
     const currentIndex = artifact.currentIndex;
     const currentContent = artifact.contents.find(
@@ -144,21 +153,14 @@ export function useGraph() {
       setIsArtifactSaved(false);
       // This means the artifact in state does not match the last saved artifact
       // We need to update
-      debouncedAPIUpdate(artifact);
+      debouncedAPIUpdate(artifact, useGraphInput?.threadId);
     }
   }, [artifact]);
 
-  const updateArtifact = async (artifactToUpdate: ArtifactV3) => {
-    if (!threadId) {
-      toast({
-        title: "Error",
-        description: "Thread ID not found",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
-
+  const updateArtifact = async (
+    artifactToUpdate: ArtifactV3,
+    threadId: string
+  ) => {
     if (isStreaming) return;
 
     try {
@@ -182,26 +184,7 @@ export function useGraph() {
     setFirstTokenReceived(true);
   };
 
-  const streamMessageV2 = async (params: GraphInput, config?: GraphConfig) => {
-    if (!threadId) {
-      toast({
-        title: "Error",
-        description: "Thread ID not found",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
-    if (!assistantId) {
-      toast({
-        title: "Error",
-        description: "Assistant ID not found",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
-
+  const streamMessageV2 = async (params: GraphInput, config: GraphConfig) => {
     setFirstTokenReceived(false);
 
     const client = createClient();
@@ -248,12 +231,15 @@ export function useGraph() {
     let followupMessageId = "";
     // let lastMessage: AIMessage | undefined = undefined;
     try {
-      const stream = client.runs.stream(threadId, assistantId, {
+      const stream = client.runs.stream(config.threadId, config.assistantId, {
         input,
         streamMode: "events",
         config: {
           configurable: {
-            customModelName: config?.customModelName || modelName,
+            customModelName:
+              config?.customModelName ||
+              useGraphInput?.customModelName ||
+              modelName,
           },
         },
       });

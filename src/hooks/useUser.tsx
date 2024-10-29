@@ -7,12 +7,17 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   async function getUser() {
+    if (user) {
+      setLoading(false);
+      return;
+    }
+
     const supabase = createSupabaseClient();
 
     const {
-      data: { user },
+      data: { user: supabaseUser },
     } = await supabase.auth.getUser();
-    setUser(user || undefined);
+    setUser(supabaseUser || undefined);
     setLoading(false);
   }
 

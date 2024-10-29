@@ -17,9 +17,10 @@ import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Thread } from "./Primitives";
-import { Toaster } from "./ui/toaster";
+import { Toaster } from "../ui/toaster";
 import { useThread } from "@/hooks/useThread";
+import { User } from "@supabase/supabase-js";
+import { Thread } from "@/components/chat-interface";
 
 export interface ContentComposerChatInterfaceProps {
   switchSelectedThreadCallback: (thread: ThreadType) => void;
@@ -29,14 +30,18 @@ export interface ContentComposerChatInterfaceProps {
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
+  user: User;
+  threadId: string;
+  assistantId: string;
 }
 
 export function ContentComposerChatInterface(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
+  const { user, threadId, assistantId } = props;
   const { toast } = useToast();
   const { messages, setMessages, streamMessage } = useGraph();
-  const { getUserThreads } = useThread();
+  const { getUserThreads, modelName } = useThread();
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
@@ -44,6 +49,7 @@ export function ContentComposerChatInterface(
       toast({
         title: "Only text messages are supported",
         variant: "destructive",
+        duration: 5000,
       });
       return;
     }
@@ -58,13 +64,20 @@ export function ContentComposerChatInterface(
 
       setMessages((prevMessages) => [...prevMessages, humanMessage]);
 
-      await streamMessage({
-        messages: [convertToOpenAIFormat(humanMessage)],
-      });
+      await streamMessage(
+        {
+          messages: [convertToOpenAIFormat(humanMessage)],
+        },
+        {
+          threadId,
+          assistantId,
+          customModelName: modelName,
+        }
+      );
     } finally {
       setIsRunning(false);
       // Re-fetch threads so that the current thread's title is updated.
-      await getUserThreads();
+      await getUserThreads(user.id);
     }
   }
 
@@ -84,6 +97,7 @@ export function ContentComposerChatInterface(
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <Thread
+          user={user}
           setChatStarted={props.setChatStarted}
           handleQuickStart={props.handleQuickStart}
           hasChatStarted={props.hasChatStarted}

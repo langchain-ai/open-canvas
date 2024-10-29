@@ -10,16 +10,24 @@ import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { LanguageOptions } from "@/types";
 
 export interface TranslateOptionsProps {
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  threadId: string;
+  assistantId: string;
+  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
   handleClose: () => void;
 }
 
 export function TranslateOptions(props: TranslateOptionsProps) {
   const handleSubmit = async (language: LanguageOptions) => {
     props.handleClose();
-    await props.streamMessage({
-      language,
-    });
+    await props.streamMessage(
+      {
+        language,
+      },
+      {
+        threadId: props.threadId,
+        assistantId: props.assistantId,
+      }
+    );
   };
 
   return (

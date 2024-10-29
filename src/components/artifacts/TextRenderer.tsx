@@ -18,12 +18,14 @@ const cleanText = (text: string) => {
 };
 
 export interface TextRendererProps {
+  threadId: string;
   isEditing: boolean;
   isHovering: boolean;
   isInputVisible: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
+  const { threadId } = props;
   const editor = useCreateBlockNote({});
   const {
     artifact,
@@ -33,7 +35,7 @@ export function TextRenderer(props: TextRendererProps) {
     setArtifact,
     setSelectedBlocks,
     setUpdateRenderedArtifactRequired,
-  } = useGraph();
+  } = useGraph({ threadId });
 
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);

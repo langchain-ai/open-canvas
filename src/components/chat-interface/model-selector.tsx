@@ -1,6 +1,6 @@
 "use client";
 
-import LLMIcon from "./icons/svg/LLMIcon.svg";
+import LLMIcon from "@/components/icons/svg/LLMIcon.svg";
 import NextImage from "next/image";
 import {
   Select,

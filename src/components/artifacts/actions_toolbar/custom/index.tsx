@@ -22,9 +22,12 @@ import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { TighterText } from "@/components/ui/header";
-import { useThread } from "@/hooks/useThread";
+import { User } from "@supabase/supabase-js";
 
 export interface CustomQuickActionsProps {
+  threadId: string;
+  assistantId: string;
+  user: User;
   isTextSelected: boolean;
 }
 
@@ -79,12 +82,12 @@ const DropdownMenuItemWithDelete = ({
 };
 
 export function CustomQuickActions(props: CustomQuickActionsProps) {
+  const { user, threadId, assistantId } = props;
   const {
     getCustomQuickActions,
     deleteCustomQuickAction,
     isLoadingQuickActions,
   } = useStore();
-  const { assistantId } = useThread();
   const { streamMessage } = useGraph();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -100,14 +103,14 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setIsEditingId(id);
   };
 
-  const getAndSetCustomQuickActions = async () => {
-    const actions = await getCustomQuickActions();
+  const getAndSetCustomQuickActions = async (userId: string) => {
+    const actions = await getCustomQuickActions(userId);
     setCustomQuickActions(actions);
   };
 
   useEffect(() => {
     if (typeof window === undefined || !assistantId) return;
-    getAndSetCustomQuickActions();
+    getAndSetCustomQuickActions(user.id);
   }, [assistantId]);
 
   const handleNewActionClick = (e: Event) => {
@@ -122,16 +125,23 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setOpen(false);
     setIsEditing(false);
     setIsEditingId(undefined);
-    await streamMessage({
-      customQuickActionId: id,
-    });
+    await streamMessage(
+      {
+        customQuickActionId: id,
+      },
+      {
+        threadId,
+        assistantId,
+      }
+    );
   };
 
   const handleDelete = async (id: string) => {
     try {
       const deletionSuccess = await deleteCustomQuickAction(
         id,
-        customQuickActions || []
+        customQuickActions || [],
+        user.id
       );
       if (deletionSuccess) {
         toast({
@@ -228,6 +238,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
+        user={user}
         allQuickActions={customQuickActions || []}
         isEditing={isEditing}
         open={dialogOpen}

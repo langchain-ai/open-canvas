@@ -1,7 +1,7 @@
 "use client";
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
-import { ContentComposerChatInterface } from "@/components/ContentComposer";
+import { ContentComposerChatInterface } from "./content-composer";
 import { ALL_MODEL_NAMES } from "@/constants";
 import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
@@ -14,38 +14,27 @@ import {
   ArtifactV3,
   ProgrammingLanguageOptions,
 } from "@/types";
+import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
-export function Canvas() {
+interface CanvasProps {
+  user: User;
+  threadId: string;
+  assistantId: string;
+}
+
+export function Canvas(props: CanvasProps) {
+  const { user, threadId, assistantId } = props;
   const { toast } = useToast();
-  const {
-    threadId,
-    assistantId,
-    searchOrCreateThread,
-    getOrCreateAssistant,
-    clearThreadsWithNoValues,
-    setModelName,
-  } = useThread();
+  const { clearThreadsWithNoValues, setModelName } = useThread();
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { setArtifact } = useGraph();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if (!threadId) {
-      searchOrCreateThread();
-    }
-
-    if (!assistantId) {
-      getOrCreateAssistant();
-    }
-  }, []);
-
-  useEffect(() => {
     if (!threadId) return;
     // Clear threads with no values
-    clearThreadsWithNoValues();
+    clearThreadsWithNoValues(user.id);
   }, [threadId]);
 
   const handleQuickStart = (
@@ -101,6 +90,9 @@ export function Canvas() {
         )}
       >
         <ContentComposerChatInterface
+          threadId={threadId}
+          assistantId={assistantId}
+          user={user}
           switchSelectedThreadCallback={(thread) => {
             // Chat should only be "started" if there are messages present
             if ((thread.values as Record<string, any>)?.messages?.length) {
@@ -119,7 +111,13 @@ export function Canvas() {
       </div>
       {chatStarted && (
         <div className="w-full ml-auto">
-          <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
+          <ArtifactRenderer
+            threadId={threadId}
+            assistantId={assistantId}
+            user={user}
+            setIsEditing={setIsEditing}
+            isEditing={isEditing}
+          />
         </div>
       )}
     </main>

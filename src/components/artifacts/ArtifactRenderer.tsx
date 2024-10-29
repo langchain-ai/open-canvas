@@ -20,8 +20,12 @@ import { CustomQuickActions } from "./actions_toolbar/custom";
 import { getArtifactContent } from "@/hooks/use-graph/utils";
 import { ArtifactLoading } from "./ArtifactLoading";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
+import { User } from "@supabase/supabase-js";
 
 export interface ArtifactRendererProps {
+  threadId: string;
+  assistantId: string;
+  user: User;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -115,6 +119,7 @@ function NavigateArtifactHistory(props: NavigateArtifactHistoryProps) {
 }
 
 export function ArtifactRenderer(props: ArtifactRendererProps) {
+  const { user, threadId, assistantId } = props;
   const {
     artifact,
     selectedBlocks,
@@ -204,15 +209,21 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
     setMessages((prevMessages) => [...prevMessages, humanMessage]);
     handleCleanupState();
-    await streamMessage({
-      messages: [convertToOpenAIFormat(humanMessage)],
-      ...(selectionIndexes && {
-        highlightedCode: {
-          startCharIndex: selectionIndexes.start,
-          endCharIndex: selectionIndexes.end,
-        },
-      }),
-    });
+    await streamMessage(
+      {
+        messages: [convertToOpenAIFormat(humanMessage)],
+        ...(selectionIndexes && {
+          highlightedCode: {
+            startCharIndex: selectionIndexes.start,
+            endCharIndex: selectionIndexes.end,
+          },
+        }),
+      },
+      {
+        threadId,
+        assistantId,
+      }
+    );
   };
 
   useEffect(() => {
@@ -373,6 +384,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           >
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
+                threadId={threadId}
                 isInputVisible={isInputVisible}
                 isEditing={props.isEditing}
                 isHovering={isHoveringOverArtifact}
@@ -380,6 +392,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             ) : null}
             {currentArtifactContent.type === "code" ? (
               <CodeRenderer
+                threadId={threadId}
                 editorRef={editorRef}
                 isHovering={isHoveringOverArtifact}
               />
@@ -407,15 +420,22 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         )}
       </div>
       <CustomQuickActions
+        threadId={threadId}
+        assistantId={assistantId}
+        user={user}
         isTextSelected={isSelectionActive || selectedBlocks !== undefined}
       />
       {currentArtifactContent.type === "text" ? (
         <ActionsToolbar
+          threadId={threadId}
+          assistantId={assistantId}
           isTextSelected={isSelectionActive || selectedBlocks !== undefined}
         />
       ) : null}
       {currentArtifactContent.type === "code" ? (
         <CodeToolBar
+          threadId={threadId}
+          assistantId={assistantId}
           isTextSelected={isSelectionActive || selectedBlocks !== undefined}
           language={
             currentArtifactContent.language as ProgrammingLanguageOptions

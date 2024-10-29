@@ -1,18 +1,19 @@
 import { isToday, isYesterday, isWithinInterval, subDays } from "date-fns";
-import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
-import { Button } from "./ui/button";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { Skeleton } from "./ui/skeleton";
+import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { Skeleton } from "../ui/skeleton";
 import { useEffect, useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";
 import { PiChatsCircleLight } from "react-icons/pi";
-import { TighterText } from "./ui/header";
+import { TighterText } from "../ui/header";
 import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useThread } from "@/hooks/useThread";
-import { useUser } from "@/hooks/useUser";
+import { User } from "@supabase/supabase-js";
 
 interface ThreadHistoryProps {
+  user: User;
   switchSelectedThreadCallback: (thread: Thread) => void;
 }
 
@@ -192,20 +193,20 @@ function ThreadsList(props: ThreadsListProps) {
 }
 
 export function ThreadHistory(props: ThreadHistoryProps) {
+  const { user } = props;
   const [open, setOpen] = useState(false);
-  const { user } = useUser();
   const { setMessages, switchSelectedThread } = useGraph();
   const { deleteThread, getUserThreads, userThreads, isUserThreadsLoading } =
     useThread();
 
   useEffect(() => {
-    if (typeof window == "undefined" || !user || userThreads.length) return;
+    if (typeof window == "undefined" || userThreads.length) return;
 
-    getUserThreads();
-  }, [user]);
+    getUserThreads(user.id);
+  }, []);
 
   const handleDeleteThread = async (id: string) => {
-    await deleteThread(id, () => setMessages([]));
+    await deleteThread(id, user.id, () => setMessages([]));
   };
 
   const groupedThreads = groupThreads(
