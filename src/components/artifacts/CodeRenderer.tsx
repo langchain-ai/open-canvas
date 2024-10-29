@@ -1,5 +1,5 @@
 import { ArtifactCodeV3 } from "@/types";
-import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
+import React, { MutableRefObject, useEffect } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
@@ -16,15 +16,13 @@ import { csharp } from "@replit/codemirror-lang-csharp";
 import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
+import { CopyText } from "./components/CopyText";
+import { getArtifactContent } from "@/contexts/utils";
+import { useGraphContext } from "@/contexts/GraphContext";
 
 export interface CodeRendererProps {
-  artifactContent: ArtifactCodeV3;
-  setArtifactContent: (index: number, content: string) => void;
   editorRef: MutableRefObject<EditorView | null>;
-  firstTokenReceived: boolean;
-  isStreaming: boolean;
-  updateRenderedArtifactRequired: boolean;
-  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+  isHovering: boolean;
 }
 
 const getLanguageExtension = (language: string) => {
@@ -60,23 +58,38 @@ const getLanguageExtension = (language: string) => {
   }
 };
 
-export function CodeRenderer(props: Readonly<CodeRendererProps>) {
-  const extensions = [getLanguageExtension(props.artifactContent.language)];
+export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
+  const { graphData } = useGraphContext();
+  const {
+    artifact,
+    isStreaming,
+    updateRenderedArtifactRequired,
+    firstTokenReceived,
+    setArtifactContent,
+    setUpdateRenderedArtifactRequired,
+  } = graphData;
 
   useEffect(() => {
-    if (props.updateRenderedArtifactRequired) {
-      props.setUpdateRenderedArtifactRequired(false);
+    if (updateRenderedArtifactRequired) {
+      setUpdateRenderedArtifactRequired(false);
     }
-  }, [props.updateRenderedArtifactRequired]);
+  }, [updateRenderedArtifactRequired]);
 
-  if (!props.artifactContent.code) {
+  if (!artifact) {
     return null;
   }
 
-  const isEditable = !props.isStreaming;
+  const artifactContent = getArtifactContent(artifact) as ArtifactCodeV3;
+  const extensions = [getLanguageExtension(artifactContent.language)];
+
+  if (!artifactContent.code) {
+    return null;
+  }
+
+  const isEditable = !isStreaming;
 
   return (
-    <>
+    <div className="relative">
       <style jsx global>{`
         .pulse-code .cm-content {
           animation: codePulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -92,23 +105,28 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
           }
         }
       `}</style>
+      {props.isHovering && (
+        <div className="absolute top-0 right-4 z-10">
+          <CopyText currentArtifactContent={artifactContent} />
+        </div>
+      )}
       <CodeMirror
         editable={isEditable}
         className={cn(
           "w-full min-h-full",
           styles.codeMirrorCustom,
-          props.isStreaming && !props.firstTokenReceived ? "pulse-code" : ""
+          isStreaming && !firstTokenReceived ? "pulse-code" : ""
         )}
-        value={cleanContent(props.artifactContent.code)}
+        value={cleanContent(artifactContent.code)}
         height="800px"
         extensions={extensions}
-        onChange={(c) =>
-          props.setArtifactContent(props.artifactContent.index, c)
-        }
+        onChange={(c) => setArtifactContent(artifactContent.index, c)}
         onCreateEditor={(view) => {
           props.editorRef.current = view;
         }}
       />
-    </>
+    </div>
   );
 }
+
+export const CodeRenderer = React.memo(CodeRendererComponent);

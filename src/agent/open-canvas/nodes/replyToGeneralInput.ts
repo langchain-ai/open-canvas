@@ -1,6 +1,6 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { getArtifactContent } from "../../../contexts/utils";
 import { Reflections } from "../../../types";
 import {
   ensureStoreInConfig,

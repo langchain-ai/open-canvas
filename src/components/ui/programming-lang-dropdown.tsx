@@ -5,11 +5,11 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "./dropdown-menu";
 import { Code } from "lucide-react";
-import { Button } from "./ui/button";
-import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
-import { TighterText } from "./ui/header";
+import { Button } from "./button";
+import { TooltipIconButton } from "./assistant-ui/tooltip-icon-button";
+import { TighterText } from "./header";
 
 interface ProgrammingLanguageListProps {
   handleSubmit: (portLanguage: ProgrammingLanguageOptions) => Promise<void>;

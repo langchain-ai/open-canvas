@@ -26,14 +26,14 @@ import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
 import { CustomQuickAction } from "@/types";
 import { TighterText } from "@/components/ui/header";
+import { User } from "@supabase/supabase-js";
 
 interface NewCustomQuickActionDialogProps {
-  userId: string;
+  user: User | undefined;
   isEditing: boolean;
   allQuickActions: CustomQuickAction[];
   customQuickAction?: CustomQuickAction;
-  getAndSetCustomQuickActions: () => Promise<void>;
-  assistantId: string | undefined;
+  getAndSetCustomQuickActions: (userId: string) => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -67,10 +67,8 @@ export function NewCustomQuickActionDialog(
   props: NewCustomQuickActionDialogProps
 ) {
   const { toast } = useToast();
-  const { createCustomQuickAction, editCustomQuickAction } = useStore({
-    assistantId: props.assistantId,
-    userId: props.userId,
-  });
+  const { user } = props;
+  const { createCustomQuickAction, editCustomQuickAction } = useStore();
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -93,7 +91,16 @@ export function NewCustomQuickActionDialog(
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) {
+      toast({
+        title: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
     setIsSubmitLoading(true);
+
     try {
       let success = false;
       if (props.isEditing && props.customQuickAction) {
@@ -106,7 +113,8 @@ export function NewCustomQuickActionDialog(
             includeRecentHistory,
             includeReflections,
           },
-          props.allQuickActions
+          props.allQuickActions,
+          user.id
         );
       } else {
         success = await createCustomQuickAction(
@@ -118,7 +126,8 @@ export function NewCustomQuickActionDialog(
             includeRecentHistory,
             includeReflections,
           },
-          props.allQuickActions
+          props.allQuickActions,
+          user.id
         );
       }
 
@@ -129,7 +138,7 @@ export function NewCustomQuickActionDialog(
         handleClearState();
         props.onOpenChange(false);
         // Re-fetch after creating a new custom quick action to update the list
-        await props.getAndSetCustomQuickActions();
+        await props.getAndSetCustomQuickActions(user.id);
       } else {
         toast({
           title: `Failed to ${props.isEditing ? "edit" : "create"} custom quick action`,

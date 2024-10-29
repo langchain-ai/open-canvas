@@ -5,7 +5,6 @@ import {
   LoaderCircle,
   Pencil,
 } from "lucide-react";
-import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,
@@ -22,12 +21,14 @@ import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { TighterText } from "@/components/ui/header";
+import { GraphInput } from "@/contexts/GraphContext";
+import { User } from "@supabase/supabase-js";
 
 export interface CustomQuickActionsProps {
   isTextSelected: boolean;
   assistantId: string | undefined;
-  userId: string;
-  streamMessage: (input: GraphInput, config?: GraphConfig) => Promise<void>;
+  user: User | undefined;
+  streamMessage: (params: GraphInput) => Promise<void>;
 }
 
 const DropdownMenuItemWithDelete = ({
@@ -81,11 +82,12 @@ const DropdownMenuItemWithDelete = ({
 };
 
 export function CustomQuickActions(props: CustomQuickActionsProps) {
+  const { user, assistantId, streamMessage } = props;
   const {
     getCustomQuickActions,
     deleteCustomQuickAction,
     isLoadingQuickActions,
-  } = useStore({ assistantId: props.assistantId, userId: props.userId });
+  } = useStore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -100,15 +102,15 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setIsEditingId(id);
   };
 
-  const getAndSetCustomQuickActions = async () => {
-    const actions = await getCustomQuickActions();
+  const getAndSetCustomQuickActions = async (userId: string) => {
+    const actions = await getCustomQuickActions(userId);
     setCustomQuickActions(actions);
   };
 
   useEffect(() => {
-    if (typeof window === undefined || !props.assistantId) return;
-    getAndSetCustomQuickActions();
-  }, [props.assistantId]);
+    if (typeof window === undefined || !assistantId || !user) return;
+    getAndSetCustomQuickActions(user.id);
+  }, [assistantId, user]);
 
   const handleNewActionClick = (e: Event) => {
     e.preventDefault();
@@ -122,16 +124,26 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setOpen(false);
     setIsEditing(false);
     setIsEditingId(undefined);
-    await props.streamMessage({
+    await streamMessage({
       customQuickActionId: id,
     });
   };
 
   const handleDelete = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Failed to delete",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
     try {
       const deletionSuccess = await deleteCustomQuickAction(
         id,
-        customQuickActions || []
+        customQuickActions || [],
+        user.id
       );
       if (deletionSuccess) {
         toast({
@@ -228,7 +240,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
       <NewCustomQuickActionDialog
-        userId={props.userId}
+        user={user}
         allQuickActions={customQuickActions || []}
         isEditing={isEditing}
         open={dialogOpen}
@@ -243,7 +255,6 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             ? customQuickActions?.find((a) => a.id === isEditingId)
             : undefined
         }
-        assistantId={props.assistantId}
         getAndSetCustomQuickActions={getAndSetCustomQuickActions}
       />
     </DropdownMenu>

@@ -19,7 +19,7 @@ import {
 } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { getArtifactContent } from "../../../contexts/utils";
 import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,

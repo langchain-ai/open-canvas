@@ -1,6 +1,6 @@
 "use client";
 
-import LLMIcon from "./icons/svg/LLMIcon.svg";
+import LLMIcon from "@/components/icons/svg/LLMIcon.svg";
 import NextImage from "next/image";
 import {
   Select,
@@ -16,6 +16,7 @@ import {
   FIREWORKS_MODELS,
   GEMINI_MODELS,
 } from "@/constants";
+import { Dispatch, SetStateAction } from "react";
 
 const allModels = [
   ...ANTHROPIC_MODELS,
@@ -30,18 +31,20 @@ const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
 };
 
 interface ModelSelectorProps {
-  model: ALL_MODEL_NAMES;
-  setModel: React.Dispatch<React.SetStateAction<ALL_MODEL_NAMES>>;
+  modelName: ALL_MODEL_NAMES;
+  setModelName: Dispatch<SetStateAction<ALL_MODEL_NAMES>>;
 }
 
-export default function ModelSelector({ model, setModel }: ModelSelectorProps) {
+export default function ModelSelector(props: ModelSelectorProps) {
+  const { modelName, setModelName } = props;
+
   const handleModelChange = async (newModel: ALL_MODEL_NAMES) => {
     // Create a new thread with the new model
-    setModel(newModel);
+    setModelName(newModel);
   };
 
   return (
-    <Select value={model} onValueChange={handleModelChange}>
+    <Select value={modelName} onValueChange={handleModelChange}>
       <SelectTrigger className="min-w-[180px] w-[210px] bg-transparent shadow-none text-sm focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600">
         <SelectValue>
           <div className="flex items-center pr-2 truncate">
@@ -52,7 +55,7 @@ export default function ModelSelector({ model, setModel }: ModelSelectorProps) {
               height={14}
               className="mr-2"
             />
-            <span className="truncate">{modelNameToLabel(model)}</span>
+            <span className="truncate">{modelNameToLabel(modelName)}</span>
           </div>
         </SelectValue>
       </SelectTrigger>
