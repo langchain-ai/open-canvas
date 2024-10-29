@@ -1,28 +1,16 @@
 import { CustomQuickAction, Reflections } from "@/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
-import { useThread } from "./useThread";
 
 export function useStore() {
   const { toast } = useToast();
-  const { assistantId } = useThread();
   const [isLoadingReflections, setIsLoadingReflections] = useState(false);
   const [isLoadingQuickActions, setIsLoadingQuickActions] = useState(false);
   const [reflections, setReflections] = useState<
     Reflections & { assistantId: string; updatedAt: Date }
   >();
 
-  const getReflections = async (): Promise<void> => {
-    if (!assistantId) {
-      toast({
-        title: "Error",
-        description: "Assistant not found",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
-
+  const getReflections = async (assistantId: string): Promise<void> => {
     setIsLoadingReflections(true);
     const res = await fetch("/api/store/get", {
       method: "POST",
@@ -69,17 +57,7 @@ export function useStore() {
     setIsLoadingReflections(false);
   };
 
-  const deleteReflections = async (): Promise<boolean> => {
-    if (!assistantId) {
-      toast({
-        title: "Error",
-        description: "Assistant not found",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return false;
-    }
-
+  const deleteReflections = async (assistantId: string): Promise<boolean> => {
     const res = await fetch("/api/store/delete", {
       method: "POST",
       body: JSON.stringify({

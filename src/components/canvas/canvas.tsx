@@ -3,9 +3,7 @@
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
 import { ContentComposerChatInterface } from "./content-composer";
 import { ALL_MODEL_NAMES } from "@/constants";
-import { useGraph } from "@/hooks/use-graph/useGraph";
 import { useToast } from "@/hooks/use-toast";
-import { useThread } from "@/hooks/useThread";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
 import {
@@ -14,28 +12,24 @@ import {
   ArtifactV3,
   ProgrammingLanguageOptions,
 } from "@/types";
-import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { useGraphContext } from "@/contexts/GraphContext";
+import React from "react";
 
-interface CanvasProps {
-  user: User;
-  threadId: string;
-  assistantId: string;
-}
-
-export function Canvas(props: CanvasProps) {
-  const { user, threadId, assistantId } = props;
+export function CanvasComponent() {
+  const { threadData, graphData, userData } = useGraphContext();
+  const { user } = userData;
+  const { threadId, clearThreadsWithNoValues, setModelName } = threadData;
+  const { setArtifact } = graphData;
   const { toast } = useToast();
-  const { clearThreadsWithNoValues, setModelName } = useThread();
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { setArtifact } = useGraph();
 
   useEffect(() => {
-    if (!threadId) return;
+    if (!threadId || !user) return;
     // Clear threads with no values
     clearThreadsWithNoValues(user.id);
-  }, [threadId]);
+  }, [threadId, user]);
 
   const handleQuickStart = (
     type: "text" | "code",
@@ -90,9 +84,6 @@ export function Canvas(props: CanvasProps) {
         )}
       >
         <ContentComposerChatInterface
-          threadId={threadId}
-          assistantId={assistantId}
-          user={user}
           switchSelectedThreadCallback={(thread) => {
             // Chat should only be "started" if there are messages present
             if ((thread.values as Record<string, any>)?.messages?.length) {
@@ -111,15 +102,11 @@ export function Canvas(props: CanvasProps) {
       </div>
       {chatStarted && (
         <div className="w-full ml-auto">
-          <ArtifactRenderer
-            threadId={threadId}
-            assistantId={assistantId}
-            user={user}
-            setIsEditing={setIsEditing}
-            isEditing={isEditing}
-          />
+          <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
         </div>
       )}
     </main>
   );
 }
+
+export const Canvas = React.memo(CanvasComponent);

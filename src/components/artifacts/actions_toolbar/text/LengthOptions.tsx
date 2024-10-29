@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { GraphInput, GraphConfig } from "@/hooks/use-graph/useGraph";
 import { ArtifactLengthOptions } from "@/types";
 import {
   Tooltip,
@@ -9,11 +8,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
+import { GraphInput } from "@/contexts/GraphContext";
 
 export interface LengthOptionsProps {
-  threadId: string;
-  assistantId: string;
-  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
+  streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
 }
 
@@ -26,20 +24,15 @@ const lengthOptions = [
 ];
 
 export function LengthOptions(props: LengthOptionsProps) {
+  const { streamMessage } = props;
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState([3]);
 
   const handleSubmit = async (artifactLength: ArtifactLengthOptions) => {
     props.handleClose();
-    await props.streamMessage(
-      {
-        artifactLength,
-      },
-      {
-        threadId: props.threadId,
-        assistantId: props.assistantId,
-      }
-    );
+    await streamMessage({
+      artifactLength,
+    });
   };
 
   return (

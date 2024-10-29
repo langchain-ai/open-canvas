@@ -1,16 +1,26 @@
 import {
-  ALL_MODEL_NAMES,
-  DEFAULT_INPUTS,
-  DEFAULT_MODEL_NAME,
-  THREAD_ID_COOKIE_NAME,
-} from "@/constants";
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+  useState,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import {
-  isArtifactCodeContent,
-  isArtifactMarkdownContent,
-  isDeprecatedArtifactType,
-} from "@/lib/artifact_content_types";
-import { setCookie } from "@/lib/cookies";
-import { reverseCleanContent } from "@/lib/normalize_string";
+  convertToArtifactV3,
+  createNewGeneratedArtifactFromTool,
+  replaceOrInsertMessageChunk,
+  updateHighlightedCode,
+  updateHighlightedMarkdown,
+  updateRewrittenArtifact,
+  removeCodeBlockFormatting,
+} from "./utils";
+import { useUser } from "@/hooks/useUser";
+import { useThread } from "@/hooks/useThread";
+import { addAssistantIdToUser } from "@/lib/supabase/add_assistant_id_to_user";
+import { debounce } from "lodash";
 import {
   ArtifactLengthOptions,
   ArtifactToolResponse,
@@ -24,23 +34,55 @@ import {
   TextHighlight,
 } from "@/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { parsePartialJson } from "@langchain/core/output_parsers";
-import { Thread } from "@langchain/langgraph-sdk";
-import { debounce } from "lodash";
-import { useEffect, useRef, useState } from "react";
-import { useToast } from "../use-toast";
-import { useRuns } from "../useRuns";
-import { createClient } from "../utils";
+import { useRuns } from "@/hooks/useRuns";
+import { createClient } from "@/hooks/utils";
 import {
-  convertToArtifactV3,
-  createNewGeneratedArtifactFromTool,
-  replaceOrInsertMessageChunk,
-  updateHighlightedCode,
-  updateHighlightedMarkdown,
-  updateRewrittenArtifact,
-} from "./utils";
-import { useThread } from "../useThread";
-// import { DEFAULT_ARTIFACTS, DEFAULT_MESSAGES } from "@/lib/dummy";
+  ALL_MODEL_NAMES,
+  DEFAULT_INPUTS,
+  DEFAULT_MODEL_NAME,
+  THREAD_ID_COOKIE_NAME,
+} from "@/constants";
+import { Thread } from "@langchain/langgraph-sdk";
+import { useToast } from "@/hooks/use-toast";
+import { parsePartialJson } from "@langchain/core/output_parsers";
+import {
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+  isDeprecatedArtifactType,
+} from "@/lib/artifact_content_types";
+import { reverseCleanContent } from "@/lib/normalize_string";
+import { setCookie } from "@/lib/cookies";
+
+interface GraphData {
+  isStreaming: boolean;
+  selectedBlocks: TextHighlight | undefined;
+  messages: BaseMessage[];
+  artifact: ArtifactV3 | undefined;
+  updateRenderedArtifactRequired: boolean;
+  isArtifactSaved: boolean;
+  firstTokenReceived: boolean;
+  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
+  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
+  setSelectedArtifact: (index: number) => void;
+  setMessages: Dispatch<SetStateAction<BaseMessage[]>>;
+  streamMessage: (params: GraphInput) => Promise<void>;
+  setArtifactContent: (index: number, content: string) => void;
+  clearState: () => void;
+  switchSelectedThread: (thread: Thread) => void;
+  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+}
+
+type UserDataContextType = ReturnType<typeof useUser>;
+
+type ThreadDataContextType = ReturnType<typeof useThread>;
+
+type GraphContentType = {
+  graphData: GraphData;
+  userData: UserDataContextType;
+  threadData: ThreadDataContextType;
+};
+
+const GraphContext = createContext<GraphContentType | undefined>(undefined);
 
 export interface GraphInput {
   messages?: Record<string, any>[];
@@ -62,35 +104,10 @@ export interface GraphInput {
   customQuickActionId?: string;
 }
 
-export interface GraphConfig {
-  customModelName?: ALL_MODEL_NAMES;
-  threadId: string;
-  assistantId: string;
-}
-
-function removeCodeBlockFormatting(text: string): string {
-  if (!text) return text;
-  // Regular expression to match code blocks
-  const codeBlockRegex = /^```[\w-]*\n([\s\S]*?)\n```$/;
-
-  // Check if the text matches the code block pattern
-  const match = text.match(codeBlockRegex);
-
-  if (match) {
-    // If it matches, return the content inside the code block
-    return match[1].trim();
-  } else {
-    // If it doesn't match, return the original text
-    return text;
-  }
-}
-
-export function useGraph(useGraphInput?: {
-  threadId?: string;
-  customModelName?: string;
-}) {
+export function GraphProvider({ children }: { children: ReactNode }) {
+  const userData = useUser();
+  const threadData = useThread();
   const { toast } = useToast();
-  const { setThreadId, setModelName, modelName } = useThread();
   const { shareRun } = useRuns();
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<ArtifactV3>();
@@ -110,6 +127,34 @@ export function useGraph(useGraphInput?: {
   const [threadSwitched, setThreadSwitched] = useState(false);
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
 
+  useEffect(() => {
+    if (userData.user) return;
+    userData.getUser();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!userData.user) return;
+
+    if (!threadData.threadId) {
+      threadData.searchOrCreateThread(userData.user.id);
+    }
+
+    if (!threadData.assistantId) {
+      threadData.getOrCreateAssistant();
+    }
+  }, [userData.user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !userData.user) return;
+    addAssistantIdToUser();
+  }, [userData.user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !userData.user) return;
+    addAssistantIdToUser();
+  }, [userData.user]);
+
   // Very hacky way of ensuring updateState is not called when a thread is switched
   useEffect(() => {
     if (threadSwitched) {
@@ -128,7 +173,7 @@ export function useGraph(useGraphInput?: {
   }, [debouncedAPIUpdate]);
 
   useEffect(() => {
-    if (!useGraphInput?.threadId) return;
+    if (!threadData.threadId) return;
     if (!messages.length || !artifact) return;
     if (updateRenderedArtifactRequired || threadSwitched || isStreaming) return;
     const currentIndex = artifact.currentIndex;
@@ -153,9 +198,9 @@ export function useGraph(useGraphInput?: {
       setIsArtifactSaved(false);
       // This means the artifact in state does not match the last saved artifact
       // We need to update
-      debouncedAPIUpdate(artifact, useGraphInput?.threadId);
+      debouncedAPIUpdate(artifact, threadData.threadId);
     }
-  }, [artifact]);
+  }, [artifact, threadData.threadId]);
 
   const updateArtifact = async (
     artifactToUpdate: ArtifactV3,
@@ -184,8 +229,26 @@ export function useGraph(useGraphInput?: {
     setFirstTokenReceived(true);
   };
 
-  const streamMessageV2 = async (params: GraphInput, config: GraphConfig) => {
+  const streamMessageV2 = async (params: GraphInput) => {
     setFirstTokenReceived(false);
+    if (!threadData.threadId) {
+      toast({
+        title: "Error",
+        description: "No thread ID found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+    if (!threadData.assistantId) {
+      toast({
+        title: "Error",
+        description: "No assistant ID found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
 
     const client = createClient();
 
@@ -231,18 +294,19 @@ export function useGraph(useGraphInput?: {
     let followupMessageId = "";
     // let lastMessage: AIMessage | undefined = undefined;
     try {
-      const stream = client.runs.stream(config.threadId, config.assistantId, {
-        input,
-        streamMode: "events",
-        config: {
-          configurable: {
-            customModelName:
-              config?.customModelName ||
-              useGraphInput?.customModelName ||
-              modelName,
+      const stream = client.runs.stream(
+        threadData.threadId,
+        threadData.assistantId,
+        {
+          input,
+          streamMode: "events",
+          config: {
+            configurable: {
+              customModelName: threadData.modelName,
+            },
           },
-        },
-      });
+        }
+      );
 
       // Variables to keep track of content specific to this stream
       const prevCurrentContent = artifact
@@ -418,8 +482,11 @@ export function useGraph(useGraphInput?: {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
                 return updateHighlightedMarkdown(
-                  prev ?? artifact,
+                  prev,
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
                   newArtifactIndex,
                   prevCurrentContent,
@@ -492,11 +559,14 @@ export function useGraph(useGraphInput?: {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
                 const content = removeCodeBlockFormatting(
                   `${updatedArtifactStartContent}${updatedArtifactRestContent}`
                 );
                 return updateHighlightedCode(
-                  prev ?? artifact,
+                  prev,
                   content,
                   newArtifactIndex,
                   prevCurrentContent,
@@ -546,6 +616,10 @@ export function useGraph(useGraphInput?: {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
                 let content = newArtifactContent;
                 if (!rewriteArtifactMeta) {
                   console.error(
@@ -558,7 +632,7 @@ export function useGraph(useGraphInput?: {
                 }
 
                 return updateRewrittenArtifact({
-                  prevArtifact: prev ?? artifact,
+                  prevArtifact: prev,
                   newArtifactContent: content,
                   rewriteArtifactMeta: rewriteArtifactMeta,
                   prevCurrentContent,
@@ -620,6 +694,10 @@ export function useGraph(useGraphInput?: {
               const firstUpdateCopy = isFirstUpdate;
               setFirstTokenReceived(true);
               setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
                 let content = newArtifactContent;
                 if (artifactType === "code") {
                   content = removeCodeBlockFormatting(content);
@@ -786,12 +864,14 @@ export function useGraph(useGraphInput?: {
   const switchSelectedThread = (thread: Thread) => {
     setUpdateRenderedArtifactRequired(true);
     setThreadSwitched(true);
-    setThreadId(thread.thread_id);
+    threadData.setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
     if (thread.metadata?.customModelName) {
-      setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
+      threadData.setModelName(
+        thread.metadata.customModelName as ALL_MODEL_NAMES
+      );
     } else {
-      setModelName(DEFAULT_MODEL_NAME);
+      threadData.setModelName(DEFAULT_MODEL_NAME);
     }
 
     const castValues: {
@@ -836,22 +916,40 @@ export function useGraph(useGraphInput?: {
     );
   };
 
-  return {
-    isStreaming,
-    selectedBlocks,
-    messages,
-    artifact,
-    setArtifact,
-    setSelectedBlocks,
-    setSelectedArtifact,
-    setMessages,
-    streamMessage: streamMessageV2,
-    setArtifactContent,
-    clearState,
-    switchSelectedThread,
-    updateRenderedArtifactRequired,
-    setUpdateRenderedArtifactRequired,
-    isArtifactSaved,
-    firstTokenReceived,
+  const contextValue: GraphContentType = {
+    userData,
+    threadData,
+    graphData: {
+      isStreaming,
+      selectedBlocks,
+      messages,
+      artifact,
+      updateRenderedArtifactRequired,
+      isArtifactSaved,
+      firstTokenReceived,
+      setArtifact,
+      setSelectedBlocks,
+      setSelectedArtifact,
+      setMessages,
+      streamMessage: streamMessageV2,
+      setArtifactContent,
+      clearState,
+      switchSelectedThread,
+      setUpdateRenderedArtifactRequired,
+    },
   };
+
+  return (
+    <GraphContext.Provider value={contextValue}>
+      {children}
+    </GraphContext.Provider>
+  );
+}
+
+export function useGraphContext() {
+  const context = useContext(GraphContext);
+  if (context === undefined) {
+    throw new Error("useGraphContext must be used within a GraphProvider");
+  }
+  return context;
 }

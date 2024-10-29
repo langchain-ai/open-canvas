@@ -5,7 +5,6 @@ import {
   LoaderCircle,
   Pencil,
 } from "lucide-react";
-import { useGraph } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,
@@ -22,13 +21,14 @@ import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { TighterText } from "@/components/ui/header";
+import { GraphInput } from "@/contexts/GraphContext";
 import { User } from "@supabase/supabase-js";
 
 export interface CustomQuickActionsProps {
-  threadId: string;
-  assistantId: string;
-  user: User;
   isTextSelected: boolean;
+  assistantId: string | undefined;
+  user: User | undefined;
+  streamMessage: (params: GraphInput) => Promise<void>;
 }
 
 const DropdownMenuItemWithDelete = ({
@@ -82,13 +82,12 @@ const DropdownMenuItemWithDelete = ({
 };
 
 export function CustomQuickActions(props: CustomQuickActionsProps) {
-  const { user, threadId, assistantId } = props;
+  const { user, assistantId, streamMessage } = props;
   const {
     getCustomQuickActions,
     deleteCustomQuickAction,
     isLoadingQuickActions,
   } = useStore();
-  const { streamMessage } = useGraph();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -109,9 +108,9 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
   };
 
   useEffect(() => {
-    if (typeof window === undefined || !assistantId) return;
+    if (typeof window === undefined || !assistantId || !user) return;
     getAndSetCustomQuickActions(user.id);
-  }, [assistantId]);
+  }, [assistantId, user]);
 
   const handleNewActionClick = (e: Event) => {
     e.preventDefault();
@@ -125,18 +124,21 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
     setOpen(false);
     setIsEditing(false);
     setIsEditingId(undefined);
-    await streamMessage(
-      {
-        customQuickActionId: id,
-      },
-      {
-        threadId,
-        assistantId,
-      }
-    );
+    await streamMessage({
+      customQuickActionId: id,
+    });
   };
 
   const handleDelete = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Failed to delete",
+        description: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
     try {
       const deletionSuccess = await deleteCustomQuickAction(
         id,

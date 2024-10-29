@@ -210,19 +210,19 @@ export function useThread() {
   };
 
   return {
-    clearThreadsWithNoValues,
     threadId,
     assistantId,
-    createThread,
-    searchOrCreateThread,
-    getUserThreads,
     userThreads,
     isUserThreadsLoading,
+    modelName,
+    createThread,
+    clearThreadsWithNoValues,
+    searchOrCreateThread,
+    getUserThreads,
     deleteThread,
     getThreadById,
     setThreadId,
     getOrCreateAssistant,
-    modelName,
     setModelName,
   };
 }

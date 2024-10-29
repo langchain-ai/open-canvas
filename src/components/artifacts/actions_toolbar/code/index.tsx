@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircleCode, Code, ScrollText, Bug, BookA } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GraphInput, GraphConfig, useGraph } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@/types";
+import { GraphInput } from "@/contexts/GraphContext";
 
 type SharedComponentProps = {
-  threadId: string;
-  assistantId: string;
   handleClose: () => void;
+  streamMessage: (params: GraphInput) => Promise<void>;
   language: ProgrammingLanguageOptions;
-  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
 };
 
 type ToolbarOption = {
@@ -22,8 +20,7 @@ type ToolbarOption = {
 };
 
 export interface CodeToolbarProps {
-  threadId: string;
-  assistantId: string;
+  streamMessage: (params: GraphInput) => Promise<void>;
   isTextSelected: boolean;
   language: ProgrammingLanguageOptions;
 }
@@ -58,8 +55,7 @@ const toolbarOptions: ToolbarOption[] = [
 ];
 
 export function CodeToolBar(props: CodeToolbarProps) {
-  const { threadId, assistantId } = props;
-  const { streamMessage } = useGraph();
+  const { streamMessage } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -98,34 +94,21 @@ export function CodeToolBar(props: CodeToolbarProps) {
       setActiveOption(optionId);
       return;
     }
-    const graphConfig = {
-      threadId,
-      assistantId,
-    };
 
     setIsExpanded(false);
     setActiveOption(null);
     if (optionId === "addComments") {
-      await streamMessage(
-        {
-          addComments: true,
-        },
-        graphConfig
-      );
+      await streamMessage({
+        addComments: true,
+      });
     } else if (optionId === "addLogs") {
-      await streamMessage(
-        {
-          addLogs: true,
-        },
-        graphConfig
-      );
+      await streamMessage({
+        addLogs: true,
+      });
     } else if (optionId === "fixBugs") {
-      await streamMessage(
-        {
-          fixBugs: true,
-        },
-        graphConfig
-      );
+      await streamMessage({
+        fixBugs: true,
+      });
     }
   };
 
@@ -151,9 +134,6 @@ export function CodeToolBar(props: CodeToolbarProps) {
                 ?.component?.({
                   ...props,
                   handleClose,
-                  threadId,
-                  assistantId,
-                  streamMessage,
                 })
             : toolbarOptions.map((option) => (
                 <TooltipIconButton

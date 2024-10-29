@@ -29,7 +29,7 @@ import { TighterText } from "@/components/ui/header";
 import { User } from "@supabase/supabase-js";
 
 interface NewCustomQuickActionDialogProps {
-  user: User;
+  user: User | undefined;
   isEditing: boolean;
   allQuickActions: CustomQuickAction[];
   customQuickAction?: CustomQuickAction;
@@ -91,6 +91,14 @@ export function NewCustomQuickActionDialog(
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) {
+      toast({
+        title: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
     setIsSubmitLoading(true);
 
     try {

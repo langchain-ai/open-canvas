@@ -1,5 +1,5 @@
 import { ArtifactCodeV3 } from "@/types";
-import { MutableRefObject, useEffect } from "react";
+import React, { MutableRefObject, useEffect } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
@@ -17,11 +17,10 @@ import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { CopyText } from "./components/CopyText";
-import { useGraph } from "@/hooks/use-graph/useGraph";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { getArtifactContent } from "@/contexts/utils";
+import { useGraphContext } from "@/contexts/GraphContext";
 
 export interface CodeRendererProps {
-  threadId: string;
   editorRef: MutableRefObject<EditorView | null>;
   isHovering: boolean;
 }
@@ -59,8 +58,8 @@ const getLanguageExtension = (language: string) => {
   }
 };
 
-export function CodeRenderer(props: Readonly<CodeRendererProps>) {
-  const { threadId } = props;
+export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
+  const { graphData } = useGraphContext();
   const {
     artifact,
     isStreaming,
@@ -68,7 +67,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     firstTokenReceived,
     setArtifactContent,
     setUpdateRenderedArtifactRequired,
-  } = useGraph({ threadId });
+  } = graphData;
 
   useEffect(() => {
     if (updateRenderedArtifactRequired) {
@@ -129,3 +128,5 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
     </div>
   );
 }
+
+export const CodeRenderer = React.memo(CodeRendererComponent);

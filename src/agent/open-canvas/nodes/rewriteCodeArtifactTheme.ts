@@ -1,7 +1,7 @@
 import { getModelNameAndProviderFromConfig } from "@/agent/utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
 import { ArtifactCodeV3, ArtifactV3 } from "../../../types";
 import {

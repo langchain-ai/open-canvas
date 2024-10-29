@@ -10,23 +10,23 @@ import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
 import { CopyText } from "./components/CopyText";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
-import { useGraph } from "@/hooks/use-graph/useGraph";
+import { getArtifactContent } from "@/contexts/utils";
+import { useGraphContext } from "@/contexts/GraphContext";
+import React from "react";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
 };
 
 export interface TextRendererProps {
-  threadId: string;
   isEditing: boolean;
   isHovering: boolean;
   isInputVisible: boolean;
 }
 
-export function TextRenderer(props: TextRendererProps) {
-  const { threadId } = props;
+export function TextRendererComponent(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
+  const { graphData } = useGraphContext();
   const {
     artifact,
     isStreaming,
@@ -35,7 +35,7 @@ export function TextRenderer(props: TextRendererProps) {
     setArtifact,
     setSelectedBlocks,
     setUpdateRenderedArtifactRequired,
-  } = useGraph({ threadId });
+  } = graphData;
 
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
@@ -204,3 +204,5 @@ export function TextRenderer(props: TextRendererProps) {
     </div>
   );
 }
+
+export const TextRenderer = React.memo(TextRendererComponent);

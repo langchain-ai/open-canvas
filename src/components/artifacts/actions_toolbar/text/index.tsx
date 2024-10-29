@@ -4,15 +4,13 @@ import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
-import { GraphInput, GraphConfig, useGraph } from "@/hooks/use-graph/useGraph";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
+import { GraphInput } from "@/contexts/GraphContext";
 
 type SharedComponentProps = {
-  threadId: string;
-  assistantId: string;
+  streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
-  streamMessage: (input: GraphInput, config: GraphConfig) => Promise<void>;
 };
 
 type ToolbarOption = {
@@ -23,8 +21,7 @@ type ToolbarOption = {
 };
 
 export interface ActionsToolbarProps {
-  threadId: string;
-  assistantId: string;
+  streamMessage: (params: GraphInput) => Promise<void>;
   isTextSelected: boolean;
 }
 
@@ -58,8 +55,7 @@ const toolbarOptions: ToolbarOption[] = [
 ];
 
 export function ActionsToolbar(props: ActionsToolbarProps) {
-  const { threadId, assistantId } = props;
-  const { streamMessage } = useGraph();
+  const { streamMessage } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -96,15 +92,9 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     if (optionId === "addEmojis") {
       setIsExpanded(false);
       setActiveOption(null);
-      await streamMessage(
-        {
-          regenerateWithEmojis: true,
-        },
-        {
-          threadId,
-          assistantId,
-        }
-      );
+      await streamMessage({
+        regenerateWithEmojis: true,
+      });
     } else {
       setActiveOption(optionId);
     }
@@ -134,7 +124,6 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
                 ?.component?.({
                   ...props,
                   handleClose,
-                  streamMessage,
                 })
             : toolbarOptions.map((option) => (
                 <TooltipIconButton

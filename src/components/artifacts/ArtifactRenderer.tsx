@@ -1,4 +1,3 @@
-import { useGraph } from "@/hooks/use-graph/useGraph";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { cn } from "@/lib/utils";
 import {
@@ -9,7 +8,7 @@ import {
 import { EditorView } from "@codemirror/view";
 import { HumanMessage } from "@langchain/core/messages";
 import { Forward, LoaderCircle, CircleCheck } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
@@ -17,15 +16,12 @@ import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { CodeRenderer } from "./CodeRenderer";
 import { TextRenderer } from "./TextRenderer";
 import { CustomQuickActions } from "./actions_toolbar/custom";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { getArtifactContent } from "@/contexts/utils";
 import { ArtifactLoading } from "./ArtifactLoading";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
-import { User } from "@supabase/supabase-js";
+import { useGraphContext } from "@/contexts/GraphContext";
 
 export interface ArtifactRendererProps {
-  threadId: string;
-  assistantId: string;
-  user: User;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -118,8 +114,12 @@ function NavigateArtifactHistory(props: NavigateArtifactHistoryProps) {
   );
 }
 
-export function ArtifactRenderer(props: ArtifactRendererProps) {
-  const { user, threadId, assistantId } = props;
+function ArtifactRendererComponent(props: ArtifactRendererProps) {
+  const {
+    graphData,
+    threadData: { assistantId },
+    userData: { user },
+  } = useGraphContext();
   const {
     artifact,
     selectedBlocks,
@@ -129,7 +129,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     setMessages,
     streamMessage,
     setSelectedBlocks,
-  } = useGraph();
+  } = graphData;
   const editorRef = useRef<EditorView | null>(null);
   const artifactContentRef = useRef<HTMLDivElement>(null);
   const highlightLayerRef = useRef<HTMLDivElement>(null);
@@ -209,21 +209,15 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
 
     setMessages((prevMessages) => [...prevMessages, humanMessage]);
     handleCleanupState();
-    await streamMessage(
-      {
-        messages: [convertToOpenAIFormat(humanMessage)],
-        ...(selectionIndexes && {
-          highlightedCode: {
-            startCharIndex: selectionIndexes.start,
-            endCharIndex: selectionIndexes.end,
-          },
-        }),
-      },
-      {
-        threadId,
-        assistantId,
-      }
-    );
+    await streamMessage({
+      messages: [convertToOpenAIFormat(humanMessage)],
+      ...(selectionIndexes && {
+        highlightedCode: {
+          startCharIndex: selectionIndexes.start,
+          endCharIndex: selectionIndexes.end,
+        },
+      }),
+    });
   };
 
   useEffect(() => {
@@ -360,7 +354,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           />
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
-          <ReflectionsDialog />
+          <ReflectionsDialog assistantId={assistantId} />
         </div>
       </div>
       <div
@@ -384,7 +378,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
           >
             {currentArtifactContent.type === "text" ? (
               <TextRenderer
-                threadId={threadId}
                 isInputVisible={isInputVisible}
                 isEditing={props.isEditing}
                 isHovering={isHoveringOverArtifact}
@@ -392,7 +385,6 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
             ) : null}
             {currentArtifactContent.type === "code" ? (
               <CodeRenderer
-                threadId={threadId}
                 editorRef={editorRef}
                 isHovering={isHoveringOverArtifact}
               />
@@ -420,22 +412,20 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         )}
       </div>
       <CustomQuickActions
-        threadId={threadId}
+        streamMessage={streamMessage}
         assistantId={assistantId}
         user={user}
         isTextSelected={isSelectionActive || selectedBlocks !== undefined}
       />
       {currentArtifactContent.type === "text" ? (
         <ActionsToolbar
-          threadId={threadId}
-          assistantId={assistantId}
+          streamMessage={streamMessage}
           isTextSelected={isSelectionActive || selectedBlocks !== undefined}
         />
       ) : null}
       {currentArtifactContent.type === "code" ? (
         <CodeToolBar
-          threadId={threadId}
-          assistantId={assistantId}
+          streamMessage={streamMessage}
           isTextSelected={isSelectionActive || selectedBlocks !== undefined}
           language={
             currentArtifactContent.language as ProgrammingLanguageOptions
@@ -445,3 +435,5 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
     </div>
   );
 }
+
+export const ArtifactRenderer = React.memo(ArtifactRendererComponent);

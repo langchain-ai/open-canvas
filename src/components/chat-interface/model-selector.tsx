@@ -16,7 +16,7 @@ import {
   FIREWORKS_MODELS,
   GEMINI_MODELS,
 } from "@/constants";
-import { useThread } from "@/hooks/useThread";
+import { Dispatch, SetStateAction } from "react";
 
 const allModels = [
   ...ANTHROPIC_MODELS,
@@ -30,8 +30,13 @@ const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
   return model?.label ?? modelName;
 };
 
-export default function ModelSelector() {
-  const { modelName, setModelName } = useThread();
+interface ModelSelectorProps {
+  modelName: ALL_MODEL_NAMES;
+  setModelName: Dispatch<SetStateAction<ALL_MODEL_NAMES>>;
+}
+
+export default function ModelSelector(props: ModelSelectorProps) {
+  const { modelName, setModelName } = props;
 
   const handleModelChange = async (newModel: ALL_MODEL_NAMES) => {
     // Create a new thread with the new model

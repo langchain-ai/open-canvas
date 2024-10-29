@@ -8,12 +8,11 @@ import { useEffect, useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";
 import { PiChatsCircleLight } from "react-icons/pi";
 import { TighterText } from "../ui/header";
-import { useGraph } from "@/hooks/use-graph/useGraph";
-import { useThread } from "@/hooks/useThread";
-import { User } from "@supabase/supabase-js";
+import { useGraphContext } from "@/contexts/GraphContext";
+import { useToast } from "@/hooks/use-toast";
+import React from "react";
 
 interface ThreadHistoryProps {
-  user: User;
   switchSelectedThreadCallback: (thread: Thread) => void;
 }
 
@@ -192,20 +191,37 @@ function ThreadsList(props: ThreadsListProps) {
   );
 }
 
-export function ThreadHistory(props: ThreadHistoryProps) {
-  const { user } = props;
+export function ThreadHistoryComponent(props: ThreadHistoryProps) {
+  const { toast } = useToast();
+  const {
+    userData: { user },
+    threadData: {
+      deleteThread,
+      getUserThreads,
+      userThreads,
+      isUserThreadsLoading,
+    },
+    graphData: { setMessages, switchSelectedThread },
+  } = useGraphContext();
   const [open, setOpen] = useState(false);
-  const { setMessages, switchSelectedThread } = useGraph();
-  const { deleteThread, getUserThreads, userThreads, isUserThreadsLoading } =
-    useThread();
 
   useEffect(() => {
-    if (typeof window == "undefined" || userThreads.length) return;
+    if (typeof window == "undefined" || userThreads.length || !user) return;
 
     getUserThreads(user.id);
-  }, []);
+  }, [user]);
 
   const handleDeleteThread = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Failed to delete thread",
+        description: "User not found",
+        duration: 5000,
+        variant: "destructive",
+      });
+      return;
+    }
+
     await deleteThread(id, user.id, () => setMessages([]));
   };
 
@@ -255,3 +271,5 @@ export function ThreadHistory(props: ThreadHistoryProps) {
     </Sheet>
   );
 }
+
+export const ThreadHistory = React.memo(ThreadHistoryComponent);

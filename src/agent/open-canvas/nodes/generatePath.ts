@@ -11,7 +11,7 @@ import {
   formatArtifactContentWithTemplate,
   getModelNameAndProviderFromConfig,
 } from "../../utils";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { getArtifactContent } from "../../../contexts/utils";
 import { initChatModel } from "langchain/chat_models/universal";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 

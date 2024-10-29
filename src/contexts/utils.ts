@@ -13,6 +13,23 @@ import {
   BaseMessageChunk,
 } from "@langchain/core/messages";
 
+export function removeCodeBlockFormatting(text: string): string {
+  if (!text) return text;
+  // Regular expression to match code blocks
+  const codeBlockRegex = /^```[\w-]*\n([\s\S]*?)\n```$/;
+
+  // Check if the text matches the code block pattern
+  const match = text.match(codeBlockRegex);
+
+  if (match) {
+    // If it matches, return the content inside the code block
+    return match[1].trim();
+  } else {
+    // If it doesn't match, return the original text
+    return text;
+  }
+}
+
 export const replaceOrInsertMessageChunk = (
   prevMessages: BaseMessage[],
   newMessageChunk: BaseMessageChunk
@@ -108,12 +125,19 @@ export const updateHighlightedMarkdown = (
   prevCurrentContent: ArtifactMarkdownV3,
   isFirstUpdate: boolean
 ): ArtifactV3 | undefined => {
-  let newContents: (ArtifactCodeV3 | ArtifactMarkdownV3)[];
+  // Create a deep copy of the previous artifact
+  const basePrevArtifact = {
+    ...prevArtifact,
+    contents: prevArtifact.contents.map((c) => ({ ...c })),
+  };
+
   const currentIndex = validateNewArtifactIndex(
     newArtifactIndex,
-    prevArtifact.contents.length,
+    basePrevArtifact.contents.length,
     isFirstUpdate
   );
+
+  let newContents: (ArtifactCodeV3 | ArtifactMarkdownV3)[];
 
   if (isFirstUpdate) {
     const newMarkdownContent: ArtifactMarkdownV3 = {
@@ -121,24 +145,32 @@ export const updateHighlightedMarkdown = (
       index: currentIndex,
       fullMarkdown: content,
     };
-    newContents = [...prevArtifact.contents, newMarkdownContent];
+    newContents = [...basePrevArtifact.contents, newMarkdownContent];
   } else {
-    newContents = prevArtifact.contents.map((c) => {
+    newContents = basePrevArtifact.contents.map((c) => {
       if (c.index === currentIndex) {
         return {
           ...c,
           fullMarkdown: content,
         };
       }
-      return c;
+      return { ...c }; // Create new reference for unchanged items too
     });
   }
 
-  return {
-    ...prevArtifact,
+  // Create new reference for the entire artifact
+  const newArtifact: ArtifactV3 = {
+    ...basePrevArtifact,
     currentIndex,
     contents: newContents,
   };
+
+  // Verify we're actually creating a new reference
+  if (Object.is(newArtifact, prevArtifact)) {
+    console.warn("Warning: updateHighlightedMarkdown returned same reference");
+  }
+
+  return newArtifact;
 };
 
 export const updateHighlightedCode = (
@@ -148,12 +180,19 @@ export const updateHighlightedCode = (
   prevCurrentContent: ArtifactCodeV3,
   isFirstUpdate: boolean
 ): ArtifactV3 | undefined => {
-  let newContents: (ArtifactCodeV3 | ArtifactMarkdownV3)[];
+  // Create a deep copy of the previous artifact
+  const basePrevArtifact = {
+    ...prevArtifact,
+    contents: prevArtifact.contents.map((c) => ({ ...c })),
+  };
+
   const currentIndex = validateNewArtifactIndex(
     newArtifactIndex,
-    prevArtifact.contents.length,
+    basePrevArtifact.contents.length,
     isFirstUpdate
   );
+
+  let newContents: (ArtifactCodeV3 | ArtifactMarkdownV3)[];
 
   if (isFirstUpdate) {
     const newCodeContent: ArtifactCodeV3 = {
@@ -161,24 +200,31 @@ export const updateHighlightedCode = (
       index: currentIndex,
       code: content,
     };
-    newContents = [...prevArtifact.contents, newCodeContent];
+    newContents = [...basePrevArtifact.contents, newCodeContent];
   } else {
-    newContents = prevArtifact.contents.map((c) => {
+    newContents = basePrevArtifact.contents.map((c) => {
       if (c.index === currentIndex) {
         return {
           ...c,
           code: content,
         };
       }
-      return c;
+      return { ...c }; // Create new reference for unchanged items too
     });
   }
 
-  return {
-    ...prevArtifact,
+  const newArtifact: ArtifactV3 = {
+    ...basePrevArtifact,
     currentIndex,
     contents: newContents,
   };
+
+  // Verify we're actually creating a new reference
+  if (Object.is(newArtifact, prevArtifact)) {
+    console.warn("Warning: updateHighlightedCode returned same reference");
+  }
+
+  return newArtifact;
 };
 
 interface UpdateRewrittenArtifactArgs {
@@ -200,17 +246,24 @@ export const updateRewrittenArtifact = ({
   isFirstUpdate,
   artifactLanguage,
 }: UpdateRewrittenArtifactArgs): ArtifactV3 => {
-  let artifactContents: (ArtifactMarkdownV3 | ArtifactCodeV3)[] = [];
+  // Create a deep copy of the previous artifact
+  const basePrevArtifact = {
+    ...prevArtifact,
+    contents: prevArtifact.contents.map((c) => ({ ...c })),
+  };
+
   const currentIndex = validateNewArtifactIndex(
     newArtifactIndex,
-    prevArtifact.contents.length,
+    basePrevArtifact.contents.length,
     isFirstUpdate
   );
+
+  let artifactContents: (ArtifactMarkdownV3 | ArtifactCodeV3)[];
 
   if (isFirstUpdate) {
     if (rewriteArtifactMeta.type === "code") {
       artifactContents = [
-        ...prevArtifact.contents,
+        ...basePrevArtifact.contents,
         {
           type: "code",
           title: rewriteArtifactMeta.title || prevCurrentContent?.title || "",
@@ -221,7 +274,7 @@ export const updateRewrittenArtifact = ({
       ];
     } else {
       artifactContents = [
-        ...prevArtifact.contents,
+        ...basePrevArtifact.contents,
         {
           index: currentIndex,
           type: "text",
@@ -232,33 +285,40 @@ export const updateRewrittenArtifact = ({
     }
   } else {
     if (rewriteArtifactMeta?.type === "code") {
-      artifactContents = prevArtifact.contents.map((c) => {
+      artifactContents = basePrevArtifact.contents.map((c) => {
         if (c.index === currentIndex) {
           return {
             ...c,
             code: newArtifactContent,
           };
         }
-        return c;
+        return { ...c }; // Create new reference for unchanged items too
       });
     } else {
-      artifactContents = prevArtifact.contents.map((c) => {
+      artifactContents = basePrevArtifact.contents.map((c) => {
         if (c.index === currentIndex) {
           return {
             ...c,
             fullMarkdown: newArtifactContent,
           };
         }
-        return c;
+        return { ...c }; // Create new reference for unchanged items too
       });
     }
   }
 
-  return {
-    ...prevArtifact,
+  const newArtifact: ArtifactV3 = {
+    ...basePrevArtifact,
     currentIndex,
     contents: artifactContents,
   };
+
+  // Verify we're actually creating a new reference
+  if (Object.is(newArtifact, prevArtifact)) {
+    console.warn("Warning: updateRewrittenArtifact returned same reference");
+  }
+
+  return newArtifact;
 };
 
 export const convertToArtifactV3 = (oldArtifact: Artifact): ArtifactV3 => {

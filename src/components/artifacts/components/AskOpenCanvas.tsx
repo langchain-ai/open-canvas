@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { CircleArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ArtifactV3 } from "@/types";
-import { getArtifactContent } from "@/hooks/use-graph/utils";
+import { getArtifactContent } from "@/contexts/utils";
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { useToast } from "@/hooks/use-toast";
 
