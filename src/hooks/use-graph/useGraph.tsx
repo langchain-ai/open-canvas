@@ -696,11 +696,6 @@ export function useGraph(useGraphInput: UseGraphInput) {
       setIsStreaming(false);
     }
 
-    // TODO:
-    // Implement an updateState call after streaming is done to update the state of the artifact
-    // with the full markdown content of the artifact if it's a text artifact. This is required so
-    // users can load the artifact in the future with proper markdown styling.
-
     if (runId) {
       // Chain `.then` to not block the stream
       shareRun(runId).then(async (sharedRunURL) => {

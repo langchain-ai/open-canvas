@@ -9,6 +9,8 @@ import {
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { CopyText } from "./components/CopyText";
+import { getArtifactContent } from "@/hooks/use-graph/utils";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
@@ -24,6 +26,7 @@ export interface TextRendererProps {
   updateRenderedArtifactRequired: boolean;
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
   firstTokenReceived: boolean;
+  isHovering: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
@@ -152,7 +155,14 @@ export function TextRenderer(props: TextRendererProps) {
   };
 
   return (
-    <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5">
+    <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5 relative">
+      {props.isHovering && props.artifact && (
+        <div className="absolute top-2 right-4 z-10">
+          <CopyText
+            currentArtifactContent={getArtifactContent(props.artifact)}
+          />
+        </div>
+      )}
       <style jsx global>{`
         .pulse-text .bn-block-group {
           animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;

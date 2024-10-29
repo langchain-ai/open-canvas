@@ -16,6 +16,7 @@ import { csharp } from "@replit/codemirror-lang-csharp";
 import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
+import { CopyText } from "./components/CopyText";
 
 export interface CodeRendererProps {
   artifactContent: ArtifactCodeV3;
@@ -25,6 +26,7 @@ export interface CodeRendererProps {
   isStreaming: boolean;
   updateRenderedArtifactRequired: boolean;
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+  isHovering: boolean;
 }
 
 const getLanguageExtension = (language: string) => {
@@ -76,7 +78,7 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
   const isEditable = !props.isStreaming;
 
   return (
-    <>
+    <div className="relative">
       <style jsx global>{`
         .pulse-code .cm-content {
           animation: codePulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -92,6 +94,11 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
           }
         }
       `}</style>
+      {props.isHovering && (
+        <div className="absolute top-0 right-4 z-10">
+          <CopyText currentArtifactContent={props.artifactContent} />
+        </div>
+      )}
       <CodeMirror
         editable={isEditable}
         className={cn(
@@ -109,6 +116,6 @@ export function CodeRenderer(props: Readonly<CodeRendererProps>) {
           props.editorRef.current = view;
         }}
       />
-    </>
+    </div>
   );
 }
