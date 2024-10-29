@@ -1,6 +1,10 @@
 "use client";
 
-import { ActionBarPrimitive, MessagePrimitive, useMessage } from "@assistant-ui/react";
+import {
+  ActionBarPrimitive,
+  MessagePrimitive,
+  useMessage,
+} from "@assistant-ui/react";
 import { useState, type FC } from "react";
 
 import { MarkdownText } from "@/components/ui/assistant-ui/markdown-text";
