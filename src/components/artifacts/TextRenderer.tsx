@@ -24,10 +24,13 @@ export interface TextRendererProps {
   updateRenderedArtifactRequired: boolean;
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
   firstTokenReceived: boolean;
+  isRawView: boolean;
 }
 
 export function TextRenderer(props: TextRendererProps) {
   const editor = useCreateBlockNote({});
+
+  const [rawMarkdown, setRawMarkdown] = useState("");
 
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
@@ -110,6 +113,12 @@ export function TextRenderer(props: TextRendererProps) {
     }
   }, [props.artifact, props.updateRenderedArtifactRequired]);
 
+  useEffect(() => {
+    if (props.isRawView) {
+      editor.blocksToMarkdownLossy(editor.document).then(setRawMarkdown);
+    }
+  }, [props.isRawView, editor]);
+
   const isComposition = useRef(false);
 
   const onChange = async () => {
@@ -153,45 +162,53 @@ export function TextRenderer(props: TextRendererProps) {
 
   return (
     <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5">
-      <style jsx global>{`
-        .pulse-text .bn-block-group {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+      {props.isRawView ? (
+        <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-gray-50 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
+          {rawMarkdown}
+        </pre>
+      ) : (
+        <>
+          <style jsx global>{`
+            .pulse-text .bn-block-group {
+              animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
 
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.3;
-          }
-        }
-      `}</style>
-      <BlockNoteView
-        theme="light"
-        formattingToolbar={false}
-        slashMenu={false}
-        onCompositionStartCapture={() => (isComposition.current = true)}
-        onCompositionEndCapture={() => (isComposition.current = false)}
-        onChange={onChange}
-        editable={
-          !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
-        }
-        editor={editor}
-        className={
-          props.isStreaming && !props.firstTokenReceived ? "pulse-text" : ""
-        }
-      >
-        <SuggestionMenuController
-          getItems={async () =>
-            getDefaultReactSlashMenuItems(editor).filter(
-              (z) => z.group !== "Media"
-            )
-          }
-          triggerCharacter={"/"}
-        />
-      </BlockNoteView>
+            @keyframes pulse {
+              0%,
+              100% {
+                opacity: 1;
+              }
+              50% {
+                opacity: 0.3;
+              }
+            }
+          `}</style>
+          <BlockNoteView
+            theme="light"
+            formattingToolbar={false}
+            slashMenu={false}
+            onCompositionStartCapture={() => (isComposition.current = true)}
+            onCompositionEndCapture={() => (isComposition.current = false)}
+            onChange={onChange}
+            editable={
+              !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
+            }
+            editor={editor}
+            className={
+              props.isStreaming && !props.firstTokenReceived ? "pulse-text" : ""
+            }
+          >
+            <SuggestionMenuController
+              getItems={async () =>
+                getDefaultReactSlashMenuItems(editor).filter(
+                  (z) => z.group !== "Media"
+                )
+              }
+              triggerCharacter={"/"}
+            />
+          </BlockNoteView>
+        </>
+      )}
     </div>
   );
 }

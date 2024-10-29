@@ -18,6 +18,7 @@ import {
   Copy,
   LoaderCircle,
   CircleCheck,
+  Eye,
 } from "lucide-react";
 import {
   Dispatch,
@@ -86,6 +87,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
   const [isInputVisible, setIsInputVisible] = useState(false);
   const [isSelectionActive, setIsSelectionActive] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isRawView, setIsRawView] = useState(false);
 
   const handleMouseUp = useCallback(() => {
     const selection = window.getSelection();
@@ -378,6 +380,18 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
         </div>
         <div className="pr-4 pt-3">
           <TooltipIconButton
+            tooltip={"Toggle Markdown View"}
+            variant="ghost"
+            delayDuration={400}
+            onClick={() => setIsRawView((p) => !p)}
+            className={cn(
+              "transition-colors w-fit h-fit p-2",
+              isRawView && "bg-gray-100 text-gray-900"
+            )}
+          >
+            <Eye className="w-6 h-6 text-gray-600" />
+          </TooltipIconButton>
+          <TooltipIconButton
             tooltip="Copy"
             variant="ghost"
             className="transition-colors w-fit h-fit p-2"
@@ -437,6 +451,7 @@ export function ArtifactRenderer(props: ArtifactRendererProps) {
                 setUpdateRenderedArtifactRequired={
                   props.setUpdateRenderedArtifactRequired
                 }
+                isRawView={isRawView}
               />
             ) : null}
             {currentArtifactContent.type === "code" ? (
