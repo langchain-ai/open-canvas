@@ -30,6 +30,21 @@ const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
   };
 };
 
+/**
+ * Conditionally route to the "generateTitle" node if there are only
+ * two messages in the conversation. This node generates a concise title
+ * for the conversation which is displayed in the thread history.
+ */
+const conditionallyGenerateTitle = (
+  state: typeof OpenCanvasGraphAnnotation.State
+) => {
+  if (state.messages.length > 2) {
+    // Do not generate if there are more than two messages (meaning it's not the first human-AI conversation)
+    return END;
+  }
+  return "generateTitle";
+};
+
 const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Start node & edge
   .addNode("generatePath", generatePath)
@@ -71,7 +86,10 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Only reflect if an artifact was generated/updated.
   .addEdge("generateFollowup", "reflect")
   .addEdge("reflect", "cleanState")
-  .addEdge("cleanState", "generateTitle")
+  .addConditionalEdges("cleanState", conditionallyGenerateTitle, [
+    END,
+    "generateTitle",
+  ])
   .addEdge("generateTitle", END);
 
 export const graph = builder.compile().withConfig({ runName: "open_canvas" });
