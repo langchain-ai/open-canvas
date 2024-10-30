@@ -9,7 +9,7 @@ import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteArtifact } from "./nodes/rewriteArtifact";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
-import { titleNode } from "./nodes/title";
+import { generateTitleNode } from "./nodes/generateTitle";
 import { updateArtifact } from "./nodes/updateArtifact";
 import { updateHighlightedText } from "./nodes/updateHighlightedText";
 import { OpenCanvasGraphAnnotation } from "./state";
@@ -46,7 +46,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
   .addNode("reflect", reflectNode)
-  .addNode("title", titleNode)
+  .addNode("generateTitle", generateTitleNode)
   // Initial router
   .addConditionalEdges("generatePath", routeNode, [
     "updateArtifact",
@@ -71,7 +71,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Only reflect if an artifact was generated/updated.
   .addEdge("generateFollowup", "reflect")
   .addEdge("reflect", "cleanState")
-  .addEdge("cleanState", "title")
-  .addEdge("title", END);
+  .addEdge("cleanState", "generateTitle")
+  .addEdge("generateTitle", END);
 
 export const graph = builder.compile().withConfig({ runName: "open_canvas" });

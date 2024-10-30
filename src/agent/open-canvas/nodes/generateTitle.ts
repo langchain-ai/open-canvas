@@ -2,7 +2,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { Client } from "@langchain/langgraph-sdk";
 import { OpenCanvasGraphAnnotation } from "../state";
 
-export const titleNode = async (
+export const generateTitleNode = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ) => {
@@ -32,7 +32,7 @@ export const titleNode = async (
   const newThread = await langGraphClient.threads.create();
 
   // Create a new title generation run in the background
-  await langGraphClient.runs.create(newThread.thread_id, "title", {
+  await langGraphClient.runs.create(newThread.thread_id, "thread_title", {
     input: titleInput,
     config: titleConfig,
     multitaskStrategy: "enqueue",

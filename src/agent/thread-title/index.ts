@@ -95,4 +95,4 @@ const builder = new StateGraph(TitleGenerationAnnotation)
   .addNode("title", generateTitle)
   .addEdge(START, "title");
 
-export const graph = builder.compile().withConfig({ runName: "title" });
+export const graph = builder.compile().withConfig({ runName: "thread_title" });
