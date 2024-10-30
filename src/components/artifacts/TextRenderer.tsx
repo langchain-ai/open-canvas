@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { ArtifactMarkdownV3 } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
@@ -13,10 +13,44 @@ import { CopyText } from "./components/CopyText";
 import { getArtifactContent } from "@/contexts/utils";
 import { useGraphContext } from "@/contexts/GraphContext";
 import React from "react";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { Eye, EyeOff } from "lucide-react";
+import { motion } from "framer-motion";
+import { Textarea } from "../ui/textarea";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
 };
+
+function ViewRawText({
+  isRawView,
+  setIsRawView,
+}: {
+  isRawView: boolean;
+  setIsRawView: Dispatch<SetStateAction<boolean>>;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <TooltipIconButton
+        tooltip={`View ${isRawView ? "rendered" : "raw"} markdown`}
+        variant="outline"
+        delayDuration={400}
+        onClick={() => setIsRawView((p) => !p)}
+      >
+        {isRawView ? (
+          <EyeOff className="w-5 h-5 text-gray-600" />
+        ) : (
+          <Eye className="w-5 h-5 text-gray-600" />
+        )}
+      </TooltipIconButton>
+    </motion.div>
+  );
+}
 
 export interface TextRendererProps {
   isEditing: boolean;
@@ -37,6 +71,8 @@ export function TextRendererComponent(props: TextRendererProps) {
     setUpdateRenderedArtifactRequired,
   } = graphData;
 
+  const [rawMarkdown, setRawMarkdown] = useState("");
+  const [isRawView, setIsRawView] = useState(false);
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
 
@@ -118,6 +154,24 @@ export function TextRendererComponent(props: TextRendererProps) {
     }
   }, [artifact, updateRenderedArtifactRequired]);
 
+  useEffect(() => {
+    if (isRawView) {
+      editor.blocksToMarkdownLossy(editor.document).then(setRawMarkdown);
+    } else if (!isRawView && rawMarkdown) {
+      try {
+        (async () => {
+          setManuallyUpdatingArtifact(true);
+          const markdownAsBlocks =
+            await editor.tryParseMarkdownToBlocks(rawMarkdown);
+          editor.replaceBlocks(editor.document, markdownAsBlocks);
+          setManuallyUpdatingArtifact(false);
+        })();
+      } catch (_) {
+        setManuallyUpdatingArtifact(false);
+      }
+    }
+  }, [isRawView, editor]);
+
   const isComposition = useRef(false);
 
   const onChange = async () => {
@@ -159,48 +213,94 @@ export function TextRendererComponent(props: TextRendererProps) {
     });
   };
 
+  const onChangeRawMarkdown = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newRawMarkdown = e.target.value;
+    setRawMarkdown(newRawMarkdown);
+    setArtifact((prev) => {
+      if (!prev) {
+        return {
+          currentIndex: 1,
+          contents: [
+            {
+              index: 1,
+              fullMarkdown: newRawMarkdown,
+              title: "Untitled",
+              type: "text",
+            },
+          ],
+        };
+      } else {
+        return {
+          ...prev,
+          contents: prev.contents.map((c) => {
+            if (c.index === prev.currentIndex) {
+              return {
+                ...c,
+                fullMarkdown: newRawMarkdown,
+              };
+            }
+            return c;
+          }),
+        };
+      }
+    });
+  };
+
   return (
     <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5 relative">
       {props.isHovering && artifact && (
-        <div className="absolute top-2 right-4 z-10">
+        <div className="absolute flex gap-2 top-2 right-4 z-10">
           <CopyText currentArtifactContent={getArtifactContent(artifact)} />
+          <ViewRawText isRawView={isRawView} setIsRawView={setIsRawView} />
         </div>
       )}
-      <style jsx global>{`
-        .pulse-text .bn-block-group {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.3;
-          }
-        }
-      `}</style>
-      <BlockNoteView
-        theme="light"
-        formattingToolbar={false}
-        slashMenu={false}
-        onCompositionStartCapture={() => (isComposition.current = true)}
-        onCompositionEndCapture={() => (isComposition.current = false)}
-        onChange={onChange}
-        editable={!isStreaming || props.isEditing || !manuallyUpdatingArtifact}
-        editor={editor}
-        className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
-      >
-        <SuggestionMenuController
-          getItems={async () =>
-            getDefaultReactSlashMenuItems(editor).filter(
-              (z) => z.group !== "Media"
-            )
-          }
-          triggerCharacter={"/"}
+      {isRawView ? (
+        <Textarea
+          className="whitespace-pre-wrap font-mono text-sm px-[54px] border-0 shadow-none h-full outline-none ring-0 rounded-none  focus-visible:ring-0 focus-visible:ring-offset-0"
+          value={rawMarkdown}
+          onChange={onChangeRawMarkdown}
         />
-      </BlockNoteView>
+      ) : (
+        <>
+          <style jsx global>{`
+            .pulse-text .bn-block-group {
+              animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            @keyframes pulse {
+              0%,
+              100% {
+                opacity: 1;
+              }
+              50% {
+                opacity: 0.3;
+              }
+            }
+          `}</style>
+          <BlockNoteView
+            theme="light"
+            formattingToolbar={false}
+            slashMenu={false}
+            onCompositionStartCapture={() => (isComposition.current = true)}
+            onCompositionEndCapture={() => (isComposition.current = false)}
+            onChange={onChange}
+            editable={
+              !isStreaming || props.isEditing || !manuallyUpdatingArtifact
+            }
+            editor={editor}
+            className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
+          >
+            <SuggestionMenuController
+              getItems={async () =>
+                getDefaultReactSlashMenuItems(editor).filter(
+                  (z) => z.group !== "Media"
+                )
+              }
+              triggerCharacter={"/"}
+            />
+          </BlockNoteView>
+        </>
+      )}
     </div>
   );
 }
