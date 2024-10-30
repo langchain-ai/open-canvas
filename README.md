@@ -84,8 +84,8 @@ You can also watch a short (2 min) video walkthrough on how to setup Open Canvas
 
 Open Canvas is designed to be compatible with any LLM model. The current deployment has the following models configured:
 
-- **Anthropic Claude 3 Haiki 👤**: Haiku is Anthropic's fastest model, great for quick tasks like making edits to your document. Sign up for an Anthropic account [here](https://console.anthropic.com/).
-- **Fireworks Llama 70B/405B 🦙**: These are two SOTA open source models from Meta, powered by [Fireworks](https://fireworks.ai/). You can sign up for an account [here](https://fireworks.ai/login)
+- **Anthropic Claude 3 Haiku 👤**: Haiku is Anthropic's fastest model, great for quick tasks like making edits to your document. Sign up for an Anthropic account [here](https://console.anthropic.com/).
+- **Fireworks Llama 3 70B 🦙**: Llama 3 is a SOTA open source model from Meta, powered by [Fireworks AI](https://fireworks.ai/). You can sign up for an account [here](https://fireworks.ai/login).
 - **OpenAI GPT 4o Mini 💨**: GPT 4o Mini is OpenAI's newest, smallest model. You can sign up for an API key [here](https://platform.openai.com/signup/).
 
 If you'd like to add a new model, follow these simple steps:
