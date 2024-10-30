@@ -1,12 +1,12 @@
-import { isToday, isYesterday, isWithinInterval, subDays } from "date-fns";
+import { Thread } from "@langchain/langgraph-sdk";
+import { isToday, isWithinInterval, isYesterday, subDays } from "date-fns";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { PiChatsCircleLight } from "react-icons/pi";
 import { TooltipIconButton } from "./ui/assistant-ui/tooltip-icon-button";
 import { Button } from "./ui/button";
-import { Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { Skeleton } from "./ui/skeleton";
-import { useState } from "react";
-import { Thread } from "@langchain/langgraph-sdk";
-import { PiChatsCircleLight } from "react-icons/pi";
 
 interface ThreadHistoryProps {
   isUserThreadsLoading: boolean;
@@ -64,8 +64,9 @@ const convertThreadActualToThreadProps = (
 ): ThreadProps => ({
   id: thread.thread_id,
   label:
-    (thread.values as Record<string, any>)?.messages?.[0]?.content ||
-    "Untitled",
+    thread.metadata?.thread_title ??
+    ((thread.values as Record<string, any>)?.messages?.[0]?.content ||
+      "Untitled"),
   createdAt: new Date(thread.created_at),
   onClick: () => {
     return switchSelectedThread(thread);

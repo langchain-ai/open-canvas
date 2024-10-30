@@ -1,10 +1,13 @@
 {
   "node_version": "20",
   "dockerfile_lines": [],
-  "dependencies": ["."],
+  "dependencies": [
+    "."
+  ],
   "graphs": {
     "agent": "./src/agent/open-canvas/index.ts:graph",
-    "reflection": "./src/agent/reflection/index.ts:graph"
+    "reflection": "./src/agent/reflection/index.ts:graph",
+    "title": "./src/agent/title/index.ts:graph"
   },
   "env": ".env"
 }

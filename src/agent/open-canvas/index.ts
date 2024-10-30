@@ -1,17 +1,18 @@
 import { END, Send, START, StateGraph } from "@langchain/langgraph";
-import { OpenCanvasGraphAnnotation } from "./state";
-import { generatePath } from "./nodes/generatePath";
-import { generateFollowup } from "./nodes/generateFollowup";
+import { DEFAULT_INPUTS } from "../../constants";
+import { customAction } from "./nodes/customAction";
 import { generateArtifact } from "./nodes/generateArtifact";
+import { generateFollowup } from "./nodes/generateFollowup";
+import { generatePath } from "./nodes/generatePath";
+import { reflectNode } from "./nodes/reflect";
+import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteArtifact } from "./nodes/rewriteArtifact";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
-import { updateArtifact } from "./nodes/updateArtifact";
-import { respondToQuery } from "./nodes/respondToQuery";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
-import { reflectNode } from "./nodes/reflect";
-import { customAction } from "./nodes/customAction";
+import { titleNode } from "./nodes/title";
+import { updateArtifact } from "./nodes/updateArtifact";
 import { updateHighlightedText } from "./nodes/updateHighlightedText";
-import { DEFAULT_INPUTS } from "../../constants";
+import { OpenCanvasGraphAnnotation } from "./state";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -45,6 +46,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
   .addNode("reflect", reflectNode)
+  .addNode("title", titleNode)
   // Initial router
   .addConditionalEdges("generatePath", routeNode, [
     "updateArtifact",
@@ -69,6 +71,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Only reflect if an artifact was generated/updated.
   .addEdge("generateFollowup", "reflect")
   .addEdge("reflect", "cleanState")
-  .addEdge("cleanState", END);
+  .addEdge("cleanState", "title")
+  .addEdge("title", END);
 
 export const graph = builder.compile().withConfig({ runName: "open_canvas" });
