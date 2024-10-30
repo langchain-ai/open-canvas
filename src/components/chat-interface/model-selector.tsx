@@ -62,21 +62,24 @@ const AlertNewModelSelectorFeature = ({
 
   const handleCloseAlert = () => {
     setShowAlert(false);
-    localStorage.setItem(LS_HAS_SEEN_MODEL_DROPDOWN_ALERT, "true");
+    // Wait for animation to complete before setting localStorage
+    setTimeout(() => {
+      localStorage.setItem(LS_HAS_SEEN_MODEL_DROPDOWN_ALERT, "true");
+    }, 300); // Match this with your exit animation duration
   };
 
-  if (!showAlert || chatStarted) {
-    return null;
+  if (!showAlert && !chatStarted) {
+    return <AnimatePresence />; // Keep AnimatePresence mounted
   }
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {showAlert && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.2 }}
         >
           <div className="relative p-[0px] rounded-lg bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 animate-gradient-xy shadow-[0_0_25px_rgba(236,72,153,0.3)] before:absolute before:inset-0 before:rounded-lg before:p-[12px] before:bg-gradient-to-r before:from-pink-500/20 before:via-purple-500/20 before:to-pink-500/20 before:blur-xl before:-z-10 before:animate-gradient-xy-enhanced">
             <Alert className="max-w-xl bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 ease-in-out">
