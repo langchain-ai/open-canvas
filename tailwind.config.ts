@@ -9,6 +9,23 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+			keyframes: {
+        'gradient-xy-enhanced': {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'left center',
+            'transform': 'rotate(-3deg)'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+            'transform': 'rotate(3deg)'
+          }
+        }
+      },
+      animation: {
+        'gradient-xy-enhanced': 'gradient-xy-enhanced 15s ease infinite'
+      },
   		backgroundImage: {
   			'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
   			'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))'
