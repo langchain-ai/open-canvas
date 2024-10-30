@@ -7,7 +7,8 @@ export const generateTitleNode = async (
   config: LangGraphRunnableConfig
 ) => {
   if (state.messages.length > 2) {
-    // Skip if it's not first human ai conversation
+    // Skip if it's not first human ai conversation. Should never occur in practice
+    // due to the conditional edge which is called before this node.
     return {};
   }
 
