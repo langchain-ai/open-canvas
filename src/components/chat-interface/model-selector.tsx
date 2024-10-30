@@ -65,11 +65,11 @@ const AlertNewModelSelectorFeature = ({
     // Wait for animation to complete before setting localStorage
     setTimeout(() => {
       localStorage.setItem(LS_HAS_SEEN_MODEL_DROPDOWN_ALERT, "true");
-    }, 300); // Match this with your exit animation duration
+    }, 300);
   };
 
   if (!showAlert && !chatStarted) {
-    return <AnimatePresence />; // Keep AnimatePresence mounted
+    return <AnimatePresence />; // Keep AnimatePresence mounted to enable fading out
   }
 
   return (
