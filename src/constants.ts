@@ -42,10 +42,6 @@ export const FIREWORKS_MODELS = [
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
     label: "Fireworks Llama 70B",
   },
-  {
-    name: "accounts/fireworks/models/llama-v3p1-405b-instruct",
-    label: "Fireworks Llama 405B",
-  },
 ];
 
 export const GEMINI_MODELS = [
