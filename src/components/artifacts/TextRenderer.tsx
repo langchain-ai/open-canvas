@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { ArtifactMarkdownV3 } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
@@ -14,12 +14,43 @@ import { getArtifactContent } from "@/contexts/utils";
 import { useGraphContext } from "@/contexts/GraphContext";
 import React from "react";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { Eye } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Eye, EyeOff } from "lucide-react";
+import { motion } from "framer-motion";
+import { Textarea } from "../ui/textarea";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
 };
+
+function ViewRawText({
+  isRawView,
+  setIsRawView,
+}: {
+  isRawView: boolean;
+  setIsRawView: Dispatch<SetStateAction<boolean>>;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <TooltipIconButton
+        tooltip={`View ${isRawView ? "rendered" : "raw"} markdown`}
+        variant="outline"
+        delayDuration={400}
+        onClick={() => setIsRawView((p) => !p)}
+      >
+        {isRawView ? (
+          <EyeOff className="w-5 h-5 text-gray-600" />
+        ) : (
+          <Eye className="w-5 h-5 text-gray-600" />
+        )}
+      </TooltipIconButton>
+    </motion.div>
+  );
+}
 
 export interface TextRendererProps {
   isEditing: boolean;
@@ -126,6 +157,18 @@ export function TextRendererComponent(props: TextRendererProps) {
   useEffect(() => {
     if (isRawView) {
       editor.blocksToMarkdownLossy(editor.document).then(setRawMarkdown);
+    } else if (!isRawView && rawMarkdown) {
+      try {
+        (async () => {
+          setManuallyUpdatingArtifact(true);
+          const markdownAsBlocks =
+            await editor.tryParseMarkdownToBlocks(rawMarkdown);
+          editor.replaceBlocks(editor.document, markdownAsBlocks);
+          setManuallyUpdatingArtifact(false);
+        })();
+      } catch (_) {
+        setManuallyUpdatingArtifact(false);
+      }
     }
   }, [isRawView, editor]);
 
@@ -170,29 +213,53 @@ export function TextRendererComponent(props: TextRendererProps) {
     });
   };
 
+  const onChangeRawMarkdown = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newRawMarkdown = e.target.value;
+    setRawMarkdown(newRawMarkdown);
+    setArtifact((prev) => {
+      if (!prev) {
+        return {
+          currentIndex: 1,
+          contents: [
+            {
+              index: 1,
+              fullMarkdown: newRawMarkdown,
+              title: "Untitled",
+              type: "text",
+            },
+          ],
+        };
+      } else {
+        return {
+          ...prev,
+          contents: prev.contents.map((c) => {
+            if (c.index === prev.currentIndex) {
+              return {
+                ...c,
+                fullMarkdown: newRawMarkdown,
+              };
+            }
+            return c;
+          }),
+        };
+      }
+    });
+  };
+
   return (
     <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5 relative">
       {props.isHovering && artifact && (
-        <div className="absolute top-2 right-4 z-10">
+        <div className="absolute flex gap-2 top-2 right-4 z-10">
           <CopyText currentArtifactContent={getArtifactContent(artifact)} />
-          <TooltipIconButton
-            tooltip={"Toggle Markdown View"}
-            variant="ghost"
-            delayDuration={400}
-            onClick={() => setIsRawView((p) => !p)}
-            className={cn(
-              "transition-colors w-fit h-fit p-2",
-              isRawView && "bg-gray-100 text-gray-900"
-            )}
-          >
-            <Eye className="w-6 h-6 text-gray-600" />
-          </TooltipIconButton>
+          <ViewRawText isRawView={isRawView} setIsRawView={setIsRawView} />
         </div>
       )}
       {isRawView ? (
-        <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-gray-50 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
-          {rawMarkdown}
-        </pre>
+        <Textarea
+          className="whitespace-pre-wrap font-mono text-sm px-[54px] border-0 shadow-none h-full outline-none ring-0 rounded-none  focus-visible:ring-0 focus-visible:ring-offset-0"
+          value={rawMarkdown}
+          onChange={onChangeRawMarkdown}
+        />
       ) : (
         <>
           <style jsx global>{`
