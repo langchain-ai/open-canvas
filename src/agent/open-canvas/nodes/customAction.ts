@@ -1,12 +1,8 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import {
-  CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT,
-  CUSTOM_QUICK_ACTION_ARTIFACT_PROMPT_PREFIX,
-  CUSTOM_QUICK_ACTION_CONVERSATION_CONTEXT,
-  REFLECTIONS_QUICK_ACTION_PROMPT,
-} from "../prompts";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
+import { BaseMessage } from "@langchain/core/messages";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { initChatModel } from "langchain/chat_models/universal";
+import { getArtifactContent } from "../../../contexts/utils";
+import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
@@ -14,10 +10,18 @@ import {
   CustomQuickAction,
   Reflections,
 } from "../../../types";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
-import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
+import {
+  ensureStoreInConfig,
+  formatReflections,
+  getModelNameAndProviderFromConfig,
+} from "../../utils";
+import {
+  CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT,
+  CUSTOM_QUICK_ACTION_ARTIFACT_PROMPT_PREFIX,
+  CUSTOM_QUICK_ACTION_CONVERSATION_CONTEXT,
+  REFLECTIONS_QUICK_ACTION_PROMPT,
+} from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 const formatMessages = (messages: BaseMessage[]): string =>
   messages
@@ -35,9 +39,11 @@ export const customAction = async (
     throw new Error("No custom quick action ID found.");
   }
 
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
+  const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);

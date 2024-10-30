@@ -4,7 +4,7 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "unused-imports", "@typescript-eslint/eslint-plugin"],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -16,6 +16,7 @@
       }
     ],
     "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-empty-object-type": "off"
+    "@typescript-eslint/no-empty-object-type": "off",
+    "unused-imports/no-unused-imports": "error"
   }
 }

@@ -1,11 +1,15 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
-import { Reflections } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { initChatModel } from "langchain/chat_models/universal";
+import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
+import { Reflections } from "../../../types";
+import {
+  ensureStoreInConfig,
+  formatReflections,
+  getModelNameAndProviderFromConfig,
+} from "../../utils";
+import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 /**
  * Generate a followup message after generating or updating an artifact.
@@ -14,10 +18,12 @@ export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
+  const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
     maxTokens: 250,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);
