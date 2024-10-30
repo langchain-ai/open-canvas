@@ -67,8 +67,8 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     }
     setModelName(modelName);
     clearState();
-    const thread = await createThread(modelName, user.id);
     setChatStarted(false);
+    const thread = await createThread(modelName, user.id);
     if (!thread) {
       toast({
         title: "Failed to create a new thread",
