@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { ArtifactMarkdownV3, ArtifactV3, TextHighlight } from "@/types";
+import { ArtifactMarkdownV3 } from "@/types";
 import "@blocknote/core/fonts/inter.css";
 import {
   getDefaultReactSlashMenuItems,
@@ -9,26 +9,70 @@ import {
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { CopyText } from "./components/CopyText";
+import { getArtifactContent } from "@/contexts/utils";
+import { useGraphContext } from "@/contexts/GraphContext";
+import React from "react";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { Eye, EyeOff } from "lucide-react";
+import { motion } from "framer-motion";
+import { Textarea } from "../ui/textarea";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
 };
 
-export interface TextRendererProps {
-  isEditing: boolean;
-  artifact: ArtifactV3 | undefined;
-  setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
-  setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
-  isStreaming: boolean;
-  isInputVisible: boolean;
-  updateRenderedArtifactRequired: boolean;
-  setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
-  firstTokenReceived: boolean;
+function ViewRawText({
+  isRawView,
+  setIsRawView,
+}: {
+  isRawView: boolean;
+  setIsRawView: Dispatch<SetStateAction<boolean>>;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <TooltipIconButton
+        tooltip={`View ${isRawView ? "rendered" : "raw"} markdown`}
+        variant="outline"
+        delayDuration={400}
+        onClick={() => setIsRawView((p) => !p)}
+      >
+        {isRawView ? (
+          <EyeOff className="w-5 h-5 text-gray-600" />
+        ) : (
+          <Eye className="w-5 h-5 text-gray-600" />
+        )}
+      </TooltipIconButton>
+    </motion.div>
+  );
 }
 
-export function TextRenderer(props: TextRendererProps) {
-  const editor = useCreateBlockNote({});
+export interface TextRendererProps {
+  isEditing: boolean;
+  isHovering: boolean;
+  isInputVisible: boolean;
+}
 
+export function TextRendererComponent(props: TextRendererProps) {
+  const editor = useCreateBlockNote({});
+  const { graphData } = useGraphContext();
+  const {
+    artifact,
+    isStreaming,
+    updateRenderedArtifactRequired,
+    firstTokenReceived,
+    setArtifact,
+    setSelectedBlocks,
+    setUpdateRenderedArtifactRequired,
+  } = graphData;
+
+  const [rawMarkdown, setRawMarkdown] = useState("");
+  const [isRawView, setIsRawView] = useState(false);
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
 
@@ -37,13 +81,13 @@ export function TextRenderer(props: TextRendererProps) {
     const selection = editor.getSelection();
 
     if (selectedText && selection) {
-      if (!props.artifact) {
+      if (!artifact) {
         console.error("Artifact not found");
         return;
       }
 
-      const currentBlockIdx = props.artifact.currentIndex;
-      const currentContent = props.artifact.contents.find(
+      const currentBlockIdx = artifact.currentIndex;
+      const currentContent = artifact.contents.find(
         (c) => c.index === currentBlockIdx
       );
       if (!currentContent) {
@@ -60,7 +104,7 @@ export function TextRenderer(props: TextRendererProps) {
           editor.blocksToMarkdownLossy(selection.blocks),
           editor.blocksToMarkdownLossy(editor.document),
         ]);
-        props.setSelectedBlocks({
+        setSelectedBlocks({
           fullMarkdown: cleanText(fullMarkdown),
           markdownBlock: cleanText(markdownBlock),
           selectedText: cleanText(selectedText),
@@ -71,26 +115,26 @@ export function TextRenderer(props: TextRendererProps) {
 
   useEffect(() => {
     if (!props.isInputVisible) {
-      props.setSelectedBlocks(undefined);
+      setSelectedBlocks(undefined);
     }
   }, [props.isInputVisible]);
 
   useEffect(() => {
-    if (!props.artifact) {
+    if (!artifact) {
       return;
     }
     if (
-      !props.isStreaming &&
+      !isStreaming &&
       !manuallyUpdatingArtifact &&
-      !props.updateRenderedArtifactRequired
+      !updateRenderedArtifactRequired
     ) {
       console.error("Can only update via useEffect when streaming");
       return;
     }
 
     try {
-      const currentIndex = props.artifact.currentIndex;
-      const currentContent = props.artifact.contents.find(
+      const currentIndex = artifact.currentIndex;
+      const currentContent = artifact.contents.find(
         (c) => c.index === currentIndex && c.type === "text"
       ) as ArtifactMarkdownV3 | undefined;
       if (!currentContent) return;
@@ -101,27 +145,45 @@ export function TextRenderer(props: TextRendererProps) {
           currentContent.fullMarkdown
         );
         editor.replaceBlocks(editor.document, markdownAsBlocks);
-        props.setUpdateRenderedArtifactRequired(false);
+        setUpdateRenderedArtifactRequired(false);
         setManuallyUpdatingArtifact(false);
       })();
     } finally {
       setManuallyUpdatingArtifact(false);
-      props.setUpdateRenderedArtifactRequired(false);
+      setUpdateRenderedArtifactRequired(false);
     }
-  }, [props.artifact, props.updateRenderedArtifactRequired]);
+  }, [artifact, updateRenderedArtifactRequired]);
+
+  useEffect(() => {
+    if (isRawView) {
+      editor.blocksToMarkdownLossy(editor.document).then(setRawMarkdown);
+    } else if (!isRawView && rawMarkdown) {
+      try {
+        (async () => {
+          setManuallyUpdatingArtifact(true);
+          const markdownAsBlocks =
+            await editor.tryParseMarkdownToBlocks(rawMarkdown);
+          editor.replaceBlocks(editor.document, markdownAsBlocks);
+          setManuallyUpdatingArtifact(false);
+        })();
+      } catch (_) {
+        setManuallyUpdatingArtifact(false);
+      }
+    }
+  }, [isRawView, editor]);
 
   const isComposition = useRef(false);
 
   const onChange = async () => {
     if (
-      props.isStreaming ||
+      isStreaming ||
       manuallyUpdatingArtifact ||
-      props.updateRenderedArtifactRequired
+      updateRenderedArtifactRequired
     )
       return;
 
     const fullMarkdown = await editor.blocksToMarkdownLossy(editor.document);
-    props.setArtifact((prev) => {
+    setArtifact((prev) => {
       if (!prev) {
         return {
           currentIndex: 1,
@@ -151,47 +213,96 @@ export function TextRenderer(props: TextRendererProps) {
     });
   };
 
-  return (
-    <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5">
-      <style jsx global>{`
-        .pulse-text .bn-block-group {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+  const onChangeRawMarkdown = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newRawMarkdown = e.target.value;
+    setRawMarkdown(newRawMarkdown);
+    setArtifact((prev) => {
+      if (!prev) {
+        return {
+          currentIndex: 1,
+          contents: [
+            {
+              index: 1,
+              fullMarkdown: newRawMarkdown,
+              title: "Untitled",
+              type: "text",
+            },
+          ],
+        };
+      } else {
+        return {
+          ...prev,
+          contents: prev.contents.map((c) => {
+            if (c.index === prev.currentIndex) {
+              return {
+                ...c,
+                fullMarkdown: newRawMarkdown,
+              };
+            }
+            return c;
+          }),
+        };
+      }
+    });
+  };
 
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.3;
-          }
-        }
-      `}</style>
-      <BlockNoteView
-        theme="light"
-        formattingToolbar={false}
-        slashMenu={false}
-        onCompositionStartCapture={() => (isComposition.current = true)}
-        onCompositionEndCapture={() => (isComposition.current = false)}
-        onChange={onChange}
-        editable={
-          !props.isStreaming || props.isEditing || !manuallyUpdatingArtifact
-        }
-        editor={editor}
-        className={
-          props.isStreaming && !props.firstTokenReceived ? "pulse-text" : ""
-        }
-      >
-        <SuggestionMenuController
-          getItems={async () =>
-            getDefaultReactSlashMenuItems(editor).filter(
-              (z) => z.group !== "Media"
-            )
-          }
-          triggerCharacter={"/"}
+  return (
+    <div className="w-full h-full mt-2 flex flex-col border-t-[1px] border-gray-200 overflow-y-auto py-5 relative">
+      {props.isHovering && artifact && (
+        <div className="absolute flex gap-2 top-2 right-4 z-10">
+          <CopyText currentArtifactContent={getArtifactContent(artifact)} />
+          <ViewRawText isRawView={isRawView} setIsRawView={setIsRawView} />
+        </div>
+      )}
+      {isRawView ? (
+        <Textarea
+          className="whitespace-pre-wrap font-mono text-sm px-[54px] border-0 shadow-none h-full outline-none ring-0 rounded-none  focus-visible:ring-0 focus-visible:ring-offset-0"
+          value={rawMarkdown}
+          onChange={onChangeRawMarkdown}
         />
-      </BlockNoteView>
+      ) : (
+        <>
+          <style jsx global>{`
+            .pulse-text .bn-block-group {
+              animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            @keyframes pulse {
+              0%,
+              100% {
+                opacity: 1;
+              }
+              50% {
+                opacity: 0.3;
+              }
+            }
+          `}</style>
+          <BlockNoteView
+            theme="light"
+            formattingToolbar={false}
+            slashMenu={false}
+            onCompositionStartCapture={() => (isComposition.current = true)}
+            onCompositionEndCapture={() => (isComposition.current = false)}
+            onChange={onChange}
+            editable={
+              !isStreaming || props.isEditing || !manuallyUpdatingArtifact
+            }
+            editor={editor}
+            className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
+          >
+            <SuggestionMenuController
+              getItems={async () =>
+                getDefaultReactSlashMenuItems(editor).filter(
+                  (z) => z.group !== "Media"
+                )
+              }
+              triggerCharacter={"/"}
+            />
+          </BlockNoteView>
+        </>
+      )}
     </div>
   );
 }
+
+export const TextRenderer = React.memo(TextRendererComponent);

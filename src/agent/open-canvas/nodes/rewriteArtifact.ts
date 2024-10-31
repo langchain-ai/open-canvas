@@ -1,4 +1,3 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import {
   GET_TITLE_TYPE_REWRITE_ARTIFACT,
@@ -9,6 +8,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContent,
   formatReflections,
+  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import {
   ArtifactCodeV3,
@@ -19,19 +19,65 @@ import {
 } from "../../../types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
+import { getArtifactContent } from "../../../contexts/utils";
 import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
 } from "../../../lib/artifact_content_types";
+import { initChatModel } from "langchain/chat_models/universal";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
-    temperature: 0.5,
+  const optionallyUpdateArtifactMetaSchema = z.object({
+    type: z
+      .enum(["text", "code"])
+      .describe("The type of the artifact content."),
+    title: z
+      .string()
+      .optional()
+      .describe(
+        "The new title to give the artifact. ONLY update this if the user is making a request which changes the subject/topic of the artifact."
+      ),
+    language: z
+      .enum(
+        PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
+          string,
+          ...string[],
+        ]
+      )
+      .describe(
+        "The language of the code artifact. This should be populated with the programming language if the user is requesting code to be written, or 'other', in all other cases."
+      ),
+  });
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
+  const toolCallingModel = (
+    await initChatModel(modelName, {
+      temperature: 0,
+      modelProvider,
+    })
+  )
+    .bindTools(
+      [
+        {
+          name: "optionallyUpdateArtifactMeta",
+          schema: optionallyUpdateArtifactMetaSchema,
+          description: "Update the artifact meta information, if necessary.",
+        },
+      ],
+      { tool_choice: "optionallyUpdateArtifactMeta" }
+    )
+    .withConfig({ runName: "optionally_update_artifact_meta" });
+
+  const smallModelWithConfig = (
+    await initChatModel(modelName, {
+      temperature: 0,
+      modelProvider,
+    })
+  ).withConfig({
+    runName: "rewrite_artifact_model_call",
   });
 
   const store = ensureStoreInConfig(config);
@@ -65,43 +111,11 @@ export const rewriteArtifact = async (
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
   }
-  const optionallyUpdateArtifactMetaSchema = z.object({
-    type: z
-      .enum(["text", "code"])
-      .describe("The type of the artifact content."),
-    title: z
-      .string()
-      .optional()
-      .describe(
-        "The new title to give the artifact. ONLY update this if the user is making a request which changes the subject/topic of the artifact."
-      ),
-    programmingLanguage: z
-      .enum(
-        PROGRAMMING_LANGUAGES.map((lang) => lang.language) as [
-          string,
-          ...string[],
-        ]
-      )
-      .optional()
-      .describe(
-        "The programming language of the code artifact. ONLY update this if the user is making a request which changes the programming language of the code artifact, or is asking for a code artifact to be generated."
-      ),
-  });
-  const optionallyUpdateModelWithTool = smallModel
-    .bindTools([
-      {
-        name: "optionallyUpdateArtifactMeta",
-        schema: optionallyUpdateArtifactMetaSchema,
-        description: "Update the artifact meta information, if necessary.",
-      },
-    ])
-    .withConfig({ runName: "optionally_update_artifact_meta" });
 
-  const optionallyUpdateArtifactResponse =
-    await optionallyUpdateModelWithTool.invoke([
-      { role: "system", content: optionallyUpdateArtifactMetaPrompt },
-      recentHumanMessage,
-    ]);
+  const optionallyUpdateArtifactResponse = await toolCallingModel.invoke([
+    { role: "system", content: optionallyUpdateArtifactMetaPrompt },
+    recentHumanMessage,
+  ]);
   const artifactMetaToolCall = optionallyUpdateArtifactResponse.tool_calls?.[0];
   const artifactType = artifactMetaToolCall?.args?.type;
   const isNewType = artifactType !== currentArtifactContent.type;
@@ -130,10 +144,6 @@ export const rewriteArtifact = async (
           )
         : ""
     );
-
-  const smallModelWithConfig = smallModel.withConfig({
-    runName: "rewrite_artifact_model_call",
-  });
 
   const newArtifactResponse = await smallModelWithConfig.invoke([
     { role: "system", content: formattedPrompt },

@@ -25,7 +25,8 @@ ${DEFAULT_CODE_PROMPT_RULES}
 You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
 <reflections>
 {reflections}
-</reflections>`;
+</reflections>
+{disableChainOfThought}`;
 
 export const UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT = `You are an AI assistant, and the user has requested you make an update to a specific part of an artifact you generated in the past.
 
@@ -219,11 +220,11 @@ Rules and guidelines:
 export const ROUTE_QUERY_OPTIONS_HAS_ARTIFACTS = `
 - 'rewriteArtifact': The user has requested some sort of change, or revision to the artifact, or to write a completely new artifact independent of the current artifact. Use their recent message and the currently selected artifact (if any) to determine what to do. You should ONLY select this if the user has clearly requested a change to the artifact, otherwise you should lean towards either generating a new artifact or responding to their query.
   It is very important you do not edit the artifact unless clearly requested by the user.
-- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require updating or generating an entirely new artifact.`;
+- 'replyToGeneralInput': The user submitted a general input which does not require making an update, edit or generating a new artifact. This should ONLY be used if you are ABSOLUTELY sure the user does NOT want to make an edit, update or generate a new artifact.`;
 
 export const ROUTE_QUERY_OPTIONS_NO_ARTIFACTS = `
 - 'generateArtifact': The user has inputted a request which requires generating an artifact.
-- 'respondToQuery': The user has asked a question, or has submitted a general message which requires a response, but does not require generating a artifact.`;
+- 'replyToGeneralInput': The user submitted a general input which does not require making an update, edit or generating a new artifact. This should ONLY be used if you are ABSOLUTELY sure the user does NOT want to make an edit, update or generate a new artifact.`;
 
 export const CURRENT_ARTIFACT_PROMPT = `This artifact is the one the user is currently viewing.
 <artifact>

@@ -1,5 +1,13 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { initChatModel } from "langchain/chat_models/universal";
+import { getArtifactContent } from "../../../contexts/utils";
+import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
+import { ArtifactV3, Reflections } from "../../../types";
+import {
+  ensureStoreInConfig,
+  formatReflections,
+  getModelNameAndProviderFromConfig,
+} from "../../utils";
 import {
   ADD_EMOJIS_TO_ARTIFACT_PROMPT,
   CHANGE_ARTIFACT_LANGUAGE_PROMPT,
@@ -7,19 +15,17 @@ import {
   CHANGE_ARTIFACT_READING_LEVEL_PROMPT,
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
-import { ArtifactV3, Reflections } from "../../../types";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "../../../hooks/use-graph/utils";
-import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o-mini",
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
+  const smallModel = await initChatModel(modelName, {
     temperature: 0.5,
+    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);

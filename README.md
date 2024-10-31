@@ -80,6 +80,30 @@ Then, open [localhost:3000](http://localhost:3000) with your browser and start i
 
 You can also watch a short (2 min) video walkthrough on how to setup Open Canvas locally [here](https://www.loom.com/share/e2ce559840f14a9abf1b3d5af7686271).
 
+## LLM Models
+
+Open Canvas is designed to be compatible with any LLM model. The current deployment has the following models configured:
+
+- **Anthropic Claude 3 Haiku 👤**: Haiku is Anthropic's fastest model, great for quick tasks like making edits to your document. Sign up for an Anthropic account [here](https://console.anthropic.com/).
+- **Fireworks Llama 3 70B 🦙**: Llama 3 is a SOTA open source model from Meta, powered by [Fireworks AI](https://fireworks.ai/). You can sign up for an account [here](https://fireworks.ai/login).
+- **OpenAI GPT 4o Mini 💨**: GPT 4o Mini is OpenAI's newest, smallest model. You can sign up for an API key [here](https://platform.openai.com/signup/).
+
+If you'd like to add a new model, follow these simple steps:
+
+1. Add to or update the model provider variables in `constants.ts`.
+2. Install the necessary package for the provider (e.g. `@langchain/anthropic`).
+3. Update the `getModelNameAndProviderFromConfig` function in `src/agent/utils.ts` to include your new model name and provider.
+4. Manually test by checking you can:
+  > - 4a. Generate a new artifact
+  >
+  > - 4b. Generate a followup message (happens automatically after generating an artifact)
+  >
+  > - 4c. Update an artifact via a message in chat
+  >
+  > - 4d. Update an artifact via a quick action
+  >
+  > - 4e. Repeat for text/code (ensure both work)
+
 ## Roadmap
 
 ### Features
