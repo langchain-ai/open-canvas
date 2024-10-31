@@ -157,6 +157,35 @@ export default function ModelSelector(props: ModelSelectorProps) {
       localStorage.setItem(LS_HAS_SEEN_MODEL_DROPDOWN_ALERT, "true");
     }
   };
+  const allAllowedModels = allModels.filter((model) => {
+    if (
+      model.name.includes("fireworks/") &&
+      process.env.NEXT_PUBLIC_FIREWORKS_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
+      model.name.includes("claude-") &&
+      process.env.NEXT_PUBLIC_ANTHROPIC_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
+      model.name.includes("gpt-") &&
+      process.env.NEXT_PUBLIC_OPENAI_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
+      model.name.includes("gemini-") &&
+      process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false"
+    ) {
+      return false;
+    }
+
+    // By default, return true if the environment variable is not set or is set to true
+    return true;
+  });
 
   return (
     <div className="relative">
@@ -176,7 +205,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {allModels.map((model) => (
+          {allAllowedModels.map((model) => (
             <SelectItem key={model.name} value={model.name}>
               {model.label}
             </SelectItem>
