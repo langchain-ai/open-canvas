@@ -158,22 +158,34 @@ export default function ModelSelector(props: ModelSelectorProps) {
     }
   };
   const allAllowedModels = allModels.filter((model) => {
-    if (model.name.includes("fireworks/") && process.env.NEXT_PUBLIC_FIREWORKS_ENABLED === "false") {
+    if (
+      model.name.includes("fireworks/") &&
+      process.env.NEXT_PUBLIC_FIREWORKS_ENABLED === "false"
+    ) {
       return false;
     }
-    if (model.name.includes("claude-") && process.env.NEXT_PUBLIC_ANTHROPIC_ENABLED === "false") {
+    if (
+      model.name.includes("claude-") &&
+      process.env.NEXT_PUBLIC_ANTHROPIC_ENABLED === "false"
+    ) {
       return false;
     }
-    if (model.name.includes("gpt-") && process.env.NEXT_PUBLIC_OPENAI_ENABLED === "false") {
+    if (
+      model.name.includes("gpt-") &&
+      process.env.NEXT_PUBLIC_OPENAI_ENABLED === "false"
+    ) {
       return false;
     }
-    if (model.name.includes("gemini-") && process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false") {
+    if (
+      model.name.includes("gemini-") &&
+      process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false"
+    ) {
       return false;
     }
 
     // By default, return true if the environment variable is not set or is set to true
     return true;
-  })
+  });
 
   return (
     <div className="relative">
