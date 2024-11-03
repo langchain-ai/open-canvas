@@ -11,10 +11,10 @@ import { z } from "zod";
 import {
   ensureStoreInConfig,
   formatReflections,
-  getModelNameAndProviderFromConfig,
+  getModelConfig,
+  initChatModelWithConfig,
 } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -23,11 +23,11 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  const smallModel = await initChatModelWithConfig(modelName, {
     temperature: 0.5,
     modelProvider,
+    azureConfig,
   });
 
   const store = ensureStoreInConfig(config);

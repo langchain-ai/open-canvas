@@ -1,13 +1,9 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
+import { initChatModelWithConfig, getModelConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import { ArtifactV3, Reflections } from "../../../types";
-import {
-  ensureStoreInConfig,
-  formatReflections,
-  getModelNameAndProviderFromConfig,
-} from "../../utils";
+import { ensureStoreInConfig, formatReflections } from "../../utils";
 import {
   ADD_EMOJIS_TO_ARTIFACT_PROMPT,
   CHANGE_ARTIFACT_LANGUAGE_PROMPT,
@@ -21,11 +17,11 @@ export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  const smallModel = await initChatModelWithConfig(modelName, {
     temperature: 0.5,
     modelProvider,
+    azureConfig,
   });
 
   const store = ensureStoreInConfig(config);

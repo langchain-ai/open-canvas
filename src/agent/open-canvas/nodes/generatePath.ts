@@ -7,12 +7,9 @@ import {
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
-import {
-  formatArtifactContentWithTemplate,
-  getModelNameAndProviderFromConfig,
-} from "../../utils";
+import { formatArtifactContentWithTemplate, getModelConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
-import { initChatModel } from "langchain/chat_models/universal";
+import { initChatModelWithConfig } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
@@ -93,11 +90,11 @@ export const generatePath = async (
     ? "rewriteArtifact"
     : "generateArtifact";
 
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
-  const model = await initChatModel(modelName, {
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  const model = await initChatModelWithConfig(modelName, {
     temperature: 0,
     modelProvider,
+    azureConfig,
   });
   const modelWithTool = model.withStructuredOutput(
     z.object({

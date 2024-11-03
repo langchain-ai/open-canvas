@@ -1,12 +1,11 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
+import { initChatModelWithConfig, getModelConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatArtifactContentWithTemplate,
   formatReflections,
-  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
@@ -18,11 +17,11 @@ export const replyToGeneralInput = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  const smallModel = await initChatModelWithConfig(modelName, {
     temperature: 0.5,
     modelProvider,
+    azureConfig,
   });
 
   const prompt = `You are an AI assistant tasked with responding to the users question.

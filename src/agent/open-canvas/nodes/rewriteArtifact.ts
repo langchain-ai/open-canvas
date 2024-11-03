@@ -8,7 +8,7 @@ import {
   ensureStoreInConfig,
   formatArtifactContent,
   formatReflections,
-  getModelNameAndProviderFromConfig,
+  getModelConfig,
 } from "../../utils";
 import {
   ArtifactCodeV3,
@@ -24,7 +24,7 @@ import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
 } from "../../../lib/artifact_content_types";
-import { initChatModel } from "langchain/chat_models/universal";
+import { initChatModelWithConfig } from "../../utils";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -51,12 +51,15 @@ export const rewriteArtifact = async (
         "The language of the code artifact. This should be populated with the programming language if the user is requesting code to be written, or 'other', in all other cases."
       ),
   });
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
+
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+
+  // Then bind tools to create toolCallingModel
   const toolCallingModel = (
-    await initChatModel(modelName, {
+    await initChatModelWithConfig(modelName, {
       temperature: 0,
       modelProvider,
+      azureConfig,
     })
   )
     .bindTools(
@@ -71,14 +74,14 @@ export const rewriteArtifact = async (
     )
     .withConfig({ runName: "optionally_update_artifact_meta" });
 
+  // Initialize another instance for the second model
   const smallModelWithConfig = (
-    await initChatModel(modelName, {
+    await initChatModelWithConfig(modelName, {
       temperature: 0,
       modelProvider,
+      azureConfig,
     })
-  ).withConfig({
-    runName: "rewrite_artifact_model_call",
-  });
+  ).withConfig({ runName: "rewrite_artifact_model_call" });
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
