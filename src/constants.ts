@@ -23,6 +23,13 @@ export const DEFAULT_INPUTS = {
   customQuickActionId: undefined,
 };
 
+export const AZURE_MODELS = [
+  {
+    name: "azure/gpt-4o-mini",
+    label: "GPT-4o mini (Azure)",
+  },
+];
+
 export const OPENAI_MODELS = [
   {
     name: "gpt-4o-mini",
