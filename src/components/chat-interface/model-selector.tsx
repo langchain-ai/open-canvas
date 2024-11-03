@@ -17,6 +17,7 @@ import {
   FIREWORKS_MODELS,
   GEMINI_MODELS,
   LS_HAS_SEEN_MODEL_DROPDOWN_ALERT,
+  AZURE_MODELS,
 } from "@/constants";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -29,6 +30,7 @@ const allModels = [
   ...OPENAI_MODELS,
   ...FIREWORKS_MODELS,
   ...GEMINI_MODELS,
+  ...AZURE_MODELS,
 ];
 
 const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
@@ -173,6 +175,12 @@ export default function ModelSelector(props: ModelSelectorProps) {
     if (
       model.name.includes("gpt-") &&
       process.env.NEXT_PUBLIC_OPENAI_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
+      model.name.includes("azure") &&
+      process.env.NEXT_PUBLIC_AZURE_ENABLED === "false"
     ) {
       return false;
     }
