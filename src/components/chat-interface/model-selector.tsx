@@ -212,13 +212,15 @@ export default function ModelSelector(props: ModelSelectorProps) {
           ))}
         </SelectContent>
       </Select>
-      <div className="absolute top-full -left-10 pt-2 w-max min-w-full">
-        <AlertNewModelSelectorFeature
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
-          chatStarted={props.chatStarted}
-        />
-      </div>
+      {!props.chatStarted && (
+        <div className="absolute top-full -left-10 pt-2 w-max min-w-full">
+          <AlertNewModelSelectorFeature
+            showAlert={showAlert}
+            setShowAlert={setShowAlert}
+            chatStarted={props.chatStarted}
+          />
+        </div>
+      )}
     </div>
   );
 }
