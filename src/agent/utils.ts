@@ -1,6 +1,43 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
+import { initChatModel } from "langchain/chat_models/universal";
+
+type ModelConfig = {
+  temperature?: number;
+  modelProvider: string;
+  maxTokens?: number;
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+  };
+};
+
+/**
+ * Wrapper around initChatModel
+ */
+export const initChatModelWithConfig = async (
+  modelName: string,
+  config: ModelConfig
+) => {
+  return await initChatModel(modelName, {
+    temperature: config.temperature ?? 0,
+    maxTokens: config.maxTokens,
+    modelProvider: config.modelProvider,
+    ...(config.azureConfig != null
+      ? {
+          azureOpenAIApiKey: config.azureConfig.azureOpenAIApiKey,
+          azureOpenAIApiInstanceName:
+            config.azureConfig.azureOpenAIApiInstanceName,
+          azureOpenAIApiDeploymentName:
+            config.azureConfig.azureOpenAIApiDeploymentName,
+          azureOpenAIApiVersion: config.azureConfig.azureOpenAIApiVersion,
+        }
+      : {}),
+  });
+};
 
 export const formatReflections = (
   reflections: Reflections,
@@ -112,13 +149,42 @@ export const formatArtifactContentWithTemplate = (
   );
 };
 
-export const getModelNameAndProviderFromConfig = (
+export const getModelConfig = (
   config: LangGraphRunnableConfig
-): { modelName: string; modelProvider: string } => {
+): {
+  modelName: string;
+  modelProvider: string;
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+  };
+} => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
     throw new Error("Model name is missing in config.");
   }
+
+  // Handle Azure OpenAI models
+  if (customModelName.startsWith("azure/")) {
+    const actualModelName = customModelName.replace("azure/", "");
+    return {
+      modelName: actualModelName,
+      modelProvider: "azure_openai",
+      azureConfig: {
+        azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY || "",
+        azureOpenAIApiInstanceName:
+          process.env.AZURE_OPENAI_API_INSTANCE_NAME || "",
+        azureOpenAIApiDeploymentName:
+          process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
+        azureOpenAIApiVersion:
+          process.env.AZURE_OPENAI_API_VERSION || "2024-02-01",
+      },
+    };
+  }
+
+  // Handle existing model providers
   if (customModelName.includes("gpt-")) {
     return {
       modelName: customModelName,
