@@ -23,9 +23,6 @@ export function useThread() {
     userId: string
   ): Promise<Thread | undefined> => {
     const client = createClient();
-    if (customModelName.includes("azure/")) {
-      customModelName = customModelName.replace("azure/", "");
-    }
     try {
       const thread = await client.threads.create({
         metadata: {
