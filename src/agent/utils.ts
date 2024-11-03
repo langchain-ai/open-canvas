@@ -179,7 +179,7 @@ export const getModelConfig = (
         azureOpenAIApiDeploymentName:
           process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
         azureOpenAIApiVersion:
-          process.env.AZURE_OPENAI_API_VERSION || "2024-02-01",
+          process.env.AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
       },
     };
   }
