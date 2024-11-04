@@ -38,6 +38,11 @@ export const ANTHROPIC_MODELS = [
     label: "Claude 3.5 Haiku",
     isNew: true,
   },
+  {
+    name: "claude-3-haiku-20240307",
+    label: "Claude 3 Haiku (old)",
+    isNew: false,
+  },
   // {
   //   name: "claude-3-5-sonnet-20240620",
   //   label: "Claude 3.5 Sonnet",
