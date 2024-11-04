@@ -1,5 +1,3 @@
-import { StructuredToolParams } from "@langchain/core/tools";
-
 export type Message = {
   id: string;
   text?: string;

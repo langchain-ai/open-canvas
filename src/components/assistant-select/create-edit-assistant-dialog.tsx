@@ -16,6 +16,9 @@ import { Input } from "../ui/input";
 import { IconSelect } from "./icon-select";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
+import { ColorPicker } from "./color-picker";
+import { Textarea } from "../ui/textarea";
+import { InlineContextTooltip } from "../ui/inline-context-tooltip";
 
 interface CreateEditAssistantDialogProps {
   open: boolean;
@@ -36,15 +39,38 @@ interface CreateEditAssistantDialogProps {
   isLoading: boolean;
 }
 
+const GH_DISCUSSION_URL = `https://github.com/langchain-ai/open-canvas/discussions/182`;
+
+const SystemPromptWhatsThis = (): React.ReactNode => (
+  <span className="flex flex-col gap-1 text-sm text-gray-600">
+    <p>
+      Custom system prompts will be passed to the LLM when generating, or
+      re-writing artifacts. They are <i>not</i> used for responding to general
+      queries in the chat, highlight to edit, or quick actions.
+    </p>
+    <p>
+      We&apos;re looking for feedback on how to best handle customizing
+      assistant prompts. To vote, and give feedback please visit{" "}
+      <a href={GH_DISCUSSION_URL} target="_blank">
+        this GitHub discussion
+      </a>
+      .
+    </p>
+  </span>
+);
+
 export function CreateEditAssistantDialog(
   props: CreateEditAssistantDialogProps
 ) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState("");
   const [iconName, setIconName] = useState<keyof typeof Icons>("User");
   const [hasSelectedIcon, setHasSelectedIcon] = useState(false);
   const [iconColor, setIconColor] = useState("#000000");
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,6 +87,7 @@ export function CreateEditAssistantDialog(
       {
         name,
         description,
+        systemPrompt,
         iconData: {
           iconName,
           iconColor,
@@ -101,7 +128,7 @@ export function CreateEditAssistantDialog(
         props.setOpen(change);
       }}
     >
-      <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl min-w-[70vw]">
+      <DialogContent className="max-w-xl max-h-[90vh] p-8 bg-white rounded-lg shadow-xl min-w-[70vw] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <DialogHeader>
           <DialogTitle className="text-3xl font-light text-gray-800">
             <TighterText>
@@ -145,6 +172,24 @@ export function CreateEditAssistantDialog(
             onChange={(e) => setDescription(e.target.value)}
           />
 
+          <Label htmlFor="system-prompt">
+            <TighterText className="flex items-center">
+              System Prompt
+              <InlineContextTooltip cardContentClassName="w-[500px] ml-10">
+                <SystemPromptWhatsThis />
+              </InlineContextTooltip>
+            </TighterText>
+          </Label>
+          <Textarea
+            disabled={props.isLoading}
+            required={false}
+            id="system-prompt"
+            placeholder="You are an expert email assistant..."
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            rows={5}
+          />
+
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-col gap-4 items-start justify-start w-full">
               <Label htmlFor="icon">
@@ -165,9 +210,13 @@ export function CreateEditAssistantDialog(
                 <TighterText>Color</TighterText>
               </Label>
               <div className="flex gap-1 items-center justify-start w-full">
-                <div
-                  className="h-9 w-9 rounded-md"
-                  style={{ backgroundColor: iconColor }}
+                <ColorPicker
+                  iconColor={iconColor}
+                  setIconColor={setIconColor}
+                  showColorPicker={showColorPicker}
+                  setShowColorPicker={setShowColorPicker}
+                  hoverTimer={hoverTimer}
+                  setHoverTimer={setHoverTimer}
                 />
                 <Input
                   disabled={props.isLoading}

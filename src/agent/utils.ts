@@ -1,6 +1,7 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
+import { initChatModel } from "langchain/chat_models/universal";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -74,6 +75,24 @@ export const formatReflections = (
   return styleString + "\n\n" + contentString;
 };
 
+export async function getFormattedReflections(
+  config: LangGraphRunnableConfig
+): Promise<string> {
+  const store = ensureStoreInConfig(config);
+  const assistantId = config.configurable?.assistant_id;
+  if (!assistantId) {
+    throw new Error("`assistant_id` not found in configurable");
+  }
+  const memoryNamespace = ["memories", assistantId];
+  const memoryKey = "reflection";
+  const memories = await store.get(memoryNamespace, memoryKey);
+  const memoriesAsString = memories?.value
+    ? formatReflections(memories.value as Reflections)
+    : "No reflections found.";
+
+  return memoriesAsString;
+}
+
 export const ensureStoreInConfig = (
   config: LangGraphRunnableConfig
 ): BaseStore => {
@@ -146,3 +165,21 @@ export const getModelNameAndProviderFromConfig = (
 
   throw new Error("Unknown model provider");
 };
+
+export function optionallyGetSystemPromptFromConfig(
+  config: LangGraphRunnableConfig
+): string | undefined {
+  return config.configurable?.systemPrompt as string | undefined;
+}
+
+export async function getModelFromConfig(
+  config: LangGraphRunnableConfig,
+  temperature = 0
+) {
+  const { modelName, modelProvider } =
+    getModelNameAndProviderFromConfig(config);
+  return await initChatModel(modelName, {
+    temperature,
+    modelProvider,
+  });
+}

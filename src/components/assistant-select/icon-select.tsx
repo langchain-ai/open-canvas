@@ -19,9 +19,10 @@ import { Button } from "../ui/button";
 type KeyofIcons = keyof typeof Icons;
 
 const prettifyIconLabel = (iconName: string) => {
-  if (iconName.includes("Icon") || iconName.includes("icon")) {
-    iconName = iconName.replace("Icon", "").replace("icon", "");
-  }
+  iconName = iconName
+    .replace("Icon", "")
+    .replace("icon", "")
+    .replace("Lucide", "");
   return startCase(iconName);
 };
 
@@ -82,12 +83,32 @@ export function IconSelect({
   };
 
   // Debounced search handler
-  const debouncedSearch = debounce((value: string) => {
-    setSearchTerm(value);
-  }, 300);
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearchTerm(value);
+      }, 300),
+    [] // Empty dependency array since we don't want to recreate the debounced function
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(c) => {
+        if (!c) {
+          setStartIndex(0);
+          setSearchTerm("");
+          debouncedSearch.cancel(); // Cancel any pending debounced calls
+        }
+        setOpen(c);
+      }}
+    >
       <DropdownMenuTrigger className="w-full" asChild>
         {hasSelectedIcon ? (
           <Button

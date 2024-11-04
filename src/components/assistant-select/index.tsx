@@ -68,7 +68,6 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
       setSelectedAssistant,
       createCustomAssistant,
       editCustomAssistant,
-      deleteAssistant,
     },
   } = useGraphContext();
 

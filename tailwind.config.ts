@@ -21,10 +21,21 @@ const config: Config = {
             'background-position': 'right center',
             'transform': 'rotate(3deg)'
           }
-        }
+        },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
       },
       animation: {
-        'gradient-xy-enhanced': 'gradient-xy-enhanced 15s ease infinite'
+        'gradient-xy-enhanced': 'gradient-xy-enhanced 15s ease infinite',
+        'gradient-x': 'gradient-x 3s ease-in-out infinite',
       },
   		backgroundImage: {
   			'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

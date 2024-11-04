@@ -1,5 +1,5 @@
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:54172";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:64129";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -27,12 +27,14 @@ export const OPENAI_MODELS = [
   {
     name: "gpt-4o-mini",
     label: "GPT-4o mini",
+    isNew: false,
   },
 ];
 export const ANTHROPIC_MODELS = [
   {
-    name: "claude-3-haiku-20240307",
-    label: "Claude 3 Haiku",
+    name: "claude-3-5-haiku-20241022",
+    label: "Claude 3.5 Haiku",
+    isNew: true,
   },
   // {
   //   name: "claude-3-5-sonnet-20240620",
@@ -43,6 +45,7 @@ export const FIREWORKS_MODELS = [
   {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
     label: "Fireworks Llama 70B",
+    isNew: false,
   },
 ];
 
@@ -50,9 +53,10 @@ export const GEMINI_MODELS = [
   {
     name: "gemini-1.5-flash",
     label: "Gemini 1.5 Flash",
+    isNew: false,
   },
 ];
-export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "gpt-4o-mini";
+export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "claude-3-5-haiku-20241022";
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];

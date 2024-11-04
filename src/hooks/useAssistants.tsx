@@ -44,6 +44,10 @@ export interface CreateAssistantFields {
    * The tools the assistant has access to.
    */
   tools?: Array<AssistantTool>;
+  /**
+   * An optional system prompt to prefix all generations with.
+   */
+  systemPrompt?: string;
   is_default?: boolean;
 }
 
@@ -117,7 +121,7 @@ export function useAssistants() {
     setIsCreatingAssistant(true);
     try {
       const client = createClient();
-      const { tools, name, ...metadata } = newAssistant;
+      const { tools, systemPrompt, name, ...metadata } = newAssistant;
       const createdAssistant = await client.assistants.create({
         graphId: "agent",
         name,
@@ -128,6 +132,7 @@ export function useAssistants() {
         config: {
           configurable: {
             tools,
+            systemPrompt,
           },
         },
         ifExists: "do_nothing",
@@ -144,6 +149,7 @@ export function useAssistants() {
         description: "Please try again later.",
       });
       setIsCreatingAssistant(false);
+      console.error("Failed to create an assistant", e);
       return false;
     }
   };
@@ -156,7 +162,7 @@ export function useAssistants() {
     setIsEditingAssistant(true);
     try {
       const client = createClient();
-      const { tools, name, ...metadata } = editedAssistant;
+      const { tools, systemPrompt, name, ...metadata } = editedAssistant;
       const response = await client.assistants.update(assistantId, {
         name,
         graphId: "agent",
@@ -167,6 +173,7 @@ export function useAssistants() {
         config: {
           configurable: {
             tools,
+            systemPrompt,
           },
         },
       });
@@ -206,6 +213,7 @@ export function useAssistants() {
         description: "Your default assistant.",
         name: "Default assistant",
         tools: undefined,
+        systemPrompt: undefined,
       },
       assistantIdCookie,
       userId
@@ -324,6 +332,10 @@ export function useAssistants() {
           tools:
             (firstAssistant.config?.configurable?.tools as
               | AssistantTool[]
+              | undefined) || undefined,
+          systemPrompt:
+            (firstAssistant.config?.configurable?.systemPrompt as
+              | string
               | undefined) || undefined,
         },
         firstAssistant.assistant_id,

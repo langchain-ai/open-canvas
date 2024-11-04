@@ -1,6 +1,5 @@
 import {
   ALL_MODEL_NAMES,
-  ASSISTANT_ID_COOKIE,
   DEFAULT_MODEL_NAME,
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
@@ -22,6 +21,7 @@ export function useThread() {
     userId: string
   ): Promise<Thread | undefined> => {
     const client = createClient();
+    console.log("creating thread!", customModelName);
     try {
       const thread = await client.threads.create({
         metadata: {
@@ -155,7 +155,9 @@ export function useThread() {
     try {
       const client = createClient();
       const thread = await client.threads.get(id);
-      if (thread.metadata && thread.metadata.customModelName) {
+      if (!thread.values || !(thread.values as Record<string, any>)?.messages) {
+        setModelName(DEFAULT_MODEL_NAME);
+      } else if (thread.metadata && thread.metadata.customModelName) {
         setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
       }
       return thread;

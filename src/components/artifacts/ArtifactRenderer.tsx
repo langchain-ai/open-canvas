@@ -354,7 +354,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
           />
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
-          <ReflectionsDialog assistantId={selectedAssistant?.assistant_id} />
+          <ReflectionsDialog selectedAssistant={selectedAssistant} />
         </div>
       </div>
       <div
