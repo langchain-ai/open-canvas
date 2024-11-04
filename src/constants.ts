@@ -1,3 +1,5 @@
+import { CustomModelConfig, ModelConfigurationParams } from "./types";
+
 export const LANGGRAPH_API_URL =
   process.env.LANGGRAPH_API_URL ?? "http://localhost:57318";
 // v2 is tied to the 'open-canvas-prod' deployment.
@@ -23,36 +25,97 @@ export const DEFAULT_INPUTS = {
   customQuickActionId: undefined,
 };
 
-export const OPENAI_MODELS = [
+export const OPENAI_MODELS: ModelConfigurationParams[] = [
   {
     name: "gpt-4o-mini",
     label: "GPT-4o mini",
-  },
-];
-export const ANTHROPIC_MODELS = [
-  {
-    name: "claude-3-haiku-20240307",
-    label: "Claude 3 Haiku",
-  },
-  // {
-  //   name: "claude-3-5-sonnet-20240620",
-  //   label: "Claude 3.5 Sonnet",
-  // },
-];
-export const FIREWORKS_MODELS = [
-  {
-    name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
-    label: "Fireworks Llama 70B",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 16384,
+        current: 16384,
+      },
+    },
   },
 ];
 
-export const GEMINI_MODELS = [
+export const ANTHROPIC_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "claude-3-haiku-20240307",
+    label: "Claude 3 Haiku",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 4096,
+        default: 4096,
+        current: 4096,
+      },
+    },
+  },
+];
+
+export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
+    label: "Fireworks Llama 70B",
+    config: {
+      provider: "fireworks",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 16384,
+        current: 16384,
+      },
+    },
+  },
+];
+
+export const GEMINI_MODELS: ModelConfigurationParams[] = [
   {
     name: "gemini-1.5-flash",
     label: "Gemini 1.5 Flash",
+    config: {
+      provider: "google-genai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8192,
+        default: 8192,
+        current: 8192,
+      },
+    },
   },
 ];
-export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "gpt-4o-mini";
+
+export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
+export const DEFAULT_MODE_CONFIG: CustomModelConfig = OPENAI_MODELS[0].config;
+
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];

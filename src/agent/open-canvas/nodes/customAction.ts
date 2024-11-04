@@ -39,11 +39,13 @@ export const customAction = async (
     throw new Error("No custom quick action ID found.");
   }
 
-  const { modelName, modelProvider } =
+  const { modelName, modelProvider, modelConfig } =
     getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
-    temperature: 0.5,
     modelProvider,
+    // temperature: 0.5,
+    temperature: modelConfig.temperatureRange.current,
+    maxTokens: modelConfig.maxTokens.current,
   });
 
   const store = ensureStoreInConfig(config);

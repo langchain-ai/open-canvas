@@ -1,11 +1,13 @@
 import {
   ALL_MODEL_NAMES,
   ASSISTANT_ID_COOKIE,
+  DEFAULT_MODE_CONFIG,
   DEFAULT_MODEL_NAME,
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
+import { CustomModelConfig } from "@/types";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useState } from "react";
 import { createClient } from "./utils";
@@ -17,9 +19,12 @@ export function useThread() {
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
   const [modelName, setModelName] =
     useState<ALL_MODEL_NAMES>(DEFAULT_MODEL_NAME);
+  const [modelConfig, setModelConfig] =
+    useState<CustomModelConfig>(DEFAULT_MODE_CONFIG);
 
   const createThread = async (
     customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME,
+    custModelConfig: CustomModelConfig = modelConfig,
     userId: string
   ): Promise<Thread | undefined> => {
     const client = createClient();
@@ -28,11 +33,13 @@ export function useThread() {
         metadata: {
           supabase_user_id: userId,
           customModelName,
+          modelConfig: custModelConfig,
         },
       });
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
       setModelName(customModelName);
+      setModelConfig(custModelConfig);
       await getUserThreads(userId);
       return thread;
     } catch (e) {
@@ -86,7 +93,7 @@ export function useThread() {
   const searchOrCreateThread = async (userId: string) => {
     const threadIdCookie = getCookie(THREAD_ID_COOKIE_NAME);
     if (!threadIdCookie) {
-      await createThread(modelName, userId);
+      await createThread(modelName, modelConfig, userId);
       return;
     }
 
@@ -101,7 +108,7 @@ export function useThread() {
       return threadIdCookie;
     } else {
       // Current thread has activity. Create a new thread.
-      await createThread(modelName, userId);
+      await createThread(modelName, modelConfig, userId);
       return;
     }
   };
@@ -176,6 +183,7 @@ export function useThread() {
       const thread = await client.threads.get(id);
       if (thread.metadata && thread.metadata.customModelName) {
         setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
+        setModelConfig(thread.metadata.modelConfig as CustomModelConfig);
       }
       return thread;
     } catch (e) {
@@ -199,7 +207,7 @@ export function useThread() {
       // Create a new thread. Use .then to avoid blocking the UI.
       // Once completed, `createThread` will re-fetch all user
       // threads to update UI.
-      void createThread(modelName, userId);
+      void createThread(modelName, modelConfig, userId);
     }
     const client = createClient();
     try {
@@ -215,6 +223,7 @@ export function useThread() {
     userThreads,
     isUserThreadsLoading,
     modelName,
+    modelConfig,
     createThread,
     clearThreadsWithNoValues,
     searchOrCreateThread,
@@ -224,5 +233,6 @@ export function useThread() {
     setThreadId,
     getOrCreateAssistant,
     setModelName,
+    setModelConfig,
   };
 }

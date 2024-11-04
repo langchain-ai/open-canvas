@@ -1,15 +1,11 @@
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { initChatModel } from "langchain/chat_models/universal";
+import { z } from "zod";
+import { getArtifactContent } from "../../../contexts/utils";
 import {
-  GET_TITLE_TYPE_REWRITE_ARTIFACT,
-  OPTIONALLY_UPDATE_META_PROMPT,
-  UPDATE_ENTIRE_ARTIFACT_PROMPT,
-} from "../prompts";
-import {
-  ensureStoreInConfig,
-  formatArtifactContent,
-  formatReflections,
-  getModelNameAndProviderFromConfig,
-} from "../../utils";
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+} from "../../../lib/artifact_content_types";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
@@ -17,14 +13,18 @@ import {
   PROGRAMMING_LANGUAGES,
   Reflections,
 } from "../../../types";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { z } from "zod";
-import { getArtifactContent } from "../../../contexts/utils";
 import {
-  isArtifactCodeContent,
-  isArtifactMarkdownContent,
-} from "../../../lib/artifact_content_types";
-import { initChatModel } from "langchain/chat_models/universal";
+  ensureStoreInConfig,
+  formatArtifactContent,
+  formatReflections,
+  getModelNameAndProviderFromConfig,
+} from "../../utils";
+import {
+  GET_TITLE_TYPE_REWRITE_ARTIFACT,
+  OPTIONALLY_UPDATE_META_PROMPT,
+  UPDATE_ENTIRE_ARTIFACT_PROMPT,
+} from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -51,12 +51,14 @@ export const rewriteArtifact = async (
         "The language of the code artifact. This should be populated with the programming language if the user is requesting code to be written, or 'other', in all other cases."
       ),
   });
-  const { modelName, modelProvider } =
+  const { modelName, modelProvider, modelConfig } =
     getModelNameAndProviderFromConfig(config);
   const toolCallingModel = (
     await initChatModel(modelName, {
-      temperature: 0,
       modelProvider,
+      temperature: 0,
+      // temperature: modelConfig.temperatureRange.current,
+      maxTokens: modelConfig.maxTokens.current,
     })
   )
     .bindTools(

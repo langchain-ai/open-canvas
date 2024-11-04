@@ -1,8 +1,8 @@
 "use client";
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
-import { ContentComposerChatInterface } from "./content-composer";
 import { ALL_MODEL_NAMES } from "@/constants";
+import { useGraphContext } from "@/contexts/GraphContext";
 import { useToast } from "@/hooks/use-toast";
 import { getLanguageTemplate } from "@/lib/get_language_template";
 import { cn } from "@/lib/utils";
@@ -10,16 +10,17 @@ import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
   ArtifactV3,
+  CustomModelConfig,
   ProgrammingLanguageOptions,
 } from "@/types";
-import { useEffect, useState } from "react";
-import { useGraphContext } from "@/contexts/GraphContext";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { ContentComposerChatInterface } from "./content-composer";
 
 export function CanvasComponent() {
   const { threadData, graphData, userData } = useGraphContext();
   const { user } = userData;
-  const { threadId, clearThreadsWithNoValues, setModelName } = threadData;
+  const { threadId, clearThreadsWithNoValues, setModelName, setModelConfig } =
+    threadData;
   const { setArtifact } = graphData;
   const { toast } = useToast();
   const [chatStarted, setChatStarted] = useState(false);
@@ -90,6 +91,9 @@ export function CanvasComponent() {
               setChatStarted(true);
               setModelName(
                 thread?.metadata?.customModelName as ALL_MODEL_NAMES
+              );
+              setModelConfig(
+                thread?.metadata?.modelConfig as CustomModelConfig
               );
             } else {
               setChatStarted(false);

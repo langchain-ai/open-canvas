@@ -1,4 +1,5 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
+import { CustomModelConfig } from "@/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 
@@ -114,33 +115,47 @@ export const formatArtifactContentWithTemplate = (
 
 export const getModelNameAndProviderFromConfig = (
   config: LangGraphRunnableConfig
-): { modelName: string; modelProvider: string } => {
+): {
+  modelName: string;
+  modelProvider: string;
+  modelConfig: CustomModelConfig;
+} => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
     throw new Error("Model name is missing in config.");
   }
+
+  const modelConfig = config.configurable?.modelConfig as CustomModelConfig;
+  if (!modelConfig) {
+    throw new Error("Custom Model config is missing in config.");
+  }
+
   if (customModelName.includes("gpt-")) {
     return {
       modelName: customModelName,
       modelProvider: "openai",
+      modelConfig,
     };
   }
   if (customModelName.includes("claude-")) {
     return {
       modelName: customModelName,
       modelProvider: "anthropic",
+      modelConfig,
     };
   }
   if (customModelName.includes("fireworks/")) {
     return {
       modelName: customModelName,
       modelProvider: "fireworks",
+      modelConfig,
     };
   }
   if (customModelName.includes("gemini-")) {
     return {
       modelName: customModelName,
       modelProvider: "google-genai",
+      modelConfig,
     };
   }
 

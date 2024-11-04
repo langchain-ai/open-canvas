@@ -1,5 +1,6 @@
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { NEW_ARTIFACT_PROMPT } from "../prompts";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { initChatModel } from "langchain/chat_models/universal";
+import { z } from "zod";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
@@ -7,14 +8,13 @@ import {
   PROGRAMMING_LANGUAGES,
   Reflections,
 } from "../../../types";
-import { z } from "zod";
 import {
   ensureStoreInConfig,
   formatReflections,
   getModelNameAndProviderFromConfig,
 } from "../../utils";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
+import { NEW_ARTIFACT_PROMPT } from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -23,11 +23,13 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } =
+  const { modelName, modelProvider, modelConfig } =
     getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
-    temperature: 0.5,
     modelProvider,
+    // temperature: 0.5,
+    temperature: modelConfig.temperatureRange.current,
+    maxTokens: modelConfig.maxTokens.current,
   });
 
   const store = ensureStoreInConfig(config);

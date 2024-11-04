@@ -16,11 +16,13 @@ export const rewriteCodeArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } =
+  const { modelName, modelProvider, modelConfig } =
     getModelNameAndProviderFromConfig(config);
   const smallModel = await initChatModel(modelName, {
-    temperature: 0.5,
     modelProvider,
+    // temperature: 0.5,
+    temperature: modelConfig.temperatureRange.current,
+    maxTokens: modelConfig.maxTokens.current,
   });
 
   const currentArtifactContent = state.artifact

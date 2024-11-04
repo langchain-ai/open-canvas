@@ -265,3 +265,25 @@ export type RewriteArtifactMetaToolResponse =
       title: string;
       language: ProgrammingLanguageOptions;
     };
+
+export interface CustomModelConfig {
+  provider: "openai" | "anthropic" | "fireworks" | "google-genai";
+  temperatureRange: {
+    min: number;
+    max: number;
+    default: number;
+    current: number;
+  };
+  maxTokens: {
+    min: number;
+    max: number;
+    default: number;
+    current: number;
+  };
+}
+
+export interface ModelConfigurationParams {
+  name: string;
+  label: string;
+  config: CustomModelConfig;
+}

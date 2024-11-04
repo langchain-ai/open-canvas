@@ -1,8 +1,10 @@
+import { getModelNameAndProviderFromConfig } from "@/agent/utils";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { ArtifactMarkdownV3 } from "../../../types";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
+import { ArtifactMarkdownV3 } from "../../../types";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 const PROMPT = `You are an expert AI writing assistant, tasked with rewriting some text a user has selected. The selected text is nested inside a larger 'block'. You should always respond with ONLY the updated text block in accordance with the user's request.
 You should always respond with the full markdown text block, as it will simply replace the existing block in the artifact.
@@ -27,11 +29,15 @@ Ensure you reply with the FULL text block, including the updated selected text. 
  * Update an existing artifact based on the user's query.
  */
 export const updateHighlightedText = async (
-  state: typeof OpenCanvasGraphAnnotation.State
+  state: typeof OpenCanvasGraphAnnotation.State,
+  config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
+  const { modelConfig } = getModelNameAndProviderFromConfig(config);
   const model = new ChatOpenAI({
     model: "gpt-4o",
     temperature: 0,
+    // temperature: modelConfig.temperatureRange.current,
+    maxTokens: modelConfig.maxTokens.current,
   }).withConfig({ runName: "update_highlighted_markdown" });
 
   const currentArtifactContent = state.artifact
