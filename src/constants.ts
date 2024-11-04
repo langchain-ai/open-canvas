@@ -8,6 +8,8 @@ export const THREAD_ID_COOKIE_NAME = "oc_thread_id_v2";
 export const HAS_EMPTY_THREADS_CLEARED_COOKIE = "has_empty_threads_cleared";
 export const LS_HAS_SEEN_MODEL_DROPDOWN_ALERT =
   "oc_has_seen_model_dropdown_alert";
+export const OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT =
+  "oc_has_seen_custom_assistants_alert";
 export const DEFAULT_INPUTS = {
   highlightedCode: undefined,
   highlightedText: undefined,

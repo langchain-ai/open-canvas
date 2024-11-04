@@ -6,60 +6,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MouseEventHandler, useState } from "react";
+import { useState } from "react";
 import * as Icons from "lucide-react";
 import React from "react";
 import { TighterText } from "../ui/header";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { useGraphContext } from "@/contexts/GraphContext";
-import { Assistant } from "@langchain/langgraph-sdk";
 import { CreateEditAssistantDialog } from "./create-edit-assistant-dialog";
-import { cn } from "@/lib/utils";
 import { getIcon } from "./utils";
-
-function AssistantItem({
-  assistant,
-  selectedAssistantId,
-  onClick,
-}: {
-  assistant: Assistant;
-  selectedAssistantId: string | undefined;
-  onClick: MouseEventHandler<HTMLDivElement>;
-}) {
-  const isDefault = assistant.metadata?.is_default as boolean | undefined;
-  const isSelected = assistant.assistant_id === selectedAssistantId;
-  const metadata = assistant.metadata as Record<string, any>;
-
-  return (
-    <DropdownMenuItem
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-start gap-2",
-        isSelected && "bg-gray-50"
-      )}
-    >
-      <span
-        style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
-        className="flex items-center justify-start w-4 h-4"
-      >
-        {getIcon(metadata?.iconData?.iconName as string | undefined)}
-      </span>
-      {assistant.name}
-      {isDefault && (
-        <span className="text-xs text-gray-500 ml-auto">{"(default)"}</span>
-      )}
-      {isSelected && <span className="ml-auto">•</span>}
-    </DropdownMenuItem>
-  );
-}
+import { AssistantItem } from "./assistant-item";
+import { Assistant } from "@langchain/langgraph-sdk";
+import { useToast } from "@/hooks/use-toast";
+import { AlertNewAssistantsFeature } from "./alert-new-feature";
+import { OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT } from "@/constants";
 
 interface AssistantSelectProps {
   userId: string | undefined;
+  hasChatStarted: boolean;
 }
 
 function AssistantSelectComponent(props: AssistantSelectProps) {
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [createEditDialogOpen, setCreateEditDialogOpen] = useState(false);
+  const [editingAssistant, setEditingAssistant] = useState<
+    Assistant | undefined
+  >();
+  const [allDisabled, setAllDisabled] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+
   const {
     assistantsData: {
       assistants,
@@ -68,6 +43,7 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
       setSelectedAssistant,
       createCustomAssistant,
       editCustomAssistant,
+      deleteAssistant,
     },
   } = useGraphContext();
 
@@ -76,66 +52,125 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
     setCreateEditDialogOpen(true);
   };
 
+  const handleDeleteAssistant = async (assistantId: string) => {
+    setAllDisabled(true);
+    const res = await deleteAssistant(assistantId);
+    if (res) {
+      toast({
+        title: "Assistant deleted",
+        duration: 5000,
+      });
+    }
+    setAllDisabled(false);
+    return res;
+  };
+
+  const handleHideNewFeatureAlert = () => {
+    if (showAlert) {
+      setShowAlert(false);
+      localStorage.setItem(OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT, "true");
+    }
+  };
+
   const metadata = selectedAssistant?.metadata as Record<string, any>;
 
   return (
     <>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger className="text-gray-600" asChild>
-          <TooltipIconButton
-            tooltip="Change assistant"
-            variant="ghost"
-            delayDuration={200}
-            className="w-8 h-8 transition-colors ease-in-out duration-200"
-            style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
-          >
-            {getIcon(metadata?.iconData?.iconName as string | undefined)}
-          </TooltipIconButton>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-4">
-          <DropdownMenuLabel>
-            <TighterText>My Assistants</TighterText>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {isLoadingAllAssistants && !assistants?.length ? (
-            <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
-              Loading
-              <Icons.LoaderCircle className="w-4 h-4 animate-spin" />
-            </span>
-          ) : (
-            <>
-              <DropdownMenuItem
-                onSelect={handleNewAssistantClick}
-                className="flex items-center justify-start gap-2"
-              >
-                <Icons.CirclePlus className="w-4 h-4" />
-                <TighterText className="font-medium">New</TighterText>
-              </DropdownMenuItem>
-              {assistants.map((assistant) => (
-                <AssistantItem
-                  key={assistant.assistant_id}
-                  assistant={assistant}
-                  selectedAssistantId={selectedAssistant?.assistant_id}
-                  onClick={() => {
-                    if (
-                      selectedAssistant?.assistant_id === assistant.assistant_id
-                    ) {
-                      setOpen(false);
-                      return;
-                    }
-                    setSelectedAssistant(assistant);
+      <div className="relative">
+        <DropdownMenu
+          open={open}
+          onOpenChange={(c) => {
+            if (!c) {
+              setEditingAssistant(undefined);
+              setCreateEditDialogOpen(false);
+            }
+            setOpen(c);
+          }}
+        >
+          <DropdownMenuTrigger className="text-gray-600" asChild>
+            <TooltipIconButton
+              tooltip="Change assistant"
+              variant="ghost"
+              delayDuration={200}
+              className="w-8 h-8 transition-colors ease-in-out duration-200"
+              style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
+            >
+              {getIcon(metadata?.iconData?.iconName as string | undefined)}
+            </TooltipIconButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-4">
+            <DropdownMenuLabel>
+              <TighterText>My Assistants</TighterText>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {isLoadingAllAssistants && !assistants?.length ? (
+              <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
+                Loading
+                <Icons.LoaderCircle className="w-4 h-4 animate-spin" />
+              </span>
+            ) : (
+              <>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    handleNewAssistantClick(e);
+                    handleHideNewFeatureAlert();
                   }}
-                />
-              ))}
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+                  className="flex items-center justify-start gap-2"
+                  disabled={allDisabled}
+                >
+                  <Icons.CirclePlus className="w-4 h-4" />
+                  <TighterText className="font-medium">New</TighterText>
+                </DropdownMenuItem>
+                {assistants.map((assistant) => (
+                  <AssistantItem
+                    setAllDisabled={setAllDisabled}
+                    allDisabled={allDisabled}
+                    key={assistant.assistant_id}
+                    assistant={assistant}
+                    setEditModalOpen={setCreateEditDialogOpen}
+                    setAssistantDropdownOpen={setOpen}
+                    setEditingAssistant={setEditingAssistant}
+                    deleteAssistant={handleDeleteAssistant}
+                    selectedAssistantId={selectedAssistant?.assistant_id}
+                    onClick={() => {
+                      if (
+                        selectedAssistant?.assistant_id ===
+                        assistant.assistant_id
+                      ) {
+                        setOpen(false);
+                        return;
+                      }
+                      setSelectedAssistant(assistant);
+                      handleHideNewFeatureAlert();
+                    }}
+                  />
+                ))}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="absolute left-1/2 -translate-x-1/2 mt-6 w-[500px]">
+          <AlertNewAssistantsFeature
+            showAlert={showAlert}
+            setShowAlert={setShowAlert}
+            shouldRender={!props.hasChatStarted}
+          />
+        </div>
+      </div>
+
       <CreateEditAssistantDialog
+        allDisabled={allDisabled}
+        setAllDisabled={setAllDisabled}
         open={createEditDialogOpen}
-        setOpen={setCreateEditDialogOpen}
+        setOpen={(c) => {
+          if (!c) {
+            setEditingAssistant(undefined);
+          }
+          setCreateEditDialogOpen(c);
+        }}
         userId={props.userId}
-        isEditing={false}
+        isEditing={!!editingAssistant}
+        assistant={editingAssistant}
         createCustomAssistant={async (
           newAssistant,
           userId,

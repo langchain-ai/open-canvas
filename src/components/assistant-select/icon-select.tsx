@@ -31,7 +31,9 @@ export function IconSelect({
   setSelectedIcon,
   hasSelectedIcon,
   iconColor,
+  allDisabled,
 }: {
+  allDisabled: boolean;
   selectedIcon: KeyofIcons;
   setSelectedIcon: Dispatch<SetStateAction<KeyofIcons>>;
   hasSelectedIcon: boolean;
@@ -109,11 +111,12 @@ export function IconSelect({
         setOpen(c);
       }}
     >
-      <DropdownMenuTrigger className="w-full" asChild>
+      <DropdownMenuTrigger className="w-full" asChild disabled={allDisabled}>
         {hasSelectedIcon ? (
           <Button
             variant="outline"
             className="flex flex-row items-center justify-between"
+            disabled={allDisabled}
           >
             <div className="flex flex-row items-center gap-2 justify-start">
               <span style={{ color: iconColor }}>
@@ -124,7 +127,11 @@ export function IconSelect({
             {open ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
           </Button>
         ) : (
-          <Button variant="outline" className="flex justify-between">
+          <Button
+            disabled={allDisabled}
+            variant="outline"
+            className="flex justify-between"
+          >
             Select an icon {open ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
           </Button>
         )}
@@ -133,6 +140,7 @@ export function IconSelect({
         <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 p-2">
           <DropdownMenuLabel className="px-2 pb-2">Icons</DropdownMenuLabel>
           <Input
+            disabled={allDisabled}
             placeholder="Search icons..."
             onChange={(e) => debouncedSearch(e.target.value)}
             onClick={(e) => e.stopPropagation()}
@@ -155,6 +163,7 @@ export function IconSelect({
                   setSelectedIcon(iconItem.value as KeyofIcons);
                 }}
                 className="flex flex-row items-center gap-2 justify-start w-full"
+                disabled={allDisabled}
               >
                 <span style={{ color: iconColor }}>
                   {React.createElement(

@@ -1,6 +1,12 @@
 import { CreateAssistantFields } from "@/hooks/useAssistants";
 import { Assistant } from "@langchain/langgraph-sdk";
-import { Dispatch, FormEvent, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import * as Icons from "lucide-react";
 import {
   Dialog,
@@ -37,6 +43,8 @@ interface CreateEditAssistantDialogProps {
     userId: string
   ) => Promise<Assistant | undefined>;
   isLoading: boolean;
+  allDisabled: boolean;
+  setAllDisabled: Dispatch<SetStateAction<boolean>>;
 }
 
 const GH_DISCUSSION_URL = `https://github.com/langchain-ai/open-canvas/discussions/182`;
@@ -72,6 +80,29 @@ export function CreateEditAssistantDialog(
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
 
+  const metadata = props.assistant?.metadata as Record<string, any> | undefined;
+
+  useEffect(() => {
+    if ((props.assistant, props.isEditing)) {
+      setName(props.assistant?.name || "");
+      setDescription(metadata?.description || "");
+      setSystemPrompt(
+        (props.assistant?.config?.configurable?.systemPrompt as
+          | string
+          | undefined) || ""
+      );
+      setHasSelectedIcon(true);
+      setIconName(metadata?.iconData?.iconName || "User");
+      setIconColor(metadata?.iconData?.iconColor || "#000000");
+    } else if (!props.isEditing) {
+      setName("");
+      setDescription("");
+      setSystemPrompt("");
+      setIconName("User");
+      setIconColor("#000000");
+    }
+  }, [props.assistant, props.isEditing]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!props.userId) {
@@ -82,48 +113,81 @@ export function CreateEditAssistantDialog(
       });
       return;
     }
+    if (props.isEditing && !props.assistant) {
+      toast({
+        title: "Assistant not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
 
-    const res = await props.createCustomAssistant(
-      {
-        name,
-        description,
-        systemPrompt,
-        iconData: {
-          iconName,
-          iconColor,
+    props.setAllDisabled(true);
+
+    let res: boolean;
+    if (props.isEditing && props.assistant) {
+      res = !!(await props.editCustomAssistant(
+        {
+          name,
+          description,
+          systemPrompt,
+          iconData: {
+            iconName,
+            iconColor,
+          },
         },
-      },
-      props.userId
-    );
+        props.assistant.assistant_id,
+        props.userId
+      ));
+    } else {
+      res = await props.createCustomAssistant(
+        {
+          name,
+          description,
+          systemPrompt,
+          iconData: {
+            iconName,
+            iconColor,
+          },
+        },
+        props.userId
+      );
+    }
 
     if (res) {
       toast({
-        title: "Assistant created successfully",
+        title: `Assistant ${props.isEditing ? "edited" : "created"} successfully`,
         duration: 5000,
       });
     } else {
       toast({
-        title: "Failed to create assistant",
+        title: `Failed to ${props.isEditing ? "edit" : "create"} assistant`,
         variant: "destructive",
         duration: 5000,
       });
     }
-
+    props.setAllDisabled(false);
     props.setOpen(false);
   };
 
-  const handleClearState = () => {
+  const handleResetState = () => {
     setName("");
     setDescription("");
+    setSystemPrompt("");
     setIconName("User");
+    setIconColor("#000000");
   };
+
+  if (props.isEditing && !props.assistant) {
+    return null;
+  }
 
   return (
     <Dialog
       open={props.open}
       onOpenChange={(change) => {
         if (!change) {
-          handleClearState();
+          handleResetState();
         }
         props.setOpen(change);
       }}
@@ -152,7 +216,7 @@ export function CreateEditAssistantDialog(
             </TighterText>
           </Label>
           <Input
-            disabled={props.isLoading}
+            disabled={props.allDisabled}
             required
             id="name"
             placeholder="Work Emails"
@@ -164,7 +228,7 @@ export function CreateEditAssistantDialog(
             <TighterText>Description</TighterText>
           </Label>
           <Input
-            disabled={props.isLoading}
+            disabled={props.allDisabled}
             required={false}
             id="description"
             placeholder="Assistant for my work emails"
@@ -181,7 +245,7 @@ export function CreateEditAssistantDialog(
             </TighterText>
           </Label>
           <Textarea
-            disabled={props.isLoading}
+            disabled={props.allDisabled}
             required={false}
             id="system-prompt"
             placeholder="You are an expert email assistant..."
@@ -196,6 +260,7 @@ export function CreateEditAssistantDialog(
                 <TighterText>Icon</TighterText>
               </Label>
               <IconSelect
+                allDisabled={props.allDisabled}
                 iconColor={iconColor}
                 selectedIcon={iconName}
                 setSelectedIcon={(i) => {
@@ -211,6 +276,7 @@ export function CreateEditAssistantDialog(
               </Label>
               <div className="flex gap-1 items-center justify-start w-full">
                 <ColorPicker
+                  disabled={props.allDisabled}
                   iconColor={iconColor}
                   setIconColor={setIconColor}
                   showColorPicker={showColorPicker}
@@ -219,7 +285,7 @@ export function CreateEditAssistantDialog(
                   setHoverTimer={setHoverTimer}
                 />
                 <Input
-                  disabled={props.isLoading}
+                  disabled={props.allDisabled}
                   required={false}
                   id="description"
                   placeholder="Assistant for my work emails"
@@ -237,13 +303,17 @@ export function CreateEditAssistantDialog(
           </div>
 
           <div className="flex items-center justify-center w-full mt-4 gap-3">
-            <Button disabled={props.isLoading} className="w-full" type="submit">
+            <Button
+              disabled={props.allDisabled}
+              className="w-full"
+              type="submit"
+            >
               <TighterText>Save</TighterText>
             </Button>
             <Button
-              disabled={props.isLoading}
+              disabled={props.allDisabled}
               onClick={() => {
-                handleClearState();
+                handleResetState();
                 props.setOpen(false);
               }}
               variant="destructive"

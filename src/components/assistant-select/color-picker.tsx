@@ -10,6 +10,7 @@ interface ColorPickerProps {
   setShowColorPicker: Dispatch<SetStateAction<boolean>>;
   hoverTimer: NodeJS.Timeout | null;
   setHoverTimer: Dispatch<SetStateAction<NodeJS.Timeout | null>>;
+  disabled: boolean;
 }
 
 export function ColorPicker(props: ColorPickerProps) {
@@ -23,6 +24,7 @@ export function ColorPicker(props: ColorPickerProps) {
   } = props;
 
   const handleMouseEnter = () => {
+    if (props.disabled) return;
     const timer = setTimeout(() => {
       setShowColorPicker(true);
     }, 200);
@@ -60,8 +62,11 @@ export function ColorPicker(props: ColorPickerProps) {
             onMouseLeave={handleMouseLeave}
           >
             <HexColorPicker
+              aria-disabled={props.disabled}
               color={iconColor}
               onChange={(e) => {
+                if (props.disabled) return;
+
                 if (!e.startsWith("#")) {
                   setIconColor("#" + e);
                 } else {
