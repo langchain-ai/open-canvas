@@ -265,3 +265,16 @@ export type RewriteArtifactMetaToolResponse =
       title: string;
       language: ProgrammingLanguageOptions;
     };
+
+export interface ModelConfig {
+  temperature?: number;
+  modelProvider: string;
+  maxTokens?: number;
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+    azureOpenAIBasePath?: string;
+  };
+}

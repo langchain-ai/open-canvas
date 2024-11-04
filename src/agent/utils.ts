@@ -1,19 +1,12 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  Reflections,
+  ModelConfig,
+} from "../types";
 import { initChatModel } from "langchain/chat_models/universal";
-
-type ModelConfig = {
-  temperature?: number;
-  modelProvider: string;
-  maxTokens?: number;
-  azureConfig?: {
-    azureOpenAIApiKey: string;
-    azureOpenAIApiInstanceName: string;
-    azureOpenAIApiDeploymentName: string;
-    azureOpenAIApiVersion: string;
-  };
-};
 
 /**
  * Wrapper around initChatModel
