@@ -293,9 +293,14 @@ export function SelectSelector(props: SelectSelectorProps) {
   const handleModelChange = useCallback(
     async (newModel: ALL_MODEL_NAMES) => {
       setModelName(newModel);
+
+      const selectedModel = allModels.find((model) => model.name === newModel);
+      if (selectedModel) {
+        setModelConfig(selectedModel.config);
+      }
       setOpen(false);
     },
-    [setModelName, setOpen]
+    [setModelName, setOpen, setModelConfig]
   );
 
   const allAllowedModels = allModels.filter((model) => {
