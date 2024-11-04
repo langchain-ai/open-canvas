@@ -1,5 +1,5 @@
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:57318";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:53404";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -8,6 +8,8 @@ export const THREAD_ID_COOKIE_NAME = "oc_thread_id_v2";
 export const HAS_EMPTY_THREADS_CLEARED_COOKIE = "has_empty_threads_cleared";
 export const LS_HAS_SEEN_MODEL_DROPDOWN_ALERT =
   "oc_has_seen_model_dropdown_alert";
+export const OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT =
+  "oc_has_seen_custom_assistants_alert";
 export const DEFAULT_INPUTS = {
   highlightedCode: undefined,
   highlightedText: undefined,
@@ -27,12 +29,14 @@ export const OPENAI_MODELS = [
   {
     name: "gpt-4o-mini",
     label: "GPT-4o mini",
+    isNew: false,
   },
 ];
 export const ANTHROPIC_MODELS = [
   {
-    name: "claude-3-haiku-20240307",
-    label: "Claude 3 Haiku",
+    name: "claude-3-5-haiku-20241022",
+    label: "Claude 3.5 Haiku",
+    isNew: true,
   },
   // {
   //   name: "claude-3-5-sonnet-20240620",
@@ -43,6 +47,7 @@ export const FIREWORKS_MODELS = [
   {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
     label: "Fireworks Llama 70B",
+    isNew: false,
   },
 ];
 
@@ -50,6 +55,7 @@ export const GEMINI_MODELS = [
   {
     name: "gemini-1.5-flash",
     label: "Gemini 1.5 Flash",
+    isNew: false,
   },
 ];
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "gpt-4o-mini";
