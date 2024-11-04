@@ -34,6 +34,7 @@ export const initChatModelWithConfig = async (
           azureOpenAIApiDeploymentName:
             config.azureConfig.azureOpenAIApiDeploymentName,
           azureOpenAIApiVersion: config.azureConfig.azureOpenAIApiVersion,
+          azureOpenAIBasePath: config.azureConfig.azureOpenAIBasePath,
         }
       : {}),
   });
@@ -159,6 +160,7 @@ export const getModelConfig = (
     azureOpenAIApiInstanceName: string;
     azureOpenAIApiDeploymentName: string;
     azureOpenAIApiVersion: string;
+    azureOpenAIBasePath?: string;
   };
 } => {
   const customModelName = config.configurable?.customModelName as string;
@@ -166,7 +168,6 @@ export const getModelConfig = (
     throw new Error("Model name is missing in config.");
   }
 
-  // Handle Azure OpenAI models
   if (customModelName.startsWith("azure/")) {
     const actualModelName = customModelName.replace("azure/", "");
     return {
@@ -180,11 +181,11 @@ export const getModelConfig = (
           process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
         azureOpenAIApiVersion:
           process.env.AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
+        azureOpenAIBasePath: process.env.AZURE_OPENAI_API_BASE_PATH,
       },
     };
   }
 
-  // Handle existing model providers
   if (customModelName.includes("gpt-")) {
     return {
       modelName: customModelName,
