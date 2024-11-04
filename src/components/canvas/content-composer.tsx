@@ -94,6 +94,7 @@ export function ContentComposerChatInterfaceComponent(
     <div className="h-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <Thread
+          userId={userData?.user?.id}
           setChatStarted={props.setChatStarted}
           handleQuickStart={props.handleQuickStart}
           hasChatStarted={props.hasChatStarted}

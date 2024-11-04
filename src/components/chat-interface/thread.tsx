@@ -30,6 +30,7 @@ const ThreadScrollToBottom: FC = () => {
 };
 
 export interface ThreadProps {
+  userId: string | undefined;
   hasChatStarted: boolean;
   handleQuickStart: (
     type: "text" | "code",
@@ -107,7 +108,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           </TooltipIconButton>
         ) : (
           <div className="flex flex-row gap-2 items-center">
-            <ReflectionsDialog assistantId={selectedAssistant?.assistant_id} />
+            <ReflectionsDialog selectedAssistant={selectedAssistant} />
           </div>
         )}
       </div>
@@ -115,7 +116,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         {!hasChatStarted && (
           <ThreadWelcome
             handleQuickStart={handleQuickStart}
-            composer={<Composer />}
+            composer={<Composer userId={props.userId} />}
           />
         )}
         <ThreadPrimitive.Messages
@@ -142,7 +143,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 modelName={modelName}
                 setModelName={setModelName}
               />
-              <Composer />
+              <Composer userId={props.userId} />
             </div>
           )}
         </div>

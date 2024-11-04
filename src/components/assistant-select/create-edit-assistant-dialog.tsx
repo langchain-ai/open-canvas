@@ -15,10 +15,12 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { IconSelect } from "./icon-select";
 import React from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreateEditAssistantDialogProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  userId: string | undefined;
   isEditing: boolean;
   assistant?: Assistant;
   createCustomAssistant: (
@@ -37,6 +39,7 @@ interface CreateEditAssistantDialogProps {
 export function CreateEditAssistantDialog(
   props: CreateEditAssistantDialogProps
 ) {
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [iconName, setIconName] = useState<keyof typeof Icons>("User");
@@ -45,6 +48,41 @@ export function CreateEditAssistantDialog(
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!props.userId) {
+      toast({
+        title: "User not found",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
+    const res = await props.createCustomAssistant(
+      {
+        name,
+        description,
+        iconData: {
+          iconName,
+          iconColor,
+        },
+      },
+      props.userId
+    );
+
+    if (res) {
+      toast({
+        title: "Assistant created successfully",
+        duration: 5000,
+      });
+    } else {
+      toast({
+        title: "Failed to create assistant",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+
+    props.setOpen(false);
   };
 
   const handleClearState = () => {

@@ -14,15 +14,8 @@ import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { Assistant } from "@langchain/langgraph-sdk";
 import { CreateEditAssistantDialog } from "./create-edit-assistant-dialog";
-
-const getIcon = (iconName?: string) => {
-  if (iconName && Icons[iconName as keyof typeof Icons]) {
-    return React.createElement(
-      Icons[iconName as keyof typeof Icons] as React.ElementType
-    );
-  }
-  return React.createElement(Icons.User);
-};
+import { cn } from "@/lib/utils";
+import { getIcon } from "./utils";
 
 function AssistantItem({
   assistant,
@@ -35,23 +28,36 @@ function AssistantItem({
 }) {
   const isDefault = assistant.metadata?.is_default as boolean | undefined;
   const isSelected = assistant.assistant_id === selectedAssistantId;
+  const metadata = assistant.metadata as Record<string, any>;
 
   return (
     <DropdownMenuItem
       onClick={onClick}
-      className="flex items-center justify-start gap-1"
+      className={cn(
+        "flex items-center justify-start gap-2",
+        isSelected && "bg-gray-50"
+      )}
     >
-      {isSelected && <>•</>}
-      {getIcon(assistant.metadata?.iconName as string | undefined)}
+      <span
+        style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
+        className="flex items-center justify-start w-4 h-4"
+      >
+        {getIcon(metadata?.iconData?.iconName as string | undefined)}
+      </span>
       {assistant.name}
       {isDefault && (
-        <span className="text-xs text-gray-500">{"(default)"}</span>
+        <span className="text-xs text-gray-500 ml-auto">{"(default)"}</span>
       )}
+      {isSelected && <span className="ml-auto">•</span>}
     </DropdownMenuItem>
   );
 }
 
-function AssistantSelectComponent() {
+interface AssistantSelectProps {
+  userId: string | undefined;
+}
+
+function AssistantSelectComponent(props: AssistantSelectProps) {
   const [open, setOpen] = useState(false);
   const [createEditDialogOpen, setCreateEditDialogOpen] = useState(false);
   const {
@@ -71,6 +77,8 @@ function AssistantSelectComponent() {
     setCreateEditDialogOpen(true);
   };
 
+  const metadata = selectedAssistant?.metadata as Record<string, any>;
+
   return (
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -80,10 +88,9 @@ function AssistantSelectComponent() {
             variant="ghost"
             delayDuration={200}
             className="w-8 h-8 transition-colors ease-in-out duration-200"
+            style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
           >
-            {getIcon(
-              selectedAssistant?.metadata?.iconName as string | undefined
-            )}
+            {getIcon(metadata?.iconData?.iconName as string | undefined)}
           </TooltipIconButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-4">
@@ -100,7 +107,7 @@ function AssistantSelectComponent() {
             <>
               <DropdownMenuItem
                 onSelect={handleNewAssistantClick}
-                className="flex items-center justify-start gap-1"
+                className="flex items-center justify-start gap-2"
               >
                 <Icons.CirclePlus className="w-4 h-4" />
                 <TighterText className="font-medium">New</TighterText>
@@ -128,9 +135,30 @@ function AssistantSelectComponent() {
       <CreateEditAssistantDialog
         open={createEditDialogOpen}
         setOpen={setCreateEditDialogOpen}
+        userId={props.userId}
         isEditing={false}
-        createCustomAssistant={createCustomAssistant}
-        editCustomAssistant={editCustomAssistant}
+        createCustomAssistant={async (
+          newAssistant,
+          userId,
+          successCallback
+        ) => {
+          const res = await createCustomAssistant(
+            newAssistant,
+            userId,
+            successCallback
+          );
+          setOpen(false);
+          return res;
+        }}
+        editCustomAssistant={async (editedAssistant, assistantId, userId) => {
+          const res = await editCustomAssistant(
+            editedAssistant,
+            assistantId,
+            userId
+          );
+          setOpen(false);
+          return res;
+        }}
         isLoading={isLoadingAllAssistants}
       />
     </>
