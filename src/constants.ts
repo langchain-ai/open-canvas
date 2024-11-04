@@ -1,5 +1,5 @@
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:64129";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:53404";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -58,7 +58,7 @@ export const GEMINI_MODELS = [
     isNew: false,
   },
 ];
-export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "claude-3-5-haiku-20241022";
+export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "gpt-4o-mini";
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];

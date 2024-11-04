@@ -155,9 +155,7 @@ export function useThread() {
     try {
       const client = createClient();
       const thread = await client.threads.get(id);
-      if (!thread.values || !(thread.values as Record<string, any>)?.messages) {
-        setModelName(DEFAULT_MODEL_NAME);
-      } else if (thread.metadata && thread.metadata.customModelName) {
+      if (thread.metadata && thread.metadata.customModelName) {
         setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
       }
       return thread;
