@@ -22,7 +22,7 @@ import { OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT } from "@/constants";
 
 interface AssistantSelectProps {
   userId: string | undefined;
-  hasChatStarted: boolean;
+  chatStarted: boolean;
 }
 
 function AssistantSelectComponent(props: AssistantSelectProps) {
@@ -153,7 +153,7 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
           <AlertNewAssistantsFeature
             showAlert={showAlert}
             setShowAlert={setShowAlert}
-            shouldRender={!props.hasChatStarted}
+            shouldRender={!props.chatStarted}
           />
         </div>
       </div>

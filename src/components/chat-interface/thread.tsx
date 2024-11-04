@@ -116,7 +116,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         {!hasChatStarted && (
           <ThreadWelcome
             handleQuickStart={handleQuickStart}
-            composer={<Composer userId={props.userId} />}
+            composer={<Composer chatStarted={false} userId={props.userId} />}
           />
         )}
         <ThreadPrimitive.Messages
@@ -143,7 +143,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 modelName={modelName}
                 setModelName={setModelName}
               />
-              <Composer userId={props.userId} />
+              <Composer chatStarted={true} userId={props.userId} />
             </div>
           )}
         </div>
