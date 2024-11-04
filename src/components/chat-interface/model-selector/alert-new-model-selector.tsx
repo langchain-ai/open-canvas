@@ -36,7 +36,7 @@ export const AlertNewModelSelectorFeature = ({
     }, 300);
   };
 
-  if (!showAlert && !chatStarted) {
+  if (!showAlert || chatStarted) {
     return <AnimatePresence />; // Keep AnimatePresence mounted to enable fading out
   }
 
