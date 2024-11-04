@@ -49,7 +49,8 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   const { toast } = useToast();
   const {
     userData: { user },
-    threadData: { createThread, modelName, setModelName, assistantId },
+    threadData: { createThread, modelName, setModelName },
+    assistantsData: { selectedAssistant },
     graphData: { clearState, runId, feedbackSubmitted, setFeedbackSubmitted },
   } = useGraphContext();
 
@@ -106,7 +107,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           </TooltipIconButton>
         ) : (
           <div className="flex flex-row gap-2 items-center">
-            <ReflectionsDialog assistantId={assistantId} />
+            <ReflectionsDialog assistantId={selectedAssistant?.assistant_id} />
           </div>
         )}
       </div>

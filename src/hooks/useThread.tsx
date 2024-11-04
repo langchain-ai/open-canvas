@@ -11,7 +11,6 @@ import { useState } from "react";
 import { createClient } from "./utils";
 
 export function useThread() {
-  const [assistantId, setAssistantId] = useState<string>();
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
@@ -37,24 +36,6 @@ export function useThread() {
       return thread;
     } catch (e) {
       console.error("Failed to create thread", e);
-    }
-  };
-
-  const getOrCreateAssistant = async () => {
-    const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);
-    if (assistantIdCookie) {
-      setAssistantId(assistantIdCookie);
-      return;
-    }
-    const client = createClient();
-    try {
-      const assistant = await client.assistants.create({
-        graphId: "agent",
-      });
-      setAssistantId(assistant.assistant_id);
-      setCookie(ASSISTANT_ID_COOKIE, assistant.assistant_id);
-    } catch (e) {
-      console.error("Failed to create assistant", e);
     }
   };
 
@@ -211,7 +192,6 @@ export function useThread() {
 
   return {
     threadId,
-    assistantId,
     userThreads,
     isUserThreadsLoading,
     modelName,
@@ -222,7 +202,6 @@ export function useThread() {
     deleteThread,
     getThreadById,
     setThreadId,
-    getOrCreateAssistant,
     setModelName,
   };
 }

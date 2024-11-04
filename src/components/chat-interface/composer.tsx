@@ -5,6 +5,7 @@ import { type FC } from "react";
 
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { SendHorizontalIcon } from "lucide-react";
+import { AssistantSelect } from "../assistant-select";
 
 const CircleStopIcon = () => {
   return (
@@ -23,6 +24,7 @@ const CircleStopIcon = () => {
 export const Composer: FC = () => {
   return (
     <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex w-full min-h-[64px] flex-wrap items-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
+      <AssistantSelect />
       <ComposerPrimitive.Input
         autoFocus
         placeholder="Write a message..."
