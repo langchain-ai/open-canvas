@@ -17,8 +17,6 @@ import {
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
 } from "@/lib/artifact_content_types";
-import { setCookie } from "@/lib/cookies";
-import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
   ArtifactToolResponse,
@@ -54,6 +52,8 @@ import {
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
+import { reverseCleanContent } from "@/lib/normalize_string";
+import { setCookie } from "@/lib/cookies";
 import { useAssistants } from "@/hooks/useAssistants";
 
 interface GraphData {

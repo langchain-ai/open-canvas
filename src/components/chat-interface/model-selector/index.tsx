@@ -3,19 +3,11 @@
 import LLMIcon from "@/components/icons/svg/LLMIcon.svg";
 import NextImage from "next/image";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ALL_MODEL_NAMES,
   ANTHROPIC_MODELS,
   OPENAI_MODELS,
   FIREWORKS_MODELS,
   GEMINI_MODELS,
-  LS_HAS_SEEN_MODEL_DROPDOWN_ALERT,
 } from "@/constants";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
