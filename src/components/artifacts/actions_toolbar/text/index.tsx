@@ -1,16 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import { Languages, BookOpen, SlidersVertical, SmilePlus } from "lucide-react";
+import { MagicPencilSVG } from "@/components/icons/magic_pencil";
+import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
+import { GraphInput } from "@/contexts/GraphContext";
 import { cn } from "@/lib/utils";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { BookOpen, Languages, SlidersVertical, SmilePlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { LengthOptions } from "./LengthOptions";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
 import { TranslateOptions } from "./TranslateOptions";
-import { LengthOptions } from "./LengthOptions";
-import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { MagicPencilSVG } from "@/components/icons/magic_pencil";
-import { GraphInput } from "@/contexts/GraphContext";
 
 type SharedComponentProps = {
   streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 };
 
 type ToolbarOption = {
@@ -22,6 +24,7 @@ type ToolbarOption = {
 
 export interface ActionsToolbarProps {
   streamMessage: (params: GraphInput) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
   isTextSelected: boolean;
 }
 
@@ -55,7 +58,7 @@ const toolbarOptions: ToolbarOption[] = [
 ];
 
 export function ActionsToolbar(props: ActionsToolbarProps) {
-  const { streamMessage } = props;
+  const { streamMessage, setMessages } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -90,6 +93,10 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
   ) => {
     event.stopPropagation();
     if (optionId === "addEmojis") {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        new HumanMessage("Add emojis to my artifact"),
+      ]);
       setIsExpanded(false);
       setActiveOption(null);
       await streamMessage({

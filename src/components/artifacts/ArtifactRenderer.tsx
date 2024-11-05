@@ -1,3 +1,5 @@
+import { useGraphContext } from "@/contexts/GraphContext";
+import { getArtifactContent } from "@/contexts/utils";
 import { convertToOpenAIFormat } from "@/lib/convert_messages";
 import { cn } from "@/lib/utils";
 import {
@@ -7,19 +9,17 @@ import {
 } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { HumanMessage } from "@langchain/core/messages";
-import { Forward, LoaderCircle, CircleCheck } from "lucide-react";
+import { CircleCheck, Forward, LoaderCircle } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
-import { CodeRenderer } from "./CodeRenderer";
-import { TextRenderer } from "./TextRenderer";
 import { CustomQuickActions } from "./actions_toolbar/custom";
-import { getArtifactContent } from "@/contexts/utils";
 import { ArtifactLoading } from "./ArtifactLoading";
+import { CodeRenderer } from "./CodeRenderer";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
-import { useGraphContext } from "@/contexts/GraphContext";
+import { TextRenderer } from "./TextRenderer";
 
 export interface ArtifactRendererProps {
   isEditing: boolean;
@@ -412,6 +412,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
         )}
       </div>
       <CustomQuickActions
+        setMessages={setMessages}
         streamMessage={streamMessage}
         assistantId={assistantId}
         user={user}
@@ -419,12 +420,14 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
       />
       {currentArtifactContent.type === "text" ? (
         <ActionsToolbar
+          setMessages={setMessages}
           streamMessage={streamMessage}
           isTextSelected={isSelectionActive || selectedBlocks !== undefined}
         />
       ) : null}
       {currentArtifactContent.type === "code" ? (
         <CodeToolBar
+          setMessages={setMessages}
           streamMessage={streamMessage}
           isTextSelected={isSelectionActive || selectedBlocks !== undefined}
           language={

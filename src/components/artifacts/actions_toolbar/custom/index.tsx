@@ -1,10 +1,3 @@
-import {
-  CirclePlus,
-  WandSparkles,
-  Trash2,
-  LoaderCircle,
-  Pencil,
-} from "lucide-react";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import {
   DropdownMenu,
@@ -14,21 +7,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CustomQuickAction } from "@/types";
-import { NewCustomQuickActionDialog } from "./NewCustomQuickActionDialog";
-import { useEffect, useState } from "react";
-import { useStore } from "@/hooks/useStore";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { TighterText } from "@/components/ui/header";
 import { GraphInput } from "@/contexts/GraphContext";
+import { useToast } from "@/hooks/use-toast";
+import { useStore } from "@/hooks/useStore";
+import { cn } from "@/lib/utils";
+import { CustomQuickAction } from "@/types";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { User } from "@supabase/supabase-js";
+import {
+  CirclePlus,
+  LoaderCircle,
+  Pencil,
+  Trash2,
+  WandSparkles,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { NewCustomQuickActionDialog } from "./NewCustomQuickActionDialog";
 
 export interface CustomQuickActionsProps {
   isTextSelected: boolean;
   assistantId: string | undefined;
   user: User | undefined;
   streamMessage: (params: GraphInput) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 }
 
 const DropdownMenuItemWithDelete = ({
@@ -82,7 +84,7 @@ const DropdownMenuItemWithDelete = ({
 };
 
 export function CustomQuickActions(props: CustomQuickActionsProps) {
-  const { user, assistantId, streamMessage } = props;
+  const { user, assistantId, streamMessage, setMessages } = props;
   const {
     getCustomQuickActions,
     deleteCustomQuickAction,
@@ -121,6 +123,19 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
   };
 
   const handleQuickActionClick = async (id: string): Promise<void> => {
+    const selectedAction = customQuickActions?.find(
+      (action) => action.id === id
+    );
+
+    if (selectedAction) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        new HumanMessage(
+          `Please use my custom quick action "${selectedAction.title}" to update my artifact`
+        ),
+      ]);
+    }
+
     setOpen(false);
     setIsEditing(false);
     setIsEditingId(undefined);

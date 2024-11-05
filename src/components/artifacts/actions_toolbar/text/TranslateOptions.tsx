@@ -1,17 +1,19 @@
 import {
-  UsaFlag,
   ChinaFlag,
+  FrenchFlag,
   IndiaFlag,
   SpanishFlag,
-  FrenchFlag,
+  UsaFlag,
 } from "@/components/icons/flags";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { GraphInput } from "@/contexts/GraphContext";
 import { LanguageOptions } from "@/types";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 
 export interface TranslateOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 }
 
 export function TranslateOptions(props: TranslateOptionsProps) {
@@ -19,6 +21,17 @@ export function TranslateOptions(props: TranslateOptionsProps) {
 
   const handleSubmit = async (language: LanguageOptions) => {
     props.handleClose();
+    const languageMap = {
+      english: "English",
+      mandarin: "Mandarin",
+      hindi: "Hindi",
+      spanish: "Spanish",
+      french: "French",
+    };
+    props.setMessages((prevMessages) => [
+      ...prevMessages,
+      new HumanMessage(`Translate my artifact to ${languageMap[language]}`),
+    ]);
     await streamMessage({
       language,
     });

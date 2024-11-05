@@ -1,10 +1,13 @@
-import { ProgrammingLanguageOptions } from "@/types";
-import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageList } from "@/components/ui/programming-lang-dropdown";
 import { GraphInput } from "@/contexts/GraphContext";
+import { useToast } from "@/hooks/use-toast";
+import { ProgrammingLanguageOptions } from "@/types";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 
 export interface PortToLanguageOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
+
   handleClose: () => void;
   language: ProgrammingLanguageOptions;
 }
@@ -48,6 +51,10 @@ export function PortToLanguageOptions(props: PortToLanguageOptionsProps) {
     }
 
     props.handleClose();
+    props.setMessages((prevMessages) => [
+      ...prevMessages,
+      new HumanMessage(`Port the code to ${prettifyLanguage(portLanguage)}`),
+    ]);
     await streamMessage({
       portLanguage,
     });
