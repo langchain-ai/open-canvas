@@ -1,6 +1,6 @@
 import {
   ALL_MODEL_NAMES,
-  DEFAULT_MODE_CONFIG,
+  DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
@@ -18,7 +18,7 @@ export function useThread() {
   const [modelName, setModelName] =
     useState<ALL_MODEL_NAMES>(DEFAULT_MODEL_NAME);
   const [modelConfig, setModelConfig] =
-    useState<CustomModelConfig>(DEFAULT_MODE_CONFIG);
+    useState<CustomModelConfig>(DEFAULT_MODEL_CONFIG);
 
   const createThread = async (
     customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME,
@@ -38,6 +38,7 @@ export function useThread() {
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
       setModelName(customModelName);
+      console.log("setting model config", customModelConfig);
       setModelConfig(customModelConfig);
       await getUserThreads(userId);
       return thread;
@@ -163,8 +164,17 @@ export function useThread() {
       const client = createClient();
       const thread = await client.threads.get(id);
       if (thread.metadata && thread.metadata.customModelName) {
-        setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
-        setModelConfig(thread.metadata.modelConfig as CustomModelConfig);
+        if (thread.metadata.customModelName) {
+          setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
+        } else {
+          setModelName(DEFAULT_MODEL_NAME);
+        }
+
+        if (thread.metadata.modelConfig) {
+          setModelConfig(thread.metadata.modelConfig as CustomModelConfig);
+        } else {
+          setModelConfig(DEFAULT_MODEL_CONFIG);
+        }
       }
       return thread;
     } catch (e) {

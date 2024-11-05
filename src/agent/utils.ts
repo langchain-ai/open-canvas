@@ -187,9 +187,7 @@ export function optionallyGetSystemPromptFromConfig(
   return config.configurable?.systemPrompt as string | undefined;
 }
 
-export async function getModelFromConfig(
-  config: LangGraphRunnableConfig,
-) {
+export async function getModelFromConfig(config: LangGraphRunnableConfig) {
   const { modelName, modelProvider, modelConfig } =
     getModelNameAndProviderFromConfig(config);
   return await initChatModel(modelName, {

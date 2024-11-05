@@ -1,7 +1,11 @@
 "use client";
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
-import { ALL_MODEL_NAMES } from "@/constants";
+import {
+  ALL_MODEL_NAMES,
+  DEFAULT_MODEL_CONFIG,
+  DEFAULT_MODEL_NAME,
+} from "@/constants";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useToast } from "@/hooks/use-toast";
 import { getLanguageTemplate } from "@/lib/get_language_template";
@@ -89,12 +93,21 @@ export function CanvasComponent() {
             // Chat should only be "started" if there are messages present
             if ((thread.values as Record<string, any>)?.messages?.length) {
               setChatStarted(true);
-              setModelName(
-                thread?.metadata?.customModelName as ALL_MODEL_NAMES
-              );
-              setModelConfig(
-                thread?.metadata?.modelConfig as CustomModelConfig
-              );
+              if (thread?.metadata?.customModelName) {
+                setModelName(
+                  thread.metadata.customModelName as ALL_MODEL_NAMES
+                );
+              } else {
+                setModelName(DEFAULT_MODEL_NAME);
+              }
+
+              if (thread?.metadata?.modelConfig) {
+                setModelConfig(
+                  thread.metadata.modelConfig as CustomModelConfig
+                );
+              } else {
+                setModelConfig(DEFAULT_MODEL_CONFIG);
+              }
             } else {
               setChatStarted(false);
             }

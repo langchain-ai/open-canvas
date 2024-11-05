@@ -1,7 +1,7 @@
 import { CustomModelConfig, ModelConfigurationParams } from "./types";
 
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:53404";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:54646";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -42,8 +42,8 @@ export const OPENAI_MODELS: ModelConfigurationParams[] = [
       maxTokens: {
         min: 1,
         max: 16384,
-        default: 16384,
-        current: 16384,
+        default: 4096,
+        current: 4096,
       },
     },
     isNew: false,
@@ -106,8 +106,8 @@ export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
       maxTokens: {
         min: 1,
         max: 16384,
-        default: 16384,
-        current: 16384,
+        default: 4096,
+        current: 4096,
       },
     },
     isNew: false,
@@ -129,8 +129,8 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
       maxTokens: {
         min: 1,
         max: 8192,
-        default: 8192,
-        current: 8192,
+        default: 4096,
+        current: 4096,
       },
     },
     isNew: false,
@@ -138,7 +138,7 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
 ];
 
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
-export const DEFAULT_MODE_CONFIG: CustomModelConfig = OPENAI_MODELS[0].config;
+export const DEFAULT_MODEL_CONFIG: CustomModelConfig = OPENAI_MODELS[0].config;
 
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];

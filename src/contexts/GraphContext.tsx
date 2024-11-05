@@ -1,7 +1,7 @@
 import {
   ALL_MODEL_NAMES,
   DEFAULT_INPUTS,
-  DEFAULT_MODE_CONFIG,
+  DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
@@ -888,7 +888,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       );
     } else {
       threadData.setModelName(DEFAULT_MODEL_NAME);
-      threadData.setModelConfig(DEFAULT_MODE_CONFIG);
+      threadData.setModelConfig(DEFAULT_MODEL_CONFIG);
     }
 
     const castValues: {

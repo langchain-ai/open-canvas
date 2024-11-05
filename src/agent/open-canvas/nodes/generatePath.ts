@@ -10,10 +10,8 @@ import { z } from "zod";
 import {
   formatArtifactContentWithTemplate,
   getModelFromConfig,
-  getModelNameAndProviderFromConfig,
 } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
-import { initChatModel } from "langchain/chat_models/universal";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
@@ -23,7 +21,6 @@ export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ) => {
-  console.log("config.configurable!!", config.configurable);
   if (state.highlightedCode) {
     return {
       next: "updateArtifact",

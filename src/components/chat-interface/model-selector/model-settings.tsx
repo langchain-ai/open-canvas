@@ -7,9 +7,7 @@ import { CustomModelConfig, ModelConfigurationParams } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { GearIcon } from "@radix-ui/react-icons";
-import {
-  useCallback,
-} from "react";
+import { useCallback } from "react";
 import { Slider } from "@/components/ui/slider";
 
 interface SettingSectionProps {
@@ -128,4 +126,4 @@ export function ModelSettings({
       </PopoverContent>
     </Popover>
   );
-};
+}

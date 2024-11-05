@@ -9,11 +9,15 @@ import {
   FIREWORKS_MODELS,
   GEMINI_MODELS,
 } from "@/constants";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
 import { IsNewBadge } from "./new-badge";
 import { CustomModelConfig } from "@/types";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CaretSortIcon } from "@radix-ui/react-icons";
 import { SelectSelector } from "./select-selector";
 
@@ -51,7 +55,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
     <div className="relative">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
-          className="min-w-[180px] w-[210px] bg-transparent shadow-none focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600 h-9 px-3 py-2 text-sm focus:ring-1 focus:ring-ring"
+          className="min-w-[180px] w-[250px] bg-transparent shadow-none focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600 h-9 px-3 py-2 text-sm focus:ring-1 focus:ring-ring"
           asChild
         >
           <div className="flex items-center pr-2 truncate">
@@ -63,13 +67,13 @@ export default function ModelSelector(props: ModelSelectorProps) {
               className="mr-2"
             />
             <span className="flex flex-row items-center justify-start gap-2">
-                {modelNameToLabel(props.modelName)}
-                {isSelectedModelNew && <IsNewBadge />}
-              </span>
+              {modelNameToLabel(props.modelName)}
+              {isSelectedModelNew && <IsNewBadge />}
+            </span>
             <CaretSortIcon className="size-4 opacity-50 ml-auto" />
           </div>
         </PopoverTrigger>
-        <PopoverContent className="min-w-[180px] w-[240px] p-0">
+        <PopoverContent className="min-w-[180px] w-[280px] p-0">
           <SelectSelector
             chatStarted={props.chatStarted}
             modelName={props.modelName}

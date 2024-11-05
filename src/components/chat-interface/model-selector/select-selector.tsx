@@ -1,4 +1,9 @@
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { ModelSettings } from "./model-settings";
 import { Check } from "lucide-react";
 import { ALL_MODELS } from "./constants";
