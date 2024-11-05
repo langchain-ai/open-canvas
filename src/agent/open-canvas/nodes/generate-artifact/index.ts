@@ -6,7 +6,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import {
   getFormattedReflections,
   getModelFromConfig,
-  getModelNameAndProviderFromConfig,
+  getModelConfig,
   optionallyGetSystemPromptFromConfig,
 } from "@/agent/utils";
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas";
@@ -20,8 +20,10 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName } = getModelNameAndProviderFromConfig(config);
-  const smallModel = await getModelFromConfig(config, 0.5);
+  const { modelName } = getModelConfig(config);
+  const smallModel = await getModelFromConfig(config, {
+    temperature: 0.5,
+  });
 
   const modelWithArtifactTool = smallModel.bindTools(
     [

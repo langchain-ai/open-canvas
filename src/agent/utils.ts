@@ -131,13 +131,42 @@ export const formatArtifactContentWithTemplate = (
   );
 };
 
-export const getModelNameAndProviderFromConfig = (
+export const getModelConfig = (
   config: LangGraphRunnableConfig
-): { modelName: string; modelProvider: string } => {
+): {
+  modelName: string;
+  modelProvider: string;
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+    azureOpenAIBasePath?: string;
+  };
+} => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
     throw new Error("Model name is missing in config.");
   }
+
+  if (customModelName.startsWith("azure/")) {
+    const actualModelName = customModelName.replace("azure/", "");
+    return {
+      modelName: actualModelName,
+      modelProvider: "azure_openai",
+      azureConfig: {
+        azureOpenAIApiKey: process.env._AZURE_OPENAI_API_KEY || "",
+        azureOpenAIApiInstanceName:
+          process.env._AZURE_OPENAI_API_INSTANCE_NAME || "",
+        azureOpenAIApiDeploymentName:
+          process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
+        azureOpenAIApiVersion:
+          process.env._AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
+        azureOpenAIBasePath: process.env._AZURE_OPENAI_API_BASE_PATH,
+      },
+    };
+  }
+
   if (customModelName.includes("gpt-")) {
     return {
       modelName: customModelName,
@@ -174,12 +203,26 @@ export function optionallyGetSystemPromptFromConfig(
 
 export async function getModelFromConfig(
   config: LangGraphRunnableConfig,
-  temperature = 0
+  extra?: {
+    temperature?: number;
+    maxTokens?: number;
+  }
 ) {
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
+  const { temperature = 0.5, maxTokens } = extra || {};
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
   return await initChatModel(modelName, {
-    temperature,
     modelProvider,
+    temperature,
+    maxTokens,
+    ...(azureConfig != null
+      ? {
+          azureOpenAIApiKey: azureConfig.azureOpenAIApiKey,
+          azureOpenAIApiInstanceName: azureConfig.azureOpenAIApiInstanceName,
+          azureOpenAIApiDeploymentName:
+            azureConfig.azureOpenAIApiDeploymentName,
+          azureOpenAIApiVersion: azureConfig.azureOpenAIApiVersion,
+          azureOpenAIBasePath: azureConfig.azureOpenAIBasePath,
+        }
+      : {}),
   });
 }
