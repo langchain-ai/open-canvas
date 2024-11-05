@@ -20,13 +20,16 @@ import {
   useState,
 } from "react";
 import { FullPrompt } from "./FullPrompt";
-import { InlineContextTooltip } from "./PromptContextTooltip";
+import { InlineContextTooltip } from "@/components/ui/inline-context-tooltip";
 import { useStore } from "@/hooks/useStore";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
 import { CustomQuickAction } from "@/types";
 import { TighterText } from "@/components/ui/header";
 import { User } from "@supabase/supabase-js";
+
+const CUSTOM_INSTRUCTIONS_TOOLTIP_TEXT = `This field contains the custom instructions you set, which will then be used to instruct the LLM on how to re-generate the selected artifact.`;
+const FULL_PROMPT_TOOLTIP_TEXT = `This is the full prompt that will be set to the LLM when you invoke this quick action, including your custom instructions and other default context.`;
 
 interface NewCustomQuickActionDialogProps {
   user: User | undefined;
@@ -224,7 +227,11 @@ export function NewCustomQuickActionDialog(
               <div className="w-full h-full flex flex-col gap-1">
                 <TighterText className="text-gray-500 text-sm flex items-center">
                   Custom instructions
-                  <InlineContextTooltip type="custom_instructions" />
+                  <InlineContextTooltip>
+                    <p className="text-sm text-gray-600">
+                      {CUSTOM_INSTRUCTIONS_TOOLTIP_TEXT}
+                    </p>
+                  </InlineContextTooltip>
                 </TighterText>
                 <Textarea
                   disabled={isSubmitLoading}
@@ -241,7 +248,11 @@ export function NewCustomQuickActionDialog(
                 <div className="w-full h-full flex flex-col gap-1">
                   <TighterText className="text-gray-500 text-sm flex items-center">
                     Full prompt
-                    <InlineContextTooltip type="full_prompt" />
+                    <InlineContextTooltip>
+                      <p className="text-sm text-gray-600">
+                        {FULL_PROMPT_TOOLTIP_TEXT}
+                      </p>
+                    </InlineContextTooltip>
                   </TighterText>
                   <FullPrompt
                     customQuickAction={{

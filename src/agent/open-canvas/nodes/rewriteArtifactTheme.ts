@@ -1,5 +1,5 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModelWithConfig, getModelConfig } from "../../utils";
+import { getModelFromConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import { ArtifactV3, Reflections } from "../../../types";
@@ -17,12 +17,7 @@ export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
-  const smallModel = await initChatModelWithConfig(modelName, {
-    temperature: 0.5,
-    modelProvider,
-    azureConfig,
-  });
+  const smallModel = await getModelFromConfig(config);
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;

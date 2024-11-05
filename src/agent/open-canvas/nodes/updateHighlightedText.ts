@@ -1,8 +1,13 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 import { ArtifactMarkdownV3 } from "../../../types";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
+import { getModelConfig, getModelFromConfig } from "@/agent/utils";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { RunnableBinding } from "@langchain/core/runnables";
+import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
+import { AIMessageChunk } from "@langchain/core/messages";
+import { ConfigurableChatModelCallOptions } from "langchain/chat_models/universal";
 
 const PROMPT = `You are an expert AI writing assistant, tasked with rewriting some text a user has selected. The selected text is nested inside a larger 'block'. You should always respond with ONLY the updated text block in accordance with the user's request.
 You should always respond with the full markdown text block, as it will simply replace the existing block in the artifact.
@@ -27,12 +32,38 @@ Ensure you reply with the FULL text block, including the updated selected text. 
  * Update an existing artifact based on the user's query.
  */
 export const updateHighlightedText = async (
-  state: typeof OpenCanvasGraphAnnotation.State
+  state: typeof OpenCanvasGraphAnnotation.State,
+  config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const model = new ChatOpenAI({
-    model: "gpt-4o",
-    temperature: 0,
-  }).withConfig({ runName: "update_highlighted_markdown" });
+  const { modelProvider } = getModelConfig(config);
+  let model: RunnableBinding<
+    BaseLanguageModelInput,
+    AIMessageChunk,
+    ConfigurableChatModelCallOptions
+  >;
+  if (modelProvider.includes("openai")) {
+    // Custom model is OpenAI/Azure OpenAI
+    model = (
+      await getModelFromConfig(config, {
+        temperature: 0,
+      })
+    ).withConfig({ runName: "update_highlighted_markdown" });
+  } else {
+    // Custom model is not set to OpenAI/Azure OpenAI. Use GPT-4o
+    model = (
+      await getModelFromConfig(
+        {
+          ...config,
+          configurable: {
+            customModelName: "gpt-4o",
+          },
+        },
+        {
+          temperature: 0,
+        }
+      )
+    ).withConfig({ runName: "update_highlighted_markdown" });
+  }
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)

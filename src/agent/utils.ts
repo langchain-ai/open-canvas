@@ -1,37 +1,7 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
-import {
-  ArtifactCodeV3,
-  ArtifactMarkdownV3,
-  Reflections,
-  ModelConfig,
-} from "../types";
+import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 import { initChatModel } from "langchain/chat_models/universal";
-
-/**
- * Wrapper around initChatModel
- */
-export const initChatModelWithConfig = async (
-  modelName: string,
-  config: ModelConfig
-) => {
-  return await initChatModel(modelName, {
-    temperature: config.temperature ?? 0,
-    maxTokens: config.maxTokens,
-    modelProvider: config.modelProvider,
-    ...(config.azureConfig != null
-      ? {
-          azureOpenAIApiKey: config.azureConfig.azureOpenAIApiKey,
-          azureOpenAIApiInstanceName:
-            config.azureConfig.azureOpenAIApiInstanceName,
-          azureOpenAIApiDeploymentName:
-            config.azureConfig.azureOpenAIApiDeploymentName,
-          azureOpenAIApiVersion: config.azureConfig.azureOpenAIApiVersion,
-          azureOpenAIBasePath: config.azureConfig.azureOpenAIBasePath,
-        }
-      : {}),
-  });
-};
 
 export const formatReflections = (
   reflections: Reflections,
@@ -104,6 +74,24 @@ export const formatReflections = (
 
   return styleString + "\n\n" + contentString;
 };
+
+export async function getFormattedReflections(
+  config: LangGraphRunnableConfig
+): Promise<string> {
+  const store = ensureStoreInConfig(config);
+  const assistantId = config.configurable?.assistant_id;
+  if (!assistantId) {
+    throw new Error("`assistant_id` not found in configurable");
+  }
+  const memoryNamespace = ["memories", assistantId];
+  const memoryKey = "reflection";
+  const memories = await store.get(memoryNamespace, memoryKey);
+  const memoriesAsString = memories?.value
+    ? formatReflections(memories.value as Reflections)
+    : "No reflections found.";
+
+  return memoriesAsString;
+}
 
 export const ensureStoreInConfig = (
   config: LangGraphRunnableConfig
@@ -206,3 +194,35 @@ export const getModelConfig = (
 
   throw new Error("Unknown model provider");
 };
+
+export function optionallyGetSystemPromptFromConfig(
+  config: LangGraphRunnableConfig
+): string | undefined {
+  return config.configurable?.systemPrompt as string | undefined;
+}
+
+export async function getModelFromConfig(
+  config: LangGraphRunnableConfig,
+  extra?: {
+    temperature?: number;
+    maxTokens?: number;
+  }
+) {
+  const { temperature = 0.5, maxTokens } = extra || {};
+  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  return await initChatModel(modelName, {
+    modelProvider,
+    temperature,
+    maxTokens,
+    ...(azureConfig != null
+      ? {
+          azureOpenAIApiKey: azureConfig.azureOpenAIApiKey,
+          azureOpenAIApiInstanceName: azureConfig.azureOpenAIApiInstanceName,
+          azureOpenAIApiDeploymentName:
+            azureConfig.azureOpenAIApiDeploymentName,
+          azureOpenAIApiVersion: azureConfig.azureOpenAIApiVersion,
+          azureOpenAIBasePath: azureConfig.azureOpenAIBasePath,
+        }
+      : {}),
+  });
+}

@@ -1,5 +1,5 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModelWithConfig, getModelConfig } from "../../utils";
+import { getModelFromConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { Reflections } from "../../../types";
 import {
@@ -17,12 +17,7 @@ export const replyToGeneralInput = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
-  const smallModel = await initChatModelWithConfig(modelName, {
-    temperature: 0.5,
-    modelProvider,
-    azureConfig,
-  });
+  const smallModel = await getModelFromConfig(config);
 
   const prompt = `You are an AI assistant tasked with responding to the users question.
   

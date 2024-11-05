@@ -1,6 +1,6 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModelWithConfig, getModelConfig } from "../../utils";
+import { getModelFromConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import {
@@ -35,11 +35,8 @@ export const customAction = async (
     throw new Error("No custom quick action ID found.");
   }
 
-  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
-  const smallModel = await initChatModelWithConfig(modelName, {
+  const smallModel = await getModelFromConfig(config, {
     temperature: 0.5,
-    modelProvider,
-    azureConfig,
   });
 
   const store = ensureStoreInConfig(config);
