@@ -117,7 +117,7 @@ function NavigateArtifactHistory(props: NavigateArtifactHistoryProps) {
 function ArtifactRendererComponent(props: ArtifactRendererProps) {
   const {
     graphData,
-    threadData: { assistantId },
+    assistantsData: { selectedAssistant },
     userData: { user },
   } = useGraphContext();
   const {
@@ -354,7 +354,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
           />
         </div>
         <div className="ml-auto mt-[10px] mr-[6px]">
-          <ReflectionsDialog assistantId={assistantId} />
+          <ReflectionsDialog selectedAssistant={selectedAssistant} />
         </div>
       </div>
       <div
@@ -413,7 +413,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
       </div>
       <CustomQuickActions
         streamMessage={streamMessage}
-        assistantId={assistantId}
+        assistantId={selectedAssistant?.assistant_id}
         user={user}
         isTextSelected={isSelectionActive || selectedBlocks !== undefined}
       />

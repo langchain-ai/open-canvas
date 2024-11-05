@@ -20,3 +20,10 @@ export const setCookie = (
     ...(options || {}),
   });
 };
+
+export const removeCookie = (name: string): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  Cookies.remove(name);
+};

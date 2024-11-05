@@ -9,6 +9,7 @@ import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
 import {
   formatArtifactContentWithTemplate,
+  getModelFromConfig,
   getModelNameAndProviderFromConfig,
 } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
@@ -93,12 +94,7 @@ export const generatePath = async (
     ? "rewriteArtifact"
     : "generateArtifact";
 
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
-  const model = await initChatModel(modelName, {
-    temperature: 0,
-    modelProvider,
-  });
+  const model = await getModelFromConfig(config);
   const modelWithTool = model.withStructuredOutput(
     z.object({
       route: z

@@ -32,6 +32,7 @@ export function useStore() {
     if (!item?.value) {
       setIsLoadingReflections(false);
       // No reflections found. Return early.
+      setReflections(undefined);
       return;
     }
 

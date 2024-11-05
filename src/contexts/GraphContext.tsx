@@ -19,7 +19,6 @@ import {
 } from "@/lib/artifact_content_types";
 import { setCookie } from "@/lib/cookies";
 import { reverseCleanContent } from "@/lib/normalize_string";
-import { addAssistantIdToUser } from "@/lib/supabase/add_assistant_id_to_user";
 import {
   ArtifactLengthOptions,
   ArtifactToolResponse,
@@ -55,6 +54,7 @@ import {
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
+import { useAssistants } from "@/hooks/useAssistants";
 
 interface GraphData {
   runId: string | undefined;
@@ -82,10 +82,13 @@ type UserDataContextType = ReturnType<typeof useUser>;
 
 type ThreadDataContextType = ReturnType<typeof useThread>;
 
+type AssistantsDataContextType = ReturnType<typeof useAssistants>;
+
 type GraphContentType = {
   graphData: GraphData;
   userData: UserDataContextType;
   threadData: ThreadDataContextType;
+  assistantsData: AssistantsDataContextType;
 };
 
 const GraphContext = createContext<GraphContentType | undefined>(undefined);
@@ -112,6 +115,7 @@ export interface GraphInput {
 
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUser();
+  const assistantsData = useAssistants();
   const threadData = useThread();
   const { toast } = useToast();
   const { shareRun } = useRuns();
@@ -148,19 +152,14 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       threadData.searchOrCreateThread(userData.user.id);
     }
 
-    if (!threadData.assistantId) {
-      threadData.getOrCreateAssistant();
+    // Get or create a new assistant if there isn't one set in state, and we're not
+    // loading all assistants already.
+    if (
+      !assistantsData.selectedAssistant &&
+      !assistantsData.isLoadingAllAssistants
+    ) {
+      assistantsData.getOrCreateAssistant(userData.user.id);
     }
-  }, [userData.user]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !userData.user) return;
-    addAssistantIdToUser();
-  }, [userData.user]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !userData.user) return;
-    addAssistantIdToUser();
   }, [userData.user]);
 
   // Very hacky way of ensuring updateState is not called when a thread is switched
@@ -248,7 +247,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-    if (!threadData.assistantId) {
+    if (!assistantsData.selectedAssistant) {
       toast({
         title: "Error",
         description: "No assistant ID found",
@@ -307,7 +306,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     try {
       const stream = client.runs.stream(
         threadData.threadId,
-        threadData.assistantId,
+        assistantsData.selectedAssistant.assistant_id,
         {
           input,
           streamMode: "events",
@@ -937,6 +936,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const contextValue: GraphContentType = {
     userData,
     threadData,
+    assistantsData,
     graphData: {
       runId,
       isStreaming,

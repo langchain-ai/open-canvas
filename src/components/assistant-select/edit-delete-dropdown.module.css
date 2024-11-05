@@ -1,0 +1,12 @@
+.dropdownContent {
+  width: 48px !important;
+  min-width: 48px !important;
+  padding: 4px !important;
+}
+
+.dropdownContent > [role="menuitem"] {
+  width: 100% !important;
+  padding: 4px !important;
+  display: flex;
+  justify-content: center;
+}

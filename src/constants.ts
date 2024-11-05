@@ -1,7 +1,7 @@
 import { CustomModelConfig, ModelConfigurationParams } from "./types";
 
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:57318";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:53404";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -10,6 +10,8 @@ export const THREAD_ID_COOKIE_NAME = "oc_thread_id_v2";
 export const HAS_EMPTY_THREADS_CLEARED_COOKIE = "has_empty_threads_cleared";
 export const LS_HAS_SEEN_MODEL_DROPDOWN_ALERT =
   "oc_has_seen_model_dropdown_alert";
+export const OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT =
+  "oc_has_seen_custom_assistants_alert";
 export const DEFAULT_INPUTS = {
   highlightedCode: undefined,
   highlightedText: undefined,
@@ -44,13 +46,13 @@ export const OPENAI_MODELS: ModelConfigurationParams[] = [
         current: 16384,
       },
     },
+    isNew: false,
   },
 ];
-
 export const ANTHROPIC_MODELS: ModelConfigurationParams[] = [
   {
-    name: "claude-3-haiku-20240307",
-    label: "Claude 3 Haiku",
+    name: "claude-3-5-haiku-20241022",
+    label: "Claude 3.5 Haiku",
     config: {
       provider: "anthropic",
       temperatureRange: {
@@ -66,9 +68,29 @@ export const ANTHROPIC_MODELS: ModelConfigurationParams[] = [
         current: 4096,
       },
     },
+    isNew: true,
+  },
+  {
+    name: "claude-3-haiku-20240307",
+    label: "Claude 3 Haiku (old)",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8192,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: false,
   },
 ];
-
 export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
   {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
@@ -88,6 +110,7 @@ export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
         current: 16384,
       },
     },
+    isNew: false,
   },
 ];
 
@@ -110,6 +133,7 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
         current: 8192,
       },
     },
+    isNew: false,
   },
 ];
 

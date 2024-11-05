@@ -286,4 +286,5 @@ export interface ModelConfigurationParams {
   name: string;
   label: string;
   config: CustomModelConfig;
+  isNew: boolean;
 }
