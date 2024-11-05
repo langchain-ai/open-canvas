@@ -155,14 +155,14 @@ export const getModelConfig = (
       modelName: actualModelName,
       modelProvider: "azure_openai",
       azureConfig: {
-        azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY || "",
+        azureOpenAIApiKey: process.env._AZURE_OPENAI_API_KEY || "",
         azureOpenAIApiInstanceName:
-          process.env.AZURE_OPENAI_API_INSTANCE_NAME || "",
+          process.env._AZURE_OPENAI_API_INSTANCE_NAME || "",
         azureOpenAIApiDeploymentName:
-          process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
+          process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
         azureOpenAIApiVersion:
-          process.env.AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
-        azureOpenAIBasePath: process.env.AZURE_OPENAI_API_BASE_PATH,
+          process.env._AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
+        azureOpenAIBasePath: process.env._AZURE_OPENAI_API_BASE_PATH,
       },
     };
   }

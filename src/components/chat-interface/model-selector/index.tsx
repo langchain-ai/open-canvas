@@ -16,6 +16,7 @@ import {
   FIREWORKS_MODELS,
   GEMINI_MODELS,
   LS_HAS_SEEN_MODEL_DROPDOWN_ALERT,
+  AZURE_MODELS,
 } from "@/constants";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
@@ -26,6 +27,7 @@ const allModels = [
   ...OPENAI_MODELS,
   ...FIREWORKS_MODELS,
   ...GEMINI_MODELS,
+  ...AZURE_MODELS,
 ];
 
 const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {

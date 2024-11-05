@@ -30,6 +30,7 @@ export const AZURE_MODELS = [
     name: "azure/gpt-4o-mini",
     modelName: "gpt-4o-mini",
     label: "GPT-4o mini (Azure)",
+    isNew: false,
   },
 ];
 
