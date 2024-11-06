@@ -1,11 +1,11 @@
 import { END, Send, START, StateGraph } from "@langchain/langgraph";
 import { DEFAULT_INPUTS } from "../../constants";
 import { customAction } from "./nodes/customAction";
-import { generateArtifact } from "./nodes/generateArtifact";
+import { generateArtifact } from "./nodes/generate-artifact";
 import { generateFollowup } from "./nodes/generateFollowup";
 import { generatePath } from "./nodes/generatePath";
 import { reflectNode } from "./nodes/reflect";
-import { rewriteArtifact } from "./nodes/rewriteArtifact";
+import { rewriteArtifact } from "./nodes/rewrite-artifact";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
 import { updateArtifact } from "./nodes/updateArtifact";
 import { replyToGeneralInput } from "./nodes/replyToGeneralInput";
