@@ -78,6 +78,12 @@ export default function ModelSelector(props: ModelSelectorProps) {
       return false;
     }
     if (
+      model.name.includes("azure/") &&
+      process.env.NEXT_PUBLIC_AZURE_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
       model.name.includes("gemini-") &&
       process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false"
     ) {
