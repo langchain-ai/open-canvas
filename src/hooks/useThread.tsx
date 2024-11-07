@@ -1,5 +1,6 @@
 import {
   ALL_MODEL_NAMES,
+  ALL_MODELS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
@@ -17,8 +18,38 @@ export function useThread() {
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
   const [modelName, setModelName] =
     useState<ALL_MODEL_NAMES>(DEFAULT_MODEL_NAME);
-  const [modelConfig, setModelConfig] =
-    useState<CustomModelConfig>(DEFAULT_MODEL_CONFIG);
+
+  const [modelConfigs, setModelConfigs] = useState<
+    Record<ALL_MODEL_NAMES, CustomModelConfig>
+  >(() => {
+    // Initialize with default configs for all models
+    const initialConfigs: Record<ALL_MODEL_NAMES, CustomModelConfig> =
+      {} as Record<ALL_MODEL_NAMES, CustomModelConfig>;
+    ALL_MODELS.forEach((model) => {
+      initialConfigs[model.name] = {
+        ...model.config,
+        temperatureRange: { ...model.config.temperatureRange },
+        maxTokens: { ...model.config.maxTokens },
+      };
+    });
+    return initialConfigs;
+  });
+
+  const setModelConfig = (
+    modelName: ALL_MODEL_NAMES,
+    config: CustomModelConfig
+  ) => {
+    setModelConfigs((prevConfigs) => ({
+      ...prevConfigs,
+      [modelName]: {
+        ...config,
+        temperatureRange: { ...config.temperatureRange },
+        maxTokens: { ...config.maxTokens },
+      },
+    }));
+  };
+
+  const modelConfig = modelConfigs[modelName];
 
   const createThread = async (
     customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME,
@@ -39,7 +70,7 @@ export function useThread() {
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
       setModelName(customModelName);
       console.log("setting model config", customModelConfig);
-      setModelConfig(customModelConfig);
+      setModelConfig(customModelName, customModelConfig);
       await getUserThreads(userId);
       return thread;
     } catch (e) {
@@ -171,9 +202,12 @@ export function useThread() {
         }
 
         if (thread.metadata.modelConfig) {
-          setModelConfig(thread.metadata.modelConfig as CustomModelConfig);
+          setModelConfig(
+            thread.metadata.customModelName as ALL_MODEL_NAMES,
+            thread.metadata.modelConfig as CustomModelConfig
+          );
         } else {
-          setModelConfig(DEFAULT_MODEL_CONFIG);
+          setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
         }
       }
       return thread;
@@ -214,6 +248,7 @@ export function useThread() {
     isUserThreadsLoading,
     modelName,
     modelConfig,
+    modelConfigs,
     createThread,
     clearThreadsWithNoValues,
     searchOrCreateThread,

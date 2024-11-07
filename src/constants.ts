@@ -83,7 +83,7 @@ export const ANTHROPIC_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 8192,
+        max: 4096,
         default: 4096,
         current: 4096,
       },
@@ -137,8 +137,12 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
   },
 ];
 
-export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
-export const DEFAULT_MODEL_CONFIG: CustomModelConfig = OPENAI_MODELS[0].config;
+export const ALL_MODELS: ModelConfigurationParams[] = [
+  ...OPENAI_MODELS,
+  ...ANTHROPIC_MODELS,
+  ...FIREWORKS_MODELS,
+  ...GEMINI_MODELS,
+];
 
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
@@ -149,3 +153,11 @@ export type ALL_MODEL_NAMES =
   | ANTHROPIC_MODEL_NAMES
   | FIREWORKS_MODEL_NAMES
   | GEMINI_MODEL_NAMES;
+
+export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
+
+export const DEFAULT_MODEL_CONFIG: CustomModelConfig = {
+  ...OPENAI_MODELS[0].config,
+  temperatureRange: { ...OPENAI_MODELS[0].config.temperatureRange },
+  maxTokens: { ...OPENAI_MODELS[0].config.maxTokens },
+};

@@ -8,6 +8,7 @@ import {
 import { CustomModelConfig } from "@/types";
 
 import { useToast } from "@/hooks/use-toast";
+import { useAssistants } from "@/hooks/useAssistants";
 import { useRuns } from "@/hooks/useRuns";
 import { useThread } from "@/hooks/useThread";
 import { useUser } from "@/hooks/useUser";
@@ -17,6 +18,8 @@ import {
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
 } from "@/lib/artifact_content_types";
+import { setCookie } from "@/lib/cookies";
+import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
   ArtifactToolResponse,
@@ -52,9 +55,6 @@ import {
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
-import { reverseCleanContent } from "@/lib/normalize_string";
-import { setCookie } from "@/lib/cookies";
-import { useAssistants } from "@/hooks/useAssistants";
 
 interface GraphData {
   runId: string | undefined;
@@ -313,7 +313,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           config: {
             configurable: {
               customModelName: threadData.modelName,
-              modelConfig: threadData.modelConfig,
+              modelConfig: threadData.modelConfigs[threadData.modelName],
             },
           },
         }
@@ -884,11 +884,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         thread.metadata.customModelName as ALL_MODEL_NAMES
       );
       threadData.setModelConfig(
+        thread.metadata.customModelName as ALL_MODEL_NAMES,
         thread.metadata.modelConfig as CustomModelConfig
       );
     } else {
       threadData.setModelName(DEFAULT_MODEL_NAME);
-      threadData.setModelConfig(DEFAULT_MODEL_CONFIG);
+      threadData.setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
     }
 
     const castValues: {

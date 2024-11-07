@@ -56,6 +56,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       setModelName,
       modelConfig,
       setModelConfig,
+      modelConfigs,
     },
     assistantsData: { selectedAssistant },
     graphData: { clearState, runId, feedbackSubmitted, setFeedbackSubmitted },
@@ -74,7 +75,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       return;
     }
     setModelName(modelName);
-    setModelConfig(modelConfig);
+    setModelConfig(modelName, modelConfig);
     clearState();
     setChatStarted(false);
     const thread = await createThread(modelName, modelConfig, user.id);
@@ -102,6 +103,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
               setModelName={setModelName}
               modelConfig={modelConfig}
               setModelConfig={setModelConfig}
+              modelConfigs={modelConfigs}
             />
           )}
         </div>
@@ -153,6 +155,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 setModelName={setModelName}
                 modelConfig={modelConfig}
                 setModelConfig={setModelConfig}
+                modelConfigs={modelConfigs}
               />
               <Composer chatStarted={true} userId={props.userId} />
             </div>

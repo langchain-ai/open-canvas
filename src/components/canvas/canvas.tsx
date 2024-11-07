@@ -103,10 +103,11 @@ export function CanvasComponent() {
 
               if (thread?.metadata?.modelConfig) {
                 setModelConfig(
-                  thread.metadata.modelConfig as CustomModelConfig
+                  thread?.metadata?.customModelName as ALL_MODEL_NAMES,
+                  thread.metadata?.modelConfig as CustomModelConfig
                 );
               } else {
-                setModelConfig(DEFAULT_MODEL_CONFIG);
+                setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
               }
             } else {
               setChatStarted(false);
