@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import { MessageCircleCode, Code, ScrollText, Bug, BookA } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { PortToLanguageOptions } from "./PortToLanguage";
-import { ProgrammingLanguageOptions } from "@/types";
 import { GraphInput } from "@/contexts/GraphContext";
+import { cn } from "@/lib/utils";
+import { ProgrammingLanguageOptions } from "@/types";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { BookA, Bug, Code, MessageCircleCode, ScrollText } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { PortToLanguageOptions } from "./PortToLanguage";
 
 type SharedComponentProps = {
   handleClose: () => void;
   streamMessage: (params: GraphInput) => Promise<void>;
   language: ProgrammingLanguageOptions;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 };
 
 type ToolbarOption = {
@@ -23,6 +25,7 @@ export interface CodeToolbarProps {
   streamMessage: (params: GraphInput) => Promise<void>;
   isTextSelected: boolean;
   language: ProgrammingLanguageOptions;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 }
 
 const toolbarOptions: ToolbarOption[] = [
@@ -55,7 +58,7 @@ const toolbarOptions: ToolbarOption[] = [
 ];
 
 export function CodeToolBar(props: CodeToolbarProps) {
-  const { streamMessage } = props;
+  const { streamMessage, setMessages } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -97,6 +100,22 @@ export function CodeToolBar(props: CodeToolbarProps) {
 
     setIsExpanded(false);
     setActiveOption(null);
+
+    const actionMessages = {
+      addComments: "Add descriptive inline comments to my code",
+      addLogs: "Insert log statements into my code",
+      fixBugs: "Fix any potential bugs in my code",
+    };
+
+    if (actionMessages[optionId as keyof typeof actionMessages]) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        new HumanMessage(
+          actionMessages[optionId as keyof typeof actionMessages]
+        ),
+      ]);
+    }
+
     if (optionId === "addComments") {
       await streamMessage({
         addComments: true,

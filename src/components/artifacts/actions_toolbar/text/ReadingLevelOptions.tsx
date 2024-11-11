@@ -1,3 +1,7 @@
+import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
+import { GraphInput } from "@/contexts/GraphContext";
+import { ReadingLevelOptions as ReadingLevelOptionsType } from "@/types";
+import { HumanMessage } from "@langchain/core/messages";
 import {
   Baby,
   GraduationCap,
@@ -5,13 +9,11 @@ import {
   School,
   Swords,
 } from "lucide-react";
-import { ReadingLevelOptions as ReadingLevelOptionsType } from "@/types";
-import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { GraphInput } from "@/contexts/GraphContext";
 
 export interface ReadingLevelOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<HumanMessage[]>>;
 }
 
 export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
@@ -19,6 +21,19 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
 
   const handleSubmit = async (readingLevel: ReadingLevelOptionsType) => {
     props.handleClose();
+    const levelMap = {
+      phd: "PhD level",
+      college: "college level",
+      teenager: "teenager level",
+      child: "child level",
+      pirate: "pirate speak",
+    };
+    props.setMessages((prevMessages) => [
+      ...prevMessages,
+      new HumanMessage(
+        `Rewrite my artifact to be at a ${levelMap[readingLevel]}`
+      ),
+    ]);
     await streamMessage({
       readingLevel,
     });

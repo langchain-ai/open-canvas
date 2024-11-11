@@ -1,18 +1,20 @@
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { ArtifactLengthOptions } from "@/types";
+import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Slider } from "@/components/ui/slider";
 import { GraphInput } from "@/contexts/GraphContext";
+import { cn } from "@/lib/utils";
+import { ArtifactLengthOptions } from "@/types";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { useState } from "react";
 
 export interface LengthOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;
   handleClose: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<BaseMessage[]>>;
 }
 
 const lengthOptions = [
@@ -30,6 +32,16 @@ export function LengthOptions(props: LengthOptionsProps) {
 
   const handleSubmit = async (artifactLength: ArtifactLengthOptions) => {
     props.handleClose();
+    const lengthMap = {
+      shortest: "much shorter",
+      short: "shorter",
+      long: "longer",
+      longest: "much longer",
+    };
+    props.setMessages((prevMessages) => [
+      ...prevMessages,
+      new HumanMessage(`Update my artifact to be ${lengthMap[artifactLength]}`),
+    ]);
     await streamMessage({
       artifactLength,
     });
