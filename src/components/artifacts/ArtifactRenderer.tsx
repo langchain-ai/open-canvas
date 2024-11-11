@@ -7,11 +7,8 @@ import {
 } from "@/types";
 import { EditorView } from "@codemirror/view";
 import { HumanMessage } from "@langchain/core/messages";
-import { Forward, LoaderCircle, CircleCheck } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { ActionsToolbar, CodeToolBar } from "./actions_toolbar";
 import { CodeRenderer } from "./CodeRenderer";
 import { TextRenderer } from "./TextRenderer";
@@ -20,6 +17,7 @@ import { getArtifactContent } from "@/contexts/utils";
 import { ArtifactLoading } from "./ArtifactLoading";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
 import { useGraphContext } from "@/contexts/GraphContext";
+import { ArtifactHeader } from "./header";
 
 export interface ArtifactRendererProps {
   isEditing: boolean;
@@ -30,88 +28,6 @@ interface SelectionBox {
   top: number;
   left: number;
   text: string;
-}
-
-interface ArtifactTitleProps {
-  title: string;
-  isArtifactSaved: boolean;
-}
-
-function ArtifactTitle(props: ArtifactTitleProps) {
-  return (
-    <>
-      <h1 className="text-xl font-medium text-gray-600 ">{props.title}</h1>
-      <span className="mt-auto">
-        {props.isArtifactSaved ? (
-          <span className="flex items-center justify-start gap-1 text-gray-400">
-            <p className="text-xs font-light">Saved</p>
-            <CircleCheck className="w-[10px] h-[10px]" />
-          </span>
-        ) : (
-          <span className="flex items-center justify-start gap-1 text-gray-400">
-            <p className="text-xs font-light">Saving</p>
-            <LoaderCircle className="animate-spin w-[10px] h-[10px]" />
-          </span>
-        )}
-      </span>
-    </>
-  );
-}
-
-interface NavigateArtifactHistoryProps {
-  isBackwardsDisabled: boolean;
-  isForwardDisabled: boolean;
-  setSelectedArtifact: (prevState: number) => void;
-  currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3;
-  totalArtifactVersions: number;
-}
-
-function NavigateArtifactHistory(props: NavigateArtifactHistoryProps) {
-  return (
-    <>
-      <TooltipIconButton
-        tooltip="Previous"
-        side="left"
-        variant="ghost"
-        className="transition-colors w-fit h-fit p-2"
-        delayDuration={400}
-        onClick={() => {
-          if (!props.isBackwardsDisabled) {
-            props.setSelectedArtifact(props.currentArtifactContent.index - 1);
-          }
-        }}
-        disabled={props.isBackwardsDisabled}
-      >
-        <Forward
-          aria-disabled={props.isBackwardsDisabled}
-          className="w-6 h-6 text-gray-600 scale-x-[-1]"
-        />
-      </TooltipIconButton>
-      <div className="flex items-center justify-center gap-1">
-        <p className="text-xs pt-1">
-          {props.currentArtifactContent.index} / {props.totalArtifactVersions}
-        </p>
-      </div>
-      <TooltipIconButton
-        tooltip="Next"
-        variant="ghost"
-        side="right"
-        className="transition-colors w-fit h-fit p-2"
-        delayDuration={400}
-        onClick={() => {
-          if (!props.isForwardDisabled) {
-            props.setSelectedArtifact(props.currentArtifactContent.index + 1);
-          }
-        }}
-        disabled={props.isForwardDisabled}
-      >
-        <Forward
-          aria-disabled={props.isForwardDisabled}
-          className="w-6 h-6 text-gray-600"
-        />
-      </TooltipIconButton>
-    </>
-  );
 }
 
 function ArtifactRendererComponent(props: ArtifactRendererProps) {
@@ -336,6 +252,35 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
     }
   }, [selectedBlocks, isSelectionActive]);
 
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Check if we're in an input/textarea element
+      const activeElement = document.activeElement;
+      const isInputActive =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement;
+
+      // If selection states are active and we're not in an input field
+      if (
+        (isInputVisible || selectionBox || isSelectionActive) &&
+        !isInputActive
+      ) {
+        // Check if the key is a character key or backspace/delete
+        if (e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") {
+          handleCleanupState();
+        }
+      }
+
+      // Handle escape key for input box
+      if ((isInputVisible || isSelectionActive) && e.key === "Escape") {
+        handleCleanupState();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, [isInputVisible, selectionBox, isSelectionActive]);
+
   const currentArtifactContent = artifact
     ? getArtifactContent(artifact)
     : undefined;
@@ -359,26 +304,15 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
 
   return (
     <div className="relative w-full h-full max-h-screen overflow-auto">
-      <div className="flex flex-row items-center justify-between">
-        <div className="pl-[6px] pt-3 flex flex-col items-start justify-start ml-[6px] gap-1">
-          <ArtifactTitle
-            title={currentArtifactContent.title}
-            isArtifactSaved={isArtifactSaved}
-          />
-        </div>
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-3 text-gray-600">
-          <NavigateArtifactHistory
-            isBackwardsDisabled={isBackwardsDisabled}
-            isForwardDisabled={isForwardDisabled}
-            setSelectedArtifact={setSelectedArtifact}
-            currentArtifactContent={currentArtifactContent}
-            totalArtifactVersions={artifact.contents.length}
-          />
-        </div>
-        <div className="ml-auto mt-[10px] mr-[6px]">
-          <ReflectionsDialog selectedAssistant={selectedAssistant} />
-        </div>
-      </div>
+      <ArtifactHeader
+        isArtifactSaved={isArtifactSaved}
+        isBackwardsDisabled={isBackwardsDisabled}
+        isForwardDisabled={isForwardDisabled}
+        setSelectedArtifact={setSelectedArtifact}
+        currentArtifactContent={currentArtifactContent}
+        totalArtifactVersions={artifact.contents.length}
+        selectedAssistant={selectedAssistant}
+      />
       <div
         ref={contentRef}
         className={cn(
