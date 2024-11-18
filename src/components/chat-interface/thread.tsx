@@ -1,19 +1,19 @@
+import { useGraphContext } from "@/contexts/GraphContext";
+import { useToast } from "@/hooks/use-toast";
+import { ProgrammingLanguageOptions } from "@/types";
 import { ThreadPrimitive } from "@assistant-ui/react";
+import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 import { ArrowDownIcon, SquarePen } from "lucide-react";
 import { Dispatch, FC, SetStateAction } from "react";
-import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { ProgrammingLanguageOptions } from "@/types";
-import ModelSelector from "./model-selector";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
-import { ThreadHistory } from "./thread-history";
+import { useLangSmithLinkToolUI } from "../tool-hooks/LangSmithLinkToolUI";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { TighterText } from "../ui/header";
-import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { ThreadWelcome } from "./welcome";
 import { Composer } from "./composer";
 import { AssistantMessage, UserMessage } from "./messages";
-import { useToast } from "@/hooks/use-toast";
-import { useLangSmithLinkToolUI } from "../tool-hooks/LangSmithLinkToolUI";
-import { useGraphContext } from "@/contexts/GraphContext";
+import ModelSelector from "./model-selector";
+import { ThreadHistory } from "./thread-history";
+import { ThreadWelcome } from "./welcome";
 
 const ThreadScrollToBottom: FC = () => {
   return (
@@ -50,7 +50,14 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   const { toast } = useToast();
   const {
     userData: { user },
-    threadData: { createThread, modelName, setModelName },
+    threadData: {
+      createThread,
+      modelName,
+      setModelName,
+      modelConfig,
+      setModelConfig,
+      modelConfigs,
+    },
     assistantsData: { selectedAssistant },
     graphData: { clearState, runId, feedbackSubmitted, setFeedbackSubmitted },
   } = useGraphContext();
@@ -68,9 +75,10 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       return;
     }
     setModelName(modelName);
+    setModelConfig(modelName, modelConfig);
     clearState();
     setChatStarted(false);
-    const thread = await createThread(modelName, user.id);
+    const thread = await createThread(modelName, modelConfig, user.id);
     if (!thread) {
       toast({
         title: "Failed to create a new thread",
@@ -93,6 +101,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
               chatStarted={false}
               modelName={modelName}
               setModelName={setModelName}
+              modelConfig={modelConfig}
+              setModelConfig={setModelConfig}
+              modelConfigs={modelConfigs}
             />
           )}
         </div>
@@ -142,6 +153,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 chatStarted={true}
                 modelName={modelName}
                 setModelName={setModelName}
+                modelConfig={modelConfig}
+                setModelConfig={setModelConfig}
+                modelConfigs={modelConfigs}
               />
               <Composer chatStarted={true} userId={props.userId} />
             </div>

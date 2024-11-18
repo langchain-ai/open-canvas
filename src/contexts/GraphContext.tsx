@@ -1,25 +1,25 @@
 import {
-  createContext,
-  useContext,
-  ReactNode,
-  useEffect,
-  useState,
-  useRef,
-  Dispatch,
-  SetStateAction,
-} from "react";
-import {
-  convertToArtifactV3,
-  createNewGeneratedArtifactFromTool,
-  replaceOrInsertMessageChunk,
-  updateHighlightedCode,
-  updateHighlightedMarkdown,
-  updateRewrittenArtifact,
-  removeCodeBlockFormatting,
-} from "./utils";
-import { useUser } from "@/hooks/useUser";
+  ALL_MODEL_NAMES,
+  DEFAULT_INPUTS,
+  DEFAULT_MODEL_CONFIG,
+  DEFAULT_MODEL_NAME,
+  THREAD_ID_COOKIE_NAME,
+} from "@/constants";
+import { CustomModelConfig } from "@/types";
+
+import { useToast } from "@/hooks/use-toast";
+import { useAssistants } from "@/hooks/useAssistants";
+import { useRuns } from "@/hooks/useRuns";
 import { useThread } from "@/hooks/useThread";
-import { debounce } from "lodash";
+import { useUser } from "@/hooks/useUser";
+import { createClient } from "@/hooks/utils";
+import {
+  isArtifactCodeContent,
+  isArtifactMarkdownContent,
+  isDeprecatedArtifactType,
+} from "@/lib/artifact_content_types";
+import { setCookie } from "@/lib/cookies";
+import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
   ArtifactToolResponse,
@@ -33,25 +33,28 @@ import {
   TextHighlight,
 } from "@/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { useRuns } from "@/hooks/useRuns";
-import { createClient } from "@/hooks/utils";
-import {
-  ALL_MODEL_NAMES,
-  DEFAULT_INPUTS,
-  DEFAULT_MODEL_NAME,
-  THREAD_ID_COOKIE_NAME,
-} from "@/constants";
-import { Thread } from "@langchain/langgraph-sdk";
-import { useToast } from "@/hooks/use-toast";
 import { parsePartialJson } from "@langchain/core/output_parsers";
+import { Thread } from "@langchain/langgraph-sdk";
+import { debounce } from "lodash";
 import {
-  isArtifactCodeContent,
-  isArtifactMarkdownContent,
-  isDeprecatedArtifactType,
-} from "@/lib/artifact_content_types";
-import { reverseCleanContent } from "@/lib/normalize_string";
-import { setCookie } from "@/lib/cookies";
-import { useAssistants } from "@/hooks/useAssistants";
+  createContext,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  convertToArtifactV3,
+  createNewGeneratedArtifactFromTool,
+  removeCodeBlockFormatting,
+  replaceOrInsertMessageChunk,
+  updateHighlightedCode,
+  updateHighlightedMarkdown,
+  updateRewrittenArtifact,
+} from "./utils";
 
 interface GraphData {
   runId: string | undefined;
@@ -310,6 +313,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           config: {
             configurable: {
               customModelName: threadData.modelName,
+              modelConfig: threadData.modelConfigs[threadData.modelName],
             },
           },
         }
@@ -879,8 +883,13 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       threadData.setModelName(
         thread.metadata.customModelName as ALL_MODEL_NAMES
       );
+      threadData.setModelConfig(
+        thread.metadata.customModelName as ALL_MODEL_NAMES,
+        thread.metadata.modelConfig as CustomModelConfig
+      );
     } else {
       threadData.setModelName(DEFAULT_MODEL_NAME);
+      threadData.setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
     }
 
     const castValues: {

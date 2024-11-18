@@ -1,7 +1,8 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
+import { CustomModelConfig } from "@/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 import { initChatModel } from "langchain/chat_models/universal";
+import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -136,6 +137,7 @@ export const getModelConfig = (
 ): {
   modelName: string;
   modelProvider: string;
+  modelConfig?: CustomModelConfig;
   azureConfig?: {
     azureOpenAIApiKey: string;
     azureOpenAIApiInstanceName: string;
@@ -145,9 +147,9 @@ export const getModelConfig = (
   };
 } => {
   const customModelName = config.configurable?.customModelName as string;
-  if (!customModelName) {
-    throw new Error("Model name is missing in config.");
-  }
+  if (!customModelName) throw new Error("Model name is missing in config.");
+
+  const modelConfig = config.configurable?.modelConfig as CustomModelConfig;
 
   if (customModelName.startsWith("azure/")) {
     const actualModelName = customModelName.replace("azure/", "");
@@ -167,27 +169,32 @@ export const getModelConfig = (
     };
   }
 
+  const providerConfig = {
+    modelName: customModelName,
+    modelConfig,
+  };
+
   if (customModelName.includes("gpt-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "openai",
     };
   }
   if (customModelName.includes("claude-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "anthropic",
     };
   }
   if (customModelName.includes("fireworks/")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "fireworks",
     };
   }
   if (customModelName.includes("gemini-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "google-genai",
     };
   }
@@ -208,12 +215,14 @@ export async function getModelFromConfig(
     maxTokens?: number;
   }
 ) {
-  const { temperature = 0.5, maxTokens } = extra || {};
-  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  const { modelName, modelProvider, azureConfig, modelConfig } =
+    getModelConfig(config);
+  const { temperature, maxTokens } = extra || {};
+
   return await initChatModel(modelName, {
     modelProvider,
-    temperature,
-    maxTokens,
+    temperature: temperature ?? modelConfig?.temperatureRange.current ?? 0.5,
+    maxTokens: maxTokens ?? modelConfig?.maxTokens.current,
     ...(azureConfig != null
       ? {
           azureOpenAIApiKey: azureConfig.azureOpenAIApiKey,
