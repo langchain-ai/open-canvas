@@ -126,7 +126,6 @@ export default function ModelSelector({
                 const config =
                   modelConfigs[model.name] ||
                   modelConfigs[model.name.replace("azure/", "")];
-                console.log("Model config for", model.name, ":", config);
 
                 return (
                   <CommandGroup key={model.name} className="w-full">
