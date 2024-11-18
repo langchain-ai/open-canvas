@@ -9,7 +9,7 @@ import {
 import { getCookie, setCookie } from "@/lib/cookies";
 import { CustomModelConfig } from "@/types";
 import { Thread } from "@langchain/langgraph-sdk";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createClient } from "./utils";
 
 export function useThread() {
@@ -25,15 +25,43 @@ export function useThread() {
     // Initialize with default configs for all models
     const initialConfigs: Record<ALL_MODEL_NAMES, CustomModelConfig> =
       {} as Record<ALL_MODEL_NAMES, CustomModelConfig>;
+
     ALL_MODELS.forEach((model) => {
-      initialConfigs[model.name] = {
+      const modelKey = model.modelName || model.name;
+
+      initialConfigs[modelKey] = {
         ...model.config,
-        temperatureRange: { ...model.config.temperatureRange },
-        maxTokens: { ...model.config.maxTokens },
+        provider: model.config.provider,
+        temperatureRange: {
+          ...(model.config.temperatureRange ||
+            DEFAULT_MODEL_CONFIG.temperatureRange),
+        },
+        maxTokens: {
+          ...(model.config.maxTokens || DEFAULT_MODEL_CONFIG.maxTokens),
+        },
+        ...(model.config.provider === "azure_openai" && {
+          azureConfig: {
+            azureOpenAIApiKey: process.env._AZURE_OPENAI_API_KEY || "",
+            azureOpenAIApiInstanceName:
+              process.env._AZURE_OPENAI_API_INSTANCE_NAME || "",
+            azureOpenAIApiDeploymentName:
+              process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
+            azureOpenAIApiVersion:
+              process.env._AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
+            azureOpenAIBasePath: process.env._AZURE_OPENAI_API_BASE_PATH,
+          },
+        }),
       };
     });
     return initialConfigs;
   });
+
+  const modelConfig = useMemo(() => {
+    // Try exact match first, then try without azure/ prefix
+    return (
+      modelConfigs[modelName] || modelConfigs[modelName.replace("azure/", "")]
+    );
+  }, [modelName, modelConfigs]);
 
   const setModelConfig = (
     modelName: ALL_MODEL_NAMES,
@@ -43,13 +71,38 @@ export function useThread() {
       ...prevConfigs,
       [modelName]: {
         ...config,
-        temperatureRange: { ...config.temperatureRange },
-        maxTokens: { ...config.maxTokens },
+        provider: config.provider,
+        temperatureRange: {
+          ...(config.temperatureRange || DEFAULT_MODEL_CONFIG.temperatureRange),
+        },
+        maxTokens: {
+          ...(config.maxTokens || DEFAULT_MODEL_CONFIG.maxTokens),
+        },
+        ...(config.provider === "azure_openai" && {
+          azureConfig: {
+            ...config.azureConfig,
+            azureOpenAIApiKey:
+              config.azureConfig?.azureOpenAIApiKey ||
+              process.env._AZURE_OPENAI_API_KEY ||
+              "",
+            azureOpenAIApiInstanceName:
+              config.azureConfig?.azureOpenAIApiInstanceName ||
+              process.env._AZURE_OPENAI_API_INSTANCE_NAME ||
+              "",
+            azureOpenAIApiDeploymentName:
+              config.azureConfig?.azureOpenAIApiDeploymentName ||
+              process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME ||
+              "",
+            azureOpenAIApiVersion:
+              config.azureConfig?.azureOpenAIApiVersion || "2024-08-01-preview",
+            azureOpenAIBasePath:
+              config.azureConfig?.azureOpenAIBasePath ||
+              process.env._AZURE_OPENAI_API_BASE_PATH,
+          },
+        }),
       },
     }));
   };
-
-  const modelConfig = modelConfigs[modelName];
 
   const createThread = async (
     customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME,
@@ -63,7 +116,13 @@ export function useThread() {
         metadata: {
           supabase_user_id: userId,
           customModelName,
-          modelConfig: customModelConfig,
+          modelConfig: {
+            ...customModelConfig,
+            // Ensure Azure config is included if needed
+            ...(customModelConfig.provider === "azure_openai" && {
+              azureConfig: customModelConfig.azureConfig,
+            }),
+          },
         },
       });
       setThreadId(thread.thread_id);

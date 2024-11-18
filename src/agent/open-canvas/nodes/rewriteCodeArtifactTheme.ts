@@ -1,9 +1,8 @@
-import { getModelNameAndProviderFromConfig } from "@/agent/utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
 import { ArtifactCodeV3, ArtifactV3 } from "../../../types";
+import { getModelFromConfig } from "../../utils";
 import {
   ADD_COMMENTS_TO_CODE_ARTIFACT_PROMPT,
   ADD_LOGS_TO_CODE_ARTIFACT_PROMPT,
@@ -16,14 +15,7 @@ export const rewriteCodeArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider, modelConfig } =
-    getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
-    modelProvider,
-    // temperature: 0.5,
-    temperature: modelConfig.temperatureRange.current,
-    maxTokens: modelConfig.maxTokens.current,
-  });
+  const smallModel = await getModelFromConfig(config);
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)

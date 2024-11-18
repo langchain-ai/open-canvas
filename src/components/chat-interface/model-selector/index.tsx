@@ -75,6 +75,12 @@ export default function ModelSelector({
       return false;
     }
     if (
+      model.name.includes("azure/") &&
+      process.env.NEXT_PUBLIC_AZURE_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
       model.name.includes("gemini-") &&
       process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false"
     ) {
@@ -116,49 +122,56 @@ export default function ModelSelector({
         <PopoverContent className="min-w-[180px] w-[280px] p-0">
           <Command>
             <CommandList>
-              {allAllowedModels.map((model) => (
-                <CommandGroup key={model.name} className="w-full">
-                  <CommandItem
-                    value={model.name}
-                    onSelect={handleModelChange}
-                    className="flex items-center"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-1 size-4",
-                        modelName === model.name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <span className="flex flex-row w-full items-center justify-start gap-2">
-                      {model.label}
-                      {model.isNew && <IsNewBadge />}
-                    </span>
+              {allAllowedModels.map((model) => {
+                const config =
+                  modelConfigs[model.name] ||
+                  modelConfigs[model.name.replace("azure/", "")];
+                console.log("Model config for", model.name, ":", config);
 
-                    {openConfigModelId === model.name ? (
-                      <ModelConfigPanel
-                        model={model}
-                        modelConfig={modelConfigs[model.name]}
-                        isOpen={true}
-                        onOpenChange={(open) =>
-                          setOpenConfigModelId(open ? model.name : null)
-                        }
-                        onClick={(e) => e.stopPropagation()}
-                        setModelConfig={setModelConfig}
+                return (
+                  <CommandGroup key={model.name} className="w-full">
+                    <CommandItem
+                      value={model.name}
+                      onSelect={handleModelChange}
+                      className="flex items-center"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-1 size-4",
+                          modelName === model.name ? "opacity-100" : "opacity-0"
+                        )}
                       />
-                    ) : (
-                      <button
-                        className="ml-auto flex-shrink-0 flex size-6 items-center justify-center focus:outline-none focus:ring-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenConfigModelId(model.name);
-                        }}
-                      >
-                        <GearIcon className="size-4" />
-                      </button>
-                    )}
-                  </CommandItem>
-                </CommandGroup>
-              ))}
+                      <span className="flex flex-row w-full items-center justify-start gap-2">
+                        {model.label}
+                        {model.isNew && <IsNewBadge />}
+                      </span>
+
+                      {openConfigModelId === model.name ? (
+                        <ModelConfigPanel
+                          model={model}
+                          modelConfig={config}
+                          isOpen={true}
+                          onOpenChange={(open) =>
+                            setOpenConfigModelId(open ? model.name : null)
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          setModelConfig={setModelConfig}
+                        />
+                      ) : (
+                        <button
+                          className="ml-auto flex-shrink-0 flex size-6 items-center justify-center focus:outline-none focus:ring-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenConfigModelId(model.name);
+                          }}
+                        >
+                          <GearIcon className="size-4" />
+                        </button>
+                      )}
+                    </CommandItem>
+                  </CommandGroup>
+                );
+              })}
             </CommandList>
           </Command>
         </PopoverContent>

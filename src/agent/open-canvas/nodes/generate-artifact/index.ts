@@ -1,16 +1,16 @@
 import {
+  getFormattedReflections,
+  getModelConfig,
+  getModelFromConfig,
+  optionallyGetSystemPromptFromConfig,
+} from "@/agent/utils";
+import { ArtifactV3 } from "@/types";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
 } from "../../state";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import {
-  getFormattedReflections,
-  getModelFromConfig,
-  getModelNameAndProviderFromConfig,
-  optionallyGetSystemPromptFromConfig,
-} from "@/agent/utils";
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas";
-import { ArtifactV3 } from "@/types";
 import { createArtifactContent, formatNewArtifactPrompt } from "./utils";
 
 /**
@@ -20,8 +20,10 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName } = getModelNameAndProviderFromConfig(config);
-  const smallModel = await getModelFromConfig(config);
+  const { modelName } = getModelConfig(config);
+  const smallModel = await getModelFromConfig(config, {
+    temperature: 0.5,
+  });
 
   const modelWithArtifactTool = smallModel.bindTools(
     [

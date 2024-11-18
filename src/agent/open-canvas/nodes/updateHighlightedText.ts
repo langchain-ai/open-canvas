@@ -1,6 +1,9 @@
-import { getModelNameAndProviderFromConfig } from "@/agent/utils";
+import { getModelConfig, getModelFromConfig } from "@/agent/utils";
+import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
+import { AIMessageChunk } from "@langchain/core/messages";
+import { RunnableBinding } from "@langchain/core/runnables";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
+import { ConfigurableChatModelCallOptions } from "langchain/chat_models/universal";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import { ArtifactMarkdownV3 } from "../../../types";
@@ -32,13 +35,35 @@ export const updateHighlightedText = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelConfig } = getModelNameAndProviderFromConfig(config);
-  const model = new ChatOpenAI({
-    model: "gpt-4o",
-    temperature: 0,
-    // temperature: modelConfig.temperatureRange.current,
-    maxTokens: modelConfig.maxTokens.current,
-  }).withConfig({ runName: "update_highlighted_markdown" });
+  const { modelProvider } = getModelConfig(config);
+  let model: RunnableBinding<
+    BaseLanguageModelInput,
+    AIMessageChunk,
+    ConfigurableChatModelCallOptions
+  >;
+  if (modelProvider.includes("openai")) {
+    // Custom model is OpenAI/Azure OpenAI
+    model = (
+      await getModelFromConfig(config, {
+        temperature: 0,
+      })
+    ).withConfig({ runName: "update_highlighted_markdown" });
+  } else {
+    // Custom model is not set to OpenAI/Azure OpenAI. Use GPT-4o
+    model = (
+      await getModelFromConfig(
+        {
+          ...config,
+          configurable: {
+            customModelName: "gpt-4o",
+          },
+        },
+        {
+          temperature: 0,
+        }
+      )
+    ).withConfig({ runName: "update_highlighted_markdown" });
+  }
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)

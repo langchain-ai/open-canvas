@@ -1,7 +1,7 @@
 import { CustomModelConfig, ModelConfigurationParams } from "./types";
 
 export const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL ?? "http://localhost:54646";
+  process.env.LANGGRAPH_API_URL ?? "http://localhost:54367";
 // v2 is tied to the 'open-canvas-prod' deployment.
 export const ASSISTANT_ID_COOKIE = "oc_assistant_id_v2";
 // export const ASSISTANT_ID_COOKIE = "oc_assistant_id";
@@ -26,6 +26,38 @@ export const DEFAULT_INPUTS = {
   portLanguage: undefined,
   customQuickActionId: undefined,
 };
+
+// export const AZURE_MODELS = [
+//   {
+//     name: "azure/gpt-4o-mini",
+//     modelName: "gpt-4o-mini",
+//     label: "GPT-4o mini (Azure)",
+//     isNew: false,
+//   },
+// ];
+export const AZURE_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "azure/gpt-4o-mini",
+    modelName: "gpt-4o-mini",
+    label: "GPT-4o mini (Azure)",
+    isNew: false,
+    config: {
+      provider: "azure_openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 4096,
+        default: 4096,
+        current: 4096,
+      },
+    },
+  },
+];
 
 export const OPENAI_MODELS: ModelConfigurationParams[] = [
   {
@@ -142,17 +174,20 @@ export const ALL_MODELS: ModelConfigurationParams[] = [
   ...ANTHROPIC_MODELS,
   ...FIREWORKS_MODELS,
   ...GEMINI_MODELS,
+  ...AZURE_MODELS,
 ];
 
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];
 export type GEMINI_MODEL_NAMES = (typeof GEMINI_MODELS)[number]["name"];
+export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["name"];
 export type ALL_MODEL_NAMES =
   | OPENAI_MODEL_NAMES
   | ANTHROPIC_MODEL_NAMES
   | FIREWORKS_MODEL_NAMES
-  | GEMINI_MODEL_NAMES;
+  | GEMINI_MODEL_NAMES
+  | AZURE_MODEL_NAMES;
 
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
 

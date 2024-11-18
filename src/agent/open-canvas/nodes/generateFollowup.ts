@@ -1,13 +1,9 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
+import { getModelFromConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import { Reflections } from "../../../types";
-import {
-  ensureStoreInConfig,
-  formatReflections,
-  getModelNameAndProviderFromConfig,
-} from "../../utils";
+import { ensureStoreInConfig, formatReflections } from "../../utils";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
@@ -18,12 +14,8 @@ export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } =
-    getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
-    temperature: 0.5,
+  const smallModel = await getModelFromConfig(config, {
     maxTokens: 250,
-    modelProvider,
   });
 
   const store = ensureStoreInConfig(config);

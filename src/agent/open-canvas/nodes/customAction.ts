@@ -1,6 +1,5 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import {
@@ -13,7 +12,7 @@ import {
 import {
   ensureStoreInConfig,
   formatReflections,
-  getModelNameAndProviderFromConfig,
+  getModelFromConfig,
 } from "../../utils";
 import {
   CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT,
@@ -39,13 +38,8 @@ export const customAction = async (
     throw new Error("No custom quick action ID found.");
   }
 
-  const { modelName, modelProvider, modelConfig } =
-    getModelNameAndProviderFromConfig(config);
-  const smallModel = await initChatModel(modelName, {
-    modelProvider,
-    // temperature: 0.5,
-    temperature: modelConfig.temperatureRange.current,
-    maxTokens: modelConfig.maxTokens.current,
+  const smallModel = await getModelFromConfig(config, {
+    temperature: 0.5,
   });
 
   const store = ensureStoreInConfig(config);

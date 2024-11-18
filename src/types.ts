@@ -267,7 +267,12 @@ export type RewriteArtifactMetaToolResponse =
     };
 
 export interface CustomModelConfig {
-  provider: "openai" | "anthropic" | "fireworks" | "google-genai";
+  provider:
+    | "openai"
+    | "anthropic"
+    | "fireworks"
+    | "google-genai"
+    | "azure_openai";
   temperatureRange: {
     min: number;
     max: number;
@@ -280,11 +285,32 @@ export interface CustomModelConfig {
     default: number;
     current: number;
   };
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+    azureOpenAIBasePath?: string;
+  };
 }
 
 export interface ModelConfigurationParams {
   name: string;
   label: string;
+  modelName?: string;
   config: CustomModelConfig;
   isNew: boolean;
+}
+
+export interface ModelConfig {
+  temperature?: number;
+  modelProvider: string;
+  maxTokens?: number;
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+    azureOpenAIBasePath?: string;
+  };
 }

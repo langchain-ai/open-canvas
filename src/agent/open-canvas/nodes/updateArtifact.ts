@@ -1,12 +1,12 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
 import { ArtifactCodeV3, ArtifactV3, Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatReflections,
-  getModelNameAndProviderFromConfig,
+  getModelConfig,
+  getModelFromConfig,
 } from "../../utils";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
@@ -18,13 +18,27 @@ export const updateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelConfig } = getModelNameAndProviderFromConfig(config);
-  const smallModel = new ChatOpenAI({
-    model: "gpt-4o",
-    temperature: 0,
-    // temperature: modelConfig.temperatureRange.current,
-    maxTokens: modelConfig.maxTokens.current,
-  });
+  const { modelProvider } = getModelConfig(config);
+  let smallModel: Awaited<ReturnType<typeof getModelFromConfig>>;
+  if (modelProvider.includes("openai")) {
+    // Custom model is OpenAI/Azure OpenAI
+    smallModel = await getModelFromConfig(config, {
+      temperature: 0,
+    });
+  } else {
+    // Custom model is not set to OpenAI/Azure OpenAI. Use GPT-4o
+    smallModel = await getModelFromConfig(
+      {
+        ...config,
+        configurable: {
+          customModelName: "gpt-4o",
+        },
+      },
+      {
+        temperature: 0,
+      }
+    );
+  }
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;

@@ -1,8 +1,8 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { CustomModelConfig } from "@/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 import { initChatModel } from "langchain/chat_models/universal";
+import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -132,49 +132,70 @@ export const formatArtifactContentWithTemplate = (
   );
 };
 
-export const getModelNameAndProviderFromConfig = (
+export const getModelConfig = (
   config: LangGraphRunnableConfig
 ): {
   modelName: string;
   modelProvider: string;
-  modelConfig: CustomModelConfig;
+  modelConfig?: CustomModelConfig;
+  azureConfig?: {
+    azureOpenAIApiKey: string;
+    azureOpenAIApiInstanceName: string;
+    azureOpenAIApiDeploymentName: string;
+    azureOpenAIApiVersion: string;
+    azureOpenAIBasePath?: string;
+  };
 } => {
   const customModelName = config.configurable?.customModelName as string;
-  if (!customModelName) {
-    throw new Error("Model name is missing in config.");
-  }
+  if (!customModelName) throw new Error("Model name is missing in config.");
 
   const modelConfig = config.configurable?.modelConfig as CustomModelConfig;
-  if (!modelConfig) {
-    throw new Error("Custom Model config is missing in config.");
+
+  if (customModelName.startsWith("azure/")) {
+    const actualModelName = customModelName.replace("azure/", "");
+    return {
+      modelName: actualModelName,
+      modelProvider: "azure_openai",
+      azureConfig: {
+        azureOpenAIApiKey: process.env._AZURE_OPENAI_API_KEY || "",
+        azureOpenAIApiInstanceName:
+          process.env._AZURE_OPENAI_API_INSTANCE_NAME || "",
+        azureOpenAIApiDeploymentName:
+          process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME || "",
+        azureOpenAIApiVersion:
+          process.env._AZURE_OPENAI_API_VERSION || "2024-08-01-preview",
+        azureOpenAIBasePath: process.env._AZURE_OPENAI_API_BASE_PATH,
+      },
+    };
   }
+
+  const providerConfig = {
+    modelName: customModelName,
+    modelConfig,
+  };
 
   if (customModelName.includes("gpt-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "openai",
-      modelConfig,
     };
   }
   if (customModelName.includes("claude-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "anthropic",
-      modelConfig,
     };
   }
   if (customModelName.includes("fireworks/")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "fireworks",
-      modelConfig,
     };
   }
   if (customModelName.includes("gemini-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "google-genai",
-      modelConfig,
     };
   }
 
@@ -187,12 +208,30 @@ export function optionallyGetSystemPromptFromConfig(
   return config.configurable?.systemPrompt as string | undefined;
 }
 
-export async function getModelFromConfig(config: LangGraphRunnableConfig) {
-  const { modelName, modelProvider, modelConfig } =
-    getModelNameAndProviderFromConfig(config);
+export async function getModelFromConfig(
+  config: LangGraphRunnableConfig,
+  extra?: {
+    temperature?: number;
+    maxTokens?: number;
+  }
+) {
+  const { modelName, modelProvider, azureConfig, modelConfig } =
+    getModelConfig(config);
+  const { temperature, maxTokens } = extra || {};
+
   return await initChatModel(modelName, {
     modelProvider,
-    temperature: modelConfig.temperatureRange.current,
-    maxTokens: modelConfig.maxTokens.current,
+    temperature: temperature ?? modelConfig?.temperatureRange.current ?? 0.5,
+    maxTokens: maxTokens ?? modelConfig?.maxTokens.current,
+    ...(azureConfig != null
+      ? {
+          azureOpenAIApiKey: azureConfig.azureOpenAIApiKey,
+          azureOpenAIApiInstanceName: azureConfig.azureOpenAIApiInstanceName,
+          azureOpenAIApiDeploymentName:
+            azureConfig.azureOpenAIApiDeploymentName,
+          azureOpenAIApiVersion: azureConfig.azureOpenAIApiVersion,
+          azureOpenAIBasePath: azureConfig.azureOpenAIBasePath,
+        }
+      : {}),
   });
 }

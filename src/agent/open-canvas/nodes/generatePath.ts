@@ -1,3 +1,10 @@
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { z } from "zod";
+import { getArtifactContent } from "../../../contexts/utils";
+import {
+  formatArtifactContentWithTemplate,
+  getModelFromConfig,
+} from "../../utils";
 import {
   CURRENT_ARTIFACT_PROMPT,
   NO_ARTIFACT_PROMPT,
@@ -6,13 +13,6 @@ import {
   ROUTE_QUERY_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
-import { z } from "zod";
-import {
-  formatArtifactContentWithTemplate,
-  getModelFromConfig,
-} from "../../utils";
-import { getArtifactContent } from "../../../contexts/utils";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
@@ -92,7 +92,9 @@ export const generatePath = async (
     ? "rewriteArtifact"
     : "generateArtifact";
 
-  const model = await getModelFromConfig(config);
+  const model = await getModelFromConfig(config, {
+    temperature: 0,
+  });
   const modelWithTool = model.withStructuredOutput(
     z.object({
       route: z
