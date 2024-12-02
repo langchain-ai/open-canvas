@@ -8,14 +8,17 @@ import { buildPrompt, createNewArtifactContent, validateState } from "./utils";
 import {
   getFormattedReflections,
   getModelFromConfig,
+  getModelConfig,
   optionallyGetSystemPromptFromConfig,
 } from "@/agent/utils";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { getArtifactContent } from "@/contexts/utils";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
+  const { modelProvider } = getModelConfig(config);
   const smallModelWithConfig = (await getModelFromConfig(config)).withConfig({
     runName: "rewrite_artifact_model_call",
   });
@@ -45,10 +48,16 @@ export const rewriteArtifact = async (
     ? `${userSystemPrompt}\n${formattedPrompt}`
     : formattedPrompt;
 
-  const newArtifactResponse = await smallModelWithConfig.invoke([
-    { role: "system", content: fullSystemPrompt },
-    recentHumanMessage,
-  ]);
+  const prediction: Record<string, any> = {
+    prediction: {
+      type: "content",
+      content: state.artifact ? getArtifactContent(state.artifact) : undefined,
+    },
+  };
+  const newArtifactResponse = await smallModelWithConfig.invoke(
+    [{ role: "system", content: fullSystemPrompt }, recentHumanMessage],
+    modelProvider === "openai" ? prediction : undefined
+  );
 
   const newArtifactContent = createNewArtifactContent({
     artifactType,
