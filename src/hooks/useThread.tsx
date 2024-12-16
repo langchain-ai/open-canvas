@@ -21,7 +21,6 @@ export function useThread() {
     userId: string
   ): Promise<Thread | undefined> => {
     const client = createClient();
-    console.log("creating thread!", customModelName);
     try {
       const thread = await client.threads.create({
         metadata: {

@@ -20,7 +20,7 @@ export function IsNewBadge() {
           "animate-gradient-x",
           "rounded-md transition-colors duration-300 ease-in-out",
           "text-gray-700 text-xs w-14",
-          "hover:from-pink-100 hover:via-purple-100 hover:to-pink-100"
+          "hover:bg-none"
         )}
       >
         New!
