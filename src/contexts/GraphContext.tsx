@@ -714,7 +714,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
             if (
               chunk.data.metadata.langgraph_node === "generateArtifact" &&
-              !generateArtifactToolCallStr
+              !generateArtifactToolCallStr &&
+              threadData.modelName.includes("gemini-")
             ) {
               generateArtifactToolCallStr +=
                 chunk.data.data.output.tool_call_chunks?.[0]?.args || "";
