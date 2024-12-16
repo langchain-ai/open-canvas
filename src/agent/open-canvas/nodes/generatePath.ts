@@ -19,7 +19,6 @@ export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ) => {
-  console.log("config.configurable!!", config.configurable);
   if (state.highlightedCode) {
     return {
       next: "updateArtifact",

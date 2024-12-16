@@ -1,3 +1,4 @@
+import { cleanContent } from "@/lib/normalize_string";
 import {
   Artifact,
   ArtifactCodeV3,
@@ -12,6 +13,7 @@ import {
   BaseMessage,
   BaseMessageChunk,
 } from "@langchain/core/messages";
+import { parsePartialJson } from "@langchain/core/output_parsers";
 
 export function removeCodeBlockFormatting(text: string): string {
   if (!text) return text;
@@ -368,3 +370,41 @@ export const getArtifactContent = (
   }
   return currentContent;
 };
+
+export function handleGenerateArtifactToolCallChunk(toolCallChunkArgs: string) {
+  let newArtifactText: ArtifactToolResponse | undefined = undefined;
+
+  // Attempt to parse the tool call chunk.
+  try {
+    newArtifactText = parsePartialJson(toolCallChunkArgs);
+    if (!newArtifactText) {
+      throw new Error("Failed to parse new artifact text");
+    }
+    newArtifactText = {
+      ...newArtifactText,
+      title: newArtifactText.title ?? "",
+      type: newArtifactText.type ?? "",
+    };
+  } catch (_) {
+    return "continue";
+  }
+
+  if (
+    newArtifactText.artifact &&
+    (newArtifactText.type === "text" ||
+      (newArtifactText.type === "code" && newArtifactText.language))
+  ) {
+    const content = createNewGeneratedArtifactFromTool(newArtifactText);
+    if (!content) {
+      return undefined;
+    }
+    if (content.type === "text") {
+      content.fullMarkdown = cleanContent(content.fullMarkdown);
+    }
+
+    return {
+      currentIndex: 1,
+      contents: [content],
+    };
+  }
+}

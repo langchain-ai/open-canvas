@@ -143,6 +143,7 @@ export const getModelConfig = (
     azureOpenAIApiVersion: string;
     azureOpenAIBasePath?: string;
   };
+  apiKey?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
@@ -171,24 +172,28 @@ export const getModelConfig = (
     return {
       modelName: customModelName,
       modelProvider: "openai",
+      apiKey: process.env.OPENAI_API_KEY,
     };
   }
   if (customModelName.includes("claude-")) {
     return {
       modelName: customModelName,
       modelProvider: "anthropic",
+      apiKey: process.env.ANTHROPIC_API_KEY,
     };
   }
   if (customModelName.includes("fireworks/")) {
     return {
       modelName: customModelName,
       modelProvider: "fireworks",
+      apiKey: process.env.FIREWORKS_API_KEY,
     };
   }
   if (customModelName.includes("gemini-")) {
     return {
       modelName: customModelName,
       modelProvider: "google-genai",
+      apiKey: process.env.GOOGLE_API_KEY,
     };
   }
 
@@ -209,11 +214,13 @@ export async function getModelFromConfig(
   }
 ) {
   const { temperature = 0.5, maxTokens } = extra || {};
-  const { modelName, modelProvider, azureConfig } = getModelConfig(config);
+  const { modelName, modelProvider, azureConfig, apiKey } =
+    getModelConfig(config);
   return await initChatModel(modelName, {
     modelProvider,
     temperature,
     maxTokens,
+    ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
       ? {
           azureOpenAIApiKey: azureConfig.azureOpenAIApiKey,

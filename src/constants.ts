@@ -46,7 +46,7 @@ export const ANTHROPIC_MODELS = [
   {
     name: "claude-3-5-haiku-20241022",
     label: "Claude 3.5 Haiku",
-    isNew: true,
+    isNew: false,
   },
   {
     name: "claude-3-haiku-20240307",
@@ -71,6 +71,11 @@ export const GEMINI_MODELS = [
     name: "gemini-1.5-flash",
     label: "Gemini 1.5 Flash",
     isNew: false,
+  },
+  {
+    name: "gemini-2.0-flash-exp",
+    label: "Gemini 2.0 Flash",
+    isNew: true,
   },
 ];
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = "gpt-4o-mini";
