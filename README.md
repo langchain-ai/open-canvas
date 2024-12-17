@@ -21,7 +21,7 @@ Open Canvas is an open source web application for collaborating with agents to b
 
 ## Setup locally
 
-This guide will cover how to setup and run Open Canvas locally. If you prefer a YouTube video guide, check out [this video](ADD_VIDEO_URL_HERE).
+This guide will cover how to setup and run Open Canvas locally. If you prefer a YouTube video guide, check out [this video](https://youtu.be/SDnbX7v-i9M).
 
 ### Prerequisites
 
