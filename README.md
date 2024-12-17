@@ -42,13 +42,13 @@ Open Canvas requires the following API keys and external services:
 
 - [Supabase](https://supabase.com/) account for authentication
 
-#### LangGraph Cloud
+#### LangGraph Server
 
-- [LangGraph Studio](https://studio.langchain.com/) (if running on MacOS) OR [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) (for Windows/Linux/etc) for running the graph locally
+- [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) for running the graph locally
 
 #### LangSmith
 
-- (optional) [LangSmith](https://smith.langchain.com/) for tracing & observability (required if using LangGraph CLI)
+- [LangSmith](https://smith.langchain.com/) for tracing & observability
 
 
 ### Installation
@@ -88,21 +88,7 @@ To verify authentication works, run `yarn dev` and visit [localhost:3000](http:/
 
 ### Setup LangGraph Server
 
-Now we'll cover how to setup and run the LangGraph server locally. There are two ways to do this, depending on whether or not you're running on MacOS.
-
-<details>
-<summary>🍎 MacOS Guide</summary>
-
-First, ensure you have [LangGraph Studio](https://studio.langchain.com/) installed.
-
-After installing, configure the default port for your LangGraph server to be `54367` (can be different, this is what the code defaults to, however it can be edited by setting a different `LANGGRAPH_API_URL` in the `.env`, or updating the fallback value of `LANGGRAPH_API_URL` in `constants.ts`).
-
-Next, open the Open Canvas folder in Studio to start the LangGraph server. Once this finishes pulling the Docker image and installing dependencies, you should see the graph displayed in the UI.
-
-</details>
-
-<details>
-<summary>💻 Linux/Windows/etc Guide</summary>
+Now we'll cover how to setup and run the LangGraph server locally.
 
 Follow the [`Installation` instructions in the LangGraph docs](https://langchain-ai.github.io/langgraph/cloud/reference/cli/#installation) to install the LangGraph CLI.
 
@@ -116,8 +102,6 @@ Ready!
 - Docs: http://localhost:54367/docs
 - LangGraph Studio: https://smith.langchain.com/studio/?baseUrl=http://*********:54367
 ```
-
-</details>
 
 After your LangGraph server is running, execute the following command to start the Open Canvas app:
 
