@@ -48,7 +48,7 @@ Open Canvas requires the following API keys and external services:
 
 #### LangSmith
 
-- (optional) [LangSmith](https://smith.langchain.com/) for tracing & observability
+- (optional) [LangSmith](https://smith.langchain.com/) for tracing & observability (required if using LangGraph CLI)
 
 
 ### Installation
