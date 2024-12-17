@@ -124,7 +124,7 @@ If you'd like to add a new model, follow these simple steps:
 
 1. Add to or update the model provider variables in `constants.ts`.
 2. Install the necessary package for the provider (e.g. `@langchain/anthropic`).
-3. Update the `getModelNameAndProviderFromConfig` function in `src/agent/utils.ts` to include your new model name and provider.
+3. Update the `getModelConfig` function in `src/agent/utils.ts` to include an `if` statement for your new model name and provider.
 4. Manually test by checking you can:
   > - 4a. Generate a new artifact
   >
@@ -135,6 +135,18 @@ If you'd like to add a new model, follow these simple steps:
   > - 4d. Update an artifact via a quick action
   >
   > - 4e. Repeat for text/code (ensure both work)
+
+## Troubleshooting
+
+Below are some common issues you may run into if running Open Canvas yourself:
+
+- **I have the LangGraph server running successfully, and my client can make requests, but no text is being generated:** This can happen if you start & connect to multiple different LangGraph servers locally in the same browser. Try clearing the `oc_thread_id_v2` cookie and refreshing the page. This is because each unique LangGraph server has its own database where threads are stored, so a thread ID from one server will not be found in the database of another server.
+
+- **I'm getting 500 network errors when I try to make requests on the client:** Ensure you have the LangGraph server running, and you're making requests to the correct port. You can specify the port to use by passing the `--port <PORT>` flag to the `langgraph up` command, and you can set the URL to make requests to by either setting the `LANGGRAPH_API_URL` environment variable, or by changing the fallback value of the `LANGGRAPH_API_URL` variable in `constants.ts`. 
+
+- **I'm getting "thread ID not found" error toasts when I try to make requests on the client:** Ensure you have the LangGraph server running, and you're making requests to the correct port. You can specify the port to use by passing the `--port <PORT>` flag to the `langgraph up` command, and you can set the URL to make requests to by either setting the `LANGGRAPH_API_URL` environment variable, or by changing the fallback value of the `LANGGRAPH_API_URL` variable in `constants.ts`. 
+
+- **`Model name is missing in config.` error is being thrown when I make requests:** This error occurs when the `customModelName` is not specified in the config. You can resolve this by setting the `customModelName` field inside `config.configurable` to the name of the model you want to use when invoking the graph. See [this doc](https://langchain-ai.github.io/langgraphjs/how-tos/configuration/) on how to use configurable fields in LangGraph.
 
 ## Roadmap
 
