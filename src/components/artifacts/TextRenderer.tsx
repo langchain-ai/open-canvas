@@ -17,6 +17,7 @@ import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Textarea } from "../ui/textarea";
+import { cn } from "@/lib/utils";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
@@ -288,7 +289,10 @@ export function TextRendererComponent(props: TextRendererProps) {
               !isStreaming || props.isEditing || !manuallyUpdatingArtifact
             }
             editor={editor}
-            className={isStreaming && !firstTokenReceived ? "pulse-text" : ""}
+            className={cn(
+              isStreaming && !firstTokenReceived ? "pulse-text" : "",
+              "custom-blocknote-theme"
+            )}
           >
             <SuggestionMenuController
               getItems={async () =>
