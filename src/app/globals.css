@@ -146,3 +146,17 @@ a {
   border-radius: 4px;
   font-size: 0.9em;
 }
+
+.custom-blocknote-theme {
+  --bn-colors-editor-text: #3f3f3f;
+}
+
+.custom-blocknote-theme a {
+  color: #2563eb !important; /* Tailwind blue-600 */
+  text-decoration: none;
+}
+
+.custom-blocknote-theme a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
