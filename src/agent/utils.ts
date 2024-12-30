@@ -229,8 +229,8 @@ export async function getModelFromConfig(
   return await initChatModel(modelName, {
     modelProvider,
     maxTokens,
-    ...(baseUrl ? { baseUrl } : {}),
     temperature,
+    ...(baseUrl ? { baseUrl } : {}),
     ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
       ? {

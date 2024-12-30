@@ -32,6 +32,7 @@ export const generateArtifact = async (
         schema: ARTIFACT_TOOL_SCHEMA,
       },
     ],
+    // Ollama does not support tool choice
     { ...(modelProvider !== "ollama" && { tool_choice: "generate_artifact" }) }
   );
 

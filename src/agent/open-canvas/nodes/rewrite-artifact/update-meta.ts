@@ -26,6 +26,7 @@ export async function optionallyUpdateArtifactMeta(
         },
       ],
       {
+        // Ollama does not support tool choice
         ...(modelProvider !== "ollama" && {
           tool_choice: "optionallyUpdateArtifactMeta",
         }),
