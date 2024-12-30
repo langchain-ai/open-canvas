@@ -144,6 +144,7 @@ export const getModelConfig = (
     azureOpenAIBasePath?: string;
   };
   apiKey?: string;
+  apiUrl?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
@@ -168,7 +169,7 @@ export const getModelConfig = (
     };
   }
 
-  if (customModelName.includes("gpt-")) {
+  if (customModelName.includes("gpt-") || customModelName.startsWith("o1")) {
     return {
       modelName: customModelName,
       modelProvider: "openai",
@@ -196,6 +197,13 @@ export const getModelConfig = (
       apiKey: process.env.GOOGLE_API_KEY,
     };
   }
+  if (customModelName.startsWith("ollama-")) {
+    return {
+      modelName: customModelName.replace("ollama-", ""),
+      modelProvider: "ollama",
+      apiUrl: process.env.OLLAMA_API_URL,
+    };
+  }
 
   throw new Error("Unknown model provider");
 };
@@ -214,12 +222,13 @@ export async function getModelFromConfig(
   }
 ) {
   const { temperature = 0.5, maxTokens } = extra || {};
-  const { modelName, modelProvider, azureConfig, apiKey } =
+  const { modelName, modelProvider, azureConfig, apiKey, apiUrl } =
     getModelConfig(config);
   return await initChatModel(modelName, {
     modelProvider,
-    temperature,
     maxTokens,
+    ...(apiUrl ? { apiUrl } : {}),
+    ...(modelName.startsWith("o1") ? {} : { temperature }),
     ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
       ? {

@@ -7,7 +7,7 @@ import {
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
 import { z } from "zod";
-import { formatArtifactContentWithTemplate } from "../../utils";
+import { formatArtifactContentWithTemplate, getModelConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { getModelFromConfig } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
@@ -93,6 +93,7 @@ export const generatePath = async (
   const model = await getModelFromConfig(config, {
     temperature: 0,
   });
+  const { modelName } = getModelConfig(config);
   const modelWithTool = model.withStructuredOutput(
     z.object({
       route: z
@@ -101,6 +102,11 @@ export const generatePath = async (
     }),
     {
       name: "route_query",
+      ...(modelName.startsWith("o1")
+        ? {
+            method: "jsonMode",
+          }
+        : {}),
     }
   );
 
