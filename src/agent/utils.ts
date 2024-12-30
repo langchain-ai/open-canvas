@@ -1,4 +1,3 @@
-// import { ChatOllama } from "@langchain/ollama";
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
@@ -145,7 +144,7 @@ export const getModelConfig = (
     azureOpenAIBasePath?: string;
   };
   apiKey?: string;
-  apiUrl?: string;
+  baseUrl?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
@@ -202,7 +201,8 @@ export const getModelConfig = (
     return {
       modelName: customModelName.replace("ollama-", ""),
       modelProvider: "ollama",
-      apiUrl: process.env.OLLAMA_API_URL || "http://host.docker.internal:11434",
+      baseUrl:
+        process.env.OLLAMA_API_URL || "http://host.docker.internal:11434",
     };
   }
 
@@ -223,18 +223,13 @@ export async function getModelFromConfig(
   }
 ) {
   const { temperature = 0.5, maxTokens } = extra || {};
-  const { modelName, modelProvider, azureConfig, apiKey, apiUrl } =
+  const { modelName, modelProvider, azureConfig, apiKey, baseUrl } =
     getModelConfig(config);
-
-  // const res = await new ChatOllama({
-  //   model: modelName,
-  //   baseUrl: apiUrl,
-  // })
 
   return await initChatModel(modelName, {
     modelProvider,
     maxTokens,
-    ...(apiUrl ? { baseUrl: apiUrl } : {}),
+    ...(baseUrl ? { baseUrl } : {}),
     temperature,
     ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
