@@ -40,12 +40,8 @@ export const OPENAI_MODELS = [
     label: "GPT-4o mini",
     isNew: false,
   },
-  {
-    name: "o1-mini",
-    label: "o1 mini",
-    isNew: true,
-  },
 ];
+
 /**
  * Ollama model names _MUST_ be prefixed with `"ollama-"`
  */

@@ -102,11 +102,6 @@ export const generatePath = async (
     }),
     {
       name: "route_query",
-      ...(modelName.startsWith("o1")
-        ? {
-            method: "jsonMode",
-          }
-        : {}),
     }
   );
 

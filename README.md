@@ -136,6 +136,20 @@ If you'd like to add a new model, follow these simple steps:
   >
   > - 4e. Repeat for text/code (ensure both work)
 
+### Local Ollama models
+
+Open Canvas supports calling local LLMs running on Ollama. This is not enabled in the hosted version of Open Canvas, but you can use this in your own local/deployed Open Canvas instance.
+
+To use a local Ollama model, first ensure you have [Ollama](https://ollama.com) installed, and a model that supports tool calling pulled (the default model is `llama3.3`).
+
+Next, start the Ollama server by running `ollama run llama3.3`.
+
+Then, set the `NEXT_PUBLIC_OLLAMA_ENABLED` environment variable to `true`, and the `OLLAMA_API_URL` environment variable to the URL of your Ollama server (defaults to `http://host.docker.internal:11434`. If you do not set a custom port when starting your Ollama server, you should not need to set this environment variable).
+
+> [!NOTE]
+> Open source LLMs are not as good at instruction following as proprietary models like GPT-4o or Claude Sonnet. Because of this, you may experience errors or unexpected behavior when using local LLMs.
+
+
 ## Troubleshooting
 
 Below are some common issues you may run into if running Open Canvas yourself:
