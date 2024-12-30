@@ -36,6 +36,7 @@
     "@langchain/google-genai": "^0.1.2",
     "@langchain/langgraph": "^0.2.18",
     "@langchain/langgraph-sdk": "^0.0.17",
+    "@langchain/ollama": "^0.1.4",
     "@langchain/openai": "^0.3.11",
     "@nextjournal/lang-clojure": "^1.0.0",
     "@radix-ui/react-avatar": "^1.1.0",
