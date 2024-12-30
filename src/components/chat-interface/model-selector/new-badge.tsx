@@ -19,8 +19,7 @@ export function IsNewBadge() {
           "bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50",
           "animate-gradient-x",
           "rounded-md transition-colors duration-300 ease-in-out",
-          "text-gray-700 text-xs w-14",
-          "hover:from-pink-100 hover:via-purple-100 hover:to-pink-100"
+          "text-gray-700 text-xs w-14"
         )}
       >
         New!
