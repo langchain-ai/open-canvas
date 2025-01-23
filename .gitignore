@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+.yarn/cache
 
 # testing
 /coverage
@@ -37,3 +38,6 @@ yarn-error.log*
 next-env.d.ts
 
 credentials.json
+
+# LangGraph API
+.langgraph_api
