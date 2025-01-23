@@ -730,6 +730,28 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
             }
           }
+
+          // Handle LaTeX PDF artifact
+          if (chunk.data.metadata.langgraph_node === "generateArtifact") {
+            const toolCall = chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0];
+            if (toolCall && toolCall.name === "generate_artifact") {
+              const artifactData = toolCall.args;
+              if (artifactData.type === "pdf") {
+                setFirstTokenReceived(true);
+                setArtifact({
+                  currentIndex: 1,
+                  contents: [
+                    {
+                      index: 1,
+                      type: "pdf",
+                      title: artifactData.title || "",
+                      data: artifactData.artifact,
+                    },
+                  ],
+                });
+              }
+            }
+          }
         } catch (e) {
           console.error(
             "Failed to parse stream chunk",

@@ -15,12 +15,13 @@ import {
 import { useEffect, useState } from "react";
 import { useGraphContext } from "@/contexts/GraphContext";
 import React from "react";
+import { PdfViewer } from "@/components/pdf"; // Import PdfViewer component
 
 export function CanvasComponent() {
   const { threadData, graphData, userData } = useGraphContext();
   const { user } = userData;
   const { threadId, clearThreadsWithNoValues, setModelName } = threadData;
-  const { setArtifact } = graphData;
+  const { setArtifact, artifact } = graphData; // Add artifact to destructuring
   const { toast } = useToast();
   const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -102,7 +103,11 @@ export function CanvasComponent() {
       </div>
       {chatStarted && (
         <div className="w-full ml-auto">
-          <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
+          {artifact?.contents[artifact.currentIndex - 1]?.type === "pdf" ? (
+            <PdfViewer pdfData={artifact.contents[artifact.currentIndex - 1].data} />
+          ) : (
+            <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
+          )}
         </div>
       )}
     </main>
