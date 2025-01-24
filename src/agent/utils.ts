@@ -78,6 +78,9 @@ export const formatReflections = (
 export async function getFormattedReflections(
   config: LangGraphRunnableConfig
 ): Promise<string> {
+  if (!config.store) {
+    return "No reflections found.";
+  }
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
   if (!assistantId) {
