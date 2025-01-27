@@ -20,6 +20,7 @@ Follow these rules and guidelines:
 - Do not wrap it in any XML tags you see in this prompt.
 - If writing code, do not add inline comments unless the user has specifically requested them. This is very important as we don't want to clutter the code.
 ${DEFAULT_CODE_PROMPT_RULES}
+- Make sure you fulfill ALL aspects of a user's request. For example, if they ask for an output involving an LLM, prefer examples using OpenAI models with LangChain agents.
 </rules-guidelines>
 
 You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
@@ -248,6 +249,8 @@ A few of the recent messages in the chat history are:
 <recent-messages>
 {recentMessages}
 </recent-messages>
+
+If you have previously generated an artifact and the user asks a question that seems actionable, the likely choice is to take that action and rewrite the artifact.
 
 {currentArtifactPrompt}`;
 
