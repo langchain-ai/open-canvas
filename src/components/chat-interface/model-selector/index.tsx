@@ -17,6 +17,7 @@ import {
   GEMINI_MODELS,
   LS_HAS_SEEN_MODEL_DROPDOWN_ALERT,
   AZURE_MODELS,
+  OLLAMA_MODELS,
 } from "@/constants";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
@@ -28,6 +29,7 @@ const allModels = [
   ...FIREWORKS_MODELS,
   ...GEMINI_MODELS,
   ...AZURE_MODELS,
+  ...OLLAMA_MODELS,
 ];
 
 const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
@@ -86,6 +88,12 @@ export default function ModelSelector(props: ModelSelectorProps) {
     if (
       model.name.includes("gemini-") &&
       process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
+      model.name.includes("ollama-") &&
+      process.env.NEXT_PUBLIC_OLLAMA_ENABLED === "false"
     ) {
       return false;
     }

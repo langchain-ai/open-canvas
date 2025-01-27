@@ -41,6 +41,10 @@ async function handleRequest(req: NextRequest, method: string) {
     };
 
     if (["POST", "PUT", "PATCH"].includes(method)) {
+      options.headers = {
+        ...options.headers,
+        "Content-Type": "application/json",
+      };
       const bodyText = await req.text();
 
       if (typeof bodyText === "string" && bodyText.length > 0) {
@@ -62,7 +66,12 @@ async function handleRequest(req: NextRequest, method: string) {
     );
 
     if (res.status >= 400) {
-      console.error("ERROR IN PROXY", res.status, res.statusText);
+      console.error(
+        "ERROR IN PROXY",
+        `${LANGGRAPH_API_URL}/${path}${queryString}`,
+        res.status,
+        res.statusText
+      );
       return new Response(res.body, {
         status: res.status,
         statusText: res.statusText,

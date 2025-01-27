@@ -108,6 +108,14 @@ export interface GraphInput {
   customQuickActionId?: string;
 }
 
+// Shim for recent LangGraph bugfix
+function extractStreamDataChunk(chunk: any) {
+  if (Array.isArray(chunk)) {
+    return chunk[1];
+  }
+  return chunk;
+}
+
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUser();
   const assistantsData = useAssistants();
@@ -366,7 +374,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 chunk.data.metadata.langgraph_node
               )
             ) {
-              const message = chunk.data.data.chunk[1];
+              const message = extractStreamDataChunk(chunk.data.data.chunk);
               if (!followupMessageId) {
                 followupMessageId = message.id;
               }
@@ -377,7 +385,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
               generateArtifactToolCallStr +=
-                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args || "";
+                extractStreamDataChunk(chunk.data.data.chunk)
+                  ?.tool_call_chunks?.[0]?.args || "";
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
               );
@@ -392,7 +401,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             if (
               chunk.data.metadata.langgraph_node === "updateHighlightedText"
             ) {
-              const message = chunk.data.data?.chunk[1];
+              const message = extractStreamDataChunk(chunk.data.data?.chunk);
               if (!message) {
                 continue;
               }
@@ -500,7 +509,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
 
               const partialUpdatedContent =
-                chunk.data.data.chunk?.[1]?.content || "";
+                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
               const { startCharIndex, endCharIndex } = params.highlightedCode;
 
               if (!prevCurrentContent) {
@@ -574,7 +583,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              newArtifactContent += chunk.data.data.chunk?.[1]?.content || "";
+              newArtifactContent +=
+                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
 
               // Ensure we have the language to update the artifact with
               let artifactLanguage = params.portLanguage || undefined;
@@ -653,7 +663,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              newArtifactContent += chunk.data.data.chunk?.[1]?.content || "";
+              newArtifactContent +=
+                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
 
               // Ensure we have the language to update the artifact with
               const artifactLanguage =

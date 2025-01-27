@@ -20,7 +20,7 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName } = getModelConfig(config);
+  const { modelName, modelProvider } = getModelConfig(config);
   const smallModel = await getModelFromConfig(config, {
     temperature: 0.5,
   });
@@ -32,7 +32,8 @@ export const generateArtifact = async (
         schema: ARTIFACT_TOOL_SCHEMA,
       },
     ],
-    { tool_choice: "generate_artifact" }
+    // Ollama does not support tool choice
+    { ...(modelProvider !== "ollama" && { tool_choice: "generate_artifact" }) }
   );
 
   const memoriesAsString = await getFormattedReflections(config);

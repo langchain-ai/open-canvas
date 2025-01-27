@@ -326,7 +326,7 @@ export function useAssistants() {
             (firstAssistant.metadata?.description as string | undefined) ||
             "Your default assistant.",
           name:
-            firstAssistant.name.toLowerCase() === "Untitled"
+            firstAssistant.name?.toLowerCase() === "Untitled"
               ? "Default assistant"
               : firstAssistant.name,
           tools:

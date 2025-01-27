@@ -78,6 +78,9 @@ export const formatReflections = (
 export async function getFormattedReflections(
   config: LangGraphRunnableConfig
 ): Promise<string> {
+  if (!config.store) {
+    return "No reflections found.";
+  }
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
   if (!assistantId) {
@@ -144,6 +147,7 @@ export const getModelConfig = (
     azureOpenAIBasePath?: string;
   };
   apiKey?: string;
+  baseUrl?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) {
@@ -196,6 +200,14 @@ export const getModelConfig = (
       apiKey: process.env.GOOGLE_API_KEY,
     };
   }
+  if (customModelName.startsWith("ollama-")) {
+    return {
+      modelName: customModelName.replace("ollama-", ""),
+      modelProvider: "ollama",
+      baseUrl:
+        process.env.OLLAMA_API_URL || "http://host.docker.internal:11434",
+    };
+  }
 
   throw new Error("Unknown model provider");
 };
@@ -214,12 +226,14 @@ export async function getModelFromConfig(
   }
 ) {
   const { temperature = 0.5, maxTokens } = extra || {};
-  const { modelName, modelProvider, azureConfig, apiKey } =
+  const { modelName, modelProvider, azureConfig, apiKey, baseUrl } =
     getModelConfig(config);
+
   return await initChatModel(modelName, {
     modelProvider,
-    temperature,
     maxTokens,
+    temperature,
+    ...(baseUrl ? { baseUrl } : {}),
     ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
       ? {

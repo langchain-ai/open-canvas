@@ -42,6 +42,17 @@ export const OPENAI_MODELS = [
   },
 ];
 
+/**
+ * Ollama model names _MUST_ be prefixed with `"ollama-"`
+ */
+export const OLLAMA_MODELS = [
+  {
+    name: "ollama-llama3.3",
+    label: "Llama 3.3 70B (local)",
+    isNew: true,
+  },
+];
+
 export const ANTHROPIC_MODELS = [
   {
     name: "claude-3-5-haiku-20241022",
@@ -84,9 +95,11 @@ export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];
 export type GEMINI_MODEL_NAMES = (typeof GEMINI_MODELS)[number]["name"];
 export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["modelName"];
+export type OLLAMA_MODEL_NAMES = (typeof OLLAMA_MODELS)[number]["name"];
 export type ALL_MODEL_NAMES =
   | OPENAI_MODEL_NAMES
   | ANTHROPIC_MODEL_NAMES
   | FIREWORKS_MODEL_NAMES
   | GEMINI_MODEL_NAMES
-  | AZURE_MODEL_NAMES;
+  | AZURE_MODEL_NAMES
+  | OLLAMA_MODEL_NAMES;
