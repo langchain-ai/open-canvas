@@ -91,7 +91,7 @@ Now we'll cover how to setup and run the LangGraph server locally.
 
 Follow the [`Installation` instructions in the LangGraph docs](https://langchain-ai.github.io/langgraph/cloud/reference/cli/#installation) to install the LangGraph CLI.
 
-Once installed, navigate to the root of the Open Canvas repo and run `npx @langchain/langgraph-cli dev --port 54367`.
+Once installed, navigate to the root of the Open Canvas repo and run `yarn dev:server` (this runs `npx @langchain/langgraph-cli dev --port 54367`).
 
 Once it finishes pulling the docker image and installing dependencies, you should see it log:
 

@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:server": "npx @langchain/langgraph-cli dev --port 54367",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
