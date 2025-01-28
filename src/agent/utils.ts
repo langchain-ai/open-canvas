@@ -79,6 +79,9 @@ export const formatReflections = (
 export async function getFormattedReflections(
   config: LangGraphRunnableConfig
 ): Promise<string> {
+  if (!config.store) {
+    return "No reflections found.";
+  }
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
   if (!assistantId) {
@@ -145,6 +148,8 @@ export const getModelConfig = (
     azureOpenAIApiVersion: string;
     azureOpenAIBasePath?: string;
   };
+  apiKey?: string;
+  baseUrl?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) throw new Error("Model name is missing in config.");
@@ -178,24 +183,36 @@ export const getModelConfig = (
     return {
       ...providerConfig,
       modelProvider: "openai",
+      apiKey: process.env.OPENAI_API_KEY,
     };
   }
   if (customModelName.includes("claude-")) {
     return {
       ...providerConfig,
       modelProvider: "anthropic",
+      apiKey: process.env.ANTHROPIC_API_KEY,
     };
   }
   if (customModelName.includes("fireworks/")) {
     return {
       ...providerConfig,
       modelProvider: "fireworks",
+      apiKey: process.env.FIREWORKS_API_KEY,
     };
   }
   if (customModelName.includes("gemini-")) {
     return {
       ...providerConfig,
       modelProvider: "google-genai",
+      apiKey: process.env.GOOGLE_API_KEY,
+    };
+  }
+  if (customModelName.startsWith("ollama-")) {
+    return {
+      modelName: customModelName.replace("ollama-", ""),
+      modelProvider: "ollama",
+      baseUrl:
+        process.env.OLLAMA_API_URL || "http://host.docker.internal:11434",
     };
   }
 
@@ -215,14 +232,20 @@ export async function getModelFromConfig(
     maxTokens?: number;
   }
 ) {
-  const { modelName, modelProvider, azureConfig, modelConfig } =
+  const { temperature = 0.5, maxTokens } = {
+    temperature:  modelConfig?.temperatureRange.current,
+    maxTokens: modelConfig?.maxTokens.current,
+    ...extra,
+  }
+  const { modelName, modelProvider, azureConfig, apiKey, baseUrl, modelConfig } =
     getModelConfig(config);
-  const { temperature, maxTokens } = extra || {};
 
   return await initChatModel(modelName, {
     modelProvider,
-    temperature: temperature ?? modelConfig?.temperatureRange.current ?? 0.5,
-    maxTokens: maxTokens ?? modelConfig?.maxTokens.current,
+    maxTokens,
+    temperature,
+    ...(baseUrl ? { baseUrl } : {}),
+    ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
       ? {
           azureOpenAIApiKey: azureConfig.azureOpenAIApiKey,

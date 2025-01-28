@@ -81,26 +81,23 @@ export const OPENAI_MODELS: ModelConfigurationParams[] = [
     isNew: false,
   },
 ];
-export const ANTHROPIC_MODELS: ModelConfigurationParams[] = [
+
+/**
+ * Ollama model names _MUST_ be prefixed with `"ollama-"`
+ */
+export const OLLAMA_MODELS = [
+  {
+    name: "ollama-llama3.3",
+    label: "Llama 3.3 70B (local)",
+    isNew: true,
+  },
+];
+
+export const ANTHROPIC_MODELS = [
   {
     name: "claude-3-5-haiku-20241022",
     label: "Claude 3.5 Haiku",
-    config: {
-      provider: "anthropic",
-      temperatureRange: {
-        min: 0,
-        max: 1,
-        default: 0.5,
-        current: 0.5,
-      },
-      maxTokens: {
-        min: 1,
-        max: 4096,
-        default: 4096,
-        current: 4096,
-      },
-    },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "claude-3-haiku-20240307",
@@ -167,6 +164,11 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
     },
     isNew: false,
   },
+  {
+    name: "gemini-2.0-flash-exp",
+    label: "Gemini 2.0 Flash",
+    isNew: true,
+  },
 ];
 
 export const ALL_MODELS: ModelConfigurationParams[] = [
@@ -181,16 +183,17 @@ export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];
 export type GEMINI_MODEL_NAMES = (typeof GEMINI_MODELS)[number]["name"];
-export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["name"];
+export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["modelName"];
+export type OLLAMA_MODEL_NAMES = (typeof OLLAMA_MODELS)[number]["name"];
 export type ALL_MODEL_NAMES =
   | OPENAI_MODEL_NAMES
   | ANTHROPIC_MODEL_NAMES
   | FIREWORKS_MODEL_NAMES
   | GEMINI_MODEL_NAMES
-  | AZURE_MODEL_NAMES;
+  | AZURE_MODEL_NAMES
+  | OLLAMA_MODEL_NAMES;
 
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
-
 export const DEFAULT_MODEL_CONFIG: CustomModelConfig = {
   ...OPENAI_MODELS[0].config,
   temperatureRange: { ...OPENAI_MODELS[0].config.temperatureRange },

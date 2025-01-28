@@ -2,7 +2,7 @@ const actualNewline = `
 `;
 
 export const cleanContent = (content: string): string => {
-  return content ? content.replaceAll("\n", actualNewline) : "";
+  return content ? content.replace(/\\n/g, actualNewline) : "";
 };
 
 export const reverseCleanContent = (content: string): string => {

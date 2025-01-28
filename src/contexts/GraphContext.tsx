@@ -1,15 +1,23 @@
 import {
-  ALL_MODEL_NAMES,
-  DEFAULT_INPUTS,
-  DEFAULT_MODEL_CONFIG,
-  DEFAULT_MODEL_NAME,
-  THREAD_ID_COOKIE_NAME,
-} from "@/constants";
-import { CustomModelConfig } from "@/types";
-
-import { useToast } from "@/hooks/use-toast";
-import { useAssistants } from "@/hooks/useAssistants";
-import { useRuns } from "@/hooks/useRuns";
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+  useState,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
+import {
+  convertToArtifactV3,
+  replaceOrInsertMessageChunk,
+  updateHighlightedCode,
+  updateHighlightedMarkdown,
+  updateRewrittenArtifact,
+  removeCodeBlockFormatting,
+  handleGenerateArtifactToolCallChunk,
+} from "./utils";
+import { useUser } from "@/hooks/useUser";
 import { useThread } from "@/hooks/useThread";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/hooks/utils";
@@ -22,7 +30,6 @@ import { setCookie } from "@/lib/cookies";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
-  ArtifactToolResponse,
   ArtifactType,
   ArtifactV3,
   CodeHighlight,
@@ -33,9 +40,16 @@ import {
   TextHighlight,
 } from "@/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { parsePartialJson } from "@langchain/core/output_parsers";
+import { useRuns } from "@/hooks/useRuns";
+import { createClient } from "@/hooks/utils";
+import {
+  ALL_MODEL_NAMES,
+  DEFAULT_INPUTS,
+  DEFAULT_MODEL_NAME,
+  THREAD_ID_COOKIE_NAME,
+} from "@/constants";
 import { Thread } from "@langchain/langgraph-sdk";
-import { debounce } from "lodash";
+import { useToast } from "@/hooks/use-toast";
 import {
   createContext,
   Dispatch,
@@ -111,6 +125,14 @@ export interface GraphInput {
   portLanguage?: ProgrammingLanguageOptions;
   fixBugs?: boolean;
   customQuickActionId?: string;
+}
+
+// Shim for recent LangGraph bugfix
+function extractStreamDataChunk(chunk: any) {
+  if (Array.isArray(chunk)) {
+    return chunk[1];
+  }
+  return chunk;
 }
 
 export function GraphProvider({ children }: { children: ReactNode }) {
@@ -372,7 +394,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 chunk.data.metadata.langgraph_node
               )
             ) {
-              const message = chunk.data.data.chunk[1];
+              const message = extractStreamDataChunk(chunk.data.data.chunk);
               if (!followupMessageId) {
                 followupMessageId = message.id;
               }
@@ -383,48 +405,23 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
               generateArtifactToolCallStr +=
-                chunk.data.data.chunk?.[1]?.tool_call_chunks?.[0]?.args || "";
-              let newArtifactText: ArtifactToolResponse | undefined = undefined;
-
-              // Attempt to parse the tool call chunk.
-              try {
-                newArtifactText = parsePartialJson(generateArtifactToolCallStr);
-                if (!newArtifactText) {
-                  throw new Error("Failed to parse new artifact text");
-                }
-                newArtifactText = {
-                  ...newArtifactText,
-                  title: newArtifactText.title ?? "",
-                  type: newArtifactText.type ?? "",
-                };
-              } catch (_) {
+                extractStreamDataChunk(chunk.data.data.chunk)
+                  ?.tool_call_chunks?.[0]?.args || "";
+              const result = handleGenerateArtifactToolCallChunk(
+                generateArtifactToolCallStr
+              );
+              if (result && result === "continue") {
                 continue;
-              }
-
-              if (
-                newArtifactText.artifact &&
-                (newArtifactText.type === "text" ||
-                  (newArtifactText.type === "code" && newArtifactText.language))
-              ) {
+              } else if (result && typeof result === "object") {
                 setFirstTokenReceived(true);
-                setArtifact(() => {
-                  const content =
-                    createNewGeneratedArtifactFromTool(newArtifactText);
-                  if (!content) {
-                    return undefined;
-                  }
-                  return {
-                    currentIndex: 1,
-                    contents: [content],
-                  };
-                });
+                setArtifact(() => result);
               }
             }
 
             if (
               chunk.data.metadata.langgraph_node === "updateHighlightedText"
             ) {
-              const message = chunk.data.data?.chunk[1];
+              const message = extractStreamDataChunk(chunk.data.data?.chunk);
               if (!message) {
                 continue;
               }
@@ -532,7 +529,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
 
               const partialUpdatedContent =
-                chunk.data.data.chunk?.[1]?.content || "";
+                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
               const { startCharIndex, endCharIndex } = params.highlightedCode;
 
               if (!prevCurrentContent) {
@@ -606,7 +603,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              newArtifactContent += chunk.data.data.chunk?.[1]?.content || "";
+              newArtifactContent +=
+                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
 
               // Ensure we have the language to update the artifact with
               let artifactLanguage = params.portLanguage || undefined;
@@ -685,7 +683,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              newArtifactContent += chunk.data.data.chunk?.[1]?.content || "";
+              newArtifactContent +=
+                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
 
               // Ensure we have the language to update the artifact with
               const artifactLanguage =
@@ -743,11 +742,24 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             ) {
               rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
             }
-            // if (chunk.data?.data.output && "type" in chunk.data.data.output && chunk.data.data.output.type === "ai") {
-            //   lastMessage = new AIMessage({
-            //     ...chunk.data.data.output,
-            //   });
-            // }
+
+            if (
+              chunk.data.metadata.langgraph_node === "generateArtifact" &&
+              !generateArtifactToolCallStr &&
+              threadData.modelName.includes("gemini-")
+            ) {
+              generateArtifactToolCallStr +=
+                chunk.data.data.output.tool_call_chunks?.[0]?.args || "";
+              const result = handleGenerateArtifactToolCallChunk(
+                generateArtifactToolCallStr
+              );
+              if (result && result === "continue") {
+                continue;
+              } else if (result && typeof result === "object") {
+                setFirstTokenReceived(true);
+                setArtifact(() => result);
+              }
+            }
           }
         } catch (e) {
           console.error(

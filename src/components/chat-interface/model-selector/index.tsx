@@ -8,20 +8,33 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ALL_MODEL_NAMES, ALL_MODELS } from "@/constants";
-import { cn } from "@/lib/utils";
-import { CustomModelConfig } from "@/types";
-import { CaretSortIcon, GearIcon } from "@radix-ui/react-icons";
-import { Check } from "lucide-react";
-import NextImage from "next/image";
-import { useCallback, useState } from "react";
+  ALL_MODEL_NAMES,
+  ANTHROPIC_MODELS,
+  OPENAI_MODELS,
+  FIREWORKS_MODELS,
+  GEMINI_MODELS,
+  LS_HAS_SEEN_MODEL_DROPDOWN_ALERT,
+  AZURE_MODELS,
+  OLLAMA_MODELS,
+} from "@/constants";
+import { Dispatch, SetStateAction, useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
 import { ModelConfigPanel } from "./model-config-pannel";
 import { IsNewBadge } from "./new-badge";
+
+const allModels = [
+  ...ANTHROPIC_MODELS,
+  ...OPENAI_MODELS,
+  ...FIREWORKS_MODELS,
+  ...GEMINI_MODELS,
+  ...AZURE_MODELS,
+  ...OLLAMA_MODELS,
+];
+
+const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
+  const model = allModels.find((m) => m.name === modelName);
+  return model?.label ?? modelName;
+};
 
 interface ModelSelectorProps {
   modelName: ALL_MODEL_NAMES;
@@ -83,6 +96,12 @@ export default function ModelSelector({
     if (
       model.name.includes("gemini-") &&
       process.env.NEXT_PUBLIC_GEMINI_ENABLED === "false"
+    ) {
+      return false;
+    }
+    if (
+      model.name.includes("ollama-") &&
+      process.env.NEXT_PUBLIC_OLLAMA_ENABLED === "false"
     ) {
       return false;
     }

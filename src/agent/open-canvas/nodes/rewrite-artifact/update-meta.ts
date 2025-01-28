@@ -1,6 +1,10 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { OpenCanvasGraphAnnotation } from "../../state";
-import { formatArtifactContent, getModelFromConfig } from "@/agent/utils";
+import {
+  formatArtifactContent,
+  getModelConfig,
+  getModelFromConfig,
+} from "@/agent/utils";
 import { getArtifactContent } from "@/contexts/utils";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts";
 import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas";
@@ -11,6 +15,7 @@ export async function optionallyUpdateArtifactMeta(
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<ToolCall | undefined> {
+  const { modelProvider } = getModelConfig(config);
   const toolCallingModel = (await getModelFromConfig(config))
     .bindTools(
       [
@@ -20,7 +25,12 @@ export async function optionallyUpdateArtifactMeta(
           description: "Update the artifact meta information, if necessary.",
         },
       ],
-      { tool_choice: "optionallyUpdateArtifactMeta" }
+      {
+        // Ollama does not support tool choice
+        ...(modelProvider !== "ollama" && {
+          tool_choice: "optionallyUpdateArtifactMeta",
+        }),
+      }
     )
     .withConfig({ runName: "optionally_update_artifact_meta" });
 

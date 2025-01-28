@@ -19,66 +19,97 @@ Open Canvas is an open source web application for collaborating with agents to b
 - **Code, Markdown, or both**: The artifact view allows for viewing and editing both code, and markdown. You can even have chats which generate code, and markdown artifacts, and switch between them.
 - **Live markdown rendering & editing**: Open Canvas's markdown editor allows you to view the rendered markdown while you're editing, without having to toggle back and fourth.
 
-## How to use
+## Setup locally
 
-You can use our deployed version for free by visiting [opencanvas.langchain.com](https://opencanvas.langchain.com/)
+This guide will cover how to setup and run Open Canvas locally. If you prefer a YouTube video guide, check out [this video](https://youtu.be/sBzcQYPMekc).
 
-or
+### Prerequisites
 
-You can clone this repository and run locally/deploy to your own cloud. See the next section for steps on how to do this.
+Open Canvas requires the following API keys and external services:
 
-![Diagram of the Open Canvas graph](./public/lg_studio_graph_diagram.png)
+#### Package Manager
 
-## Development
+- [Yarn](https://yarnpkg.com/)
 
-Running or developing Open Canvas is easy. Start by cloning this repository and navigating into the directory.
+#### LLM APIs
+
+- [OpenAI API key](https://platform.openai.com/signup/)
+- [Anthropic API key](https://console.anthropic.com/)
+- (optional) [Google GenAI API key](https://aistudio.google.com/apikey)
+- (optional) [Fireworks AI API key](https://fireworks.ai/login)
+
+#### Authentication
+
+- [Supabase](https://supabase.com/) account for authentication
+
+#### LangGraph Server
+
+- [LangGraph CLI](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) for running the graph locally
+
+#### LangSmith
+
+- [LangSmith](https://smith.langchain.com/) for tracing & observability
+
+### Installation
+
+First, clone the repository:
 
 ```bash
 git clone https://github.com/langchain-ai/open-canvas.git
-
 cd open-canvas
 ```
 
-Next, install the dependencies via Yarn:
+Next, install the dependencies:
 
 ```bash
 yarn install
 ```
 
-Then [install LangGraph Studio](https://studio.langchain.com/) which is required to run the graphs locally, or [create a LangSmith account](https://smith.langchain.com/) to deploy to production on LangGraph Cloud.
-
-After that, copy the `.env.example` file contents into `.env` and set the required values:
+After installing dependencies, copy the `.env.example` file contents into `.env` and set the required values:
 
 ```bash
-# LangSmith tracing
-LANGCHAIN_TRACING_V2=true
-LANGCHAIN_API_KEY=
-
-# LLM API keys
-# Anthropic used for reflection
-ANTHROPIC_API_KEY=
-# OpenAI used for content generation
-OPENAI_API_KEY=
-
-# LangGraph Deployment, or local development server via LangGraph Studio.
-# If running locally, this URL should be set in the `constants.ts` file.
-# LANGGRAPH_API_URL=
-
-# Supabase for authentication
-# Public keys
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+cp .env.example .env
 ```
 
-Finally, start the development server:
+Then, setup authentication with Supabase.
+
+### Setup Authentication
+
+After creating a Supabase account, visit your [dashboard](https://supabase.com/dashboard/projects) and create a new project.
+
+Next, navigate to the `Project Settings` page inside your project, and then to the `API` tag. Copy the `Project URL`, and `anon public` project API key. Paste them into the `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` environment variables in the `.env` file.
+
+After this, navigate to the `Authentication` page, and the `Providers` tab. Make sure `Email` is enabled (also ensure you've enabled `Confirm Email`). You may also enable `GitHub`, and/or `Google` if you'd like to use those for authentication. (see these pages for documentation on how to setup each provider: [GitHub](https://supabase.com/docs/guides/auth/social-login/auth-github), [Google](https://supabase.com/docs/guides/auth/social-login/auth-google))
+
+#### Test authentication
+
+To verify authentication works, run `yarn dev` and visit [localhost:3000](http://localhost:3000). This should redirect you to the [login page](http://localhost:3000/auth/login). From here, you can either login with Google or GitHub, or if you did not configure these providers, navigate to the [signup page](http://localhost:3000/auth/signup) and create a new account with an email and password. This should then redirect you to a conformation page, and after confirming your email you should be redirected to the [home page](http://localhost:3000).
+
+### Setup LangGraph Server
+
+Now we'll cover how to setup and run the LangGraph server locally.
+
+Follow the [`Installation` instructions in the LangGraph docs](https://langchain-ai.github.io/langgraph/cloud/reference/cli/#installation) to install the LangGraph CLI.
+
+Once installed, navigate to the root of the Open Canvas repo and run `yarn dev:server` (this runs `npx @langchain/langgraph-cli dev --port 54367`).
+
+Once it finishes pulling the docker image and installing dependencies, you should see it log:
+
+```
+Ready!
+- 🚀 API: http://localhost:54367
+- 🎨 Studio UI: https://smith.langchain.com/studio?baseUrl=http://localhost:54367
+```
+
+After your LangGraph server is running, execute the following command to start the Open Canvas app:
 
 ```bash
 yarn dev
 ```
 
-Then, open [localhost:3000](http://localhost:3000) with your browser and start interacting!
+On initial load, compilation may take a little bit of time.
 
-You can also watch a short (2 min) video walkthrough on how to setup Open Canvas locally [here](https://www.loom.com/share/e2ce559840f14a9abf1b3d5af7686271).
+Then, open [localhost:3000](http://localhost:3000) with your browser and start interacting!
 
 ## LLM Models
 
@@ -92,17 +123,38 @@ If you'd like to add a new model, follow these simple steps:
 
 1. Add to or update the model provider variables in `constants.ts`.
 2. Install the necessary package for the provider (e.g. `@langchain/anthropic`).
-3. Update the `getModelNameAndProviderFromConfig` function in `src/agent/utils.ts` to include your new model name and provider.
+3. Update the `getModelConfig` function in `src/agent/utils.ts` to include an `if` statement for your new model name and provider.
 4. Manually test by checking you can:
-  > - 4a. Generate a new artifact
-  >
-  > - 4b. Generate a followup message (happens automatically after generating an artifact)
-  >
-  > - 4c. Update an artifact via a message in chat
-  >
-  > - 4d. Update an artifact via a quick action
-  >
-  > - 4e. Repeat for text/code (ensure both work)
+   > - 4a. Generate a new artifact
+   > - 4b. Generate a followup message (happens automatically after generating an artifact)
+   > - 4c. Update an artifact via a message in chat
+   > - 4d. Update an artifact via a quick action
+   > - 4e. Repeat for text/code (ensure both work)
+
+### Local Ollama models
+
+Open Canvas supports calling local LLMs running on Ollama. This is not enabled in the hosted version of Open Canvas, but you can use this in your own local/deployed Open Canvas instance.
+
+To use a local Ollama model, first ensure you have [Ollama](https://ollama.com) installed, and a model that supports tool calling pulled (the default model is `llama3.3`).
+
+Next, start the Ollama server by running `ollama run llama3.3`.
+
+Then, set the `NEXT_PUBLIC_OLLAMA_ENABLED` environment variable to `true`, and the `OLLAMA_API_URL` environment variable to the URL of your Ollama server (defaults to `http://host.docker.internal:11434`. If you do not set a custom port when starting your Ollama server, you should not need to set this environment variable).
+
+> [!NOTE]
+> Open source LLMs are typically not as good at instruction following as proprietary models like GPT-4o or Claude Sonnet. Because of this, you may experience errors or unexpected behavior when using local LLMs.
+
+## Troubleshooting
+
+Below are some common issues you may run into if running Open Canvas yourself:
+
+- **I have the LangGraph server running successfully, and my client can make requests, but no text is being generated:** This can happen if you start & connect to multiple different LangGraph servers locally in the same browser. Try clearing the `oc_thread_id_v2` cookie and refreshing the page. This is because each unique LangGraph server has its own database where threads are stored, so a thread ID from one server will not be found in the database of another server.
+
+- **I'm getting 500 network errors when I try to make requests on the client:** Ensure you have the LangGraph server running, and you're making requests to the correct port. You can specify the port to use by passing the `--port <PORT>` flag to the `npx @langchain/langgraph-cli dev` command, and you can set the URL to make requests to by either setting the `LANGGRAPH_API_URL` environment variable, or by changing the fallback value of the `LANGGRAPH_API_URL` variable in `constants.ts`.
+
+- **I'm getting "thread ID not found" error toasts when I try to make requests on the client:** Ensure you have the LangGraph server running, and you're making requests to the correct port. You can specify the port to use by passing the `--port <PORT>` flag to the `npx @langchain/langgraph-cli dev` command, and you can set the URL to make requests to by either setting the `LANGGRAPH_API_URL` environment variable, or by changing the fallback value of the `LANGGRAPH_API_URL` variable in `constants.ts`.
+
+- **`Model name is missing in config.` error is being thrown when I make requests:** This error occurs when the `customModelName` is not specified in the config. You can resolve this by setting the `customModelName` field inside `config.configurable` to the name of the model you want to use when invoking the graph. See [this doc](https://langchain-ai.github.io/langgraphjs/how-tos/configuration/) on how to use configurable fields in LangGraph.
 
 ## Roadmap
 
