@@ -1,16 +1,16 @@
 import {
+  getFormattedReflections,
+  getModelConfig,
+  getModelFromConfig,
+  optionallyGetSystemPromptFromConfig,
+} from "@/agent/utils";
+import { ArtifactV3 } from "@/types";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
 } from "../../state";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import {
-  getFormattedReflections,
-  getModelFromConfig,
-  getModelConfig,
-  optionallyGetSystemPromptFromConfig,
-} from "@/agent/utils";
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas";
-import { ArtifactV3 } from "@/types";
 import { createArtifactContent, formatNewArtifactPrompt } from "./utils";
 
 /**

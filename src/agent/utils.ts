@@ -1,7 +1,8 @@
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
+import { CustomModelConfig } from "@/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 import { initChatModel } from "langchain/chat_models/universal";
+import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -139,6 +140,7 @@ export const getModelConfig = (
 ): {
   modelName: string;
   modelProvider: string;
+  modelConfig?: CustomModelConfig;
   azureConfig?: {
     azureOpenAIApiKey: string;
     azureOpenAIApiInstanceName: string;
@@ -150,9 +152,9 @@ export const getModelConfig = (
   baseUrl?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;
-  if (!customModelName) {
-    throw new Error("Model name is missing in config.");
-  }
+  if (!customModelName) throw new Error("Model name is missing in config.");
+
+  const modelConfig = config.configurable?.modelConfig as CustomModelConfig;
 
   if (customModelName.startsWith("azure/")) {
     const actualModelName = customModelName.replace("azure/", "");
@@ -172,30 +174,35 @@ export const getModelConfig = (
     };
   }
 
+  const providerConfig = {
+    modelName: customModelName,
+    modelConfig,
+  };
+
   if (customModelName.includes("gpt-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "openai",
       apiKey: process.env.OPENAI_API_KEY,
     };
   }
   if (customModelName.includes("claude-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "anthropic",
       apiKey: process.env.ANTHROPIC_API_KEY,
     };
   }
   if (customModelName.includes("fireworks/")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "fireworks",
       apiKey: process.env.FIREWORKS_API_KEY,
     };
   }
   if (customModelName.includes("gemini-")) {
     return {
-      modelName: customModelName,
+      ...providerConfig,
       modelProvider: "google-genai",
       apiKey: process.env.GOOGLE_API_KEY,
     };
@@ -225,9 +232,19 @@ export async function getModelFromConfig(
     maxTokens?: number;
   }
 ) {
-  const { temperature = 0.5, maxTokens } = extra || {};
-  const { modelName, modelProvider, azureConfig, apiKey, baseUrl } =
-    getModelConfig(config);
+  const {
+    modelName,
+    modelProvider,
+    azureConfig,
+    apiKey,
+    baseUrl,
+    modelConfig,
+  } = getModelConfig(config);
+  const { temperature = 0.5, maxTokens } = {
+    temperature: modelConfig?.temperatureRange.current,
+    maxTokens: modelConfig?.maxTokens.current,
+    ...extra,
+  };
 
   return await initChatModel(modelName, {
     modelProvider,

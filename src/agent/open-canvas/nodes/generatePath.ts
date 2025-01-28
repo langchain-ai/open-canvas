@@ -1,3 +1,10 @@
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { z } from "zod";
+import { getArtifactContent } from "../../../contexts/utils";
+import {
+  formatArtifactContentWithTemplate,
+  getModelFromConfig,
+} from "../../utils";
 import {
   CURRENT_ARTIFACT_PROMPT,
   NO_ARTIFACT_PROMPT,
@@ -6,11 +13,6 @@ import {
   ROUTE_QUERY_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
-import { z } from "zod";
-import { formatArtifactContentWithTemplate } from "../../utils";
-import { getArtifactContent } from "../../../contexts/utils";
-import { getModelFromConfig } from "../../utils";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 /**
  * Routes to the proper node in the graph based on the user's query.

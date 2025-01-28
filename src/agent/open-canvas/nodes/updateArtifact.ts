@@ -1,15 +1,15 @@
-import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
-import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { getArtifactContent } from "../../../contexts/utils";
+import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
+import { ArtifactCodeV3, ArtifactV3, Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatReflections,
   getModelConfig,
   getModelFromConfig,
 } from "../../utils";
-import { ArtifactCodeV3, ArtifactV3, Reflections } from "../../../types";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "../../../contexts/utils";
-import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
+import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
+import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
 
 /**
  * Update an existing artifact based on the user's query.

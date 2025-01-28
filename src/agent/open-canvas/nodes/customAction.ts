@@ -1,6 +1,5 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getModelFromConfig } from "../../utils";
 import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import {
@@ -10,7 +9,11 @@ import {
   CustomQuickAction,
   Reflections,
 } from "../../../types";
-import { ensureStoreInConfig, formatReflections } from "../../utils";
+import {
+  ensureStoreInConfig,
+  formatReflections,
+  getModelFromConfig,
+} from "../../utils";
 import {
   CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT,
   CUSTOM_QUICK_ACTION_ARTIFACT_PROMPT_PREFIX,
