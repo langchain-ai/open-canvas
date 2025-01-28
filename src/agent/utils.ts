@@ -3,6 +3,8 @@ import { CustomModelConfig } from "@/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
+import { ContextDocument } from "@/hooks/useAssistants";
+import pdfParse from "pdf-parse";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -263,4 +265,99 @@ export async function getModelFromConfig(
         }
       : {}),
   });
+}
+
+export function createContextDocumentMessagesAnthropic(
+  config: LangGraphRunnableConfig
+) {
+  if (!config.configurable?.documents) {
+    return [];
+  }
+
+  return (config.configurable?.documents as ContextDocument[]).map((doc) => {
+    if (doc.type.includes("pdf")) {
+      return {
+        type: "document",
+        source: {
+          type: "base64",
+          media_type: doc.type,
+          data: doc.data,
+        },
+      };
+    } else if (doc.type.startsWith("text/")) {
+      return {
+        type: "text",
+        text: atob(doc.data),
+      };
+    }
+    throw new Error("Unsupported document type: " + doc.type);
+  });
+}
+
+export function createContextDocumentMessagesGemini(
+  config: LangGraphRunnableConfig
+) {
+  if (!config.configurable?.documents) {
+    return [];
+  }
+
+  return (config.configurable?.documents as ContextDocument[]).map((doc) => {
+    if (doc.type.includes("pdf")) {
+      return {
+        mime_type: doc.type,
+        data: doc.data,
+      };
+    } else if (doc.type.startsWith("text/")) {
+      return {
+        type: "text",
+        text: atob(doc.data),
+      };
+    }
+    throw new Error("Unsupported document type: " + doc.type);
+  });
+}
+
+async function convertPDFToText(base64PDF: string) {
+  try {
+    // Convert base64 to buffer
+    const pdfBuffer = Buffer.from(base64PDF, "base64");
+
+    // Parse PDF
+    const data = await pdfParse(pdfBuffer);
+
+    // Get text content
+    const text = data.text;
+
+    return text;
+  } catch (error) {
+    console.error("Error converting PDF to text:", error);
+    throw error;
+  }
+}
+
+export async function createContextDocumentMessagesOpenAI(
+  config: LangGraphRunnableConfig
+) {
+  if (!config.configurable?.documents) {
+    return [];
+  }
+
+  const messagesPromises = (
+    config.configurable?.documents as ContextDocument[]
+  ).map(async (doc) => {
+    let text = "";
+
+    if (doc.type.includes("pdf")) {
+      text = await convertPDFToText(doc.data);
+    } else if (doc.type.startsWith("text/")) {
+      text = atob(doc.data);
+    }
+
+    return {
+      type: "text",
+      text,
+    };
+  });
+
+  return await Promise.all(messagesPromises);
 }

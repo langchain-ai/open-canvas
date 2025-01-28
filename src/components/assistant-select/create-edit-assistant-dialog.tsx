@@ -1,4 +1,10 @@
-import { CreateAssistantFields } from "@/hooks/useAssistants";
+import {
+  ContextDocument,
+  CreateAssistantFields,
+  CreateCustomAssistantArgs,
+  EditCustomAssistantArgs,
+  fileToBase64,
+} from "@/hooks/useAssistants";
 import { Assistant } from "@langchain/langgraph-sdk";
 import {
   Dispatch,
@@ -32,16 +38,16 @@ interface CreateEditAssistantDialogProps {
   userId: string | undefined;
   isEditing: boolean;
   assistant?: Assistant;
-  createCustomAssistant: (
-    newAssistant: CreateAssistantFields,
-    userId: string,
-    successCallback?: (id: string) => void
-  ) => Promise<boolean>;
-  editCustomAssistant: (
-    editedAssistant: CreateAssistantFields,
-    assistantId: string,
-    userId: string
-  ) => Promise<Assistant | undefined>;
+  createCustomAssistant: ({
+    newAssistant,
+    userId,
+    successCallback,
+  }: CreateCustomAssistantArgs) => Promise<boolean>;
+  editCustomAssistant: ({
+    editedAssistant,
+    assistantId,
+    userId,
+  }: EditCustomAssistantArgs) => Promise<Assistant | undefined>;
   isLoading: boolean;
   allDisabled: boolean;
   setAllDisabled: Dispatch<SetStateAction<boolean>>;
@@ -67,6 +73,13 @@ const SystemPromptWhatsThis = (): React.ReactNode => (
   </span>
 );
 
+const ContextDocumentsWhatsThis = (): React.ReactNode => (
+  <p className="text-sm text-gray-600">
+    Context documents are text or PDF files which will be included in the LLM's
+    context when generating, re-writing and editing artifacts.
+  </p>
+);
+
 export function CreateEditAssistantDialog(
   props: CreateEditAssistantDialogProps
 ) {
@@ -79,6 +92,7 @@ export function CreateEditAssistantDialog(
   const [iconColor, setIconColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
+  const [documents, setDocuments] = useState<FileList>();
 
   const metadata = props.assistant?.metadata as Record<string, any> | undefined;
 
@@ -124,10 +138,21 @@ export function CreateEditAssistantDialog(
 
     props.setAllDisabled(true);
 
+    const contentDocuments: ContextDocument[] = [];
+    if (documents?.length) {
+      const documentsPromise = Array.from(documents).map(async (doc) => ({
+        name: doc.name,
+        type: doc.type,
+        data: await fileToBase64(doc),
+      }));
+      contentDocuments.push(...(await Promise.all(documentsPromise)));
+      console.log(contentDocuments[0].data.length);
+    }
+
     let res: boolean;
     if (props.isEditing && props.assistant) {
-      res = !!(await props.editCustomAssistant(
-        {
+      res = !!(await props.editCustomAssistant({
+        editedAssistant: {
           name,
           description,
           systemPrompt,
@@ -135,13 +160,14 @@ export function CreateEditAssistantDialog(
             iconName,
             iconColor,
           },
+          documents: contentDocuments,
         },
-        props.assistant.assistant_id,
-        props.userId
-      ));
+        assistantId: props.assistant.assistant_id,
+        userId: props.userId,
+      }));
     } else {
-      res = await props.createCustomAssistant(
-        {
+      res = await props.createCustomAssistant({
+        newAssistant: {
           name,
           description,
           systemPrompt,
@@ -149,9 +175,10 @@ export function CreateEditAssistantDialog(
             iconName,
             iconColor,
           },
+          documents: contentDocuments,
         },
-        props.userId
-      );
+        userId: props.userId,
+      });
     }
 
     if (res) {
@@ -301,6 +328,44 @@ export function CreateEditAssistantDialog(
               </div>
             </div>
           </div>
+
+          <Label htmlFor="context-documents">
+            <TighterText className="flex items-center">
+              Context Documents (Max 3, 1MB each)
+              <InlineContextTooltip cardContentClassName="w-[500px] ml-10">
+                <ContextDocumentsWhatsThis />
+              </InlineContextTooltip>
+            </TighterText>
+          </Label>
+          <Input
+            disabled={props.allDisabled}
+            required={false}
+            id="context-documents"
+            type="file"
+            multiple
+            accept=".txt,.pdf,.doc,.docx"
+            onChange={(e) => {
+              const files = e.target.files;
+              if (!files) return;
+
+              if (files.length > 3) {
+                alert("You can only upload up to 3 files");
+                e.target.value = "";
+                return;
+              }
+
+              // Check each file size (1MB = 1048576 bytes)
+              for (let i = 0; i < files.length; i++) {
+                if (files[i].size > 1048576) {
+                  alert(`File "${files[i].name}" exceeds the 1MB size limit`);
+                  e.target.value = "";
+                  return;
+                }
+              }
+
+              setDocuments(files || undefined);
+            }}
+          />
 
           <div className="flex items-center justify-center w-full mt-4 gap-3">
             <Button

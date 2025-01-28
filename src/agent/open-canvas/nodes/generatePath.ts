@@ -13,6 +13,7 @@ import {
   ROUTE_QUERY_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
+import { ContextDocument } from "@/hooks/useAssistants";
 
 /**
  * Routes to the proper node in the graph based on the user's query.

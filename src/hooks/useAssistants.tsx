@@ -5,6 +5,23 @@ import { createClient } from "./utils";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, removeCookie } from "@/lib/cookies";
 
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(
+          `Failed to convert file to base64. Received ${typeof reader.result} result.`
+        );
+      }
+    };
+    reader.onerror = (error) => reject(error);
+  });
+}
+
 export type AssistantTool = {
   /**
    * The name of the tool
@@ -18,6 +35,21 @@ export type AssistantTool = {
    * JSON Schema for the parameters of the tool.
    */
   parameters: Record<string, any>;
+};
+
+export type ContextDocument = {
+  /**
+   * The name of the document.
+   */
+  name: string;
+  /**
+   * The type of the document.
+   */
+  type: string;
+  /**
+   * The base64 encoded content of the document.
+   */
+  data: string;
 };
 
 export interface CreateAssistantFields {
@@ -49,7 +81,23 @@ export interface CreateAssistantFields {
    */
   systemPrompt?: string;
   is_default?: boolean;
+  /**
+   * The documents to include in the LLMs context.
+   */
+  documents?: ContextDocument[];
 }
+
+export type CreateCustomAssistantArgs = {
+  newAssistant: CreateAssistantFields;
+  userId: string;
+  successCallback?: (id: string) => void;
+};
+
+export type EditCustomAssistantArgs = {
+  editedAssistant: CreateAssistantFields;
+  assistantId: string;
+  userId: string;
+};
 
 export function useAssistants() {
   const { toast } = useToast();
@@ -113,15 +161,16 @@ export function useAssistants() {
     }
   };
 
-  const createCustomAssistant = async (
-    newAssistant: CreateAssistantFields,
-    userId: string,
-    successCallback?: (id: string) => void
-  ): Promise<boolean> => {
+  const createCustomAssistant = async ({
+    newAssistant,
+    userId,
+    successCallback,
+  }: CreateCustomAssistantArgs): Promise<boolean> => {
     setIsCreatingAssistant(true);
     try {
       const client = createClient();
-      const { tools, systemPrompt, name, ...metadata } = newAssistant;
+      const { tools, systemPrompt, name, documents, ...metadata } =
+        newAssistant;
       const createdAssistant = await client.assistants.create({
         graphId: "agent",
         name,
@@ -133,6 +182,7 @@ export function useAssistants() {
           configurable: {
             tools,
             systemPrompt,
+            documents,
           },
         },
         ifExists: "do_nothing",
@@ -154,11 +204,11 @@ export function useAssistants() {
     }
   };
 
-  const editCustomAssistant = async (
-    editedAssistant: CreateAssistantFields,
-    assistantId: string,
-    userId: string
-  ): Promise<Assistant | undefined> => {
+  const editCustomAssistant = async ({
+    editedAssistant,
+    assistantId,
+    userId,
+  }: EditCustomAssistantArgs): Promise<Assistant | undefined> => {
     setIsEditingAssistant(true);
     try {
       const client = createClient();
@@ -203,8 +253,8 @@ export function useAssistants() {
     userId: string,
     assistantIdCookie: string
   ) => {
-    const updatedAssistant = await editCustomAssistant(
-      {
+    const updatedAssistant = await editCustomAssistant({
+      editedAssistant: {
         is_default: true,
         iconData: {
           iconName: "User",
@@ -215,9 +265,9 @@ export function useAssistants() {
         tools: undefined,
         systemPrompt: undefined,
       },
-      assistantIdCookie,
-      userId
-    );
+      assistantId: assistantIdCookie,
+      userId,
+    });
 
     if (!updatedAssistant) {
       const ghIssueTitle = "Failed to set default assistant";
@@ -283,8 +333,8 @@ export function useAssistants() {
 
     if (!userAssistants.length) {
       // No assistants found, create a new assistant and set it as the default.
-      await createCustomAssistant(
-        {
+      await createCustomAssistant({
+        newAssistant: {
           iconData: {
             iconName: "User",
             iconColor: "#000000",
@@ -293,8 +343,8 @@ export function useAssistants() {
           description: "Your default assistant.",
           is_default: true,
         },
-        userId
-      );
+        userId,
+      });
 
       // Return early because this function will set the selected assistant and assistants state.
       setIsLoadingAllAssistants(false);
@@ -311,8 +361,8 @@ export function useAssistants() {
       const firstAssistant = userAssistants.sort((a, b) => {
         return a.created_at.localeCompare(b.created_at);
       })[0];
-      const updatedAssistant = await editCustomAssistant(
-        {
+      const updatedAssistant = await editCustomAssistant({
+        editedAssistant: {
           is_default: true,
           iconData: {
             iconName:
@@ -338,9 +388,9 @@ export function useAssistants() {
               | string
               | undefined) || undefined,
         },
-        firstAssistant.assistant_id,
-        userId
-      );
+        assistantId: firstAssistant.assistant_id,
+        userId,
+      });
 
       setSelectedAssistant(updatedAssistant);
     } else {
