@@ -171,25 +171,29 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
         userId={props.userId}
         isEditing={!!editingAssistant}
         assistant={editingAssistant}
-        createCustomAssistant={async (
+        createCustomAssistant={async ({
           newAssistant,
           userId,
-          successCallback
-        ) => {
-          const res = await createCustomAssistant(
+          successCallback,
+        }) => {
+          const res = await createCustomAssistant({
             newAssistant,
             userId,
-            successCallback
-          );
+            successCallback,
+          });
           setOpen(false);
           return res;
         }}
-        editCustomAssistant={async (editedAssistant, assistantId, userId) => {
-          const res = await editCustomAssistant(
+        editCustomAssistant={async ({
+          editedAssistant,
+          assistantId,
+          userId,
+        }) => {
+          const res = await editCustomAssistant({
             editedAssistant,
             assistantId,
-            userId
-          );
+            userId,
+          });
           setOpen(false);
           return res;
         }}
