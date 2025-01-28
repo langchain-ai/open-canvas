@@ -321,6 +321,10 @@ export async function getModelFromConfig(
   });
 }
 
+const cleanBase64 = (base64String: string): string => {
+  return base64String.replace(/^data:.*?;base64,/, "");
+};
+
 async function convertPDFToText(base64PDF: string) {
   try {
     // Convert base64 to buffer
@@ -332,7 +336,7 @@ async function convertPDFToText(base64PDF: string) {
     // Get text content
     const text = data.text;
 
-    return text;
+    return cleanBase64(text);
   } catch (error) {
     console.error("Error converting PDF to text:", error);
     throw error;
@@ -356,7 +360,7 @@ export async function createContextDocumentMessagesAnthropic(
         source: {
           type: "base64",
           media_type: doc.type,
-          data: doc.data,
+          data: cleanBase64(doc.data),
         },
       };
     }
@@ -387,8 +391,8 @@ export function createContextDocumentMessagesGemini(
   return (config.configurable?.documents as ContextDocument[]).map((doc) => {
     if (doc.type.includes("pdf")) {
       return {
-        mime_type: doc.type,
-        data: doc.data,
+        type: doc.type,
+        data: cleanBase64(doc.data),
       };
     } else if (doc.type.startsWith("text/")) {
       return {
@@ -442,7 +446,7 @@ export async function createContextDocumentMessages(
         nativeSupport,
       }
     );
-  } else if (modelProvider === "gemini") {
+  } else if (modelProvider === "google-genai") {
     contextDocumentMessages = createContextDocumentMessagesGemini(config);
   }
 
