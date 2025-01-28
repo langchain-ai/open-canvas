@@ -212,7 +212,8 @@ export function useAssistants() {
     setIsEditingAssistant(true);
     try {
       const client = createClient();
-      const { tools, systemPrompt, name, ...metadata } = editedAssistant;
+      const { tools, systemPrompt, name, documents, ...metadata } =
+        editedAssistant;
       const response = await client.assistants.update(assistantId, {
         name,
         graphId: "agent",
@@ -224,6 +225,7 @@ export function useAssistants() {
           configurable: {
             tools,
             systemPrompt,
+            documents,
           },
         },
       });

@@ -39,6 +39,42 @@ function arrayToFileList(files: File[] | undefined) {
   return dt.files;
 }
 
+function contextDocumentToFile(document: ContextDocument): File {
+  // Remove any data URL prefix if it exists
+  let base64String = document.data;
+  if (base64String.includes(",")) {
+    base64String = base64String.split(",")[1];
+  }
+
+  // Fix padding if necessary
+  while (base64String.length % 4 !== 0) {
+    base64String += "=";
+  }
+
+  // Clean the string (remove whitespace and invalid characters)
+  base64String = base64String.replace(/\s/g, "");
+
+  try {
+    // Convert base64 to binary
+    const binaryString = atob(base64String);
+
+    // Convert binary string to Uint8Array
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // Create Blob from the bytes
+    const blob = new Blob([bytes], { type: document.type });
+
+    // Create File object
+    return new File([blob], document.name, { type: document.type });
+  } catch (error) {
+    console.error("Error converting base64 to file:", error);
+    throw error;
+  }
+}
+
 interface CreateEditAssistantDialogProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
@@ -118,12 +154,20 @@ export function CreateEditAssistantDialog(
       setHasSelectedIcon(true);
       setIconName(metadata?.iconData?.iconName || "User");
       setIconColor(metadata?.iconData?.iconColor || "#000000");
+      const documents = props.assistant?.config?.configurable?.documents as
+        | ContextDocument[]
+        | undefined;
+      if (documents && documents.length > 0) {
+        const files = documents.map(contextDocumentToFile);
+        setDocuments(arrayToFileList(files));
+      }
     } else if (!props.isEditing) {
       setName("");
       setDescription("");
       setSystemPrompt("");
       setIconName("User");
       setIconColor("#000000");
+      setDocuments(undefined);
     }
   }, [props.assistant, props.isEditing]);
 
