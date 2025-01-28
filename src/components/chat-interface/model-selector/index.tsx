@@ -7,8 +7,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ALL_MODEL_NAMES, ALL_MODELS } from "@/constants";
-import { useCallback, useState } from "react";
+import {
+  ALL_MODEL_NAMES,
+  ALL_MODELS,
+  LANGCHAIN_USER_ONLY_MODELS,
+} from "@/constants";
+import { useCallback, useEffect, useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
 import { ModelConfigPanel } from "./model-config-pannel";
 import { IsNewBadge } from "./new-badge";
@@ -22,6 +26,7 @@ import {
 } from "@radix-ui/react-popover";
 import { Check } from "lucide-react";
 import NextImage from "next/image";
+import { useUser } from "@/hooks/useUser";
 
 interface ModelSelectorProps {
   modelName: ALL_MODEL_NAMES;
@@ -42,10 +47,18 @@ export default function ModelSelector({
   setModelName,
   modelConfigs,
 }: ModelSelectorProps) {
+  const { getUser } = useUser();
+  const [isLangChainUser, setIsLangChainUser] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [open, setOpen] = useState(false);
   const [openConfigModelId, setOpenConfigModelId] =
     useState<ALL_MODEL_NAMES | null>(null);
+
+  useEffect(() => {
+    getUser().then((user) => {
+      setIsLangChainUser(user?.email?.endsWith("@langchain.dev") || false);
+    });
+  }, []);
 
   const handleModelChange = useCallback(
     async (newModel: ALL_MODEL_NAMES) => {
@@ -56,6 +69,13 @@ export default function ModelSelector({
   );
 
   const allAllowedModels = ALL_MODELS.filter((model) => {
+    if (
+      !isLangChainUser &&
+      LANGCHAIN_USER_ONLY_MODELS.some((m) => m === model.name)
+    ) {
+      return false;
+    }
+
     if (
       model.name.includes("fireworks/") &&
       process.env.NEXT_PUBLIC_FIREWORKS_ENABLED === "false"

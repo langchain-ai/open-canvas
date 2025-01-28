@@ -3,6 +3,7 @@ import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
 import { ArtifactCodeV3, ArtifactV3, Reflections } from "../../../types";
 import {
+  createContextDocumentMessages,
   ensureStoreInConfig,
   formatReflections,
   getModelConfig,
@@ -102,8 +103,11 @@ export const updateArtifact = async (
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
   }
+
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const updatedArtifact = await smallModel.invoke([
     { role: "system", content: formattedPrompt },
+    ...contextDocumentMessages,
     recentHumanMessage,
   ]);
 

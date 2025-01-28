@@ -7,7 +7,7 @@ import { CustomModelConfig, ModelConfigurationParams } from "@/types";
 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ALL_MODEL_NAMES } from "@/constants";
+import { ALL_MODEL_NAMES, TEMPERATURE_EXCLUDED_MODELS } from "@/constants";
 import { cn } from "@/lib/utils";
 import { GearIcon, ResetIcon } from "@radix-ui/react-icons";
 import { useCallback } from "react";
@@ -34,8 +34,6 @@ export function ModelConfigPanel({
   onClick,
   setModelConfig,
 }: ModelConfigPanelProps) {
-  console.log("modelConfig ", modelConfig);
-
   const handleTemperatureChange = useCallback(
     (value: number[]) => {
       setModelConfig(model.name, {
@@ -100,6 +98,7 @@ export function ModelConfigPanel({
               step: 0.1,
             }}
             onChange={handleTemperatureChange}
+            disabled={TEMPERATURE_EXCLUDED_MODELS.some((m) => m === model.name)}
           />
           <ModelSettingSlider
             title="Max tokens"
@@ -128,23 +127,40 @@ const ModelSettingSlider = ({
   value,
   range,
   onChange,
+  disabled,
 }: {
   title: string;
   description: string;
   value: number;
   range: { min: number; max: number; step: number };
   onChange: (value: number[]) => void;
+  disabled?: boolean;
 }) => (
   <div className="space-y-2">
-    <h4 className="font-semibold leading-none text-base">{title}</h4>
-    <p className="text-sm text-muted-foreground">{description}</p>
+    <h4
+      className={cn(
+        "font-semibold leading-none text-base",
+        disabled && "opacity-50"
+      )}
+    >
+      {title}
+      {disabled && " (disabled)"}
+    </h4>
+    <p
+      className={cn("text-sm text-muted-foreground", disabled && "opacity-50")}
+    >
+      {description}
+    </p>
     <Slider
       min={range.min}
       max={range.max}
       step={range.step}
-      value={[value]}
+      value={disabled ? [range.min] : [value]}
       onValueChange={onChange}
+      disabled={disabled}
     />
-    <div className="text-right text-sm">{value}</div>
+    <div className={cn("text-right text-sm", disabled && "opacity-50")}>
+      {disabled ? range.min : value}
+    </div>
   </div>
 );

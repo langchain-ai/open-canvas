@@ -835,10 +835,10 @@
     zod "^3.22.3"
     zod-to-json-schema "^3.22.5"
 
-"@langchain/core@^0.3.33":
-  version "0.3.33"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.33.tgz#7efcbdc06b1e9f24b774e5aa1c594203d28c9e18"
-  integrity sha512-gIszaRKWmP1HEgOhJLJaMiTMH8U3W9hG6raWihwpCTb0Ns7owjrmaqmgMa9h3W4/0xriaKfrfFBd6tepKsfxZA==
+"@langchain/core@^0.3.36":
+  version "0.3.36"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.36.tgz#00824a3b32e8eaf8f2d8fc8f0d97d513d2771e45"
+  integrity sha512-lOS6f5o2MarjGPomHPhzde9xI3lZW2NIOEdCv0dvjb1ZChWhwXWHtAMHSZmuSB53ySzDWAMkimimHd+Yqz5MwQ==
   dependencies:
     "@cfworker/json-schema" "^4.0.2"
     ansi-styles "^5.0.0"
@@ -853,10 +853,10 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/google-genai@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-0.1.6.tgz#71c58fdd31ff813e7119af779631f07cdc139835"
-  integrity sha512-LF3fan9pvgFa1vw2/IYGhi5KjppE0OvPFX3QQBUshBLpXWERP+BSpSD7jcXyqm9Kf7DcFj7w5/2knKeEwih8Xg==
+"@langchain/google-genai@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-0.1.7.tgz#02353d09575f72bdcee3fff8c110173b598b2912"
+  integrity sha512-m0cg2VKxxySFfiIFfoMEt22sM4DifmV7AYUN3/DBG8AABG1qLMpNTXUA+b9DGbRD21JFCQpny8Z8eFKRSZFHzA==
   dependencies:
     "@google/generative-ai" "^0.21.0"
     zod-to-json-schema "^3.22.4"
@@ -906,10 +906,10 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/openai@^0.3.17":
-  version "0.3.17"
-  resolved "https://registry.yarnpkg.com/@langchain/openai/-/openai-0.3.17.tgz#5b8613ac8d849da90f3ecd8368ae7389fca4ee13"
-  integrity sha512-uw4po32OKptVjq+CYHrumgbfh4NuD7LqyE+ZgqY9I/LrLc6bHLMc+sisHmI17vgek0K/yqtarI0alPJbzrwyag==
+"@langchain/openai@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@langchain/openai/-/openai-0.4.2.tgz#1259bf56c4948ed2301d366e2fe945c29dfb53bc"
+  integrity sha512-Cuj7qbVcycALTP0aqZuPpEc7As8cwiGaU21MhXRyZFs+dnWxKYxZ1Q1z4kcx6cYkq/I+CNwwmk+sP+YruU73Aw==
   dependencies:
     js-tiktoken "^1.0.12"
     openai "^4.77.0"

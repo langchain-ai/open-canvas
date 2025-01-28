@@ -1,4 +1,5 @@
 import {
+  createContextDocumentMessages,
   getFormattedReflections,
   getModelConfig,
   getModelFromConfig,
@@ -47,8 +48,13 @@ export const generateArtifact = async (
     ? `${userSystemPrompt}\n${formattedNewArtifactPrompt}`
     : formattedNewArtifactPrompt;
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const response = await modelWithArtifactTool.invoke(
-    [{ role: "system", content: fullSystemPrompt }, ...state.messages],
+    [
+      { role: "system", content: fullSystemPrompt },
+      ...contextDocumentMessages,
+      ...state.messages,
+    ],
     { runName: "generate_artifact" }
   );
 

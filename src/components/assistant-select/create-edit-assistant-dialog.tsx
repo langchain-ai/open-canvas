@@ -1,6 +1,5 @@
 import {
   ContextDocument,
-  CreateAssistantFields,
   CreateCustomAssistantArgs,
   EditCustomAssistantArgs,
   fileToBase64,
@@ -31,6 +30,14 @@ import { useToast } from "@/hooks/use-toast";
 import { ColorPicker } from "./color-picker";
 import { Textarea } from "../ui/textarea";
 import { InlineContextTooltip } from "../ui/inline-context-tooltip";
+import { UploadedFiles } from "./uploaded-file";
+
+function arrayToFileList(files: File[] | undefined) {
+  if (!files || !files.length) return undefined;
+  const dt = new DataTransfer();
+  files?.forEach((file) => dt.items.add(file));
+  return dt.files;
+}
 
 interface CreateEditAssistantDialogProps {
   open: boolean;
@@ -74,10 +81,13 @@ const SystemPromptWhatsThis = (): React.ReactNode => (
 );
 
 const ContextDocumentsWhatsThis = (): React.ReactNode => (
-  <p className="text-sm text-gray-600">
-    Context documents are text or PDF files which will be included in the LLM's
-    context when generating, re-writing and editing artifacts.
-  </p>
+  <span className="flex flex-col gap-1 text-sm text-gray-600">
+    <p className="text-sm text-gray-600">
+      Context documents are text or PDF files which will be included in the
+      LLM&apos;s context for ALL interactions <i>except</i> quick actions, when
+      generating, re-writing and editing artifacts.
+    </p>
+  </span>
 );
 
 export function CreateEditAssistantDialog(
@@ -146,7 +156,6 @@ export function CreateEditAssistantDialog(
         data: await fileToBase64(doc),
       }));
       contentDocuments.push(...(await Promise.all(documentsPromise)));
-      console.log(contentDocuments[0].data.length);
     }
 
     let res: boolean;
@@ -203,6 +212,15 @@ export function CreateEditAssistantDialog(
     setSystemPrompt("");
     setIconName("User");
     setIconColor("#000000");
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setDocuments((prev) => {
+      if (!prev) return prev;
+      const files = Array.from(prev);
+      const newFiles = files.filter((_, i) => i !== index);
+      return arrayToFileList(newFiles);
+    });
   };
 
   if (props.isEditing && !props.assistant) {
@@ -331,41 +349,60 @@ export function CreateEditAssistantDialog(
 
           <Label htmlFor="context-documents">
             <TighterText className="flex items-center">
-              Context Documents (Max 3, 1MB each)
+              Context Documents (Max 20, 10MB each)
               <InlineContextTooltip cardContentClassName="w-[500px] ml-10">
                 <ContextDocumentsWhatsThis />
               </InlineContextTooltip>
             </TighterText>
           </Label>
-          <Input
-            disabled={props.allDisabled}
-            required={false}
-            id="context-documents"
-            type="file"
-            multiple
-            accept=".txt,.pdf,.doc,.docx"
-            onChange={(e) => {
-              const files = e.target.files;
-              if (!files) return;
+          {!documents && (
+            <Input
+              disabled={props.allDisabled}
+              required={false}
+              id="context-documents"
+              type="file"
+              multiple
+              accept=".txt,.pdf,.doc,.docx"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (!files) return;
 
-              if (files.length > 3) {
-                alert("You can only upload up to 3 files");
-                e.target.value = "";
-                return;
-              }
-
-              // Check each file size (1MB = 1048576 bytes)
-              for (let i = 0; i < files.length; i++) {
-                if (files[i].size > 1048576) {
-                  alert(`File "${files[i].name}" exceeds the 1MB size limit`);
+                if (files.length > 20) {
+                  alert("You can only upload up to 20 files");
                   e.target.value = "";
                   return;
                 }
-              }
 
-              setDocuments(files || undefined);
-            }}
+                // Check each file size (10MB = 10485760 bytes)
+                const tenMbBytes = 10485760;
+                for (let i = 0; i < files.length; i += 1) {
+                  if (files[i].size > tenMbBytes) {
+                    alert(
+                      `File "${files[i].name}" exceeds the 10MB size limit`
+                    );
+                    e.target.value = "";
+                    return;
+                  }
+                }
+
+                setDocuments(files || undefined);
+              }}
+            />
+          )}
+          <UploadedFiles
+            files={documents}
+            handleRemoveFile={handleRemoveFile}
           />
+          {documents && (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-2"
+              onClick={() => setDocuments(undefined)}
+            >
+              Choose Different Files
+            </Button>
+          )}
 
           <div className="flex items-center justify-center w-full mt-4 gap-3">
             <Button

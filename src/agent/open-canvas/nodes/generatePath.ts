@@ -2,6 +2,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 import { getArtifactContent } from "../../../contexts/utils";
 import {
+  createContextDocumentMessages,
   formatArtifactContentWithTemplate,
   getModelFromConfig,
 } from "../../utils";
@@ -13,7 +14,6 @@ import {
   ROUTE_QUERY_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
-import { ContextDocument } from "@/hooks/useAssistants";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
@@ -107,7 +107,9 @@ export const generatePath = async (
     }
   );
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const result = await modelWithTool.invoke([
+    ...contextDocumentMessages,
     {
       role: "user",
       content: formattedPrompt,

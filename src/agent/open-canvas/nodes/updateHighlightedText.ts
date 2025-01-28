@@ -1,4 +1,8 @@
-import { getModelConfig, getModelFromConfig } from "@/agent/utils";
+import {
+  createContextDocumentMessages,
+  getModelConfig,
+  getModelFromConfig,
+} from "@/agent/utils";
 import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { AIMessageChunk } from "@langchain/core/messages";
 import { RunnableBinding } from "@langchain/core/runnables";
@@ -92,11 +96,13 @@ export const updateHighlightedText = async (
     throw new Error("Expected a human message");
   }
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const response = await model.invoke([
     {
       role: "system",
       content: formattedPrompt,
     },
+    ...contextDocumentMessages,
     recentUserMessage,
   ]);
   const responseContent = response.content as string;

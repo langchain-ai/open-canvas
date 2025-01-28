@@ -2,6 +2,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "../../../contexts/utils";
 import { Reflections } from "../../../types";
 import {
+  createContextDocumentMessages,
   ensureStoreInConfig,
   formatArtifactContentWithTemplate,
   formatReflections,
@@ -58,8 +59,10 @@ You also have the following reflections on style guidelines and general memories
         : NO_ARTIFACT_PROMPT
     );
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const response = await smallModel.invoke([
     { role: "system", content: formattedPrompt },
+    ...contextDocumentMessages,
     ...state.messages,
   ]);
 

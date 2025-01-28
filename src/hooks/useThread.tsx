@@ -128,7 +128,6 @@ export function useThread() {
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
       setModelName(customModelName);
-      console.log("setting model config", customModelConfig);
       setModelConfig(customModelName, customModelConfig);
       await getUserThreads(userId);
       return thread;

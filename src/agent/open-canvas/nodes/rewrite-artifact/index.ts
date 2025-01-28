@@ -6,6 +6,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { optionallyUpdateArtifactMeta } from "./update-meta";
 import { buildPrompt, createNewArtifactContent, validateState } from "./utils";
 import {
+  createContextDocumentMessages,
   getFormattedReflections,
   getModelFromConfig,
   optionallyGetSystemPromptFromConfig,
@@ -45,8 +46,10 @@ export const rewriteArtifact = async (
     ? `${userSystemPrompt}\n${formattedPrompt}`
     : formattedPrompt;
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const newArtifactResponse = await smallModelWithConfig.invoke([
     { role: "system", content: fullSystemPrompt },
+    ...contextDocumentMessages,
     recentHumanMessage,
   ]);
 
