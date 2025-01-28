@@ -267,12 +267,7 @@ export type RewriteArtifactMetaToolResponse =
     };
 
 export interface CustomModelConfig {
-  provider:
-    | "openai"
-    | "anthropic"
-    | "fireworks"
-    | "google-genai"
-    | "azure_openai";
+  provider: string;
   temperatureRange: {
     min: number;
     max: number;

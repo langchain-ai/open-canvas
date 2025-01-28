@@ -232,13 +232,19 @@ export async function getModelFromConfig(
     maxTokens?: number;
   }
 ) {
+  const {
+    modelName,
+    modelProvider,
+    azureConfig,
+    apiKey,
+    baseUrl,
+    modelConfig,
+  } = getModelConfig(config);
   const { temperature = 0.5, maxTokens } = {
-    temperature:  modelConfig?.temperatureRange.current,
+    temperature: modelConfig?.temperatureRange.current,
     maxTokens: modelConfig?.maxTokens.current,
     ...extra,
-  }
-  const { modelName, modelProvider, azureConfig, apiKey, baseUrl, modelConfig } =
-    getModelConfig(config);
+  };
 
   return await initChatModel(modelName, {
     modelProvider,

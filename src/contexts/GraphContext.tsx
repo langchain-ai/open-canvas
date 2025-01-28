@@ -1,26 +1,5 @@
-import {
-  createContext,
-  useContext,
-  ReactNode,
-  useEffect,
-  useState,
-  useRef,
-  Dispatch,
-  SetStateAction,
-} from "react";
-import {
-  convertToArtifactV3,
-  replaceOrInsertMessageChunk,
-  updateHighlightedCode,
-  updateHighlightedMarkdown,
-  updateRewrittenArtifact,
-  removeCodeBlockFormatting,
-  handleGenerateArtifactToolCallChunk,
-} from "./utils";
 import { useUser } from "@/hooks/useUser";
 import { useThread } from "@/hooks/useThread";
-import { useUser } from "@/hooks/useUser";
-import { createClient } from "@/hooks/utils";
 import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
@@ -33,6 +12,7 @@ import {
   ArtifactType,
   ArtifactV3,
   CodeHighlight,
+  CustomModelConfig,
   LanguageOptions,
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
@@ -45,6 +25,7 @@ import { createClient } from "@/hooks/utils";
 import {
   ALL_MODEL_NAMES,
   DEFAULT_INPUTS,
+  DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
@@ -62,13 +43,15 @@ import {
 } from "react";
 import {
   convertToArtifactV3,
-  createNewGeneratedArtifactFromTool,
+  handleGenerateArtifactToolCallChunk,
   removeCodeBlockFormatting,
   replaceOrInsertMessageChunk,
   updateHighlightedCode,
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
+import { useAssistants } from "@/hooks/useAssistants";
+import { debounce } from "lodash";
 
 interface GraphData {
   runId: string | undefined;

@@ -7,34 +7,21 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  ALL_MODEL_NAMES,
-  ANTHROPIC_MODELS,
-  OPENAI_MODELS,
-  FIREWORKS_MODELS,
-  GEMINI_MODELS,
-  LS_HAS_SEEN_MODEL_DROPDOWN_ALERT,
-  AZURE_MODELS,
-  OLLAMA_MODELS,
-} from "@/constants";
-import { Dispatch, SetStateAction, useState } from "react";
+import { ALL_MODEL_NAMES, ALL_MODELS } from "@/constants";
+import { useCallback, useState } from "react";
 import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
 import { ModelConfigPanel } from "./model-config-pannel";
 import { IsNewBadge } from "./new-badge";
-
-const allModels = [
-  ...ANTHROPIC_MODELS,
-  ...OPENAI_MODELS,
-  ...FIREWORKS_MODELS,
-  ...GEMINI_MODELS,
-  ...AZURE_MODELS,
-  ...OLLAMA_MODELS,
-];
-
-const modelNameToLabel = (modelName: ALL_MODEL_NAMES) => {
-  const model = allModels.find((m) => m.name === modelName);
-  return model?.label ?? modelName;
-};
+import { cn } from "@/lib/utils";
+import { CustomModelConfig } from "@/types";
+import { CaretSortIcon, GearIcon } from "@radix-ui/react-icons";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@radix-ui/react-popover";
+import { Check } from "lucide-react";
+import NextImage from "next/image";
 
 interface ModelSelectorProps {
   modelName: ALL_MODEL_NAMES;
@@ -138,7 +125,7 @@ export default function ModelSelector({
             <CaretSortIcon className="size-4 opacity-50 ml-auto" />
           </div>
         </PopoverTrigger>
-        <PopoverContent className="min-w-[180px] w-[280px] p-0">
+        <PopoverContent className="min-w-[180px] w-[280px] p-0 shadow-md rounded-md">
           <Command>
             <CommandList>
               {allAllowedModels.map((model) => {

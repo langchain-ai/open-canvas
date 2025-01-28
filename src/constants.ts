@@ -27,18 +27,9 @@ export const DEFAULT_INPUTS = {
   customQuickActionId: undefined,
 };
 
-// export const AZURE_MODELS = [
-//   {
-//     name: "azure/gpt-4o-mini",
-//     modelName: "gpt-4o-mini",
-//     label: "GPT-4o mini (Azure)",
-//     isNew: false,
-//   },
-// ];
 export const AZURE_MODELS: ModelConfigurationParams[] = [
   {
     name: "azure/gpt-4o-mini",
-    modelName: "gpt-4o-mini",
     label: "GPT-4o mini (Azure)",
     isNew: false,
     config: {
@@ -89,6 +80,21 @@ export const OLLAMA_MODELS = [
   {
     name: "ollama-llama3.3",
     label: "Llama 3.3 70B (local)",
+    config: {
+      provider: "ollama",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 2048,
+        default: 2048,
+        current: 2048,
+      },
+    },
     isNew: true,
   },
 ];
@@ -97,6 +103,21 @@ export const ANTHROPIC_MODELS = [
   {
     name: "claude-3-5-haiku-20241022",
     label: "Claude 3.5 Haiku",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8192,
+        default: 4096,
+        current: 4096,
+      },
+    },
     isNew: false,
   },
   {
@@ -167,6 +188,21 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
   {
     name: "gemini-2.0-flash-exp",
     label: "Gemini 2.0 Flash",
+    config: {
+      provider: "google-genai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8192,
+        default: 4096,
+        current: 4096,
+      },
+    },
     isNew: true,
   },
 ];
@@ -177,13 +213,14 @@ export const ALL_MODELS: ModelConfigurationParams[] = [
   ...FIREWORKS_MODELS,
   ...GEMINI_MODELS,
   ...AZURE_MODELS,
+  ...OLLAMA_MODELS,
 ];
 
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
 export type ANTHROPIC_MODEL_NAMES = (typeof ANTHROPIC_MODELS)[number]["name"];
 export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];
 export type GEMINI_MODEL_NAMES = (typeof GEMINI_MODELS)[number]["name"];
-export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["modelName"];
+export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["name"];
 export type OLLAMA_MODEL_NAMES = (typeof OLLAMA_MODELS)[number]["name"];
 export type ALL_MODEL_NAMES =
   | OPENAI_MODEL_NAMES
