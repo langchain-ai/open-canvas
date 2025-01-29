@@ -326,3 +326,26 @@ export const DEFAULT_MODEL_CONFIG: CustomModelConfig = {
   temperatureRange: { ...OPENAI_MODELS[0].config.temperatureRange },
   maxTokens: { ...OPENAI_MODELS[0].config.maxTokens },
 };
+
+export const ALLOWED_AUDIO_TYPES = new Set([
+  "audio/mp3",
+  "audio/mp4",
+  "audio/mpeg",
+  "audio/mpga",
+  "audio/m4a",
+  "audio/wav",
+  "audio/webm",
+]);
+export const ALLOWED_AUDIO_TYPE_ENDINGS = [
+  ".mp3",
+  ".mpga",
+  ".m4a",
+  ".wav",
+  ".webm",
+];
+export const ALLOWED_VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/mpeg",
+  "video/webm",
+]);
+export const ALLOWED_VIDEO_TYPE_ENDINGS = [".mp4", ".mpeg", ".webm"];

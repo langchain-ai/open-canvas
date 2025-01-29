@@ -33,6 +33,8 @@
     "@codemirror/lang-rust": "^6.0.1",
     "@codemirror/lang-sql": "^6.8.0",
     "@codemirror/lang-xml": "^6.1.0",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@langchain/anthropic": "^0.3.12",
     "@langchain/community": "^0.3.26",
     "@langchain/core": "^0.3.36",

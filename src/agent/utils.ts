@@ -377,7 +377,7 @@ export async function createContextDocumentMessagesAnthropic(
   const messagesPromises = (
     config.configurable?.documents as ContextDocument[]
   ).map(async (doc) => {
-    if (doc.type.includes("pdf") && options?.nativeSupport) {
+    if (doc.type === "application/pdf" && options?.nativeSupport) {
       return {
         type: "document",
         source: {
@@ -389,10 +389,12 @@ export async function createContextDocumentMessagesAnthropic(
     }
 
     let text = "";
-    if (doc.type.includes("pdf") && !options?.nativeSupport) {
+    if (doc.type === "application/pdf" && !options?.nativeSupport) {
       text = await convertPDFToText(doc.data);
-    } else if (doc.type.startsWith("text/")) {
+    } else if (doc.type === "text/plain") {
       text = atob(doc.data);
+    } else if (doc.type === "text") {
+      text = doc.data;
     }
 
     return {
@@ -412,15 +414,20 @@ export function createContextDocumentMessagesGemini(
   }
 
   return (config.configurable?.documents as ContextDocument[]).map((doc) => {
-    if (doc.type.includes("pdf")) {
+    if (doc.type === "application/pdf") {
       return {
         type: doc.type,
         data: cleanBase64(doc.data),
       };
-    } else if (doc.type.startsWith("text/")) {
+    } else if (doc.type === "text/plain") {
       return {
         type: "text",
         text: atob(doc.data),
+      };
+    } else if (doc.type === "text") {
+      return {
+        type: "text",
+        text: doc.data,
       };
     }
     throw new Error("Unsupported document type: " + doc.type);
@@ -439,10 +446,12 @@ export async function createContextDocumentMessagesOpenAI(
   ).map(async (doc) => {
     let text = "";
 
-    if (doc.type.includes("pdf")) {
+    if (doc.type === "application/pdf") {
       text = await convertPDFToText(doc.data);
-    } else if (doc.type.startsWith("text/")) {
+    } else if (doc.type === "text/plain") {
       text = atob(doc.data);
+    } else if (doc.type === "text") {
+      text = doc.data;
     }
 
     return {
