@@ -92,6 +92,26 @@ export const OPENAI_MODELS: ModelConfigurationParams[] = [
     isNew: true,
   },
   {
+    name: "gpt-4o",
+    label: "GPT-4o",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: false,
+  },
+  {
     name: "gpt-4o-mini",
     label: "GPT-4o mini",
     config: {
@@ -271,6 +291,7 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
 export const LANGCHAIN_USER_ONLY_MODELS = [
   "o1-mini",
   "o1",
+  "gpt-4o",
   "claude-3-5-sonnet-latest",
 ];
 
