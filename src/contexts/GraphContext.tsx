@@ -945,10 +945,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 updatedArtifactStartContent === undefined &&
                 updatedArtifactRestContent === undefined
               ) {
-                updatedArtifactStartContent = prevCurrentContent.code.slice(
-                  0,
-                  startCharIndex
-                ) + partialUpdatedContent;
+                updatedArtifactStartContent =
+                  prevCurrentContent.code.slice(0, startCharIndex) +
+                  partialUpdatedContent;
                 updatedArtifactRestContent =
                   prevCurrentContent.code.slice(endCharIndex);
               }
@@ -1078,8 +1077,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 replaceOrInsertMessageChunk(prevMessages, message)
               );
             }
-    
-
           }
         } catch (e) {
           console.error(
