@@ -16,6 +16,8 @@ export const generateFollowup = async (
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = await getModelFromConfig(config, {
     maxTokens: 250,
+    // We say tool calling is true here because that'll cause it to use a small model
+    isToolCalling: true,
   });
 
   const store = ensureStoreInConfig(config);
