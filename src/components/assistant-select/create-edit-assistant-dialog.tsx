@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ContextDocument,
   CreateCustomAssistantArgs,
@@ -10,6 +12,7 @@ import {
   FormEvent,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import * as Icons from "lucide-react";
@@ -31,6 +34,9 @@ import { ColorPicker } from "./color-picker";
 import { Textarea } from "../ui/textarea";
 import { InlineContextTooltip } from "../ui/inline-context-tooltip";
 import { UploadedFiles } from "./uploaded-file";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
+import { ALLOWED_AUDIO_TYPES, ALLOWED_VIDEO_TYPES } from "@/constants";
 
 function arrayToFileList(files: File[] | undefined) {
   if (!files || !files.length) return undefined;
@@ -73,6 +79,21 @@ function contextDocumentToFile(document: ContextDocument): File {
     console.error("Error converting base64 to file:", error);
     throw error;
   }
+}
+
+async function transcribeAudio(file: File) {
+  const result = await fetch("/api/whisper/audio", {
+    method: "POST",
+    body: JSON.stringify({
+      data: await fileToBase64(file),
+      mimeType: file.type,
+    }),
+  });
+  if (!result.ok) {
+    throw new Error("Failed to transcribe audio");
+  }
+  const data = await result.json();
+  return data.text;
 }
 
 interface CreateEditAssistantDialogProps {
@@ -140,6 +161,70 @@ export function CreateEditAssistantDialog(
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
   const [documents, setDocuments] = useState<FileList>();
 
+  const messageRef = useRef<HTMLDivElement>(null);
+  const ffmpegRef = useRef(new FFmpeg());
+
+  const load = async () => {
+    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
+    const ffmpeg = ffmpegRef.current;
+    ffmpeg.on("log", ({ message }) => {
+      if (messageRef.current) messageRef.current.innerHTML = message;
+    });
+    // toBlobURL is used to bypass CORS issue, urls with the same
+    // domain can be used directly.
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        "application/wasm"
+      ),
+    });
+  };
+
+  const convertToAudio = async (videoFile: File): Promise<File> => {
+    try {
+      const ffmpeg = ffmpegRef.current;
+
+      // Create a buffer from the video file
+      const videoData = await videoFile.arrayBuffer();
+
+      // Write the video buffer to FFmpeg's virtual filesystem
+      await ffmpeg.writeFile("input.mp4", new Uint8Array(videoData));
+
+      // Run FFmpeg command to convert video to audio
+      await ffmpeg.exec([
+        "-i",
+        "input.mp4",
+        "-vn",
+        "-acodec",
+        "libmp3lame",
+        "-q:a",
+        "2",
+        "output.mp3",
+      ]);
+
+      // Read the output file from FFmpeg's virtual filesystem
+      const audioData = await ffmpeg.readFile("output.mp3");
+
+      // Create a Blob from the audio data
+      const audioBlob = new Blob([audioData], { type: "audio/mp3" });
+
+      // Generate a filename for the new audio file
+      // You can customize this naming convention
+      const originalName = videoFile.name;
+      const audioFileName = originalName.replace(/\.[^/.]+$/, "") + ".mp3";
+
+      // Create and return a new File object
+      return new File([audioBlob], audioFileName, {
+        type: "audio/mp3",
+        lastModified: new Date().getTime(),
+      });
+    } catch (error) {
+      console.error("Error converting video to audio:", error);
+      throw error;
+    }
+  };
+
   const metadata = props.assistant?.metadata as Record<string, any> | undefined;
 
   useEffect(() => {
@@ -194,11 +279,71 @@ export function CreateEditAssistantDialog(
 
     const contentDocuments: ContextDocument[] = [];
     if (documents?.length) {
-      const documentsPromise = Array.from(documents).map(async (doc) => ({
-        name: doc.name,
-        type: doc.type,
-        data: await fileToBase64(doc),
-      }));
+      const documentsPromise = Array.from(documents).map(async (doc) => {
+        const isAudio = ALLOWED_AUDIO_TYPES.has(doc.type);
+        const isVideo = ALLOWED_VIDEO_TYPES.has(doc.type);
+
+        if (isAudio) {
+          toast({
+            title: "Transcribing audio",
+            description: (
+              <span className="flex items-center gap-2">
+                Transcribing audio {doc.name}. Please wait{" "}
+                <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+              </span>
+            ),
+          });
+
+          const transcription = await transcribeAudio(doc);
+
+          toast({
+            title: "Successfully transcribed audio",
+            description: `Transcribed audio ${doc.name}.`,
+          });
+
+          return {
+            name: doc.name,
+            type: "text",
+            data: Buffer.from(transcription).toString("base64"),
+          };
+        }
+
+        if (isVideo) {
+          toast({
+            title: "Transcribing video",
+            description: (
+              <span className="flex items-center gap-2">
+                Transcribing video {doc.name}. Please wait{" "}
+                <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+              </span>
+            ),
+          });
+
+          // Load FFmpeg
+          await load();
+          // Convert video to audio
+          const audioFile = await convertToAudio(doc);
+          // Transcribe audio to video
+          const transcription = await transcribeAudio(audioFile);
+
+          toast({
+            title: "Successfully transcribed video",
+            description: `Transcribed video ${doc.name}.`,
+          });
+
+          return {
+            name: doc.name,
+            type: "text",
+            data: Buffer.from(transcription).toString("base64"),
+          };
+        }
+
+        return {
+          name: doc.name,
+          type: doc.type,
+          data: await fileToBase64(doc),
+        };
+      });
       contentDocuments.push(...(await Promise.all(documentsPromise)));
     }
 
@@ -393,7 +538,11 @@ export function CreateEditAssistantDialog(
 
           <Label htmlFor="context-documents">
             <TighterText className="flex items-center">
-              Context Documents (Max 20, 10MB each)
+              Context Documents{" "}
+              <span className="text-gray-600 text-sm ml-1">
+                (Max 20 files - Documents: 10MB each, Audio: 25MB each, Video:
+                1GB each)
+              </span>
               <InlineContextTooltip cardContentClassName="w-[500px] ml-10">
                 <ContextDocumentsWhatsThis />
               </InlineContextTooltip>
@@ -406,7 +555,7 @@ export function CreateEditAssistantDialog(
               id="context-documents"
               type="file"
               multiple
-              accept=".txt,.pdf,.doc,.docx"
+              accept=".txt,.pdf,.doc,.docx,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm"
               onChange={(e) => {
                 const files = e.target.files;
                 if (!files) return;
@@ -417,12 +566,32 @@ export function CreateEditAssistantDialog(
                   return;
                 }
 
-                // Check each file size (10MB = 10485760 bytes)
-                const tenMbBytes = 10485760;
+                // Size limits in bytes
+                const tenMbBytes = 10 * 1024 * 1024; // 10MB for documents
+                const twentyFiveMbBytes = 25 * 1024 * 1024; // 25MB for audio
+                const oneGbBytes = 1024 * 1024 * 1024; // 1GB for video
+
                 for (let i = 0; i < files.length; i += 1) {
-                  if (files[i].size > tenMbBytes) {
+                  const file = files[i];
+                  const isAudio = ALLOWED_AUDIO_TYPES.has(file.type);
+                  const isVideo = ALLOWED_VIDEO_TYPES.has(file.type);
+
+                  // Check size limits based on file type
+                  if (isAudio && file.size > twentyFiveMbBytes) {
                     alert(
-                      `File "${files[i].name}" exceeds the 10MB size limit`
+                      `Audio file "${file.name}" exceeds the 25MB size limit`
+                    );
+                    e.target.value = "";
+                    return;
+                  } else if (isVideo && file.size > oneGbBytes) {
+                    alert(
+                      `Video file "${file.name}" exceeds the 1GB size limit`
+                    );
+                    e.target.value = "";
+                    return;
+                  } else if (!isAudio && !isVideo && file.size > tenMbBytes) {
+                    alert(
+                      `Document "${file.name}" exceeds the 10MB size limit`
                     );
                     e.target.value = "";
                     return;

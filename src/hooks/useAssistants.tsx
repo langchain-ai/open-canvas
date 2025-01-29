@@ -47,7 +47,8 @@ export type ContextDocument = {
    */
   type: string;
   /**
-   * The base64 encoded content of the document.
+   * The base64 encoded content of the document, or plain
+   * text value if the type is `text`
    */
   data: string;
 };
