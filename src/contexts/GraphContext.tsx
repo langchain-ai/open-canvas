@@ -735,6 +735,246 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
+              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
+              chunk.data.name === "rewrite_artifact_model_call" &&
+              rewriteArtifactMeta
+            ) {
+              if (!artifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              const message = extractStreamDataOutput(chunk.data.data.output);
+
+              newArtifactContent += message.content || "";
+
+              // Ensure we have the language to update the artifact with
+              let artifactLanguage = params.portLanguage || undefined;
+              if (
+                !artifactLanguage &&
+                rewriteArtifactMeta.type === "code" &&
+                rewriteArtifactMeta.language
+              ) {
+                // If the type is `code` we should have a programming language populated
+                // in the rewriteArtifactMeta and can use that.
+                artifactLanguage =
+                  rewriteArtifactMeta.language as ProgrammingLanguageOptions;
+              } else if (!artifactLanguage) {
+                artifactLanguage =
+                  (prevCurrentContent?.title as ProgrammingLanguageOptions) ??
+                  "other";
+              }
+
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
+                let content = newArtifactContent;
+                if (!rewriteArtifactMeta) {
+                  console.error(
+                    "No rewrite artifact meta found when updating artifact"
+                  );
+                  return prev;
+                }
+                if (rewriteArtifactMeta.type === "code") {
+                  content = removeCodeBlockFormatting(content);
+                }
+
+                return updateRewrittenArtifact({
+                  prevArtifact: prev,
+                  newArtifactContent: content,
+                  rewriteArtifactMeta: rewriteArtifactMeta,
+                  prevCurrentContent,
+                  newArtifactIndex,
+                  isFirstUpdate: firstUpdateCopy,
+                  artifactLanguage,
+                });
+              });
+
+              if (isFirstUpdate) {
+                isFirstUpdate = false;
+              }
+            }
+
+            if (
+              chunk.data.metadata.langgraph_node === "updateHighlightedText"
+            ) {
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              if (!message) {
+                continue;
+              }
+              if (!artifact) {
+                console.error(
+                  "No artifacts found when updating highlighted markdown..."
+                );
+                continue;
+              }
+              if (!highlightedText) {
+                toast({
+                  title: "Error",
+                  description: "No highlighted text found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                continue;
+              }
+              if (!prevCurrentContent) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (!isArtifactMarkdownContent(prevCurrentContent)) {
+                toast({
+                  title: "Error",
+                  description: "Received non markdown block update",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              const partialUpdatedContent = message.content || "";
+              const startIndexOfHighlightedText =
+                highlightedText.fullMarkdown.indexOf(
+                  highlightedText.markdownBlock
+                );
+
+              if (
+                updatedArtifactStartContent === undefined &&
+                updatedArtifactRestContent === undefined
+              ) {
+                // Initialize the start and rest content on first chunk
+                updatedArtifactStartContent =
+                  highlightedText.fullMarkdown.slice(
+                    0,
+                    startIndexOfHighlightedText
+                  );
+                updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
+                  startIndexOfHighlightedText +
+                    highlightedText.markdownBlock.length
+                );
+              }
+
+              if (
+                updatedArtifactStartContent !== undefined &&
+                updatedArtifactRestContent !== undefined
+              ) {
+                updatedArtifactStartContent += partialUpdatedContent;
+              }
+
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+                return updateHighlightedMarkdown(
+                  prev,
+                  `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
+                  newArtifactIndex,
+                  prevCurrentContent,
+                  firstUpdateCopy
+                );
+              });
+
+              if (isFirstUpdate) {
+                isFirstUpdate = false;
+              }
+            }
+
+            if (chunk.data.metadata.langgraph_node === "updateArtifact") {
+              if (!artifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (!params.highlightedCode) {
+                toast({
+                  title: "Error",
+                  description: "No highlighted code found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              if (!message) {
+                continue;
+              }
+
+              const partialUpdatedContent = message.content || "";
+              const { startCharIndex, endCharIndex } = params.highlightedCode;
+
+              if (!prevCurrentContent) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (prevCurrentContent.type !== "code") {
+                toast({
+                  title: "Error",
+                  description: "Received non code block update",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              if (
+                updatedArtifactStartContent === undefined &&
+                updatedArtifactRestContent === undefined
+              ) {
+                updatedArtifactStartContent =
+                  prevCurrentContent.code.slice(0, startCharIndex) +
+                  partialUpdatedContent;
+                updatedArtifactRestContent =
+                  prevCurrentContent.code.slice(endCharIndex);
+              }
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+                const content = removeCodeBlockFormatting(
+                  `${updatedArtifactStartContent}${updatedArtifactRestContent}`
+                );
+                return updateHighlightedCode(
+                  prev,
+                  content,
+                  newArtifactIndex,
+                  prevCurrentContent,
+                  firstUpdateCopy
+                );
+              });
+
+              if (isFirstUpdate) {
+                isFirstUpdate = false;
+              }
+            }
+
+            if (
               chunk.data.metadata.langgraph_node === "generateArtifact" &&
               !generateArtifactToolCallStr &&
               threadData.modelName.includes("gemini-")
@@ -750,6 +990,78 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 setFirstTokenReceived(true);
                 setArtifact(() => result);
               }
+            }
+
+            if (
+              [
+                "rewriteArtifactTheme",
+                "rewriteCodeArtifactTheme",
+                "customAction",
+              ].includes(chunk.data.metadata.langgraph_node)
+            ) {
+              if (!artifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (!prevCurrentContent) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              newArtifactContent += message?.content || "";
+
+              // Ensure we have the language to update the artifact with
+              const artifactLanguage =
+                params.portLanguage ||
+                (isArtifactCodeContent(prevCurrentContent)
+                  ? prevCurrentContent.language
+                  : "other");
+
+              const langGraphNode = chunk.data.metadata.langgraph_node;
+              let artifactType: ArtifactType;
+              if (langGraphNode === "rewriteCodeArtifactTheme") {
+                artifactType = "code";
+              } else if (langGraphNode === "rewriteArtifactTheme") {
+                artifactType = "text";
+              } else {
+                artifactType = prevCurrentContent.type;
+              }
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
+                let content = newArtifactContent;
+                if (artifactType === "code") {
+                  content = removeCodeBlockFormatting(content);
+                }
+
+                return updateRewrittenArtifact({
+                  prevArtifact: prev ?? artifact,
+                  newArtifactContent: content,
+                  rewriteArtifactMeta: {
+                    type: artifactType,
+                    title: prevCurrentContent.title,
+                    language: artifactLanguage,
+                  },
+                  prevCurrentContent,
+                  newArtifactIndex,
+                  isFirstUpdate: firstUpdateCopy,
+                  artifactLanguage,
+                });
+              });
             }
 
             if (
