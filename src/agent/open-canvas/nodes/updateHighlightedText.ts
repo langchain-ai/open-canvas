@@ -2,6 +2,7 @@ import {
   createContextDocumentMessages,
   getModelConfig,
   getModelFromConfig,
+  isUsingO1MiniModel,
 } from "@/agent/utils";
 import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { AIMessageChunk } from "@langchain/core/messages";
@@ -39,21 +40,21 @@ export const updateHighlightedText = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelProvider } = getModelConfig(config);
+  const { modelProvider, modelName } = getModelConfig(config);
   let model: RunnableBinding<
     BaseLanguageModelInput,
     AIMessageChunk,
     ConfigurableChatModelCallOptions
   >;
-  if (modelProvider.includes("openai")) {
-    // Custom model is OpenAI/Azure OpenAI
+  if (modelProvider.includes("openai") || modelName.includes("3-5-sonnet")) {
+    // Custom model is intelligent enough for updating artifacts
     model = (
       await getModelFromConfig(config, {
         temperature: 0,
       })
     ).withConfig({ runName: "update_highlighted_markdown" });
   } else {
-    // Custom model is not set to OpenAI/Azure OpenAI. Use GPT-4o
+    // Custom model is not intelligent enough for updating artifacts
     model = (
       await getModelFromConfig(
         {
@@ -97,9 +98,10 @@ export const updateHighlightedText = async (
   }
 
   const contextDocumentMessages = await createContextDocumentMessages(config);
+  const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await model.invoke([
     {
-      role: "system",
+      role: isO1MiniModel ? "user" : "system",
       content: formattedPrompt,
     },
     ...contextDocumentMessages,

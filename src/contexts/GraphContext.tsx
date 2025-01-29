@@ -118,6 +118,13 @@ function extractStreamDataChunk(chunk: any) {
   return chunk;
 }
 
+function extractStreamDataOutput(output: any) {
+  if (Array.isArray(output)) {
+    return output[1];
+  }
+  return output;
+}
+
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUser();
   const assistantsData = useAssistants();
@@ -362,6 +369,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             runId = chunk.data.metadata.run_id;
             setRunId(runId);
           }
+
           if (chunk.data.event === "on_chain_start") {
             if (
               chunk.data.metadata.langgraph_node === "updateHighlightedText"
@@ -742,6 +750,20 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 setFirstTokenReceived(true);
                 setArtifact(() => result);
               }
+            }
+
+            if (
+              ["generateFollowup", "replyToGeneralInput"].includes(
+                chunk.data.metadata.langgraph_node
+              )
+            ) {
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              if (!followupMessageId) {
+                followupMessageId = message.id;
+              }
+              setMessages((prevMessages) =>
+                replaceOrInsertMessageChunk(prevMessages, message)
+              );
             }
           }
         } catch (e) {

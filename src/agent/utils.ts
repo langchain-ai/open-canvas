@@ -144,7 +144,10 @@ export const formatArtifactContentWithTemplate = (
 };
 
 export const getModelConfig = (
-  config: LangGraphRunnableConfig
+  config: LangGraphRunnableConfig,
+  extra?: {
+    isToolCalling?: boolean;
+  }
 ): {
   modelName: string;
   modelProvider: string;
@@ -165,7 +168,11 @@ export const getModelConfig = (
   const modelConfig = config.configurable?.modelConfig as CustomModelConfig;
 
   if (customModelName.startsWith("azure/")) {
-    const actualModelName = customModelName.replace("azure/", "");
+    let actualModelName = customModelName.replace("azure/", "");
+    if (extra?.isToolCalling && actualModelName.includes("o1")) {
+      // Fallback to 4o model for tool calling since o1 does not support tools.
+      actualModelName = "gpt-4o";
+    }
     return {
       modelName: actualModelName,
       modelProvider: "azure_openai",
@@ -188,8 +195,14 @@ export const getModelConfig = (
   };
 
   if (customModelName.includes("gpt-") || customModelName.includes("o1")) {
+    let actualModelName = providerConfig.modelName;
+    if (extra?.isToolCalling && actualModelName.includes("o1")) {
+      // Fallback to 4o model for tool calling since o1 does not support tools.
+      actualModelName = "gpt-4o";
+    }
     return {
       ...providerConfig,
+      modelName: actualModelName,
       modelProvider: "openai",
       apiKey: process.env.OPENAI_API_KEY,
     };
@@ -256,11 +269,17 @@ async function getUserFromConfig(
   return authRes.data.user || undefined;
 }
 
+export function isUsingO1MiniModel(config: LangGraphRunnableConfig) {
+  const { modelName } = getModelConfig(config);
+  return modelName.includes("o1-mini");
+}
+
 export async function getModelFromConfig(
   config: LangGraphRunnableConfig,
   extra?: {
     temperature?: number;
     maxTokens?: number;
+    isToolCalling?: boolean;
   }
 ) {
   const {
@@ -270,7 +289,9 @@ export async function getModelFromConfig(
     apiKey,
     baseUrl,
     modelConfig,
-  } = getModelConfig(config);
+  } = getModelConfig(config, {
+    isToolCalling: extra?.isToolCalling,
+  });
   const { temperature = 0.5, maxTokens } = {
     temperature: modelConfig?.temperatureRange.current,
     maxTokens: modelConfig?.maxTokens.current,
@@ -301,11 +322,13 @@ export async function getModelFromConfig(
   return await initChatModel(modelName, {
     modelProvider,
     // Certain models (e.g., OpenAI o1) do not support passing the temperature param.
-    ...(includeStandardParams && { temperature }),
     ...(includeStandardParams
-      ? { maxTokens }
-      : { max_completion_tokens: maxTokens }),
-    ...(!includeStandardParams && { stream: false }),
+      ? { maxTokens, temperature }
+      : {
+          max_completion_tokens: maxTokens,
+          // streaming: false,
+          // disableStreaming: true,
+        }),
     ...(baseUrl ? { baseUrl } : {}),
     ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null

@@ -4,6 +4,7 @@ import {
   formatArtifactContent,
   getModelConfig,
   getModelFromConfig,
+  isUsingO1MiniModel,
 } from "@/agent/utils";
 import { getArtifactContent } from "@/contexts/utils";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts";
@@ -15,8 +16,14 @@ export async function optionallyUpdateArtifactMeta(
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<ToolCall | undefined> {
-  const { modelProvider } = getModelConfig(config);
-  const toolCallingModel = (await getModelFromConfig(config))
+  const { modelProvider } = getModelConfig(config, {
+    isToolCalling: true,
+  });
+  const toolCallingModel = (
+    await getModelFromConfig(config, {
+      isToolCalling: true,
+    })
+  )
     .bindTools(
       [
         {
@@ -56,8 +63,12 @@ export async function optionallyUpdateArtifactMeta(
     throw new Error("No recent human message found");
   }
 
+  const isO1MiniModel = isUsingO1MiniModel(config);
   const optionallyUpdateArtifactResponse = await toolCallingModel.invoke([
-    { role: "system", content: optionallyUpdateArtifactMetaPrompt },
+    {
+      role: isO1MiniModel ? "user" : "system",
+      content: optionallyUpdateArtifactMetaPrompt,
+    },
     recentHumanMessage,
   ]);
 

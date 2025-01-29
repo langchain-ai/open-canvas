@@ -95,6 +95,7 @@ export const generatePath = async (
 
   const model = await getModelFromConfig(config, {
     temperature: 0,
+    isToolCalling: true,
   });
   const modelWithTool = model.withStructuredOutput(
     z.object({
