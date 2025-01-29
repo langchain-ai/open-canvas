@@ -1067,12 +1067,11 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             if (
               ["generateFollowup", "replyToGeneralInput"].includes(
                 chunk.data.metadata.langgraph_node
-              )
+              ) &&
+              !followupMessageId
             ) {
               const message = extractStreamDataOutput(chunk.data.data.output);
-              if (!followupMessageId) {
-                followupMessageId = message.id;
-              }
+              followupMessageId = message.id;
               setMessages((prevMessages) =>
                 replaceOrInsertMessageChunk(prevMessages, message)
               );
