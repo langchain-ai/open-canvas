@@ -279,7 +279,27 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 8192,
+        max: 1048576,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "gemini-2.0-flash-thinking-exp-01-21",
+    label: "Gemini 2.0 Flash Thinking",
+    config: {
+      provider: "google-genai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 1048576,
         default: 4096,
         current: 4096,
       },
@@ -293,6 +313,7 @@ export const LANGCHAIN_USER_ONLY_MODELS = [
   "o1",
   "gpt-4o",
   "claude-3-5-sonnet-latest",
+  "gemini-2.0-flash-thinking-exp-01-21",
 ];
 
 export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o1"];
