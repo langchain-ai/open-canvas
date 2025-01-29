@@ -52,6 +52,66 @@ export const AZURE_MODELS: ModelConfigurationParams[] = [
 
 export const OPENAI_MODELS: ModelConfigurationParams[] = [
   {
+    name: "o1-mini",
+    label: "o1 mini",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 65536,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "o1",
+    label: "o1",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 100000,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "gpt-4o",
+    label: "GPT-4o",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: false,
+  },
+  {
     name: "gpt-4o-mini",
     label: "GPT-4o mini",
     config: {
@@ -101,6 +161,26 @@ export const OLLAMA_MODELS = [
 
 export const ANTHROPIC_MODELS = [
   {
+    name: "claude-3-5-sonnet-latest",
+    label: "Claude 3.5 Sonnet",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8192,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
     name: "claude-3-5-haiku-20241022",
     label: "Claude 3.5 Haiku",
     config: {
@@ -141,6 +221,7 @@ export const ANTHROPIC_MODELS = [
     isNew: false,
   },
 ];
+
 export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
   {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
@@ -206,6 +287,15 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
     isNew: true,
   },
 ];
+
+export const LANGCHAIN_USER_ONLY_MODELS = [
+  "o1-mini",
+  "o1",
+  "gpt-4o",
+  "claude-3-5-sonnet-latest",
+];
+
+export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o1"];
 
 export const ALL_MODELS: ModelConfigurationParams[] = [
   ...OPENAI_MODELS,

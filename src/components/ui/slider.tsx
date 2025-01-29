@@ -23,12 +23,16 @@ const Slider = React.forwardRef<
   >
     <SliderPrimitive.Track
       className={cn(
-        "relative grow overflow-hidden rounded-full bg-gray-200",
-        orientation === "horizontal" ? "h-1.5 w-full" : "h-full w-1.5"
+        "relative grow overflow-hidden rounded-full",
+        orientation === "horizontal" ? "h-1.5 w-full" : "h-full w-1.5",
+        props.disabled ? "bg-gray-200/50" : "bg-gray-200"
       )}
     >
       <SliderPrimitive.Range
-        className="absolute bg-gray-500"
+        className={cn(
+          "absolute",
+          props.disabled ? "bg-gray-500/50" : "bg-gray-500"
+        )}
         style={
           orientation === "horizontal" ? { height: "100%" } : { width: "100%" }
         }
@@ -37,7 +41,10 @@ const Slider = React.forwardRef<
     {[1, 2, 3, 4, 5].map((tick) => (
       <div
         key={tick}
-        className="absolute h-2 w-2 rounded-full bg-gray-500"
+        className={cn(
+          "absolute h-2 w-2 rounded-full",
+          props.disabled ? "bg-gray-500/50" : "bg-gray-500"
+        )}
         style={
           orientation === "horizontal"
             ? {
@@ -51,7 +58,12 @@ const Slider = React.forwardRef<
         }
       />
     ))}
-    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-gray-500 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb
+      className={cn(
+        "block h-4 w-4 rounded-full border bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        props.disabled ? "border-gray-500/50" : "border-gray-500"
+      )}
+    />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

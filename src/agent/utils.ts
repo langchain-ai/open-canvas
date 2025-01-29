@@ -3,6 +3,14 @@ import { CustomModelConfig } from "@/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
+import { ContextDocument } from "@/hooks/useAssistants";
+import pdfParse from "pdf-parse";
+import { MessageContentComplex } from "@langchain/core/messages";
+import {
+  LANGCHAIN_USER_ONLY_MODELS,
+  TEMPERATURE_EXCLUDED_MODELS,
+} from "@/constants";
+import { createClient, Session, User } from "@supabase/supabase-js";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -136,7 +144,10 @@ export const formatArtifactContentWithTemplate = (
 };
 
 export const getModelConfig = (
-  config: LangGraphRunnableConfig
+  config: LangGraphRunnableConfig,
+  extra?: {
+    isToolCalling?: boolean;
+  }
 ): {
   modelName: string;
   modelProvider: string;
@@ -157,7 +168,11 @@ export const getModelConfig = (
   const modelConfig = config.configurable?.modelConfig as CustomModelConfig;
 
   if (customModelName.startsWith("azure/")) {
-    const actualModelName = customModelName.replace("azure/", "");
+    let actualModelName = customModelName.replace("azure/", "");
+    if (extra?.isToolCalling && actualModelName.includes("o1")) {
+      // Fallback to 4o model for tool calling since o1 does not support tools.
+      actualModelName = "gpt-4o";
+    }
     return {
       modelName: actualModelName,
       modelProvider: "azure_openai",
@@ -179,9 +194,15 @@ export const getModelConfig = (
     modelConfig,
   };
 
-  if (customModelName.includes("gpt-")) {
+  if (customModelName.includes("gpt-") || customModelName.includes("o1")) {
+    let actualModelName = providerConfig.modelName;
+    if (extra?.isToolCalling && actualModelName.includes("o1")) {
+      // Fallback to 4o model for tool calling since o1 does not support tools.
+      actualModelName = "gpt-4o";
+    }
     return {
       ...providerConfig,
+      modelName: actualModelName,
       modelProvider: "openai",
       apiKey: process.env.OPENAI_API_KEY,
     };
@@ -225,11 +246,40 @@ export function optionallyGetSystemPromptFromConfig(
   return config.configurable?.systemPrompt as string | undefined;
 }
 
+async function getUserFromConfig(
+  config: LangGraphRunnableConfig
+): Promise<User | undefined> {
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return undefined;
+  }
+  const accessToken = (
+    config.configurable?.supabase_session as Session | undefined
+  )?.access_token;
+  if (!accessToken) {
+    return undefined;
+  }
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+  const authRes = await supabase.auth.getUser(accessToken);
+  return authRes.data.user || undefined;
+}
+
+export function isUsingO1MiniModel(config: LangGraphRunnableConfig) {
+  const { modelName } = getModelConfig(config);
+  return modelName.includes("o1-mini");
+}
+
 export async function getModelFromConfig(
   config: LangGraphRunnableConfig,
   extra?: {
     temperature?: number;
     maxTokens?: number;
+    isToolCalling?: boolean;
   }
 ) {
   const {
@@ -239,17 +289,46 @@ export async function getModelFromConfig(
     apiKey,
     baseUrl,
     modelConfig,
-  } = getModelConfig(config);
+  } = getModelConfig(config, {
+    isToolCalling: extra?.isToolCalling,
+  });
   const { temperature = 0.5, maxTokens } = {
     temperature: modelConfig?.temperatureRange.current,
     maxTokens: modelConfig?.maxTokens.current,
     ...extra,
   };
 
+  const isLangChainUserModel = LANGCHAIN_USER_ONLY_MODELS.some(
+    (m) => m === modelName
+  );
+  if (isLangChainUserModel) {
+    const user = await getUserFromConfig(config);
+    if (!user) {
+      throw new Error(
+        "Unauthorized. Can not use LangChain only models without a user."
+      );
+    }
+    if (!user.email?.endsWith("@langchain.dev")) {
+      throw new Error(
+        "Unauthorized. Can not use LangChain only models without a user with a @langchain.dev email."
+      );
+    }
+  }
+
+  const includeStandardParams = !TEMPERATURE_EXCLUDED_MODELS.some(
+    (m) => m === modelName
+  );
+
   return await initChatModel(modelName, {
     modelProvider,
-    maxTokens,
-    temperature,
+    // Certain models (e.g., OpenAI o1) do not support passing the temperature param.
+    ...(includeStandardParams
+      ? { maxTokens, temperature }
+      : {
+          max_completion_tokens: maxTokens,
+          // streaming: false,
+          // disableStreaming: true,
+        }),
     ...(baseUrl ? { baseUrl } : {}),
     ...(apiKey ? { apiKey } : {}),
     ...(azureConfig != null
@@ -263,4 +342,157 @@ export async function getModelFromConfig(
         }
       : {}),
   });
+}
+
+const cleanBase64 = (base64String: string): string => {
+  return base64String.replace(/^data:.*?;base64,/, "");
+};
+
+async function convertPDFToText(base64PDF: string) {
+  try {
+    // Convert base64 to buffer
+    const pdfBuffer = Buffer.from(base64PDF, "base64");
+
+    // Parse PDF
+    const data = await pdfParse(pdfBuffer);
+
+    // Get text content
+    const text = data.text;
+
+    return cleanBase64(text);
+  } catch (error) {
+    console.error("Error converting PDF to text:", error);
+    throw error;
+  }
+}
+
+export async function createContextDocumentMessagesAnthropic(
+  config: LangGraphRunnableConfig,
+  options?: { nativeSupport: boolean }
+) {
+  if (!config.configurable?.documents) {
+    return [];
+  }
+
+  const messagesPromises = (
+    config.configurable?.documents as ContextDocument[]
+  ).map(async (doc) => {
+    if (doc.type.includes("pdf") && options?.nativeSupport) {
+      return {
+        type: "document",
+        source: {
+          type: "base64",
+          media_type: doc.type,
+          data: cleanBase64(doc.data),
+        },
+      };
+    }
+
+    let text = "";
+    if (doc.type.includes("pdf") && !options?.nativeSupport) {
+      text = await convertPDFToText(doc.data);
+    } else if (doc.type.startsWith("text/")) {
+      text = atob(doc.data);
+    }
+
+    return {
+      type: "text",
+      text,
+    };
+  });
+
+  return await Promise.all(messagesPromises);
+}
+
+export function createContextDocumentMessagesGemini(
+  config: LangGraphRunnableConfig
+) {
+  if (!config.configurable?.documents) {
+    return [];
+  }
+
+  return (config.configurable?.documents as ContextDocument[]).map((doc) => {
+    if (doc.type.includes("pdf")) {
+      return {
+        type: doc.type,
+        data: cleanBase64(doc.data),
+      };
+    } else if (doc.type.startsWith("text/")) {
+      return {
+        type: "text",
+        text: atob(doc.data),
+      };
+    }
+    throw new Error("Unsupported document type: " + doc.type);
+  });
+}
+
+export async function createContextDocumentMessagesOpenAI(
+  config: LangGraphRunnableConfig
+) {
+  if (!config.configurable?.documents) {
+    return [];
+  }
+
+  const messagesPromises = (
+    config.configurable?.documents as ContextDocument[]
+  ).map(async (doc) => {
+    let text = "";
+
+    if (doc.type.includes("pdf")) {
+      text = await convertPDFToText(doc.data);
+    } else if (doc.type.startsWith("text/")) {
+      text = atob(doc.data);
+    }
+
+    return {
+      type: "text",
+      text,
+    };
+  });
+
+  return await Promise.all(messagesPromises);
+}
+
+export async function createContextDocumentMessages(
+  config: LangGraphRunnableConfig
+) {
+  const { modelProvider, modelName } = getModelConfig(config);
+  let contextDocumentMessages: Record<string, any>[] = [];
+  if (modelProvider === "openai") {
+    contextDocumentMessages = await createContextDocumentMessagesOpenAI(config);
+  } else if (modelProvider === "anthropic") {
+    const nativeSupport = modelName.includes("3-5-sonnet");
+    contextDocumentMessages = await createContextDocumentMessagesAnthropic(
+      config,
+      {
+        nativeSupport,
+      }
+    );
+  } else if (modelProvider === "google-genai") {
+    contextDocumentMessages = createContextDocumentMessagesGemini(config);
+  }
+
+  if (!contextDocumentMessages.length) return [];
+
+  let contextMessages: Array<{
+    role: "user";
+    content: MessageContentComplex[];
+  }> = [];
+  if (contextDocumentMessages?.length) {
+    contextMessages = [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: "Use the file(s) and/or text below as context when generating your response.",
+          },
+          ...contextDocumentMessages,
+        ],
+      },
+    ];
+  }
+
+  return contextMessages;
 }

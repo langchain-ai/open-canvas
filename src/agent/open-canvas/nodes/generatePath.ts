@@ -2,6 +2,7 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 import { getArtifactContent } from "../../../contexts/utils";
 import {
+  createContextDocumentMessages,
   formatArtifactContentWithTemplate,
   getModelFromConfig,
 } from "../../utils";
@@ -94,6 +95,7 @@ export const generatePath = async (
 
   const model = await getModelFromConfig(config, {
     temperature: 0,
+    isToolCalling: true,
   });
   const modelWithTool = model.withStructuredOutput(
     z.object({
@@ -106,7 +108,9 @@ export const generatePath = async (
     }
   );
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
   const result = await modelWithTool.invoke([
+    ...contextDocumentMessages,
     {
       role: "user",
       content: formattedPrompt,

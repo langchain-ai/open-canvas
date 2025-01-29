@@ -1,7 +1,9 @@
 import {
+  createContextDocumentMessages,
   getFormattedReflections,
   getModelConfig,
   getModelFromConfig,
+  isUsingO1MiniModel,
   optionallyGetSystemPromptFromConfig,
 } from "@/agent/utils";
 import { ArtifactV3 } from "@/types";
@@ -20,9 +22,12 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } = getModelConfig(config);
+  const { modelName, modelProvider } = getModelConfig(config, {
+    isToolCalling: true,
+  });
   const smallModel = await getModelFromConfig(config, {
     temperature: 0.5,
+    isToolCalling: true,
   });
 
   const modelWithArtifactTool = smallModel.bindTools(
@@ -47,8 +52,14 @@ export const generateArtifact = async (
     ? `${userSystemPrompt}\n${formattedNewArtifactPrompt}`
     : formattedNewArtifactPrompt;
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await modelWithArtifactTool.invoke(
-    [{ role: "system", content: fullSystemPrompt }, ...state.messages],
+    [
+      { role: isO1MiniModel ? "user" : "system", content: fullSystemPrompt },
+      ...contextDocumentMessages,
+      ...state.messages,
+    ],
     { runName: "generate_artifact" }
   );
 

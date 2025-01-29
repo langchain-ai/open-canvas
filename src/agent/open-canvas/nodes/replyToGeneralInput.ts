@@ -2,10 +2,12 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "../../../contexts/utils";
 import { Reflections } from "../../../types";
 import {
+  createContextDocumentMessages,
   ensureStoreInConfig,
   formatArtifactContentWithTemplate,
   formatReflections,
   getModelFromConfig,
+  isUsingO1MiniModel,
 } from "../../utils";
 import { CURRENT_ARTIFACT_PROMPT, NO_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
@@ -58,8 +60,11 @@ You also have the following reflections on style guidelines and general memories
         : NO_ARTIFACT_PROMPT
     );
 
+  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await smallModel.invoke([
-    { role: "system", content: formattedPrompt },
+    { role: isO1MiniModel ? "user" : "system", content: formattedPrompt },
+    ...contextDocumentMessages,
     ...state.messages,
   ]);
 

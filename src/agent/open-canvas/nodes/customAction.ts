@@ -49,7 +49,7 @@ export const customAction = async (
     throw new Error("`assistant_id` not found in configurable");
   }
   if (!userId) {
-    throw new Error("`supabase_user_id` not found in configurable");
+    throw new Error("`user.id` not found in configurable");
   }
   const customActionsNamespace = ["custom_actions", userId];
   const actionsKey = "actions";

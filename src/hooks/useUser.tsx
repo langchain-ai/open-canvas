@@ -9,7 +9,7 @@ export function useUser() {
   async function getUser() {
     if (user) {
       setLoading(false);
-      return;
+      return user;
     }
 
     const supabase = createSupabaseClient();
@@ -19,6 +19,7 @@ export function useUser() {
     } = await supabase.auth.getUser();
     setUser(supabaseUser || undefined);
     setLoading(false);
+    return supabaseUser;
   }
 
   return {

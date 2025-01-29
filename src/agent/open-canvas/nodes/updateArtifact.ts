@@ -3,10 +3,12 @@ import { getArtifactContent } from "../../../contexts/utils";
 import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
 import { ArtifactCodeV3, ArtifactV3, Reflections } from "../../../types";
 import {
+  createContextDocumentMessages,
   ensureStoreInConfig,
   formatReflections,
   getModelConfig,
   getModelFromConfig,
+  isUsingO1MiniModel,
 } from "../../utils";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
@@ -18,15 +20,15 @@ export const updateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelProvider } = getModelConfig(config);
+  const { modelProvider, modelName } = getModelConfig(config);
   let smallModel: Awaited<ReturnType<typeof getModelFromConfig>>;
-  if (modelProvider.includes("openai")) {
-    // Custom model is OpenAI/Azure OpenAI
+  if (modelProvider.includes("openai") || modelName.includes("3-5-sonnet")) {
+    // Custom model is intelligent enough for updating artifacts
     smallModel = await getModelFromConfig(config, {
       temperature: 0,
     });
   } else {
-    // Custom model is not set to OpenAI/Azure OpenAI. Use GPT-4o
+    // Custom model is not intelligent enough for updating artifacts
     smallModel = await getModelFromConfig(
       {
         ...config,
@@ -102,8 +104,12 @@ export const updateArtifact = async (
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
   }
+
+  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const isO1MiniModel = isUsingO1MiniModel(config);
   const updatedArtifact = await smallModel.invoke([
-    { role: "system", content: formattedPrompt },
+    { role: isO1MiniModel ? "user" : "system", content: formattedPrompt },
+    ...contextDocumentMessages,
     recentHumanMessage,
   ]);
 
