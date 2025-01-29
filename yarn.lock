@@ -923,7 +923,7 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/openai@^0.4.2":
+"@langchain/openai@>=0.1.0 <0.5.0", "@langchain/openai@^0.4.2":
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/@langchain/openai/-/openai-0.4.2.tgz#1259bf56c4948ed2301d366e2fe945c29dfb53bc"
   integrity sha512-Cuj7qbVcycALTP0aqZuPpEc7As8cwiGaU21MhXRyZFs+dnWxKYxZ1Q1z4kcx6cYkq/I+CNwwmk+sP+YruU73Aw==
@@ -5357,12 +5357,30 @@ kleur@^4.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-4.1.5.tgz#95106101795f7050c6c650f350c683febddb1780"
   integrity sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==
 
-"langchain@>=0.2.3 <0.3.0 || >=0.3.4 <0.4.0", langchain@^0.3.12:
+"langchain@>=0.2.3 <0.3.0 || >=0.3.4 <0.4.0":
   version "0.3.12"
   resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.3.12.tgz#656d1c73917511f593babd4413e7befdb3451806"
   integrity sha512-BjdQ/f/66W05L8nRgX74bf5QvJIphpg+K5ZTmQwGE8Gk3umtzHp8T4YIRFYjvTxU4XQrGXOgWk1Y9rk5uBbjKA==
   dependencies:
     "@langchain/openai" ">=0.1.0 <0.4.0"
+    "@langchain/textsplitters" ">=0.0.0 <0.2.0"
+    js-tiktoken "^1.0.12"
+    js-yaml "^4.1.0"
+    jsonpointer "^5.0.1"
+    langsmith ">=0.2.8 <0.4.0"
+    openapi-types "^12.1.3"
+    p-retry "4"
+    uuid "^10.0.0"
+    yaml "^2.2.1"
+    zod "^3.22.4"
+    zod-to-json-schema "^3.22.3"
+
+langchain@^0.3.14:
+  version "0.3.14"
+  resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.3.14.tgz#ee01c975cfe767c2cd1516f8774f1eebc7c2c006"
+  integrity sha512-U6NpGSQP/R/RfZFin6OOxFYgLNAwtfgKEWKxT3whw2LIDUnjXrgbulkS5R5iXIU8V10kAXhDvj+FyEUI8C4U6Q==
+  dependencies:
+    "@langchain/openai" ">=0.1.0 <0.5.0"
     "@langchain/textsplitters" ">=0.0.0 <0.2.0"
     js-tiktoken "^1.0.12"
     js-yaml "^4.1.0"
