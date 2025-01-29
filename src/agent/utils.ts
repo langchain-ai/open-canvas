@@ -367,16 +367,10 @@ async function convertPDFToText(base64PDF: string) {
 }
 
 export async function createContextDocumentMessagesAnthropic(
-  config: LangGraphRunnableConfig,
+  documents: ContextDocument[],
   options?: { nativeSupport: boolean }
 ) {
-  if (!config.configurable?.documents) {
-    return [];
-  }
-
-  const messagesPromises = (
-    config.configurable?.documents as ContextDocument[]
-  ).map(async (doc) => {
+  const messagesPromises = documents.map(async (doc) => {
     if (doc.type === "application/pdf" && options?.nativeSupport) {
       return {
         type: "document",
@@ -407,13 +401,9 @@ export async function createContextDocumentMessagesAnthropic(
 }
 
 export function createContextDocumentMessagesGemini(
-  config: LangGraphRunnableConfig
+  documents: ContextDocument[]
 ) {
-  if (!config.configurable?.documents) {
-    return [];
-  }
-
-  return (config.configurable?.documents as ContextDocument[]).map((doc) => {
+  return documents.map((doc) => {
     if (doc.type === "application/pdf") {
       return {
         type: doc.type,
@@ -435,15 +425,9 @@ export function createContextDocumentMessagesGemini(
 }
 
 export async function createContextDocumentMessagesOpenAI(
-  config: LangGraphRunnableConfig
+  documents: ContextDocument[]
 ) {
-  if (!config.configurable?.documents) {
-    return [];
-  }
-
-  const messagesPromises = (
-    config.configurable?.documents as ContextDocument[]
-  ).map(async (doc) => {
+  const messagesPromises = documents.map(async (doc) => {
     let text = "";
 
     if (doc.type === "application/pdf") {
@@ -463,23 +447,43 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
+async function getContextDocuments(
+  config: LangGraphRunnableConfig
+): Promise<ContextDocument[]> {
+  const store = config.store;
+  const assistantId = config.configurable?.assistant_id;
+  if (!store || !assistantId) {
+    return [];
+  }
+
+  const result = await store.get(["documents"], assistantId);
+  return result?.value?.documents || [];
+}
+
 export async function createContextDocumentMessages(
   config: LangGraphRunnableConfig
 ) {
   const { modelProvider, modelName } = getModelConfig(config);
+
+  const documents = await getContextDocuments(config);
+  if (!documents) {
+    return [];
+  }
+
   let contextDocumentMessages: Record<string, any>[] = [];
   if (modelProvider === "openai") {
-    contextDocumentMessages = await createContextDocumentMessagesOpenAI(config);
+    contextDocumentMessages =
+      await createContextDocumentMessagesOpenAI(documents);
   } else if (modelProvider === "anthropic") {
     const nativeSupport = modelName.includes("3-5-sonnet");
     contextDocumentMessages = await createContextDocumentMessagesAnthropic(
-      config,
+      documents,
       {
         nativeSupport,
       }
     );
   } else if (modelProvider === "google-genai") {
-    contextDocumentMessages = createContextDocumentMessagesGemini(config);
+    contextDocumentMessages = createContextDocumentMessagesGemini(documents);
   }
 
   if (!contextDocumentMessages.length) return [];

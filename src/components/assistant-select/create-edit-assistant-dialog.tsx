@@ -37,6 +37,7 @@ import { UploadedFiles } from "./uploaded-file";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 import { ALLOWED_AUDIO_TYPES, ALLOWED_VIDEO_TYPES } from "@/constants";
+import { useStore } from "@/hooks/useStore";
 
 function arrayToFileList(files: File[] | undefined) {
   if (!files || !files.length) return undefined;
@@ -106,7 +107,7 @@ interface CreateEditAssistantDialogProps {
     newAssistant,
     userId,
     successCallback,
-  }: CreateCustomAssistantArgs) => Promise<boolean>;
+  }: CreateCustomAssistantArgs) => Promise<Assistant | undefined>;
   editCustomAssistant: ({
     editedAssistant,
     assistantId,
@@ -147,9 +148,195 @@ const ContextDocumentsWhatsThis = (): React.ReactNode => (
   </span>
 );
 
+const MAX_AUDIO_SIZE = 26214400;
+
+async function load(
+  ffmpeg: FFmpeg,
+  messageRef: React.RefObject<HTMLDivElement>
+) {
+  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
+  ffmpeg.on("log", ({ message }) => {
+    if (messageRef.current) messageRef.current.innerHTML = message;
+  });
+  // toBlobURL is used to bypass CORS issue, urls with the same
+  // domain can be used directly.
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+  });
+}
+
+async function convertToAudio(videoFile: File, ffmpeg: FFmpeg): Promise<File> {
+  try {
+    // Create a buffer from the video file
+    const videoData = await videoFile.arrayBuffer();
+
+    // Write the video buffer to FFmpeg's virtual filesystem
+    await ffmpeg.writeFile("input.mp4", new Uint8Array(videoData));
+
+    // Run FFmpeg command to convert video to audio
+    await ffmpeg.exec([
+      "-i",
+      "input.mp4",
+      "-vn",
+      "-acodec",
+      "libmp3lame",
+      "-q:a",
+      "2",
+      "output.mp3",
+    ]);
+
+    // Read the output file from FFmpeg's virtual filesystem
+    const audioData = await ffmpeg.readFile("output.mp3");
+
+    // Create a Blob from the audio data
+    const audioBlob = new Blob([audioData], { type: "audio/mp3" });
+
+    // Generate a filename for the new audio file
+    // You can customize this naming convention
+    const originalName = videoFile.name;
+    const audioFileName = originalName.replace(/\.[^/.]+$/, "") + ".mp3";
+
+    // Create and return a new File object
+    return new File([audioBlob], audioFileName, {
+      type: "audio/mp3",
+      lastModified: new Date().getTime(),
+    });
+  } catch (error) {
+    console.error("Error converting video to audio:", error);
+    throw error;
+  }
+}
+
+interface ConvertDocumentsProps {
+  ffmpeg: FFmpeg;
+  messageRef: React.RefObject<HTMLDivElement>;
+  documents: FileList;
+  toast: ReturnType<typeof useToast>["toast"];
+}
+
+async function convertDocuments({
+  ffmpeg,
+  messageRef,
+  documents,
+  toast,
+}: ConvertDocumentsProps): Promise<ContextDocument[]> {
+  const files = Array.from(documents);
+  const includesVideoFile = files.some((file) =>
+    ALLOWED_VIDEO_TYPES.has(file.type)
+  );
+  if (includesVideoFile) {
+    // Load FFmpeg
+    await load(ffmpeg, messageRef);
+  }
+
+  const documentsPromise = Array.from(documents).map(async (doc) => {
+    const isAudio = ALLOWED_AUDIO_TYPES.has(doc.type);
+    const isVideo = ALLOWED_VIDEO_TYPES.has(doc.type);
+
+    if (isAudio) {
+      if (doc.size > MAX_AUDIO_SIZE) {
+        toast({
+          title: "Failed to transcribe audio",
+          description: `Audio file "${doc.name}" is larger than the max size of 26214400 bytes. Received ${doc.size} bytes.`,
+          variant: "destructive",
+          duration: 7500,
+        });
+        return null;
+      }
+
+      toast({
+        title: "Transcribing audio",
+        description: (
+          <span className="flex items-center gap-2">
+            Transcribing audio {doc.name}. This may take a while. Please wait{" "}
+            <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+          </span>
+        ),
+        duration: 15000,
+      });
+
+      const transcription = await transcribeAudio(doc);
+
+      toast({
+        title: "Successfully transcribed audio",
+        description: `Transcribed audio ${doc.name}.`,
+      });
+
+      return {
+        name: doc.name,
+        type: "text",
+        data: Buffer.from(transcription).toString("base64"),
+      };
+    }
+
+    if (isVideo) {
+      toast({
+        title: "Converting video to audio",
+        description: (
+          <span className="flex items-center gap-2">
+            Converting video {doc.name} to audio. This may take a while. Please
+            wait <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+          </span>
+        ),
+        duration: 15000,
+      });
+
+      // Convert video to audio
+      const audioFile = await convertToAudio(doc, ffmpeg);
+
+      if (audioFile.size > MAX_AUDIO_SIZE) {
+        toast({
+          title: "Failed to transcribe video",
+          description: `Audio for video "${doc.name}" is larger than the max size of 26214400 bytes. Received ${audioFile.size} bytes.`,
+          variant: "destructive",
+          duration: 7500,
+        });
+        return null;
+      }
+
+      toast({
+        title: "Successfully converted video to audio",
+        description: (
+          <span className="flex items-center gap-2">
+            Video to audio conversion completed for {doc.name}. Transcribing to
+            audio now. This may take a while. Please wait{" "}
+            <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+          </span>
+        ),
+        duration: 60000,
+      });
+      // Transcribe audio to video
+      const transcription = await transcribeAudio(audioFile);
+
+      toast({
+        title: "Successfully transcribed video",
+        description: `Transcribed video ${doc.name}.`,
+      });
+
+      return {
+        name: doc.name,
+        type: "text",
+        data: Buffer.from(transcription).toString("base64"),
+      };
+    }
+
+    return {
+      name: doc.name,
+      type: doc.type,
+      data: await fileToBase64(doc),
+    };
+  });
+  const documentsResult = (await Promise.all(documentsPromise)).filter(
+    (x) => x !== null
+  );
+  return documentsResult;
+}
+
 export function CreateEditAssistantDialog(
   props: CreateEditAssistantDialogProps
 ) {
+  const { putContextDocuments, getContextDocuments } = useStore();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -160,75 +347,15 @@ export function CreateEditAssistantDialog(
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
   const [documents, setDocuments] = useState<FileList>();
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   const messageRef = useRef<HTMLDivElement>(null);
   const ffmpegRef = useRef(new FFmpeg());
 
-  const load = async () => {
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
-    const ffmpeg = ffmpegRef.current;
-    ffmpeg.on("log", ({ message }) => {
-      if (messageRef.current) messageRef.current.innerHTML = message;
-    });
-    // toBlobURL is used to bypass CORS issue, urls with the same
-    // domain can be used directly.
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm"
-      ),
-    });
-  };
-
-  const convertToAudio = async (videoFile: File): Promise<File> => {
-    try {
-      const ffmpeg = ffmpegRef.current;
-
-      // Create a buffer from the video file
-      const videoData = await videoFile.arrayBuffer();
-
-      // Write the video buffer to FFmpeg's virtual filesystem
-      await ffmpeg.writeFile("input.mp4", new Uint8Array(videoData));
-
-      // Run FFmpeg command to convert video to audio
-      await ffmpeg.exec([
-        "-i",
-        "input.mp4",
-        "-vn",
-        "-acodec",
-        "libmp3lame",
-        "-q:a",
-        "2",
-        "output.mp3",
-      ]);
-
-      // Read the output file from FFmpeg's virtual filesystem
-      const audioData = await ffmpeg.readFile("output.mp3");
-
-      // Create a Blob from the audio data
-      const audioBlob = new Blob([audioData], { type: "audio/mp3" });
-
-      // Generate a filename for the new audio file
-      // You can customize this naming convention
-      const originalName = videoFile.name;
-      const audioFileName = originalName.replace(/\.[^/.]+$/, "") + ".mp3";
-
-      // Create and return a new File object
-      return new File([audioBlob], audioFileName, {
-        type: "audio/mp3",
-        lastModified: new Date().getTime(),
-      });
-    } catch (error) {
-      console.error("Error converting video to audio:", error);
-      throw error;
-    }
-  };
-
   const metadata = props.assistant?.metadata as Record<string, any> | undefined;
 
   useEffect(() => {
-    if ((props.assistant, props.isEditing)) {
+    if (props.assistant && props.isEditing) {
       setName(props.assistant?.name || "");
       setDescription(metadata?.description || "");
       setSystemPrompt(
@@ -239,13 +366,15 @@ export function CreateEditAssistantDialog(
       setHasSelectedIcon(true);
       setIconName(metadata?.iconData?.iconName || "User");
       setIconColor(metadata?.iconData?.iconColor || "#000000");
-      const documents = props.assistant?.config?.configurable?.documents as
-        | ContextDocument[]
-        | undefined;
-      if (documents && documents.length > 0) {
-        const files = documents.map(contextDocumentToFile);
-        setDocuments(arrayToFileList(files));
-      }
+      setLoadingDocuments(true);
+      getContextDocuments(props.assistant.assistant_id)
+        .then((documents) => {
+          if (documents) {
+            const files = documents.map(contextDocumentToFile);
+            setDocuments(arrayToFileList(files));
+          }
+        })
+        .finally(() => setLoadingDocuments(false));
     } else if (!props.isEditing) {
       setName("");
       setDescription("");
@@ -279,77 +408,18 @@ export function CreateEditAssistantDialog(
 
     const contentDocuments: ContextDocument[] = [];
     if (documents?.length) {
-      const documentsPromise = Array.from(documents).map(async (doc) => {
-        const isAudio = ALLOWED_AUDIO_TYPES.has(doc.type);
-        const isVideo = ALLOWED_VIDEO_TYPES.has(doc.type);
-
-        if (isAudio) {
-          toast({
-            title: "Transcribing audio",
-            description: (
-              <span className="flex items-center gap-2">
-                Transcribing audio {doc.name}. Please wait{" "}
-                <Icons.LoaderCircle className="animate-spin w-4 h-4" />
-              </span>
-            ),
-          });
-
-          const transcription = await transcribeAudio(doc);
-
-          toast({
-            title: "Successfully transcribed audio",
-            description: `Transcribed audio ${doc.name}.`,
-          });
-
-          return {
-            name: doc.name,
-            type: "text",
-            data: Buffer.from(transcription).toString("base64"),
-          };
-        }
-
-        if (isVideo) {
-          toast({
-            title: "Transcribing video",
-            description: (
-              <span className="flex items-center gap-2">
-                Transcribing video {doc.name}. Please wait{" "}
-                <Icons.LoaderCircle className="animate-spin w-4 h-4" />
-              </span>
-            ),
-          });
-
-          // Load FFmpeg
-          await load();
-          // Convert video to audio
-          const audioFile = await convertToAudio(doc);
-          // Transcribe audio to video
-          const transcription = await transcribeAudio(audioFile);
-
-          toast({
-            title: "Successfully transcribed video",
-            description: `Transcribed video ${doc.name}.`,
-          });
-
-          return {
-            name: doc.name,
-            type: "text",
-            data: Buffer.from(transcription).toString("base64"),
-          };
-        }
-
-        return {
-          name: doc.name,
-          type: doc.type,
-          data: await fileToBase64(doc),
-        };
+      const documentsResult = await convertDocuments({
+        ffmpeg: ffmpegRef.current,
+        messageRef,
+        documents,
+        toast,
       });
-      contentDocuments.push(...(await Promise.all(documentsPromise)));
+      contentDocuments.push(...documentsResult);
     }
 
-    let res: boolean;
+    let success: boolean;
     if (props.isEditing && props.assistant) {
-      res = !!(await props.editCustomAssistant({
+      const updatedAssistant = await props.editCustomAssistant({
         editedAssistant: {
           name,
           description,
@@ -358,13 +428,19 @@ export function CreateEditAssistantDialog(
             iconName,
             iconColor,
           },
-          documents: contentDocuments,
         },
         assistantId: props.assistant.assistant_id,
         userId: props.userId,
-      }));
+      });
+      success = !!updatedAssistant;
+      if (updatedAssistant) {
+        await putContextDocuments({
+          assistantId: props.assistant.assistant_id,
+          documents: contentDocuments,
+        });
+      }
     } else {
-      res = await props.createCustomAssistant({
+      const assistant = await props.createCustomAssistant({
         newAssistant: {
           name,
           description,
@@ -373,13 +449,19 @@ export function CreateEditAssistantDialog(
             iconName,
             iconColor,
           },
-          documents: contentDocuments,
         },
         userId: props.userId,
       });
+      success = !!assistant;
+      if (assistant) {
+        await putContextDocuments({
+          assistantId: assistant.assistant_id,
+          documents: contentDocuments,
+        });
+      }
     }
 
-    if (res) {
+    if (success) {
       toast({
         title: `Assistant ${props.isEditing ? "edited" : "created"} successfully`,
         duration: 5000,
@@ -548,7 +630,7 @@ export function CreateEditAssistantDialog(
               </InlineContextTooltip>
             </TighterText>
           </Label>
-          {!documents && (
+          {!documents && !loadingDocuments && (
             <Input
               disabled={props.allDisabled}
               required={false}
@@ -601,6 +683,12 @@ export function CreateEditAssistantDialog(
                 setDocuments(files || undefined);
               }}
             />
+          )}
+          {loadingDocuments && (
+            <span className="text-gray-600 text-sm flex gap-2">
+              Loading context documents{" "}
+              <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+            </span>
           )}
           <UploadedFiles
             files={documents}

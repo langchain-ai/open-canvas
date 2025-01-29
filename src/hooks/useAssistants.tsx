@@ -166,7 +166,7 @@ export function useAssistants() {
     newAssistant,
     userId,
     successCallback,
-  }: CreateCustomAssistantArgs): Promise<boolean> => {
+  }: CreateCustomAssistantArgs): Promise<Assistant | undefined> => {
     setIsCreatingAssistant(true);
     try {
       const client = createClient();
@@ -193,7 +193,7 @@ export function useAssistants() {
       setSelectedAssistant(createdAssistant);
       successCallback?.(createdAssistant.assistant_id);
       setIsCreatingAssistant(false);
-      return true;
+      return createdAssistant;
     } catch (e) {
       toast({
         title: "Failed to create assistant",
@@ -201,7 +201,7 @@ export function useAssistants() {
       });
       setIsCreatingAssistant(false);
       console.error("Failed to create an assistant", e);
-      return false;
+      return undefined;
     }
   };
 
