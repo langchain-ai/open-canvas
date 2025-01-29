@@ -1,6 +1,8 @@
 import { CustomQuickAction, Reflections } from "@/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
+import { ContextDocument } from "./useAssistants";
+import { Item } from "@langchain/langgraph";
 
 export function useStore() {
   const { toast } = useToast();
@@ -219,6 +221,69 @@ export function useStore() {
     return success;
   };
 
+  const putContextDocuments = async ({
+    assistantId,
+    documents,
+  }: {
+    assistantId: string;
+    documents: ContextDocument[];
+  }): Promise<void> => {
+    try {
+      const res = await fetch("/api/store/put", {
+        method: "POST",
+        body: JSON.stringify({
+          namespace: ["context_documents"],
+          key: assistantId,
+          value: {
+            documents,
+          },
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(
+          "Failed to put context documents" + res.statusText + res.status
+        );
+      }
+    } catch (e) {
+      console.error("Failed to put context documents.\n", e);
+    }
+  };
+
+  const getContextDocuments = async (
+    assistantId: string
+  ): Promise<ContextDocument[] | undefined> => {
+    const res = await fetch("/api/store/get", {
+      method: "POST",
+      body: JSON.stringify({
+        namespace: ["context_documents"],
+        key: assistantId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      console.error(
+        "Failed to get context documents",
+        res.statusText,
+        res.status
+      );
+      return undefined;
+    }
+
+    const { item }: { item: Item | null } = await res.json();
+    if (!item?.value?.documents) {
+      return undefined;
+    }
+
+    return item?.value?.documents;
+  };
+
   return {
     isLoadingReflections,
     reflections,
@@ -229,5 +294,7 @@ export function useStore() {
     getCustomQuickActions,
     editCustomQuickAction,
     createCustomQuickAction,
+    putContextDocuments,
+    getContextDocuments,
   };
 }
