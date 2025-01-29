@@ -74,7 +74,7 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "framer-motion": "^11.11.9",
     "js-cookie": "^3.0.5",
-    "langchain": "^0.3.12",
+    "langchain": "^0.3.14",
     "langsmith": "^0.3.3",
     "lodash": "^4.17.21",
     "lucide-react": "^0.441.0",
