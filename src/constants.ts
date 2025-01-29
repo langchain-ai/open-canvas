@@ -225,7 +225,7 @@ export const ANTHROPIC_MODELS = [
 export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
   {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
-    label: "Fireworks Llama 70B",
+    label: "Llama 70B (Fireworks)",
     config: {
       provider: "fireworks",
       temperatureRange: {
@@ -242,6 +242,46 @@ export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
       },
     },
     isNew: false,
+  },
+  {
+    name: "accounts/fireworks/models/deepseek-v3",
+    label: "DeepSeek V3 (Fireworks)",
+    config: {
+      provider: "fireworks",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8000,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "accounts/fireworks/models/deepseek-r1",
+    label: "DeepSeek R1 (Fireworks)",
+    config: {
+      provider: "fireworks",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8000,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
   },
 ];
 
