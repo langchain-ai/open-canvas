@@ -75,6 +75,32 @@ function contextDocumentToFile(document: ContextDocument): File {
   }
 }
 
+async function transcribeAudio(file: File) {
+  const result = await fetch("/api/whisper/audio", {
+    method: "POST",
+    body: JSON.stringify({
+      data: await fileToBase64(file),
+      mimeType: file.type,
+    }),
+  });
+  if (!result.ok) {
+    throw new Error("Failed to transcribe audio");
+  }
+  const data = await result.json();
+  return data.text;
+}
+
+const ALLOWED_AUDIO_TYPES = new Set([
+  "audio/mp3",
+  "audio/mp4",
+  "audio/mpeg",
+  "audio/mpga",
+  "audio/m4a",
+  "audio/wav",
+  "audio/webm",
+]);
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/mpeg", "video/webm"]);
+
 interface CreateEditAssistantDialogProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
@@ -194,11 +220,39 @@ export function CreateEditAssistantDialog(
 
     const contentDocuments: ContextDocument[] = [];
     if (documents?.length) {
-      const documentsPromise = Array.from(documents).map(async (doc) => ({
-        name: doc.name,
-        type: doc.type,
-        data: await fileToBase64(doc),
-      }));
+      const documentsPromise = Array.from(documents).map(async (doc) => {
+        const isAudio = ALLOWED_AUDIO_TYPES.has(doc.type);
+        if (isAudio) {
+          toast({
+            title: "Transcribing audio",
+            description: (
+              <span className="flex items-center gap-2">
+                Transcribing audio {doc.name}. Please wait{" "}
+                <Icons.LoaderCircle className="animate-spin w-4 h-4" />
+              </span>
+            ),
+          });
+
+          const transcription = await transcribeAudio(doc);
+
+          toast({
+            title: "Successfully transcribed audio",
+            description: `Transcribed audio ${doc.name}.`,
+          });
+
+          return {
+            name: doc.name,
+            type: "text/plain",
+            data: Buffer.from(transcription).toString("base64"),
+          };
+        }
+
+        return {
+          name: doc.name,
+          type: doc.type,
+          data: await fileToBase64(doc),
+        };
+      });
       contentDocuments.push(...(await Promise.all(documentsPromise)));
     }
 
@@ -406,7 +460,7 @@ export function CreateEditAssistantDialog(
               id="context-documents"
               type="file"
               multiple
-              accept=".txt,.pdf,.doc,.docx"
+              accept=".txt,.pdf,.doc,.docx,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm"
               onChange={(e) => {
                 const files = e.target.files;
                 if (!files) return;
@@ -417,12 +471,32 @@ export function CreateEditAssistantDialog(
                   return;
                 }
 
-                // Check each file size (10MB = 10485760 bytes)
-                const tenMbBytes = 10485760;
+                // Size limits in bytes
+                const tenMbBytes = 10 * 1024 * 1024; // 10MB for documents
+                const twentyFiveMbBytes = 25 * 1024 * 1024; // 25MB for audio
+                const oneGbBytes = 1024 * 1024 * 1024; // 1GB for video
+
                 for (let i = 0; i < files.length; i += 1) {
-                  if (files[i].size > tenMbBytes) {
+                  const file = files[i];
+                  const isAudio = ALLOWED_AUDIO_TYPES.has(file.type);
+                  const isVideo = ALLOWED_VIDEO_TYPES.has(file.type);
+
+                  // Check size limits based on file type
+                  if (isAudio && file.size > twentyFiveMbBytes) {
                     alert(
-                      `File "${files[i].name}" exceeds the 10MB size limit`
+                      `Audio file "${file.name}" exceeds the 25MB size limit`
+                    );
+                    e.target.value = "";
+                    return;
+                  } else if (isVideo && file.size > oneGbBytes) {
+                    alert(
+                      `Video file "${file.name}" exceeds the 1GB size limit`
+                    );
+                    e.target.value = "";
+                    return;
+                  } else if (!isAudio && !isVideo && file.size > tenMbBytes) {
+                    alert(
+                      `Document "${file.name}" exceeds the 10MB size limit`
                     );
                     e.target.value = "";
                     return;
