@@ -264,13 +264,11 @@ async function getUserFromConfig(
   ) {
     return undefined;
   }
-  console.log("\n----\nINSIDE getUserFromConfig\n----\n");
-  console.dir(config.configurable, { depth: null });
+
   const accessToken = (
     config.configurable?.supabase_session as Session | undefined
   )?.access_token;
   if (!accessToken) {
-    console.log("\n----\naccessToken is undefined\n----\n");
     return undefined;
   }
 
@@ -280,7 +278,6 @@ async function getUserFromConfig(
   );
 
   const authRes = await supabase.auth.getUser(accessToken);
-  console.log("\n----\nauthRes:", authRes.data, "\n----\n");
   return authRes.data.user || undefined;
 }
 

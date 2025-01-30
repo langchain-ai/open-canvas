@@ -63,6 +63,7 @@ interface GraphData {
   isArtifactSaved: boolean;
   firstTokenReceived: boolean;
   feedbackSubmitted: boolean;
+  setIsStreaming: Dispatch<SetStateAction<boolean>>;
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
   setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
@@ -1276,6 +1277,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       isArtifactSaved,
       firstTokenReceived,
       feedbackSubmitted,
+      setIsStreaming,
       setFeedbackSubmitted,
       setArtifact,
       setSelectedBlocks,

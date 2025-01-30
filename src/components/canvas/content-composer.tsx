@@ -44,7 +44,7 @@ export function ContentComposerChatInterfaceComponent(
 ): React.ReactElement {
   const { toast } = useToast();
   const { userData, graphData, threadData } = useGraphContext();
-  const { messages, setMessages, streamMessage } = graphData;
+  const { messages, setMessages, streamMessage, setIsStreaming } = graphData;
   const { getUserThreads } = threadData;
   const [isRunning, setIsRunning] = useState(false);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -70,6 +70,7 @@ export function ContentComposerChatInterfaceComponent(
     }
     props.setChatStarted(true);
     setIsRunning(true);
+    setIsStreaming(true);
 
     const contentDocuments: ContextDocument[] = [];
     if (message.attachments) {
