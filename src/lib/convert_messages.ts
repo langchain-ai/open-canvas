@@ -21,8 +21,19 @@ export const getMessageType = (message: Record<string, any>): string => {
 export const convertLangchainMessages: useExternalMessageConverter.Callback<
   BaseMessage
 > = (message): Message | Message[] => {
-  if (typeof message?.content !== "string") {
+  if (
+    typeof message?.content !== "string" &&
+    (!Array.isArray(message.content) || message.content[0]?.type !== "text")
+  ) {
+    console.error(message);
     throw new Error("Only text messages are supported");
+  }
+
+  let content = "";
+  if (Array.isArray(message.content) && message.content[0]?.type === "text") {
+    content = message.content[0].text;
+  } else if (typeof message.content === "string") {
+    content = message.content;
   }
 
   switch (getMessageType(message)) {
@@ -30,13 +41,23 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
       return {
         role: "system",
         id: message.id,
-        content: [{ type: "text", text: message.content }],
+        content: [{ type: "text", text: content }],
       };
     case "human":
+      const contextDocuments = message.additional_kwargs?.documents;
       return {
         role: "user",
         id: message.id,
-        content: [{ type: "text", text: message.content }],
+        content: [{ type: "text", text: content }],
+        ...(contextDocuments
+          ? {
+              metadata: {
+                custom: {
+                  documents: contextDocuments,
+                },
+              },
+            }
+          : {}),
       };
     case "ai":
       const aiMsg = message as AIMessage;
@@ -56,7 +77,7 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
           ...toolCallsContent,
           {
             type: "text",
-            text: message.content,
+            text: content,
           },
         ],
       };
@@ -65,7 +86,7 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
         role: "tool",
         toolName: message.name,
         toolCallId: (message as ToolMessage).tool_call_id,
-        result: message.content,
+        result: content,
       };
     default:
       throw new Error(`Unsupported message type: ${getMessageType(message)}`);
@@ -73,31 +94,42 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
 };
 
 export function convertToOpenAIFormat(message: BaseMessage) {
-  if (typeof message?.content !== "string") {
+  if (
+    typeof message?.content !== "string" &&
+    (!Array.isArray(message.content) || message.content[0]?.type !== "text")
+  ) {
     throw new Error("Only text messages are supported");
   }
+
+  let content = "";
+  if (Array.isArray(message.content) && message.content[0]?.type === "text") {
+    content = message.content[0].text;
+  } else if (typeof message.content === "string") {
+    content = message.content;
+  }
+
   switch (getMessageType(message)) {
     case "system":
       return {
         role: "system",
-        content: message.content,
+        content,
       };
     case "human":
       return {
         role: "user",
-        content: message.content,
+        content,
         additional_kwargs: message.additional_kwargs,
       };
     case "ai":
       return {
         role: "assistant",
-        content: message.content,
+        content,
       };
     case "tool":
       return {
         role: "tool",
         toolName: message.name,
-        result: message.content,
+        content,
       };
     default:
       throw new Error(`Unsupported message type: ${getMessageType(message)}`);

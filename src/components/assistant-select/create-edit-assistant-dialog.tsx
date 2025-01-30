@@ -397,7 +397,7 @@ export function CreateEditAssistantDialog(
               id="context-documents"
               type="file"
               multiple
-              accept=".txt,.pdf,.doc,.docx,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm"
+              accept=".txt,.md,.json,.xml,.css,.html,.csv,.pdf,.doc,.docx,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm"
               onChange={(e) => {
                 const files = e.target.files;
                 if (!files) return;

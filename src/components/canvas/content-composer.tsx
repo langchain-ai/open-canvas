@@ -27,6 +27,7 @@ import { AudioAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/a
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { ContextDocument } from "@/hooks/useAssistants";
 import { arrayToFileList, convertDocuments } from "@/lib/attachments";
+import { VideoAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/video";
 
 export interface ContentComposerChatInterfaceProps {
   switchSelectedThreadCallback: (thread: ThreadType) => void;
@@ -122,6 +123,7 @@ export function ContentComposerChatInterfaceComponent(
       attachments: new CompositeAttachmentAdapter([
         new SimpleTextAttachmentAdapter(),
         new AudioAttachmentAdapter(),
+        new VideoAttachmentAdapter(),
       ]),
     },
   });
