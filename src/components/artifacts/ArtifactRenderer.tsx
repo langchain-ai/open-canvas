@@ -41,7 +41,6 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
     selectedBlocks,
     isStreaming,
     isArtifactSaved,
-    error,
     setSelectedArtifact,
     setMessages,
     streamMessage,

@@ -1095,13 +1095,28 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               );
             }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error(
             "Failed to parse stream chunk",
             chunk,
             "\n\nError:\n",
             e
           );
+
+          let errorMessage = "Unknown error. Please try again.";
+          if (typeof e === "object" && e?.message) {
+            errorMessage = e.message;
+          }
+
+          toast({
+            title: "Error generating content",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          });
+          setError(true);
+          setIsStreaming(false);
+          break;
         }
       }
       lastSavedArtifact.current = artifact;
