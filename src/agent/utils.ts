@@ -260,7 +260,7 @@ async function getUserFromConfig(
 ): Promise<User | undefined> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    !process.env.SUPABASE_SERVICE_ROLE
   ) {
     return undefined;
   }
@@ -276,7 +276,7 @@ async function getUserFromConfig(
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    process.env.SUPABASE_SERVICE_ROLE
   );
 
   const authRes = await supabase.auth.getUser(accessToken);
