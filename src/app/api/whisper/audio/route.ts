@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAIClient from "openai";
+import Groq from "groq-sdk";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,8 +20,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = new OpenAIClient({
-      apiKey: process.env.OPENAI_API_KEY,
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
     });
 
     // Convert base64 to Buffer if the data is base64 encoded
@@ -36,9 +36,11 @@ export async function POST(req: NextRequest) {
     // Create a File object from the Blob with the correct extension
     const file = new File([blob], `audio.${fileExtension}`, { type: mimeType });
 
-    const transcription = await client.audio.transcriptions.create({
-      model: "whisper-1",
+    const transcription = await groq.audio.transcriptions.create({
       file,
+      model: "distil-whisper-large-v3-en", // Required model to use for transcription
+      language: "en",
+      temperature: 0.0,
     });
 
     return NextResponse.json(
