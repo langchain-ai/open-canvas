@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     const transcription = await groq.audio.transcriptions.create({
       file,
-      model: "distil-whisper-large-v3-en", // Required model to use for transcription
+      model: "distil-whisper-large-v3-en",
       language: "en",
       temperature: 0.0,
     });
