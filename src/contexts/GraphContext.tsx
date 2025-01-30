@@ -56,6 +56,7 @@ import { debounce } from "lodash";
 interface GraphData {
   runId: string | undefined;
   isStreaming: boolean;
+  error: boolean;
   selectedBlocks: TextHighlight | undefined;
   messages: BaseMessage[];
   artifact: ArtifactV3 | undefined;
@@ -151,6 +152,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
   const [runId, setRunId] = useState<string>();
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (userData.user) return;
@@ -251,6 +253,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
   const streamMessageV2 = async (params: GraphInput) => {
     setFirstTokenReceived(false);
+    setError(false);
     if (!threadData.threadId) {
       toast({
         title: "Error",
@@ -365,6 +368,20 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       let highlightedText: TextHighlight | undefined = undefined;
 
       for await (const chunk of stream) {
+        if (chunk.event === "error") {
+          const errorMessage =
+            chunk?.data?.message || "Unknown error. Please try again.";
+          toast({
+            title: "Error generating content",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          });
+          setError(true);
+          setIsStreaming(false);
+          break;
+        }
+
         try {
           if (!runId && chunk.data?.metadata?.run_id) {
             runId = chunk.data.metadata.run_id;
@@ -1270,6 +1287,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     graphData: {
       runId,
       isStreaming,
+      error,
       selectedBlocks,
       messages,
       artifact,
