@@ -21,7 +21,6 @@ import { Assistant } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { AlertNewAssistantsFeature } from "./alert-new-feature";
 import { OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT } from "@/constants";
-import NoSSRWrapper from "../NoSSRWrapper";
 
 interface AssistantSelectProps {
   userId: string | undefined;
@@ -95,8 +94,8 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
               tooltip="Change assistant"
               variant="ghost"
               delayDuration={200}
-              className="w-8 h-8 transition-colors ease-in-out duration-200"
               style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
+              className="mt-[14px]"
             >
               {getIcon(metadata?.iconData?.iconName as string | undefined)}
             </TooltipIconButton>
@@ -161,50 +160,47 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
         </div>
       </div>
 
-      {/* Must wrap in NoSSRWrapper because this uses ffmpeg.wasm which can not be rendered on the server */}
-      <NoSSRWrapper>
-        <CreateEditAssistantDialog
-          allDisabled={allDisabled}
-          setAllDisabled={setAllDisabled}
-          open={createEditDialogOpen}
-          setOpen={(c) => {
-            if (!c) {
-              setEditingAssistant(undefined);
-            }
-            setCreateEditDialogOpen(c);
-          }}
-          userId={props.userId}
-          isEditing={!!editingAssistant}
-          assistant={editingAssistant}
-          createCustomAssistant={async ({
+      <CreateEditAssistantDialog
+        allDisabled={allDisabled}
+        setAllDisabled={setAllDisabled}
+        open={createEditDialogOpen}
+        setOpen={(c) => {
+          if (!c) {
+            setEditingAssistant(undefined);
+          }
+          setCreateEditDialogOpen(c);
+        }}
+        userId={props.userId}
+        isEditing={!!editingAssistant}
+        assistant={editingAssistant}
+        createCustomAssistant={async ({
+          newAssistant,
+          userId,
+          successCallback,
+        }) => {
+          const res = await createCustomAssistant({
             newAssistant,
             userId,
             successCallback,
-          }) => {
-            const res = await createCustomAssistant({
-              newAssistant,
-              userId,
-              successCallback,
-            });
-            setOpen(false);
-            return res;
-          }}
-          editCustomAssistant={async ({
+          });
+          setOpen(false);
+          return res;
+        }}
+        editCustomAssistant={async ({
+          editedAssistant,
+          assistantId,
+          userId,
+        }) => {
+          const res = await editCustomAssistant({
             editedAssistant,
             assistantId,
             userId,
-          }) => {
-            const res = await editCustomAssistant({
-              editedAssistant,
-              assistantId,
-              userId,
-            });
-            setOpen(false);
-            return res;
-          }}
-          isLoading={isLoadingAllAssistants}
-        />
-      </NoSSRWrapper>
+          });
+          setOpen(false);
+          return res;
+        }}
+        isLoading={isLoadingAllAssistants}
+      />
     </>
   );
 }
