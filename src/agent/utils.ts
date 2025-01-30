@@ -5,7 +5,10 @@ import { initChatModel } from "langchain/chat_models/universal";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 import { ContextDocument } from "@/hooks/useAssistants";
 import pdfParse from "pdf-parse";
-import { MessageContentComplex } from "@langchain/core/messages";
+import {
+  MessageContentComplex,
+  MessageFieldWithRole,
+} from "@langchain/core/messages";
 import {
   LANGCHAIN_USER_ONLY_MODELS,
   TEMPERATURE_EXCLUDED_MODELS,
@@ -391,7 +394,7 @@ export async function createContextDocumentMessagesAnthropic(
     let text = "";
     if (doc.type === "application/pdf" && !options?.nativeSupport) {
       text = await convertPDFToText(doc.data);
-    } else if (doc.type === "text/plain") {
+    } else if (doc.type.startsWith("text/")) {
       text = atob(doc.data);
     } else if (doc.type === "text") {
       text = doc.data;
@@ -415,7 +418,7 @@ export function createContextDocumentMessagesGemini(
         type: doc.type,
         data: cleanBase64(doc.data),
       };
-    } else if (doc.type === "text/plain") {
+    } else if (doc.type.startsWith("text/")) {
       return {
         type: "text",
         text: atob(doc.data),
@@ -438,7 +441,7 @@ export async function createContextDocumentMessagesOpenAI(
 
     if (doc.type === "application/pdf") {
       text = await convertPDFToText(doc.data);
-    } else if (doc.type === "text/plain") {
+    } else if (doc.type.startsWith("text/")) {
       text = atob(doc.data);
     } else if (doc.type === "text") {
       text = doc.data;
@@ -467,12 +470,17 @@ async function getContextDocuments(
 }
 
 export async function createContextDocumentMessages(
-  config: LangGraphRunnableConfig
-) {
+  config: LangGraphRunnableConfig,
+  contextDocuments?: ContextDocument[]
+): Promise<MessageFieldWithRole[]> {
   const { modelProvider, modelName } = getModelConfig(config);
+  const documents: ContextDocument[] = contextDocuments || [];
 
-  const documents = await getContextDocuments(config);
-  if (!documents) {
+  if (!documents.length && config) {
+    documents.push(...(await getContextDocuments(config)));
+  }
+
+  if (!documents.length) {
     return [];
   }
 

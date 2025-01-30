@@ -14,6 +14,8 @@ import {
   ROUTE_QUERY_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation } from "../state";
+import { ContextDocument } from "@/hooks/useAssistants";
+import { HumanMessage } from "@langchain/core/messages";
 
 /**
  * Routes to the proper node in the graph based on the user's query.
@@ -22,14 +24,36 @@ export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ) => {
+  const { messages } = state;
+  const lastMessage = messages[messages.length - 1];
+  const documents = lastMessage?.additional_kwargs?.documents as
+    | ContextDocument[]
+    | undefined;
+  let docMessages: HumanMessage | undefined = undefined;
+  if (documents?.length) {
+    const contextMessages = await createContextDocumentMessages(
+      config,
+      documents
+    );
+    docMessages = new HumanMessage({
+      content: [
+        ...contextMessages.flatMap((m) =>
+          typeof m.content !== "string" ? m.content : []
+        ),
+      ],
+    });
+  }
+
   if (state.highlightedCode) {
     return {
       next: "updateArtifact",
+      ...(docMessages ? { messages: [docMessages] } : {}),
     };
   }
   if (state.highlightedText) {
     return {
       next: "updateHighlightedText",
+      ...(docMessages ? { messages: [docMessages] } : {}),
     };
   }
 
@@ -41,6 +65,7 @@ export const generatePath = async (
   ) {
     return {
       next: "rewriteArtifactTheme",
+      ...(docMessages ? { messages: [docMessages] } : {}),
     };
   }
 
@@ -52,12 +77,14 @@ export const generatePath = async (
   ) {
     return {
       next: "rewriteCodeArtifactTheme",
+      ...(docMessages ? { messages: [docMessages] } : {}),
     };
   }
 
   if (state.customQuickActionId) {
     return {
       next: "customAction",
+      ...(docMessages ? { messages: [docMessages] } : {}),
     };
   }
 
@@ -111,6 +138,7 @@ export const generatePath = async (
   const contextDocumentMessages = await createContextDocumentMessages(config);
   const result = await modelWithTool.invoke([
     ...contextDocumentMessages,
+    ...(docMessages ? [docMessages] : []),
     {
       role: "user",
       content: formattedPrompt,
@@ -119,5 +147,6 @@ export const generatePath = async (
 
   return {
     next: result.route,
+    ...(docMessages ? { messages: [docMessages] } : {}),
   };
 };

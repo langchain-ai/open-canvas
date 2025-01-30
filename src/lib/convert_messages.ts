@@ -1,20 +1,10 @@
 import {
   useExternalMessageConverter,
-  ThreadMessageLike,
   ToolCallContentPart,
 } from "@assistant-ui/react";
 import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 
-// Not exposed by `@assistant-ui/react` package, but is
-// the required return type for this callback function.
-type Message =
-  | ThreadMessageLike
-  | {
-      role: "tool";
-      toolCallId: string;
-      toolName?: string | undefined;
-      result: any;
-    };
+type Message = useExternalMessageConverter.Message;
 
 export const getMessageType = (message: Record<string, any>): string => {
   if ("getType" in message && typeof message.getType === "function") {
@@ -96,6 +86,7 @@ export function convertToOpenAIFormat(message: BaseMessage) {
       return {
         role: "user",
         content: message.content,
+        additional_kwargs: message.additional_kwargs,
       };
     case "ai":
       return {

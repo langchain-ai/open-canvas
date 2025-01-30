@@ -29,7 +29,7 @@ export function UploadedFiles({
           {file.type.includes("pdf") && (
             <NextImage alt="PDF icon" src={PDFIcon} width={24} height={24} />
           )}
-          {file.type.includes("text/plain") &&
+          {file.type.startsWith("text/") &&
             !ALLOWED_VIDEO_TYPE_ENDINGS.some((ending) =>
               file.name.endsWith(ending)
             ) &&

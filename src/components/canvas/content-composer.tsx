@@ -14,11 +14,19 @@ import {
 } from "@assistant-ui/react";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Toaster } from "../ui/toaster";
 import { Thread } from "@/components/chat-interface";
 import { useGraphContext } from "@/contexts/GraphContext";
+import {
+  CompositeAttachmentAdapter,
+  SimpleTextAttachmentAdapter,
+} from "@assistant-ui/react";
+import { AudioAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/audio";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { ContextDocument } from "@/hooks/useAssistants";
+import { arrayToFileList, convertDocuments } from "@/lib/attachments";
 
 export interface ContentComposerChatInterfaceProps {
   switchSelectedThreadCallback: (thread: ThreadType) => void;
@@ -38,6 +46,8 @@ export function ContentComposerChatInterfaceComponent(
   const { messages, setMessages, streamMessage } = graphData;
   const { getUserThreads } = threadData;
   const [isRunning, setIsRunning] = useState(false);
+  const messageRef = useRef<HTMLDivElement>(null);
+  const ffmpegRef = useRef(new FFmpeg());
 
   async function onNew(message: AppendMessage): Promise<void> {
     if (!userData.user) {
@@ -60,10 +70,30 @@ export function ContentComposerChatInterfaceComponent(
     props.setChatStarted(true);
     setIsRunning(true);
 
+    const contentDocuments: ContextDocument[] = [];
+    if (message.attachments) {
+      const files = message.attachments
+        .map((a) => a.file)
+        .filter((f): f is File => f != null);
+      const fileList = arrayToFileList(files);
+      if (fileList) {
+        const documentsResult = await convertDocuments({
+          ffmpeg: ffmpegRef.current,
+          messageRef,
+          documents: fileList,
+          toast,
+        });
+        contentDocuments.push(...documentsResult);
+      }
+    }
+
     try {
       const humanMessage = new HumanMessage({
         content: message.content[0].text,
         id: uuidv4(),
+        additional_kwargs: {
+          documents: contentDocuments,
+        },
       });
 
       setMessages((prevMessages) => [...prevMessages, humanMessage]);
@@ -88,6 +118,12 @@ export function ContentComposerChatInterfaceComponent(
     messages: threadMessages,
     isRunning,
     onNew,
+    adapters: {
+      attachments: new CompositeAttachmentAdapter([
+        new SimpleTextAttachmentAdapter(),
+        new AudioAttachmentAdapter(),
+      ]),
+    },
   });
 
   return (

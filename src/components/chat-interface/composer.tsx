@@ -4,8 +4,9 @@ import { ComposerPrimitive, ThreadPrimitive } from "@assistant-ui/react";
 import { type FC } from "react";
 
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { SendHorizontalIcon } from "lucide-react";
+import { Paperclip, SendHorizontalIcon } from "lucide-react";
 import { AssistantSelect } from "../assistant-select";
+import { AttachmentUI } from "@/components/ui/assistant-ui/attachment-ui";
 
 const CircleStopIcon = () => {
   return (
@@ -29,6 +30,19 @@ interface ComposerProps {
 export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
   return (
     <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex w-full min-h-[64px] flex-wrap items-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
+      <ComposerPrimitive.AddAttachment asChild>
+        <TooltipIconButton
+          tooltip="Add attachment"
+          className="w-6 h-6 transition-colors ease-in-out duration-200"
+          variant="ghost"
+        >
+          <Paperclip />
+        </TooltipIconButton>
+      </ComposerPrimitive.AddAttachment>
+      <ComposerPrimitive.Attachments
+        components={{ Attachment: AttachmentUI }}
+      />
+
       <AssistantSelect userId={props.userId} chatStarted={props.chatStarted} />
       <ComposerPrimitive.Input
         autoFocus
