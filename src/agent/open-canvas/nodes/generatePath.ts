@@ -23,6 +23,7 @@ import {
   HumanMessage,
   RemoveMessage,
 } from "@langchain/core/messages";
+import { OC_HIDE_FROM_UI_KEY } from "@/constants";
 
 /**
  * Checks for context documents in a human message, and if found, converts
@@ -51,6 +52,9 @@ async function convertContextDocumentToHumanMessage(
         typeof m.content !== "string" ? m.content : []
       ),
     ],
+    additional_kwargs: {
+      [OC_HIDE_FROM_UI_KEY]: true,
+    },
   });
 }
 

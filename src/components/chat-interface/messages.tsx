@@ -2,6 +2,7 @@
 
 import {
   ActionBarPrimitive,
+  getExternalStoreMessage,
   MessagePrimitive,
   useMessage,
 } from "@assistant-ui/react";
@@ -12,6 +13,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FeedbackButton } from "./feedback";
 import { TighterText } from "../ui/header";
 import { useFeedback } from "@/hooks/useFeedback";
+import { ContextDocumentsUI } from "../tool-hooks/AttachmentsToolUI";
+import { HumanMessage } from "@langchain/core/messages";
+import { OC_HIDE_FROM_UI_KEY } from "@/constants";
 
 interface AssistantMessageProps {
   runId: string | undefined;
@@ -48,10 +52,18 @@ export const AssistantMessage: FC<AssistantMessageProps> = ({
 };
 
 export const UserMessage: FC = () => {
+  const msg = useMessage(getExternalStoreMessage<HumanMessage>);
+  const humanMessage = Array.isArray(msg) ? msg[0] : msg;
+
+  if (humanMessage.additional_kwargs?.[OC_HIDE_FROM_UI_KEY]) return null;
+
   return (
     <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-4">
-      {/* <ContextDocumentsUI /> */}
-      <div className="bg-muted text-foreground col-start-2 row-start-1 max-w-xl break-words rounded-3xl px-5 py-2.5">
+      <ContextDocumentsUI
+        message={humanMessage}
+        className="col-start-2 row-start-1"
+      />
+      <div className="bg-muted text-foreground col-start-2 row-start-2 max-w-xl break-words rounded-3xl px-5 py-2.5">
         <MessagePrimitive.Content />
       </div>
     </MessagePrimitive.Root>

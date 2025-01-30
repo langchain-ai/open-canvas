@@ -10,20 +10,23 @@ import {
   ALLOWED_VIDEO_TYPE_ENDINGS,
 } from "@/constants";
 import { ContextDocument } from "@/hooks/useAssistants";
+import { cn } from "@/lib/utils";
 
 export function UploadedFiles({
   files,
   handleRemoveFile,
+  className,
 }: {
   files: FileList | ContextDocument[] | undefined;
   handleRemoveFile?: (index: number) => void;
+  className?: string;
 }) {
   if (!files) return null;
 
   const filesArr = Array.isArray(files) ? files : Array.from(files);
 
   return (
-    <div className="flex flex-wrap gap-2 w-full">
+    <div className={cn("flex flex-wrap gap-2", className)}>
       {filesArr.map((file, index) => (
         <div
           key={index}
