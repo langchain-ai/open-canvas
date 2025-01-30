@@ -269,7 +269,6 @@ async function getUserFromConfig(
     config.configurable?.supabase_session as Session | undefined
   )?.access_token;
   if (!accessToken) {
-    console.log("\n----\naccessToken is undefined\n----\n");
     return undefined;
   }
 
