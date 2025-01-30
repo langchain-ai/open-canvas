@@ -357,7 +357,7 @@ const cleanBase64 = (base64String: string): string => {
   return base64String.replace(/^data:.*?;base64,/, "");
 };
 
-async function convertPDFToText(base64PDF: string) {
+export async function convertPDFToText(base64PDF: string) {
   try {
     // Convert base64 to buffer
     const pdfBuffer = Buffer.from(base64PDF, "base64");
