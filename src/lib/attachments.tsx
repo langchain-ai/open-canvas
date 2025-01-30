@@ -234,7 +234,7 @@ export async function convertDocuments({
         title: "Successfully converted video to audio",
         description: (
           <span className="flex items-center gap-2">
-            Video to audio conversion completed for {doc.name}. Transcribing to
+            Video to audio conversion completed for {doc.name}. Transcribing
             audio now. This may take a while. Please wait{" "}
             <Icons.LoaderCircle className="animate-spin w-4 h-4" />
           </span>
