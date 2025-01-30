@@ -47,11 +47,11 @@ export async function POST(req: NextRequest) {
       { success: true, text: transcription.text },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to process feedback request:", error);
 
     return NextResponse.json(
-      { error: "Failed to submit feedback." },
+      { error: "Failed to submit feedback." + error.message },
       { status: 500 }
     );
   }
