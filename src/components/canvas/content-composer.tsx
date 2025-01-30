@@ -111,7 +111,7 @@ export function ContentComposerChatInterfaceComponent(
 
   const threadMessages = useExternalMessageConverter<BaseMessage>({
     callback: convertLangchainMessages,
-    messages: messages,
+    messages,
     isRunning,
   });
 

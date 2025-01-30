@@ -1,5 +1,6 @@
 import { CustomModelConfig, ModelConfigurationParams } from "./types";
 
+export const OC_HIDE_FROM_UI_KEY = "__oc_hide_from_ui";
 export const LANGGRAPH_API_URL =
   process.env.LANGGRAPH_API_URL ?? "http://localhost:54367";
 // v2 is tied to the 'open-canvas-prod' deployment.

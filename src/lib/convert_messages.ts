@@ -44,16 +44,15 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
         content: [{ type: "text", text: content }],
       };
     case "human":
-      const contextDocuments = message.additional_kwargs?.documents;
       return {
         role: "user",
         id: message.id,
         content: [{ type: "text", text: content }],
-        ...(contextDocuments
+        ...(message.additional_kwargs
           ? {
               metadata: {
                 custom: {
-                  documents: contextDocuments,
+                  ...message.additional_kwargs,
                 },
               },
             }
