@@ -95,7 +95,7 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
               variant="ghost"
               delayDuration={200}
               style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
-              className="mt-1"
+              className="mt-[14px]"
             >
               {getIcon(metadata?.iconData?.iconName as string | undefined)}
             </TooltipIconButton>
