@@ -4,7 +4,7 @@ import MP4Icon from "@/components/icons/svg/MP4Icon.svg";
 import MP3Icon from "@/components/icons/svg/MP3Icon.svg";
 import { X } from "lucide-react";
 import NextImage from "next/image";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import {
   ALLOWED_AUDIO_TYPE_ENDINGS,
   ALLOWED_VIDEO_TYPE_ENDINGS,

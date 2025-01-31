@@ -118,6 +118,11 @@ export async function load(
   ffmpeg: FFmpeg,
   messageRef: React.RefObject<HTMLDivElement>
 ) {
+  // Check if FFmpeg is already loaded
+  if (ffmpeg.loaded) {
+    return;
+  }
+
   const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
   ffmpeg.on("log", ({ message }) => {
     if (messageRef.current) messageRef.current.innerHTML = message;

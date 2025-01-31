@@ -34,6 +34,10 @@ export type ContextDocument = {
    * text value if the type is `text`
    */
   data: string;
+  /**
+   * Optional metadata about the document.
+   */
+  metadata?: Record<string, any>;
 };
 
 export interface CreateAssistantFields {
