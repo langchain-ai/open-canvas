@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContextDocument } from "@/hooks/useAssistants";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
+import { createClient } from "@supabase/supabase-js";
 
 export function arrayToFileList(files: File[] | undefined) {
   if (!files || !files.length) return undefined;
@@ -13,7 +14,13 @@ export function arrayToFileList(files: File[] | undefined) {
 }
 
 export function contextDocumentToFile(document: ContextDocument): File {
-  // Remove any data URL prefix if it exists
+  if (document.type === "text") {
+    // For text documents, create file directly from the text data
+    const blob = new Blob([document.data], { type: "text/plain" });
+    return new File([blob], document.name, { type: "text/plain" });
+  }
+
+  // For non-text documents, handle as base64
   let base64String = document.data;
   if (base64String.includes(",")) {
     base64String = base64String.split(",")[1];
@@ -43,17 +50,42 @@ export function contextDocumentToFile(document: ContextDocument): File {
     // Create File object
     return new File([blob], document.name, { type: document.type });
   } catch (error) {
-    console.error("Error converting base64 to file:", error);
+    console.error("Error converting data to file:", error);
     throw error;
   }
 }
 
-export async function transcribeAudio(file: File) {
+export async function transcribeAudio(file: File, userId: string) {
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL_DOCUMENTS ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_DOCUMENTS
+  ) {
+    throw new Error(
+      "Supabase credentials for uploading context documents are missing"
+    );
+  }
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL_DOCUMENTS,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_DOCUMENTS
+  );
+
+  const res = await client.storage
+    .from("documents")
+    .upload(
+      `${userId}/${new Date().getTime()}-${file.name.replaceAll("/", "-").replaceAll(" ", "-")}`,
+      file,
+      {
+        upsert: true,
+      }
+    );
+  if (res.error) {
+    throw new Error(`Failed to upload context document: ${res.error.message}`);
+  }
+
   const result = await fetch("/api/whisper/audio", {
     method: "POST",
     body: JSON.stringify({
-      data: await fileToBase64(file),
-      mimeType: file.type,
+      path: res.data.path,
     }),
   });
   if (!result.ok) {
@@ -147,6 +179,7 @@ export interface ConvertDocumentsProps {
   ffmpeg: FFmpeg;
   messageRef: React.RefObject<HTMLDivElement>;
   documents: FileList;
+  userId: string;
   toast: ReturnType<typeof useToast>["toast"];
 }
 
@@ -154,6 +187,7 @@ export async function convertDocuments({
   ffmpeg,
   messageRef,
   documents,
+  userId,
   toast,
 }: ConvertDocumentsProps): Promise<ContextDocument[]> {
   const files = Array.from(documents);
@@ -191,7 +225,7 @@ export async function convertDocuments({
         duration: 15000,
       });
 
-      const transcription = await transcribeAudio(doc);
+      const transcription = await transcribeAudio(doc, userId);
 
       toast({
         title: "Successfully transcribed audio",
@@ -242,7 +276,7 @@ export async function convertDocuments({
         duration: 60000,
       });
       // Transcribe audio to video
-      const transcription = await transcribeAudio(audioFile);
+      const transcription = await transcribeAudio(audioFile, userId);
 
       toast({
         title: "Successfully transcribed video",

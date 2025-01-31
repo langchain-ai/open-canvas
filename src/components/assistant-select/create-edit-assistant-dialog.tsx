@@ -172,6 +172,7 @@ export function CreateEditAssistantDialog(
         ffmpeg: ffmpegRef.current,
         messageRef,
         documents,
+        userId: props.userId,
         toast,
       });
       contentDocuments.push(...documentsResult);

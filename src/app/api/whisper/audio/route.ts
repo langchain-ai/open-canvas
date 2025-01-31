@@ -1,21 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { data, mimeType } = body as { data: string; mimeType: string };
+    const { path } = body as { path: string };
 
-    if (!data) {
+    if (!path) {
       return NextResponse.json(
-        { error: "`data` is required." },
+        { error: "`path` is required." },
         { status: 400 }
       );
     }
 
-    if (!mimeType) {
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL_DOCUMENTS ||
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_DOCUMENTS
+    ) {
       return NextResponse.json(
-        { error: "`mimeType` is required." },
+        {
+          error:
+            "Supabase credentials for uploading context documents are missing",
+        },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL_DOCUMENTS,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_DOCUMENTS
+    );
+
+    const supabaseFile = await supabase.storage
+      .from("documents")
+      .download(path);
+
+    if (supabaseFile.error) {
+      console.error(supabaseFile.error);
+      return NextResponse.json(
+        {
+          error: `Failed to download context document: ${JSON.stringify(supabaseFile.error, null)}. File path: ${path}`,
+        },
         { status: 400 }
       );
     }
@@ -24,17 +50,12 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.GROQ_API_KEY,
     });
 
-    // Convert base64 to Buffer if the data is base64 encoded
-    const buffer = Buffer.from(data.split(",")[1], "base64");
-
-    // Get file extension from mimeType (e.g., 'audio/mp3' -> 'mp3', 'audio/wav' -> 'wav')
+    // supabaseFile.data is already a Blob, get its type
+    const mimeType = supabaseFile.data.type;
     const fileExtension = mimeType.split("/")[1];
-
-    // Create a Blob from the buffer
-    const blob = new Blob([buffer], { type: mimeType });
-
-    // Create a File object from the Blob with the correct extension
-    const file = new File([blob], `audio.${fileExtension}`, { type: mimeType });
+    const file = new File([supabaseFile.data], `audio.${fileExtension}`, {
+      type: mimeType,
+    });
 
     const transcription = await groq.audio.transcriptions.create({
       file,
@@ -42,6 +63,9 @@ export async function POST(req: NextRequest) {
       language: "en",
       temperature: 0.0,
     });
+
+    // Cleanup by deleting the file from supabase
+    await supabase.storage.from("documents").remove([path]);
 
     return NextResponse.json(
       { success: true, text: transcription.text },

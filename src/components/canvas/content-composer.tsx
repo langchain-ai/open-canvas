@@ -83,6 +83,7 @@ export function ContentComposerChatInterfaceComponent(
           ffmpeg: ffmpegRef.current,
           messageRef,
           documents: fileList,
+          userId: userData.user.id,
           toast,
         });
         contentDocuments.push(...documentsResult);
