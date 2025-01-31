@@ -153,7 +153,6 @@ export const generatePath = async (
   config: LangGraphRunnableConfig
 ) => {
   const { _messages } = state;
-  console.log("_messages", _messages);
   const newMessages: BaseMessage[] = [];
   const docMessage = await convertContextDocumentToHumanMessage(
     _messages,
