@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "./use-toast";
 import { ContextDocument } from "./useAssistants";
 import { Item } from "@langchain/langgraph";
+import { CONTEXT_DOCUMENTS_NAMESPACE } from "@/constants";
 
 export function useStore() {
   const { toast } = useToast();
@@ -232,7 +233,7 @@ export function useStore() {
       const res = await fetch("/api/store/put", {
         method: "POST",
         body: JSON.stringify({
-          namespace: ["context_documents"],
+          namespace: CONTEXT_DOCUMENTS_NAMESPACE,
           key: assistantId,
           value: {
             documents,
@@ -259,7 +260,7 @@ export function useStore() {
     const res = await fetch("/api/store/get", {
       method: "POST",
       body: JSON.stringify({
-        namespace: ["context_documents"],
+        namespace: CONTEXT_DOCUMENTS_NAMESPACE,
         key: assistantId,
       }),
       headers: {

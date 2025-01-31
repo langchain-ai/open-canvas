@@ -10,6 +10,7 @@ import {
   MessageFieldWithRole,
 } from "@langchain/core/messages";
 import {
+  CONTEXT_DOCUMENTS_NAMESPACE,
   LANGCHAIN_USER_ONLY_MODELS,
   TEMPERATURE_EXCLUDED_MODELS,
 } from "@/constants";
@@ -398,7 +399,7 @@ export async function createContextDocumentMessagesAnthropic(
     if (doc.type === "application/pdf" && !options?.nativeSupport) {
       text = await convertPDFToText(doc.data);
     } else if (doc.type.startsWith("text/")) {
-      text = atob(doc.data);
+      text = atob(cleanBase64(doc.data));
     } else if (doc.type === "text") {
       text = doc.data;
     }
@@ -424,7 +425,7 @@ export function createContextDocumentMessagesGemini(
     } else if (doc.type.startsWith("text/")) {
       return {
         type: "text",
-        text: atob(doc.data),
+        text: atob(cleanBase64(doc.data)),
       };
     } else if (doc.type === "text") {
       return {
@@ -445,7 +446,7 @@ export async function createContextDocumentMessagesOpenAI(
     if (doc.type === "application/pdf") {
       text = await convertPDFToText(doc.data);
     } else if (doc.type.startsWith("text/")) {
-      text = atob(doc.data);
+      text = atob(cleanBase64(doc.data));
     } else if (doc.type === "text") {
       text = doc.data;
     }
@@ -468,7 +469,7 @@ async function getContextDocuments(
     return [];
   }
 
-  const result = await store.get(["documents"], assistantId);
+  const result = await store.get(CONTEXT_DOCUMENTS_NAMESPACE, assistantId);
   return result?.value?.documents || [];
 }
 
@@ -480,7 +481,8 @@ export async function createContextDocumentMessages(
   const documents: ContextDocument[] = contextDocuments || [];
 
   if (!documents.length && config) {
-    documents.push(...(await getContextDocuments(config)));
+    const docs = await getContextDocuments(config);
+    documents.push(...docs);
   }
 
   if (!documents.length) {
