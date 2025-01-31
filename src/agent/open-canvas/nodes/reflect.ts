@@ -14,7 +14,7 @@ export const reflectNode = async (
   });
 
   const reflectionInput = {
-    messages: state.messages,
+    messages: state._messages,
     artifact: state.artifact,
   };
   const reflectionConfig = {

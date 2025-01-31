@@ -65,10 +65,11 @@ You also have the following reflections on style guidelines and general memories
   const response = await smallModel.invoke([
     { role: isO1MiniModel ? "user" : "system", content: formattedPrompt },
     ...contextDocumentMessages,
-    ...state.messages,
+    ...state._messages,
   ]);
 
   return {
     messages: [response],
+    _messages: [response],
   };
 };

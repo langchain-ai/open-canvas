@@ -12,6 +12,7 @@ interface ArtifactHeaderProps {
   isArtifactSaved: boolean;
   totalArtifactVersions: number;
   selectedAssistant: Assistant | undefined;
+  artifactUpdateFailed: boolean;
 }
 
 export function ArtifactHeader(props: ArtifactHeaderProps) {
@@ -20,6 +21,7 @@ export function ArtifactHeader(props: ArtifactHeaderProps) {
       <ArtifactTitle
         title={props.currentArtifactContent.title}
         isArtifactSaved={props.isArtifactSaved}
+        artifactUpdateFailed={props.artifactUpdateFailed}
       />
       <div className="flex gap-2 items-end mt-[10px] mr-[6px]">
         <NavigateArtifactHistory

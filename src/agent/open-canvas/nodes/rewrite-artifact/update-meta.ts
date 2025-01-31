@@ -56,7 +56,7 @@ export async function optionallyUpdateArtifactMeta(
       formatArtifactContent(currentArtifactContent, true)
     ).replace("{reflections}", memoriesAsString);
 
-  const recentHumanMessage = state.messages.findLast(
+  const recentHumanMessage = state._messages.findLast(
     (message) => message.getType() === "human"
   );
   if (!recentHumanMessage) {

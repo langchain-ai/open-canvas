@@ -18,7 +18,7 @@ export const validateState = (
     throw new Error("No artifact found");
   }
 
-  const recentHumanMessage = state.messages.findLast(
+  const recentHumanMessage = state._messages.findLast(
     (message) => message.getType() === "human"
   );
   if (!recentHumanMessage) {

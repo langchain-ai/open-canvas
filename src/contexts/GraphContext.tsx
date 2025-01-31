@@ -27,6 +27,7 @@ import {
   DEFAULT_INPUTS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
+  NON_STREAMING_TEXT_MODELS,
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
 import { Thread } from "@langchain/langgraph-sdk";
@@ -52,6 +53,7 @@ import {
 } from "./utils";
 import { useAssistants } from "@/hooks/useAssistants";
 import { debounce } from "lodash";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface GraphData {
   runId: string | undefined;
@@ -64,6 +66,9 @@ interface GraphData {
   isArtifactSaved: boolean;
   firstTokenReceived: boolean;
   feedbackSubmitted: boolean;
+  artifactUpdateFailed: boolean;
+  chatStarted: boolean;
+  setChatStarted: Dispatch<SetStateAction<boolean>>;
   setIsStreaming: Dispatch<SetStateAction<boolean>>;
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
   setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
@@ -130,9 +135,12 @@ function extractStreamDataOutput(output: any) {
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUser();
   const assistantsData = useAssistants();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const threadData = useThread();
   const { toast } = useToast();
   const { shareRun } = useRuns();
+  const [chatStarted, setChatStarted] = useState(false);
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<ArtifactV3>();
   const [selectedBlocks, setSelectedBlocks] = useState<TextHighlight>();
@@ -153,6 +161,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [runId, setRunId] = useState<string>();
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [error, setError] = useState(false);
+  const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
 
   useEffect(() => {
     if (userData.user) return;
@@ -162,6 +171,30 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!userData.user) return;
+
+    const threadIdQueryParam = searchParams.get("threadId");
+    if (threadIdQueryParam) {
+      threadData.getThreadById(threadIdQueryParam).then((thread) => {
+        if (!thread) {
+          // Thread not found. Clear it & send an error message.
+          const queryParams = new URLSearchParams(searchParams.toString());
+          queryParams.delete("threadId");
+          router.replace(`?${queryParams.toString()}`, { scroll: false });
+
+          toast({
+            title: "Error",
+            description: "Thread ID in query params not found",
+            variant: "destructive",
+            duration: 5000,
+          });
+
+          return;
+        }
+
+        // Otherwise, call the `switchSelectedThread` method to set this thread as the active thread.
+        switchSelectedThread(thread);
+      });
+    }
 
     if (!threadData.threadId) {
       threadData.searchOrCreateThread(userData.user.id);
@@ -228,6 +261,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     artifactToUpdate: ArtifactV3,
     threadId: string
   ) => {
+    setArtifactUpdateFailed(false);
     if (isStreaming) return;
 
     try {
@@ -239,9 +273,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       });
       setIsArtifactSaved(true);
       lastSavedArtifact.current = artifactToUpdate;
-    } catch (e) {
-      console.error("Failed to update artifact", e);
-      console.error("Artifact:", artifactToUpdate);
+    } catch (_) {
+      setArtifactUpdateFailed(true);
     }
   };
 
@@ -273,7 +306,19 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const threadIdQueryParam = searchParams.get("threadId");
+    if (!threadIdQueryParam) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("threadId", threadData.threadId);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+
     const client = createClient();
+
+    const messagesInput = {
+      messages: params.messages,
+      _messages: params.messages,
+    };
 
     // TODO: update to properly pass the highlight data back
     // one field for highlighted text, and one for code
@@ -281,6 +326,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       ...DEFAULT_INPUTS,
       artifact,
       ...params,
+      ...messagesInput,
       ...(selectedBlocks && {
         highlightedText: selectedBlocks,
       }),
@@ -755,7 +801,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             if (
               chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
               chunk.data.name === "rewrite_artifact_model_call" &&
-              rewriteArtifactMeta
+              rewriteArtifactMeta &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
               if (!artifact) {
                 toast({
@@ -823,7 +870,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
-              chunk.data.metadata.langgraph_node === "updateHighlightedText"
+              chunk.data.metadata.langgraph_node === "updateHighlightedText" &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
               const message = extractStreamDataOutput(chunk.data.data.output);
               if (!message) {
@@ -912,7 +960,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
             }
 
-            if (chunk.data.metadata.langgraph_node === "updateArtifact") {
+            if (
+              chunk.data.metadata.langgraph_node === "updateArtifact" &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
+            ) {
               if (!artifact) {
                 toast({
                   title: "Error",
@@ -1015,7 +1066,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 "rewriteArtifactTheme",
                 "rewriteCodeArtifactTheme",
                 "customAction",
-              ].includes(chunk.data.metadata.langgraph_node)
+              ].includes(chunk.data.metadata.langgraph_node) &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
               if (!artifact) {
                 toast({
@@ -1086,7 +1138,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               ["generateFollowup", "replyToGeneralInput"].includes(
                 chunk.data.metadata.langgraph_node
               ) &&
-              !followupMessageId
+              !followupMessageId &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
               const message = extractStreamDataOutput(chunk.data.data.output);
               followupMessageId = message.id;
@@ -1238,8 +1291,23 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const switchSelectedThread = (thread: Thread) => {
     setUpdateRenderedArtifactRequired(true);
     setThreadSwitched(true);
+    setChatStarted(true);
+
+    // Set the thread ID in state. Then set in cookies so a new thread
+    // isn't created on page load if one already exists.
     threadData.setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+
+    // Ensure the URL has the new thread ID in query params. If it doesn't,
+    // add it, or replace if present but it doesn't match
+    const threadIdQueryParam = searchParams.get("threadId");
+    const params = new URLSearchParams(searchParams.toString());
+    if (threadIdQueryParam !== thread.thread_id) {
+      params.set("threadId", thread.thread_id);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+
+    // Set the model name and config
     if (thread.metadata?.customModelName) {
       threadData.setModelName(
         thread.metadata.customModelName as ALL_MODEL_NAMES
@@ -1310,6 +1378,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       isArtifactSaved,
       firstTokenReceived,
       feedbackSubmitted,
+      chatStarted,
+      artifactUpdateFailed,
+      setChatStarted,
       setIsStreaming,
       setFeedbackSubmitted,
       setArtifact,

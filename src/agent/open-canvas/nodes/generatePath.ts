@@ -152,10 +152,10 @@ export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ) => {
-  const { messages } = state;
+  const { _messages } = state;
   const newMessages: BaseMessage[] = [];
   const docMessage = await convertContextDocumentToHumanMessage(
-    messages,
+    _messages,
     config
   );
   const existingDocMessage = newMessages.find(
@@ -181,13 +181,17 @@ export const generatePath = async (
   if (state.highlightedCode) {
     return {
       next: "updateArtifact",
-      ...(newMessages.length ? { messages: newMessages } : {}),
+      ...(newMessages.length
+        ? { messages: newMessages, _messages: newMessages }
+        : {}),
     };
   }
   if (state.highlightedText) {
     return {
       next: "updateHighlightedText",
-      ...(newMessages.length ? { messages: newMessages } : {}),
+      ...(newMessages.length
+        ? { messages: newMessages, _messages: newMessages }
+        : {}),
     };
   }
 
@@ -199,7 +203,9 @@ export const generatePath = async (
   ) {
     return {
       next: "rewriteArtifactTheme",
-      ...(newMessages.length ? { messages: newMessages } : {}),
+      ...(newMessages.length
+        ? { messages: newMessages, _messages: newMessages }
+        : {}),
     };
   }
 
@@ -211,14 +217,18 @@ export const generatePath = async (
   ) {
     return {
       next: "rewriteCodeArtifactTheme",
-      ...(newMessages.length ? { messages: newMessages } : {}),
+      ...(newMessages.length
+        ? { messages: newMessages, _messages: newMessages }
+        : {}),
     };
   }
 
   if (state.customQuickActionId) {
     return {
       next: "customAction",
-      ...(newMessages.length ? { messages: newMessages } : {}),
+      ...(newMessages.length
+        ? { messages: newMessages, _messages: newMessages }
+        : {}),
     };
   }
 
@@ -235,7 +245,7 @@ export const generatePath = async (
   )
     .replace(
       "{recentMessages}",
-      state.messages
+      state._messages
         .slice(-3)
         .map((message) => `${message.getType()}: ${message.content}`)
         .join("\n\n")
@@ -281,6 +291,8 @@ export const generatePath = async (
 
   return {
     next: result.route,
-    ...(newMessages.length ? { messages: newMessages } : {}),
+    ...(newMessages.length
+      ? { messages: newMessages, _messages: newMessages }
+      : {}),
   };
 };

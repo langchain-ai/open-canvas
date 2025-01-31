@@ -7,6 +7,22 @@ import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 type Message = useExternalMessageConverter.Message;
 
 export const getMessageType = (message: Record<string, any>): string => {
+  if (Array.isArray(message.id)) {
+    const lastItem = message.id[message.id.length - 1];
+    if (lastItem.startsWith("HumanMessage")) {
+      return "human";
+    } else if (lastItem.startsWith("AIMessage")) {
+      return "ai";
+    } else if (lastItem.startsWith("ToolMessage")) {
+      return "tool";
+    } else if (
+      lastItem.startsWith("BaseMessage") ||
+      lastItem.startsWith("SystemMessage")
+    ) {
+      return "system";
+    }
+  }
+
   if ("getType" in message && typeof message.getType === "function") {
     return message.getType();
   } else if ("_getType" in message && typeof message._getType === "function") {
@@ -14,27 +30,49 @@ export const getMessageType = (message: Record<string, any>): string => {
   } else if ("type" in message) {
     return message.type as string;
   } else {
+    console.error(message);
     throw new Error("Unsupported message type");
   }
 };
 
-export const convertLangchainMessages: useExternalMessageConverter.Callback<
-  BaseMessage
-> = (message): Message | Message[] => {
+function getMessageContentOrThrow(message: unknown): string {
+  if (typeof message !== "object" || message === null) {
+    return "";
+  }
+
+  const castMsg = message as Record<string, any>;
+
   if (
-    typeof message?.content !== "string" &&
-    (!Array.isArray(message.content) || message.content[0]?.type !== "text")
+    typeof castMsg?.content !== "string" &&
+    (!Array.isArray(castMsg.content) || castMsg.content[0]?.type !== "text") &&
+    (!castMsg.kwargs ||
+      !castMsg.kwargs?.content ||
+      typeof castMsg.kwargs?.content !== "string")
   ) {
-    console.error(message);
+    console.error(castMsg);
     throw new Error("Only text messages are supported");
   }
 
   let content = "";
-  if (Array.isArray(message.content) && message.content[0]?.type === "text") {
-    content = message.content[0].text;
-  } else if (typeof message.content === "string") {
-    content = message.content;
+  if (Array.isArray(castMsg.content) && castMsg.content[0]?.type === "text") {
+    content = castMsg.content[0].text;
+  } else if (typeof castMsg.content === "string") {
+    content = castMsg.content;
+  } else if (
+    castMsg?.kwargs &&
+    castMsg.kwargs?.content &&
+    typeof castMsg.kwargs?.content === "string"
+  ) {
+    content = castMsg.kwargs.content;
   }
+
+  return content;
+}
+
+export const convertLangchainMessages: useExternalMessageConverter.Callback<
+  BaseMessage
+> = (message): Message | Message[] => {
+  const content = getMessageContentOrThrow(message);
 
   switch (getMessageType(message)) {
     case "system":
@@ -88,24 +126,13 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
         result: content,
       };
     default:
+      console.error(message);
       throw new Error(`Unsupported message type: ${getMessageType(message)}`);
   }
 };
 
 export function convertToOpenAIFormat(message: BaseMessage) {
-  if (
-    typeof message?.content !== "string" &&
-    (!Array.isArray(message.content) || message.content[0]?.type !== "text")
-  ) {
-    throw new Error("Only text messages are supported");
-  }
-
-  let content = "";
-  if (Array.isArray(message.content) && message.content[0]?.type === "text") {
-    content = message.content[0].text;
-  } else if (typeof message.content === "string") {
-    content = message.content;
-  }
+  const content = getMessageContentOrThrow(message);
 
   switch (getMessageType(message)) {
     case "system":

@@ -26,9 +26,8 @@ export function CanvasComponent() {
   const { user } = userData;
   const { threadId, clearThreadsWithNoValues, setModelName, setModelConfig } =
     threadData;
-  const { setArtifact } = graphData;
+  const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
-  const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {

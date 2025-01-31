@@ -98,7 +98,7 @@ export const updateArtifact = async (
     .replace("{afterHighlight}", afterHighlight)
     .replace("{reflections}", memoriesAsString);
 
-  const recentHumanMessage = state.messages.findLast(
+  const recentHumanMessage = state._messages.findLast(
     (message) => message.getType() === "human"
   );
   if (!recentHumanMessage) {
