@@ -41,6 +41,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
     selectedBlocks,
     isStreaming,
     isArtifactSaved,
+    artifactUpdateFailed,
     setSelectedArtifact,
     setMessages,
     streamMessage,
@@ -312,6 +313,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
         currentArtifactContent={currentArtifactContent}
         totalArtifactVersions={artifact.contents.length}
         selectedAssistant={selectedAssistant}
+        artifactUpdateFailed={artifactUpdateFailed}
       />
       <div
         ref={contentRef}

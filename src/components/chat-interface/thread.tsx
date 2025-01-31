@@ -14,6 +14,7 @@ import { AssistantMessage, UserMessage } from "./messages";
 import ModelSelector from "./model-selector";
 import { ThreadHistory } from "./thread-history";
 import { ThreadWelcome } from "./welcome";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const ThreadScrollToBottom: FC = () => {
   return (
@@ -41,6 +42,8 @@ export interface ThreadProps {
 }
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const {
     setChatStarted,
     hasChatStarted,
@@ -74,6 +77,20 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       });
       return;
     }
+
+    // Remove the threadId param from the URL
+    const threadIdQueryParam = searchParams.get("threadId");
+    if (threadIdQueryParam) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("threadId");
+      // If there are still params, replace with the new URL. Else, replace with /
+      if (params.size > 0) {
+        router.replace(`?${params.toString()}`, { scroll: false });
+      } else {
+        router.replace("/", { scroll: false });
+      }
+    }
+
     setModelName(modelName);
     setModelConfig(modelName, modelConfig);
     clearState();

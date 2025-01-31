@@ -2,7 +2,7 @@ import { isToday, isYesterday, isWithinInterval, subDays } from "date-fns";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "../ui/sheet";
 import { Skeleton } from "../ui/skeleton";
 import { useEffect, useState } from "react";
 import { Thread } from "@langchain/langgraph-sdk";
@@ -253,10 +253,14 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
       <SheetContent
         side="left"
         className="border-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+        aria-describedby={undefined}
       >
-        <TighterText className="px-2 text-lg text-gray-600">
-          Chat History
-        </TighterText>
+        <SheetTitle>
+          <TighterText className="px-2 text-lg text-gray-600">
+            Chat History
+          </TighterText>
+        </SheetTitle>
+
         {isUserThreadsLoading && !userThreads.length ? (
           <div className="flex flex-col gap-1 px-2 pt-3">
             {Array.from({ length: 25 }).map((_, i) => (

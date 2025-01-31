@@ -58,7 +58,7 @@ export const generateArtifact = async (
     [
       { role: isO1MiniModel ? "user" : "system", content: fullSystemPrompt },
       ...contextDocumentMessages,
-      ...state.messages,
+      ...state._messages,
     ],
     { runName: "generate_artifact" }
   );

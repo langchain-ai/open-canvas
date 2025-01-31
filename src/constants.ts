@@ -1,6 +1,7 @@
 import { CustomModelConfig, ModelConfigurationParams } from "./types";
 
 export const OC_HIDE_FROM_UI_KEY = "__oc_hide_from_ui";
+export const OC_SUMMARIZED_MESSAGE_KEY = "__oc_summarized_message";
 export const LANGGRAPH_API_URL =
   process.env.LANGGRAPH_API_URL ?? "http://localhost:54367";
 // v2 is tied to the 'open-canvas-prod' deployment.
@@ -318,6 +319,17 @@ export const LANGCHAIN_USER_ONLY_MODELS = [
 ];
 
 export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o1"];
+
+// Models which do NOT stream back tool calls.
+export const NON_STREAMING_TOOL_CALLING_MODELS = [
+  "gemini-2.0-flash-exp",
+  "gemini-1.5-flash",
+];
+// Models which do NOT stream back text.
+export const NON_STREAMING_TEXT_MODELS = [
+  "o1",
+  "gemini-2.0-flash-thinking-exp-01-21",
+];
 
 export const ALL_MODELS: ModelConfigurationParams[] = [
   ...OPENAI_MODELS,

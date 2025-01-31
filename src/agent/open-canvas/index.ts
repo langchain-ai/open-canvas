@@ -13,6 +13,7 @@ import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
 import { generateTitleNode } from "./nodes/generateTitle";
 import { updateHighlightedText } from "./nodes/updateHighlightedText";
 import { OpenCanvasGraphAnnotation } from "./state";
+import { summarizer } from "./nodes/summarizer";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -30,6 +31,29 @@ const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
   };
 };
 
+// ~ 4 chars per token, max tokens of 75000. 75000 * 4 = 300000
+const CHARACTER_MAX = 300000;
+
+function simpleTokenCalculator(
+  state: typeof OpenCanvasGraphAnnotation.State
+): "summarizer" | typeof END {
+  const totalChars = state._messages.reduce((acc, msg) => {
+    if (typeof msg.content !== "string") {
+      const allContent = msg.content.flatMap((c) =>
+        "text" in c ? (c.text as string) : []
+      );
+      const totalChars = allContent.reduce((acc, c) => acc + c.length, 0);
+      return acc + totalChars;
+    }
+    return acc + msg.content.length;
+  }, 0);
+
+  if (totalChars > CHARACTER_MAX) {
+    return "summarizer";
+  }
+  return END;
+}
+
 /**
  * Conditionally route to the "generateTitle" node if there are only
  * two messages in the conversation. This node generates a concise title
@@ -37,10 +61,10 @@ const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
  */
 const conditionallyGenerateTitle = (
   state: typeof OpenCanvasGraphAnnotation.State
-) => {
+): "generateTitle" | "summarizer" | typeof END => {
   if (state.messages.length > 2) {
     // Do not generate if there are more than two messages (meaning it's not the first human-AI conversation)
-    return END;
+    return simpleTokenCalculator(state);
   }
   return "generateTitle";
 };
@@ -62,6 +86,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("cleanState", cleanState)
   .addNode("reflect", reflectNode)
   .addNode("generateTitle", generateTitleNode)
+  .addNode("summarizer", summarizer)
   // Initial router
   .addConditionalEdges("generatePath", routeNode, [
     "updateArtifact",
@@ -89,7 +114,9 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addConditionalEdges("cleanState", conditionallyGenerateTitle, [
     END,
     "generateTitle",
+    "summarizer",
   ])
-  .addEdge("generateTitle", END);
+  .addEdge("generateTitle", END)
+  .addEdge("summarizer", END);
 
 export const graph = builder.compile().withConfig({ runName: "open_canvas" });

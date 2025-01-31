@@ -92,7 +92,7 @@ export const updateHighlightedText = async (
     selectedText
   ).replace("{textBlocks}", markdownBlock);
 
-  const recentUserMessage = state.messages[state.messages.length - 1];
+  const recentUserMessage = state._messages[state._messages.length - 1];
   if (recentUserMessage.getType() !== "human") {
     throw new Error("Expected a human message");
   }

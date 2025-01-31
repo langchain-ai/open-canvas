@@ -51,7 +51,7 @@ export const generateFollowup = async (
     .replace("{reflections}", memoriesAsString)
     .replace(
       "{conversation}",
-      state.messages
+      state._messages
         .map((msg) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
         .join("\n\n")
     );
@@ -63,5 +63,6 @@ export const generateFollowup = async (
 
   return {
     messages: [response],
+    _messages: [response],
   };
 };

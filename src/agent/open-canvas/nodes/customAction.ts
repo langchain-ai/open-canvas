@@ -95,7 +95,7 @@ export const customAction = async (
     const formattedConversationHistory =
       CUSTOM_QUICK_ACTION_CONVERSATION_CONTEXT.replace(
         "{conversation}",
-        formatMessages(state.messages.slice(-5))
+        formatMessages(state._messages.slice(-5))
       );
     formattedPrompt += `\n\n${formattedConversationHistory}`;
   }

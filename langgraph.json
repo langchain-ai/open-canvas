@@ -7,7 +7,8 @@
   "graphs": {
     "agent": "./src/agent/open-canvas/index.ts:graph",
     "reflection": "./src/agent/reflection/index.ts:graph",
-    "thread_title": "./src/agent/thread-title/index.ts:graph"
+    "thread_title": "./src/agent/thread-title/index.ts:graph",
+    "summarizer": "./src/agent/summarizer/index.ts:graph"
   },
   "env": ".env"
 }
