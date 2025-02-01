@@ -1,12 +1,17 @@
 import { getArtifactContent } from "@/contexts/utils";
 import { isArtifactCodeContent } from "@/lib/artifact_content_types";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@/types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ProgrammingLanguageOptions,
+} from "@/types";
 import {
   OPTIONALLY_UPDATE_META_PROMPT,
   UPDATE_ENTIRE_ARTIFACT_PROMPT,
 } from "../../prompts";
 import { OpenCanvasGraphAnnotation } from "../../state";
-import { ToolCall } from "@langchain/core/messages/tool";
+import { z } from "zod";
+import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas";
 
 export const validateState = (
   state: typeof OpenCanvasGraphAnnotation.State
@@ -28,16 +33,17 @@ export const validateState = (
   return { currentArtifactContent, recentHumanMessage };
 };
 
-const buildMetaPrompt = (artifactMetaToolCall: ToolCall | undefined) => {
+const buildMetaPrompt = (
+  artifactMetaToolCall: z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>
+) => {
   const titleSection =
-    artifactMetaToolCall?.args?.title &&
-    artifactMetaToolCall?.args?.type !== "code"
-      ? `And its title is (do NOT include this in your response):\n${artifactMetaToolCall.args.title}`
+    artifactMetaToolCall?.title && artifactMetaToolCall?.type !== "code"
+      ? `And its title is (do NOT include this in your response):\n${artifactMetaToolCall.title}`
       : "";
 
   return OPTIONALLY_UPDATE_META_PROMPT.replace(
     "{artifactType}",
-    artifactMetaToolCall?.args?.type
+    artifactMetaToolCall?.type
   ).replace("{artifactTitle}", titleSection);
 };
 
@@ -45,7 +51,7 @@ interface BuildPromptArgs {
   artifactContent: string;
   memoriesAsString: string;
   isNewType: boolean;
-  artifactMetaToolCall: ToolCall | undefined;
+  artifactMetaToolCall: z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>;
 }
 
 export const buildPrompt = ({
@@ -68,7 +74,7 @@ interface CreateNewArtifactContentArgs {
   artifactType: string;
   state: typeof OpenCanvasGraphAnnotation.State;
   currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3;
-  artifactMetaToolCall: ToolCall | undefined;
+  artifactMetaToolCall: z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>;
   newContent: string;
 }
 
@@ -81,14 +87,17 @@ export const createNewArtifactContent = ({
 }: CreateNewArtifactContentArgs): ArtifactCodeV3 | ArtifactMarkdownV3 => {
   const baseContent = {
     index: state.artifact.contents.length + 1,
-    title: artifactMetaToolCall?.args?.title || currentArtifactContent.title,
+    title: artifactMetaToolCall?.title || currentArtifactContent.title,
   };
 
   if (artifactType === "code") {
     return {
       ...baseContent,
       type: "code",
-      language: getLanguage(artifactMetaToolCall, currentArtifactContent),
+      language: getLanguage(
+        artifactMetaToolCall,
+        currentArtifactContent
+      ) as ProgrammingLanguageOptions,
       code: newContent,
     };
   }
@@ -101,10 +110,10 @@ export const createNewArtifactContent = ({
 };
 
 const getLanguage = (
-  artifactMetaToolCall: ToolCall | undefined,
+  artifactMetaToolCall: z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>,
   currentArtifactContent: ArtifactCodeV3 | ArtifactMarkdownV3 // Replace 'any' with proper type
 ) =>
-  artifactMetaToolCall?.args?.programmingLanguage ||
+  artifactMetaToolCall?.language ||
   (isArtifactCodeContent(currentArtifactContent)
     ? currentArtifactContent.language
     : "other");

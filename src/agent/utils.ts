@@ -198,7 +198,11 @@ export const getModelConfig = (
     modelConfig,
   };
 
-  if (customModelName.includes("gpt-") || customModelName.includes("o1")) {
+  if (
+    customModelName.includes("gpt-") ||
+    customModelName.includes("o1") ||
+    customModelName.includes("o3")
+  ) {
     let actualModelName = providerConfig.modelName;
     if (extra?.isToolCalling && actualModelName.includes("o1")) {
       // Fallback to 4o model for tool calling since o1 does not support tools.

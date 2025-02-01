@@ -28,6 +28,7 @@ import {
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
   NON_STREAMING_TEXT_MODELS,
+  NON_STREAMING_TOOL_CALLING_MODELS,
   THREAD_ID_COOKIE_NAME,
 } from "@/constants";
 import { Thread } from "@langchain/langgraph-sdk";
@@ -459,9 +460,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
+              const message = extractStreamDataChunk(chunk.data.data.chunk);
               generateArtifactToolCallStr +=
-                extractStreamDataChunk(chunk.data.data.chunk)
-                  ?.tool_call_chunks?.[0]?.args || "";
+                message?.tool_call_chunks?.[0]?.args || message.content;
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
               );
@@ -793,13 +794,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           if (chunk.data.event === "on_chat_model_end") {
             if (
               chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
-              chunk.data.name === "optionally_update_artifact_meta"
-            ) {
-              rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
-            }
-
-            if (
-              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
               chunk.data.name === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
@@ -1046,7 +1040,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             if (
               chunk.data.metadata.langgraph_node === "generateArtifact" &&
               !generateArtifactToolCallStr &&
-              threadData.modelName.includes("gemini-")
+              NON_STREAMING_TOOL_CALLING_MODELS.some(
+                (m) => m === threadData.modelName
+              )
             ) {
               generateArtifactToolCallStr +=
                 chunk.data.data.output.tool_call_chunks?.[0]?.args || "";
@@ -1146,6 +1142,15 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               setMessages((prevMessages) =>
                 replaceOrInsertMessageChunk(prevMessages, message)
               );
+            }
+          }
+
+          if (chunk.data.event === "on_chain_end") {
+            if (
+              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
+              chunk.data.name === "optionally_update_artifact_meta"
+            ) {
+              rewriteArtifactMeta = chunk.data.data.output;
             }
           }
         } catch (e: any) {
