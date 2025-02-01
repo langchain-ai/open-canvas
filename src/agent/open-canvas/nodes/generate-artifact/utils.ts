@@ -1,5 +1,9 @@
 import { NEW_ARTIFACT_PROMPT } from "../../prompts";
-import { ArtifactCodeV3, ArtifactMarkdownV3, ProgrammingLanguageOptions } from "@/types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ProgrammingLanguageOptions,
+} from "@/types";
 import { z } from "zod";
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas";
 

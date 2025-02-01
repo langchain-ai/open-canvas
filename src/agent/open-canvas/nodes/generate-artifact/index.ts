@@ -30,10 +30,11 @@ export const generateArtifact = async (
     isToolCalling: true,
   });
 
-  const modelWithArtifactTool = smallModel.withStructuredOutput(ARTIFACT_TOOL_SCHEMA,
-      {
-        name: "generate_artifact",
-      },
+  const modelWithArtifactTool = smallModel.withStructuredOutput(
+    ARTIFACT_TOOL_SCHEMA,
+    {
+      name: "generate_artifact",
+    }
   );
 
   const memoriesAsString = await getFormattedReflections(config);
