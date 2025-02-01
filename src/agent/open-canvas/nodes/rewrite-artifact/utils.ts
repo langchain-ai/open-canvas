@@ -10,7 +10,6 @@ import {
   UPDATE_ENTIRE_ARTIFACT_PROMPT,
 } from "../../prompts";
 import { OpenCanvasGraphAnnotation } from "../../state";
-import { ToolCall } from "@langchain/core/messages/tool";
 import { z } from "zod";
 import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas";
 

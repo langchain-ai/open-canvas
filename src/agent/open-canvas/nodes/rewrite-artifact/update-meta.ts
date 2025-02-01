@@ -2,7 +2,6 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { OpenCanvasGraphAnnotation } from "../../state";
 import {
   formatArtifactContent,
-  getModelConfig,
   getModelFromConfig,
   isUsingO1MiniModel,
 } from "@/agent/utils";
@@ -16,9 +15,6 @@ export async function optionallyUpdateArtifactMeta(
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>> {
-  const { modelProvider } = getModelConfig(config, {
-    isToolCalling: true,
-  });
   const toolCallingModel = (
     await getModelFromConfig(config, {
       isToolCalling: true,

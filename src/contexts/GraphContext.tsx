@@ -461,7 +461,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
               const message = extractStreamDataChunk(chunk.data.data.chunk);
-              generateArtifactToolCallStr += message?.tool_call_chunks?.[0]?.args || message.content;
+              generateArtifactToolCallStr +=
+                message?.tool_call_chunks?.[0]?.args || message.content;
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
               );
@@ -1039,7 +1040,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             if (
               chunk.data.metadata.langgraph_node === "generateArtifact" &&
               !generateArtifactToolCallStr &&
-              NON_STREAMING_TOOL_CALLING_MODELS.some((m) => m === threadData.modelName)
+              NON_STREAMING_TOOL_CALLING_MODELS.some(
+                (m) => m === threadData.modelName
+              )
             ) {
               generateArtifactToolCallStr +=
                 chunk.data.data.output.tool_call_chunks?.[0]?.args || "";
