@@ -54,6 +54,26 @@ export const AZURE_MODELS: ModelConfigurationParams[] = [
 
 export const OPENAI_MODELS: ModelConfigurationParams[] = [
   {
+    name: "o3-mini",
+    label: "o3 mini",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 100000,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
     name: "o1-mini",
     label: "o1 mini",
     config: {
@@ -312,13 +332,14 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
 
 export const LANGCHAIN_USER_ONLY_MODELS = [
   "o1-mini",
+  "o3-mini",
   "o1",
   "gpt-4o",
   "claude-3-5-sonnet-latest",
   "gemini-2.0-flash-thinking-exp-01-21",
 ];
 
-export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o1"];
+export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o3-mini", "o1"];
 
 // Models which do NOT stream back tool calls.
 export const NON_STREAMING_TOOL_CALLING_MODELS = [

@@ -9,13 +9,13 @@ import {
 import { getArtifactContent } from "@/contexts/utils";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts";
 import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas";
-import { ToolCall } from "@langchain/core/messages/tool";
 import { getFormattedReflections } from "../../../utils";
+import { z } from "zod";
 
 export async function optionallyUpdateArtifactMeta(
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
-): Promise<ToolCall | undefined> {
+): Promise<z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>> {
   const { modelProvider } = getModelConfig(config, {
     isToolCalling: true,
   });
@@ -24,19 +24,11 @@ export async function optionallyUpdateArtifactMeta(
       isToolCalling: true,
     })
   )
-    .bindTools(
-      [
-        {
-          name: "optionallyUpdateArtifactMeta",
-          schema: OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA,
-          description: "Update the artifact meta information, if necessary.",
-        },
-      ],
+    .withStructuredOutput(
+      OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA,
+
       {
-        // Ollama does not support tool choice
-        ...(modelProvider !== "ollama" && {
-          tool_choice: "optionallyUpdateArtifactMeta",
-        }),
+        name: "optionallyUpdateArtifactMeta",
       }
     )
     .withConfig({ runName: "optionally_update_artifact_meta" });
@@ -72,5 +64,5 @@ export async function optionallyUpdateArtifactMeta(
     recentHumanMessage,
   ]);
 
-  return optionallyUpdateArtifactResponse.tool_calls?.[0];
+  return optionallyUpdateArtifactResponse;
 }
