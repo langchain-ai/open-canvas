@@ -1,6 +1,11 @@
 import { NEW_ARTIFACT_PROMPT } from "../../prompts";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@/types";
-import { ToolCall } from "@langchain/core/messages/tool";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+  ProgrammingLanguageOptions,
+} from "@/types";
+import { z } from "zod";
+import { ARTIFACT_TOOL_SCHEMA } from "./schemas";
 
 export const formatNewArtifactPrompt = (
   memoriesAsString: string,
@@ -15,25 +20,24 @@ export const formatNewArtifactPrompt = (
 };
 
 export const createArtifactContent = (
-  toolCall: ToolCall | undefined
+  toolCall: z.infer<typeof ARTIFACT_TOOL_SCHEMA>
 ): ArtifactCodeV3 | ArtifactMarkdownV3 => {
-  const toolArgs = toolCall?.args;
-  const artifactType = toolArgs?.type;
+  const artifactType = toolCall?.type;
 
   if (artifactType === "code") {
     return {
       index: 1,
       type: "code",
-      title: toolArgs?.title,
-      code: toolArgs?.artifact,
-      language: toolArgs?.language,
+      title: toolCall?.title,
+      code: toolCall?.artifact,
+      language: toolCall?.language as ProgrammingLanguageOptions,
     };
   }
 
   return {
     index: 1,
     type: "text",
-    title: toolArgs?.title,
-    fullMarkdown: toolArgs?.artifact,
+    title: toolCall?.title,
+    fullMarkdown: toolCall?.artifact,
   };
 };

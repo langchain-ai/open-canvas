@@ -1038,26 +1038,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
-              chunk.data.metadata.langgraph_node === "generateArtifact" &&
-              !generateArtifactToolCallStr &&
-              NON_STREAMING_TOOL_CALLING_MODELS.some(
-                (m) => m === threadData.modelName
-              )
-            ) {
-              generateArtifactToolCallStr +=
-                chunk.data.data.output.tool_call_chunks?.[0]?.args || "";
-              const result = handleGenerateArtifactToolCallChunk(
-                generateArtifactToolCallStr
-              );
-              if (result && result === "continue") {
-                continue;
-              } else if (result && typeof result === "object") {
-                setFirstTokenReceived(true);
-                setArtifact(() => result);
-              }
-            }
-
-            if (
               [
                 "rewriteArtifactTheme",
                 "rewriteCodeArtifactTheme",
@@ -1151,6 +1131,27 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               chunk.data.name === "optionally_update_artifact_meta"
             ) {
               rewriteArtifactMeta = chunk.data.data.output;
+            }
+
+            if (
+              chunk.data.metadata.langgraph_node === "generateArtifact" &&
+              !generateArtifactToolCallStr &&
+              NON_STREAMING_TOOL_CALLING_MODELS.some(
+                (m) => m === threadData.modelName
+              )
+            ) {
+              const message = chunk.data.data.output;
+              generateArtifactToolCallStr +=
+                message?.tool_call_chunks?.[0]?.args || message?.content || "";
+              const result = handleGenerateArtifactToolCallChunk(
+                generateArtifactToolCallStr
+              );
+              if (result && result === "continue") {
+                continue;
+              } else if (result && typeof result === "object") {
+                setFirstTokenReceived(true);
+                setArtifact(() => result);
+              }
             }
           }
         } catch (e: any) {
