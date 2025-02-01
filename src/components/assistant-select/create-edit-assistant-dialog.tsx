@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ContextDocument,
   CreateCustomAssistantArgs,
   EditCustomAssistantArgs,
 } from "@/hooks/useAssistants";
@@ -11,7 +10,6 @@ import {
   FormEvent,
   SetStateAction,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import * as Icons from "lucide-react";
@@ -32,15 +30,10 @@ import { useToast } from "@/hooks/use-toast";
 import { ColorPicker } from "./color-picker";
 import { Textarea } from "../ui/textarea";
 import { InlineContextTooltip } from "../ui/inline-context-tooltip";
-import { UploadedFiles } from "./uploaded-file";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { ALLOWED_AUDIO_TYPES, ALLOWED_VIDEO_TYPES } from "@/constants";
 import { useStore } from "@/hooks/useStore";
-import {
-  arrayToFileList,
-  contextDocumentToFile,
-  convertDocuments,
-} from "@/lib/attachments";
+import { arrayToFileList, contextDocumentToFile } from "@/lib/attachments";
+import { ContextDocuments } from "./context-documents";
+import { useContextDocuments } from "@/hooks/useContextDocuments";
 
 interface CreateEditAssistantDialogProps {
   open: boolean;
@@ -83,16 +76,6 @@ const SystemPromptWhatsThis = (): React.ReactNode => (
   </span>
 );
 
-const ContextDocumentsWhatsThis = (): React.ReactNode => (
-  <span className="flex flex-col gap-1 text-sm text-gray-600">
-    <p className="text-sm text-gray-600">
-      Context documents are text or PDF files which will be included in the
-      LLM&apos;s context for ALL interactions <i>except</i> quick actions, when
-      generating, re-writing and editing artifacts.
-    </p>
-  </span>
-);
-
 export function CreateEditAssistantDialog(
   props: CreateEditAssistantDialogProps
 ) {
@@ -106,11 +89,16 @@ export function CreateEditAssistantDialog(
   const [iconColor, setIconColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
-  const [documents, setDocuments] = useState<FileList>();
-  const [loadingDocuments, setLoadingDocuments] = useState(false);
-
-  const messageRef = useRef<HTMLDivElement>(null);
-  const ffmpegRef = useRef(new FFmpeg());
+  const {
+    documents,
+    setDocuments,
+    urls,
+    setUrls,
+    loadingDocuments,
+    setLoadingDocuments,
+    processDocuments,
+    setProcessedContextDocuments,
+  } = useContextDocuments(props.userId || "");
 
   const metadata = props.assistant?.metadata as Record<string, any> | undefined;
 
@@ -130,7 +118,27 @@ export function CreateEditAssistantDialog(
       getContextDocuments(props.assistant.assistant_id)
         .then((documents) => {
           if (documents) {
-            const files = documents.map(contextDocumentToFile);
+            const files = documents
+              .filter((d) => !d.metadata?.url)
+              .map(contextDocumentToFile);
+
+            const urls = documents
+              .filter((d) => d.metadata?.url)
+              .map((d) => d.metadata?.url);
+
+            setProcessedContextDocuments(
+              new Map(
+                documents.map((d) => {
+                  if (d.metadata?.url) {
+                    return [d.metadata?.url, d];
+                  } else {
+                    return [d.name, d];
+                  }
+                })
+              )
+            );
+
+            setUrls(urls);
             setDocuments(arrayToFileList(files));
           }
         })
@@ -142,6 +150,7 @@ export function CreateEditAssistantDialog(
       setIconName("User");
       setIconColor("#000000");
       setDocuments(undefined);
+      setUrls([]);
     }
   }, [props.assistant, props.isEditing]);
 
@@ -166,17 +175,7 @@ export function CreateEditAssistantDialog(
 
     props.setAllDisabled(true);
 
-    const contentDocuments: ContextDocument[] = [];
-    if (documents?.length) {
-      const documentsResult = await convertDocuments({
-        ffmpeg: ffmpegRef.current,
-        messageRef,
-        documents,
-        userId: props.userId,
-        toast,
-      });
-      contentDocuments.push(...documentsResult);
-    }
+    const contentDocuments = await processDocuments();
 
     let success: boolean;
     if (props.isEditing && props.assistant) {
@@ -379,92 +378,15 @@ export function CreateEditAssistantDialog(
             </div>
           </div>
 
-          <Label htmlFor="context-documents">
-            <TighterText className="flex items-center">
-              Context Documents{" "}
-              <span className="text-gray-600 text-sm ml-1">
-                (Max 20 files - Documents: 10MB each, Audio: 25MB each, Video:
-                1GB each)
-              </span>
-              <InlineContextTooltip cardContentClassName="w-[500px] ml-10">
-                <ContextDocumentsWhatsThis />
-              </InlineContextTooltip>
-            </TighterText>
-          </Label>
-          {!documents && !loadingDocuments && (
-            <Input
-              disabled={props.allDisabled}
-              required={false}
-              id="context-documents"
-              type="file"
-              multiple
-              accept=".txt,.md,.json,.xml,.css,.html,.csv,.pdf,.doc,.docx,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm"
-              onChange={(e) => {
-                const files = e.target.files;
-                if (!files) return;
-
-                if (files.length > 20) {
-                  alert("You can only upload up to 20 files");
-                  e.target.value = "";
-                  return;
-                }
-
-                // Size limits in bytes
-                const tenMbBytes = 10 * 1024 * 1024; // 10MB for documents
-                const twentyFiveMbBytes = 25 * 1024 * 1024; // 25MB for audio
-                const oneGbBytes = 1024 * 1024 * 1024; // 1GB for video
-
-                for (let i = 0; i < files.length; i += 1) {
-                  const file = files[i];
-                  const isAudio = ALLOWED_AUDIO_TYPES.has(file.type);
-                  const isVideo = ALLOWED_VIDEO_TYPES.has(file.type);
-
-                  // Check size limits based on file type
-                  if (isAudio && file.size > twentyFiveMbBytes) {
-                    alert(
-                      `Audio file "${file.name}" exceeds the 25MB size limit`
-                    );
-                    e.target.value = "";
-                    return;
-                  } else if (isVideo && file.size > oneGbBytes) {
-                    alert(
-                      `Video file "${file.name}" exceeds the 1GB size limit`
-                    );
-                    e.target.value = "";
-                    return;
-                  } else if (!isAudio && !isVideo && file.size > tenMbBytes) {
-                    alert(
-                      `Document "${file.name}" exceeds the 10MB size limit`
-                    );
-                    e.target.value = "";
-                    return;
-                  }
-                }
-
-                setDocuments(files || undefined);
-              }}
-            />
-          )}
-          {loadingDocuments && (
-            <span className="text-gray-600 text-sm flex gap-2">
-              Loading context documents{" "}
-              <Icons.LoaderCircle className="animate-spin w-4 h-4" />
-            </span>
-          )}
-          <UploadedFiles
-            files={documents}
+          <ContextDocuments
+            documents={documents}
+            setDocuments={setDocuments}
+            loadingDocuments={loadingDocuments}
+            allDisabled={props.allDisabled}
             handleRemoveFile={handleRemoveFile}
+            urls={urls}
+            setUrls={setUrls}
           />
-          {documents && (
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-2"
-              onClick={() => setDocuments(undefined)}
-            >
-              Choose Different Files
-            </Button>
-          )}
 
           <div className="flex items-center justify-center w-full mt-4 gap-3">
             <Button

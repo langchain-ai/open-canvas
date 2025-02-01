@@ -1,6 +1,6 @@
 import { ContextDocument } from "@/hooks/useAssistants";
 import { HumanMessage } from "@langchain/core/messages";
-import { UploadedFiles } from "../assistant-select/uploaded-file";
+import { UploadedFiles } from "../assistant-select/context-documents/uploaded-file";
 
 export const ContextDocumentsUI = ({
   message,
