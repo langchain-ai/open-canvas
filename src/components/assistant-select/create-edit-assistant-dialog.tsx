@@ -97,6 +97,7 @@ export function CreateEditAssistantDialog(
     loadingDocuments,
     setLoadingDocuments,
     processDocuments,
+    setProcessedContextDocuments,
   } = useContextDocuments(props.userId || "");
 
   const metadata = props.assistant?.metadata as Record<string, any> | undefined;
@@ -120,9 +121,23 @@ export function CreateEditAssistantDialog(
             const files = documents
               .filter((d) => !d.metadata?.url)
               .map(contextDocumentToFile);
+
             const urls = documents
               .filter((d) => d.metadata?.url)
               .map((d) => d.metadata?.url);
+
+            setProcessedContextDocuments(
+              new Map(
+                documents.map((d) => {
+                  if (d.metadata?.url) {
+                    return [d.metadata?.url, d];
+                  } else {
+                    return [d.name, d];
+                  }
+                })
+              )
+            );
+
             setUrls(urls);
             setDocuments(arrayToFileList(files));
           }

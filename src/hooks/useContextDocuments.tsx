@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { ContextDocument } from "./useAssistants";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { convertDocuments, load } from "@/lib/attachments";
+import { arrayToFileList, convertDocuments, load } from "@/lib/attachments";
 import { useToast } from "./use-toast";
+import { ContextDocument } from "./useAssistants";
 
 export function useContextDocuments(userId: string) {
   const { toast } = useToast();
+  const [processedContextDocuments, setProcessedContextDocuments] = useState<
+    Map<string, ContextDocument>
+  >(new Map());
   const [documents, setDocuments] = useState<FileList>();
   const [urls, setUrls] = useState<string[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
@@ -68,20 +71,51 @@ export function useContextDocuments(userId: string) {
       return [];
     }
 
+    const files = documents?.length ? Array.from(documents) : [];
+    const currentFileNames = new Set(files.map((f) => f.name));
+    const currentUrls = new Set(urls);
+
+    // Remove deleted entries from processedContextDocuments
+    for (const key of Array.from(processedContextDocuments.keys())) {
+      if (!currentFileNames.has(key) && !currentUrls.has(key)) {
+        processedContextDocuments.delete(key);
+      }
+    }
+
+    // Only process files/urls that haven't been processed before
+    const unprocessedFiles = files.filter(
+      (f) => !processedContextDocuments.has(f.name)
+    );
+    const unprocessedFileList = arrayToFileList(unprocessedFiles);
+
+    const unprocessedUrls = urls.filter(
+      (url) => !processedContextDocuments.has(url)
+    );
+
     const [fileDocuments, urlDocuments] = await Promise.all([
-      documents?.length
+      unprocessedFileList?.length
         ? convertDocuments({
             ffmpeg: ffmpegRef.current,
             messageRef,
-            documents,
+            documents: unprocessedFileList,
             userId: userId,
             toast,
           })
         : [],
-      urls.length ? convertUrlsToDocuments(urls) : [],
+      unprocessedUrls.length ? convertUrlsToDocuments(unprocessedUrls) : [],
     ]);
 
-    return [...fileDocuments, ...urlDocuments];
+    // Add newly processed documents to the Map
+    [...fileDocuments, ...urlDocuments].forEach((doc) => {
+      if (doc.metadata?.url) {
+        processedContextDocuments.set(doc.metadata.url, doc);
+      } else {
+        processedContextDocuments.set(doc.name, doc);
+      }
+    });
+
+    // Return all documents (both newly processed and previously processed)
+    return Array.from(processedContextDocuments.values());
   };
 
   return {
@@ -92,5 +126,6 @@ export function useContextDocuments(userId: string) {
     loadingDocuments,
     setLoadingDocuments,
     processDocuments,
+    setProcessedContextDocuments,
   };
 }
