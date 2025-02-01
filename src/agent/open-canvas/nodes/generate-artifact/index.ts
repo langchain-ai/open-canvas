@@ -22,7 +22,7 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName, modelProvider } = getModelConfig(config, {
+  const { modelName } = getModelConfig(config, {
     isToolCalling: true,
   });
   const smallModel = await getModelFromConfig(config, {
@@ -30,15 +30,10 @@ export const generateArtifact = async (
     isToolCalling: true,
   });
 
-  const modelWithArtifactTool = smallModel.bindTools(
-    [
+  const modelWithArtifactTool = smallModel.withStructuredOutput(ARTIFACT_TOOL_SCHEMA,
       {
         name: "generate_artifact",
-        schema: ARTIFACT_TOOL_SCHEMA,
       },
-    ],
-    // Ollama does not support tool choice
-    { ...(modelProvider !== "ollama" && { tool_choice: "generate_artifact" }) }
   );
 
   const memoriesAsString = await getFormattedReflections(config);
@@ -63,7 +58,7 @@ export const generateArtifact = async (
     { runName: "generate_artifact" }
   );
 
-  const newArtifactContent = createArtifactContent(response.tool_calls?.[0]);
+  const newArtifactContent = createArtifactContent(response);
   const newArtifact: ArtifactV3 = {
     currentIndex: 1,
     contents: [newArtifactContent],
