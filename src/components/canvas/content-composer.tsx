@@ -28,6 +28,8 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { ContextDocument } from "@/hooks/useAssistants";
 import { arrayToFileList, convertDocuments } from "@/lib/attachments";
 import { VideoAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/video";
+import { useUserContext } from "@/contexts/UserContext";
+import { useThreadContext } from "@/contexts/ThreadProvider";
 
 export interface ContentComposerChatInterfaceProps {
   switchSelectedThreadCallback: (thread: ThreadType) => void;
@@ -43,9 +45,10 @@ export function ContentComposerChatInterfaceComponent(
   props: ContentComposerChatInterfaceProps
 ): React.ReactElement {
   const { toast } = useToast();
-  const { userData, graphData, threadData } = useGraphContext();
+  const userData = useUserContext();
+  const { graphData } = useGraphContext();
   const { messages, setMessages, streamMessage, setIsStreaming } = graphData;
-  const { getUserThreads } = threadData;
+  const { getUserThreads } = useThreadContext();
   const [isRunning, setIsRunning] = useState(false);
   const messageRef = useRef<HTMLDivElement>(null);
   const ffmpegRef = useRef(new FFmpeg());
@@ -107,7 +110,7 @@ export function ContentComposerChatInterfaceComponent(
     } finally {
       setIsRunning(false);
       // Re-fetch threads so that the current thread's title is updated.
-      await getUserThreads(userData.user.id);
+      await getUserThreads();
     }
   }
 
