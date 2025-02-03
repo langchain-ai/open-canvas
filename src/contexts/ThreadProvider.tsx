@@ -5,19 +5,49 @@ import {
   DEFAULT_MODEL_NAME,
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
+  THREAD_ID_QUERY_PARAM,
 } from "@/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
 import { CustomModelConfig } from "@/types";
 import { Thread } from "@langchain/langgraph-sdk";
-import { useMemo, useState } from "react";
-import { createClient } from "./utils";
+import { createClient } from "../hooks/utils";
+import { useSearchParams } from "next/navigation";
+import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import { useUserContext } from "./UserContext";
+import { useToast } from "@/hooks/use-toast";
 
-export function useThread() {
+type ThreadContentType = {
+  threadId: string | undefined;
+  userThreads: Thread[];
+  isUserThreadsLoading: boolean;
+  modelName: ALL_MODEL_NAMES;
+  modelConfig: CustomModelConfig;
+  modelConfigs: Record<ALL_MODEL_NAMES, CustomModelConfig>;
+  createThreadLoading: boolean;
+  clearThreadsWithNoValues: () => Promise<void>;
+  searchOrCreateThread: () => Promise<Thread | undefined>;
+  getUserThreads: () => Promise<void>;
+  deleteThread: (id: string, clearMessages: () => void) => Promise<void>;
+  setThreadId: (id: string) => void;
+  setModelName: (name: ALL_MODEL_NAMES) => void;
+  setModelConfig: (
+    modelName: ALL_MODEL_NAMES,
+    config: CustomModelConfig
+  ) => void;
+};
+
+const ThreadContext = createContext<ThreadContentType | undefined>(undefined);
+
+export function ThreadProvider({ children }: { children: ReactNode }) {
+  const searchParams = useSearchParams();
+  const { user } = useUserContext();
+  const { toast } = useToast();
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
   const [modelName, setModelName] =
     useState<ALL_MODEL_NAMES>(DEFAULT_MODEL_NAME);
+  const [createThreadLoading, setCreateThreadLoading] = useState(false);
 
   const [modelConfigs, setModelConfigs] = useState<
     Record<ALL_MODEL_NAMES, CustomModelConfig>
@@ -104,46 +134,70 @@ export function useThread() {
     }));
   };
 
-  const createThread = async (
-    customModelName: ALL_MODEL_NAMES = DEFAULT_MODEL_NAME,
-    customModelConfig: CustomModelConfig = modelConfig,
-    userId: string
-  ): Promise<Thread | undefined> => {
+  const createThread = async (): Promise<Thread | undefined> => {
+    if (!user) {
+      toast({
+        title: "Failed to create thread",
+        description: "User not found",
+        duration: 5000,
+        variant: "destructive",
+      });
+      return;
+    }
     const client = createClient();
+    setCreateThreadLoading(true);
 
     try {
       const thread = await client.threads.create({
         metadata: {
-          supabase_user_id: userId,
-          customModelName,
+          supabase_user_id: user.id,
+          customModelName: modelName,
           modelConfig: {
-            ...customModelConfig,
+            ...modelConfig,
             // Ensure Azure config is included if needed
-            ...(customModelConfig.provider === "azure_openai" && {
-              azureConfig: customModelConfig.azureConfig,
+            ...(modelConfig.provider === "azure_openai" && {
+              azureConfig: modelConfig.azureConfig,
             }),
           },
         },
       });
       setThreadId(thread.thread_id);
       setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
-      setModelName(customModelName);
-      setModelConfig(customModelName, customModelConfig);
-      await getUserThreads(userId);
+      // Fetch updated threads so the new thread is included.
+      await getUserThreads();
       return thread;
     } catch (e) {
       console.error("Failed to create thread", e);
+      toast({
+        title: "Failed to create thread",
+        description:
+          "An error occurred while trying to create a new thread. Please try again.",
+        duration: 5000,
+        variant: "destructive",
+      });
+    } finally {
+      setCreateThreadLoading(false);
     }
   };
 
-  const getUserThreads = async (userId: string) => {
+  const getUserThreads = async () => {
+    if (!user) {
+      toast({
+        title: "Failed to create thread",
+        description: "User not found",
+        duration: 5000,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUserThreadsLoading(true);
     try {
       const client = createClient();
 
       const userThreads = await client.threads.search({
         metadata: {
-          supabase_user_id: userId,
+          supabase_user_id: user.id,
         },
         limit: 100,
       });
@@ -161,30 +215,39 @@ export function useThread() {
     }
   };
 
-  const searchOrCreateThread = async (userId: string) => {
-    const threadIdCookie = getCookie(THREAD_ID_COOKIE_NAME);
-    if (!threadIdCookie) {
-      await createThread(modelName, modelConfig, userId);
-      return;
+  const searchOrCreateThread = async () => {
+    const storedThreadId =
+      searchParams.get(THREAD_ID_QUERY_PARAM) ||
+      getCookie(THREAD_ID_COOKIE_NAME);
+
+    if (!storedThreadId) {
+      const newThread = await createThread();
+      return newThread;
     }
 
     // Thread ID is in cookies.
-    const thread = await getThreadById(threadIdCookie);
-    if (
-      thread &&
-      (!thread?.values || Object.keys(thread.values).length === 0)
-    ) {
-      // No values = no activity. Can keep.
-      setThreadId(threadIdCookie);
-      return threadIdCookie;
-    } else {
-      // Current thread has activity. Create a new thread.
-      await createThread(modelName, modelConfig, userId);
-      return;
+    const thread = await getThreadById(storedThreadId);
+    if (thread) {
+      setThreadId(storedThreadId);
+      return thread;
     }
+
+    // Current thread has activity. Create a new thread.
+    const newThread = await createThread();
+    return newThread;
   };
 
-  const clearThreadsWithNoValues = async (userId: string) => {
+  const clearThreadsWithNoValues = async () => {
+    if (!user) {
+      toast({
+        title: "Failed to create thread",
+        description: "User not found",
+        duration: 5000,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const hasBeenClearedCookie = getCookie(HAS_EMPTY_THREADS_CLEARED_COOKIE);
     if (hasBeenClearedCookie === "true") {
       return;
@@ -196,7 +259,7 @@ export function useThread() {
     const fetchAndDeleteThreads = async (offset = 0) => {
       const userThreads = await client.threads.search({
         metadata: {
-          supabase_user_id: userId,
+          supabase_user_id: user.id,
         },
         limit: 100,
         offset: offset,
@@ -274,11 +337,7 @@ export function useThread() {
     }
   };
 
-  const deleteThread = async (
-    id: string,
-    userId: string,
-    clearMessages: () => void
-  ) => {
+  const deleteThread = async (id: string, clearMessages: () => void) => {
     setUserThreads((prevThreads) => {
       const newThreads = prevThreads.filter(
         (thread) => thread.thread_id !== id
@@ -290,7 +349,7 @@ export function useThread() {
       // Create a new thread. Use .then to avoid blocking the UI.
       // Once completed, `createThread` will re-fetch all user
       // threads to update UI.
-      void createThread(modelName, modelConfig, userId);
+      void createThread();
     }
     const client = createClient();
     try {
@@ -300,21 +359,34 @@ export function useThread() {
     }
   };
 
-  return {
+  const contextValue: ThreadContentType = {
     threadId,
     userThreads,
     isUserThreadsLoading,
     modelName,
     modelConfig,
     modelConfigs,
-    createThread,
+    createThreadLoading,
     clearThreadsWithNoValues,
     searchOrCreateThread,
     getUserThreads,
     deleteThread,
-    getThreadById,
     setThreadId,
     setModelName,
     setModelConfig,
   };
+
+  return (
+    <ThreadContext.Provider value={contextValue}>
+      {children}
+    </ThreadContext.Provider>
+  );
+}
+
+export function useThreadContext() {
+  const context = useContext(ThreadContext);
+  if (context === undefined) {
+    throw new Error("useThreadContext must be used within a ThreadProvider");
+  }
+  return context;
 }

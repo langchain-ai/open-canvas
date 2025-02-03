@@ -18,6 +18,7 @@ import { ArtifactLoading } from "./ArtifactLoading";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { ArtifactHeader } from "./header";
+import { useUserContext } from "@/contexts/UserContext";
 
 export interface ArtifactRendererProps {
   isEditing: boolean;
@@ -34,13 +35,14 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
   const {
     graphData,
     assistantsData: { selectedAssistant },
-    userData: { user },
   } = useGraphContext();
+  const { user } = useUserContext();
   const {
     artifact,
     selectedBlocks,
     isStreaming,
     isArtifactSaved,
+    artifactUpdateFailed,
     setSelectedArtifact,
     setMessages,
     streamMessage,
@@ -312,6 +314,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
         currentArtifactContent={currentArtifactContent}
         totalArtifactVersions={artifact.contents.length}
         selectedAssistant={selectedAssistant}
+        artifactUpdateFailed={artifactUpdateFailed}
       />
       <div
         ref={contentRef}

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,8 +94,8 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
               tooltip="Change assistant"
               variant="ghost"
               delayDuration={200}
-              className="w-8 h-8 transition-colors ease-in-out duration-200"
               style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
+              className="mt-[14px]"
             >
               {getIcon(metadata?.iconData?.iconName as string | undefined)}
             </TooltipIconButton>

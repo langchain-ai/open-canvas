@@ -4,8 +4,9 @@ import { ComposerPrimitive, ThreadPrimitive } from "@assistant-ui/react";
 import { type FC } from "react";
 
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { SendHorizontalIcon } from "lucide-react";
+import { Paperclip, SendHorizontalIcon } from "lucide-react";
 import { AssistantSelect } from "../assistant-select";
+import { AttachmentUI } from "@/components/ui/assistant-ui/attachment-ui";
 
 const CircleStopIcon = () => {
   return (
@@ -28,36 +29,56 @@ interface ComposerProps {
 
 export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
   return (
-    <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex w-full min-h-[64px] flex-wrap items-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
-      <AssistantSelect userId={props.userId} chatStarted={props.chatStarted} />
-      <ComposerPrimitive.Input
-        autoFocus
-        placeholder="Write a message..."
-        rows={1}
-        className="placeholder:text-muted-foreground max-h-40 flex-grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-none focus:ring-0 disabled:cursor-not-allowed"
-      />
-      <ThreadPrimitive.If running={false}>
-        <ComposerPrimitive.Send asChild>
+    <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex flex-col w-full min-h-[64px] flex-wrap items-center justify-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
+      <div className="flex flex-wrap gap-2 items-start mr-auto">
+        <ComposerPrimitive.Attachments
+          components={{ Attachment: AttachmentUI }}
+        />
+      </div>
+
+      <div className="flex flex-row w-full items-start justify-center my-auto">
+        <ComposerPrimitive.AddAttachment asChild>
           <TooltipIconButton
-            tooltip="Send"
-            variant="default"
-            className="my-2.5 size-8 p-2 transition-opacity ease-in"
+            tooltip="Add attachment"
+            className="w-6 h-6 transition-colors ease-in-out duration-200 my-auto"
+            variant="ghost"
           >
-            <SendHorizontalIcon />
+            <Paperclip />
           </TooltipIconButton>
-        </ComposerPrimitive.Send>
-      </ThreadPrimitive.If>
-      <ThreadPrimitive.If running>
-        <ComposerPrimitive.Cancel asChild>
-          <TooltipIconButton
-            tooltip="Cancel"
-            variant="default"
-            className="my-2.5 size-8 p-2 transition-opacity ease-in"
-          >
-            <CircleStopIcon />
-          </TooltipIconButton>
-        </ComposerPrimitive.Cancel>
-      </ThreadPrimitive.If>
+        </ComposerPrimitive.AddAttachment>
+        <AssistantSelect
+          userId={props.userId}
+          chatStarted={props.chatStarted}
+        />
+        <ComposerPrimitive.Input
+          autoFocus
+          placeholder="Write a message..."
+          rows={1}
+          className="placeholder:text-muted-foreground max-h-40 flex-grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-none focus:ring-0 disabled:cursor-not-allowed"
+        />
+        <ThreadPrimitive.If running={false}>
+          <ComposerPrimitive.Send asChild>
+            <TooltipIconButton
+              tooltip="Send"
+              variant="default"
+              className="my-2.5 size-8 p-2 transition-opacity ease-in"
+            >
+              <SendHorizontalIcon />
+            </TooltipIconButton>
+          </ComposerPrimitive.Send>
+        </ThreadPrimitive.If>
+        <ThreadPrimitive.If running>
+          <ComposerPrimitive.Cancel asChild>
+            <TooltipIconButton
+              tooltip="Cancel"
+              variant="default"
+              className="my-2.5 size-8 p-2 transition-opacity ease-in"
+            >
+              <CircleStopIcon />
+            </TooltipIconButton>
+          </ComposerPrimitive.Cancel>
+        </ThreadPrimitive.If>
+      </div>
     </ComposerPrimitive.Root>
   );
 };

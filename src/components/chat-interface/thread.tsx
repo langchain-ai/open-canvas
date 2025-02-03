@@ -14,6 +14,10 @@ import { AssistantMessage, UserMessage } from "./messages";
 import ModelSelector from "./model-selector";
 import { ThreadHistory } from "./thread-history";
 import { ThreadWelcome } from "./welcome";
+import { useRouter, useSearchParams } from "next/navigation";
+import { THREAD_ID_QUERY_PARAM } from "@/constants";
+import { useUserContext } from "@/contexts/UserContext";
+import { useThreadContext } from "@/contexts/ThreadProvider";
 
 const ThreadScrollToBottom: FC = () => {
   return (
@@ -41,6 +45,8 @@ export interface ThreadProps {
 }
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const {
     setChatStarted,
     hasChatStarted,
@@ -49,18 +55,18 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   } = props;
   const { toast } = useToast();
   const {
-    userData: { user },
-    threadData: {
-      createThread,
-      modelName,
-      setModelName,
-      modelConfig,
-      setModelConfig,
-      modelConfigs,
-    },
     assistantsData: { selectedAssistant },
     graphData: { clearState, runId, feedbackSubmitted, setFeedbackSubmitted },
   } = useGraphContext();
+  const {
+    searchOrCreateThread,
+    modelName,
+    setModelName,
+    modelConfig,
+    setModelConfig,
+    modelConfigs,
+  } = useThreadContext();
+  const { user } = useUserContext();
 
   useLangSmithLinkToolUI();
 
@@ -74,11 +80,25 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
       });
       return;
     }
+
+    // Remove the threadId param from the URL
+    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+    if (threadIdQueryParam) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete(THREAD_ID_QUERY_PARAM);
+      // If there are still params, replace with the new URL. Else, replace with /
+      if (params.size > 0) {
+        router.replace(`?${params.toString()}`, { scroll: false });
+      } else {
+        router.replace("/", { scroll: false });
+      }
+    }
+
     setModelName(modelName);
     setModelConfig(modelName, modelConfig);
     clearState();
     setChatStarted(false);
-    const thread = await createThread(modelName, modelConfig, user.id);
+    const thread = await searchOrCreateThread();
     if (!thread) {
       toast({
         title: "Failed to create a new thread",

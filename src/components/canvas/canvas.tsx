@@ -19,21 +19,23 @@ import {
 } from "@/types";
 import React, { useEffect, useState } from "react";
 import { ContentComposerChatInterface } from "./content-composer";
+import NoSSRWrapper from "../NoSSRWrapper";
+import { useUserContext } from "@/contexts/UserContext";
+import { useThreadContext } from "@/contexts/ThreadProvider";
 
 export function CanvasComponent() {
-  const { threadData, graphData, userData } = useGraphContext();
-  const { user } = userData;
+  const { graphData } = useGraphContext();
+  const { user } = useUserContext();
   const { threadId, clearThreadsWithNoValues, setModelName, setModelConfig } =
-    threadData;
-  const { setArtifact } = graphData;
+    useThreadContext();
+  const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
-  const [chatStarted, setChatStarted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!threadId || !user) return;
     // Clear threads with no values
-    clearThreadsWithNoValues(user.id);
+    clearThreadsWithNoValues();
   }, [threadId, user]);
 
   const handleQuickStart = (
@@ -88,35 +90,38 @@ export function CanvasComponent() {
           "h-full mr-auto bg-gray-50/70 shadow-inner-right"
         )}
       >
-        <ContentComposerChatInterface
-          switchSelectedThreadCallback={(thread) => {
-            // Chat should only be "started" if there are messages present
-            if ((thread.values as Record<string, any>)?.messages?.length) {
-              setChatStarted(true);
-              if (thread?.metadata?.customModelName) {
-                setModelName(
-                  thread.metadata.customModelName as ALL_MODEL_NAMES
-                );
-              } else {
-                setModelName(DEFAULT_MODEL_NAME);
-              }
+        {/* Must wrap in NoSSRWrapper because this uses ffmpeg.wasm which can not be rendered on the server */}
+        <NoSSRWrapper>
+          <ContentComposerChatInterface
+            switchSelectedThreadCallback={(thread) => {
+              // Chat should only be "started" if there are messages present
+              if ((thread.values as Record<string, any>)?.messages?.length) {
+                setChatStarted(true);
+                if (thread?.metadata?.customModelName) {
+                  setModelName(
+                    thread.metadata.customModelName as ALL_MODEL_NAMES
+                  );
+                } else {
+                  setModelName(DEFAULT_MODEL_NAME);
+                }
 
-              if (thread?.metadata?.modelConfig) {
-                setModelConfig(
-                  thread?.metadata?.customModelName as ALL_MODEL_NAMES,
-                  thread.metadata?.modelConfig as CustomModelConfig
-                );
+                if (thread?.metadata?.modelConfig) {
+                  setModelConfig(
+                    thread?.metadata?.customModelName as ALL_MODEL_NAMES,
+                    thread.metadata?.modelConfig as CustomModelConfig
+                  );
+                } else {
+                  setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+                }
               } else {
-                setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+                setChatStarted(false);
               }
-            } else {
-              setChatStarted(false);
-            }
-          }}
-          setChatStarted={setChatStarted}
-          hasChatStarted={chatStarted}
-          handleQuickStart={handleQuickStart}
-        />
+            }}
+            setChatStarted={setChatStarted}
+            hasChatStarted={chatStarted}
+            handleQuickStart={handleQuickStart}
+          />
+        </NoSSRWrapper>
       </div>
       {chatStarted && (
         <div className="w-full ml-auto">

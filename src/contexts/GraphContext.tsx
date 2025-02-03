@@ -1,5 +1,4 @@
-import { useUser } from "@/hooks/useUser";
-import { useThread } from "@/hooks/useThread";
+import { useUserContext } from "@/contexts/UserContext";
 import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
@@ -27,7 +26,10 @@ import {
   DEFAULT_INPUTS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
+  NON_STREAMING_TEXT_MODELS,
+  NON_STREAMING_TOOL_CALLING_MODELS,
   THREAD_ID_COOKIE_NAME,
+  THREAD_ID_QUERY_PARAM,
 } from "@/constants";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
@@ -52,10 +54,13 @@ import {
 } from "./utils";
 import { useAssistants } from "@/hooks/useAssistants";
 import { debounce } from "lodash";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useThreadContext } from "./ThreadProvider";
 
 interface GraphData {
   runId: string | undefined;
   isStreaming: boolean;
+  error: boolean;
   selectedBlocks: TextHighlight | undefined;
   messages: BaseMessage[];
   artifact: ArtifactV3 | undefined;
@@ -63,6 +68,10 @@ interface GraphData {
   isArtifactSaved: boolean;
   firstTokenReceived: boolean;
   feedbackSubmitted: boolean;
+  artifactUpdateFailed: boolean;
+  chatStarted: boolean;
+  setChatStarted: Dispatch<SetStateAction<boolean>>;
+  setIsStreaming: Dispatch<SetStateAction<boolean>>;
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
   setArtifact: Dispatch<SetStateAction<ArtifactV3 | undefined>>;
   setSelectedBlocks: Dispatch<SetStateAction<TextHighlight | undefined>>;
@@ -75,16 +84,10 @@ interface GraphData {
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
 }
 
-type UserDataContextType = ReturnType<typeof useUser>;
-
-type ThreadDataContextType = ReturnType<typeof useThread>;
-
 type AssistantsDataContextType = ReturnType<typeof useAssistants>;
 
 type GraphContentType = {
   graphData: GraphData;
-  userData: UserDataContextType;
-  threadData: ThreadDataContextType;
   assistantsData: AssistantsDataContextType;
 };
 
@@ -126,11 +129,14 @@ function extractStreamDataOutput(output: any) {
 }
 
 export function GraphProvider({ children }: { children: ReactNode }) {
-  const userData = useUser();
+  const userData = useUserContext();
   const assistantsData = useAssistants();
-  const threadData = useThread();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const threadData = useThreadContext();
   const { toast } = useToast();
   const { shareRun } = useRuns();
+  const [chatStarted, setChatStarted] = useState(false);
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<ArtifactV3>();
   const [selectedBlocks, setSelectedBlocks] = useState<TextHighlight>();
@@ -150,19 +156,57 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
   const [runId, setRunId] = useState<string>();
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [error, setError] = useState(false);
+  const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
+
+  const searchOrCreateEffectRan = useRef(false);
 
   useEffect(() => {
-    if (userData.user) return;
-    userData.getUser();
-  }, []);
+    if (
+      typeof window === "undefined" ||
+      !userData.user ||
+      threadData.createThreadLoading
+    )
+      return;
+
+    // Only run effect once in development
+    if (searchOrCreateEffectRan.current) return;
+    searchOrCreateEffectRan.current = true;
+
+    threadData.searchOrCreateThread().then((thread) => {
+      if (!thread) {
+        // Thread not found. Clear it & send an error message.
+        const queryParams = new URLSearchParams(searchParams.toString());
+        queryParams.delete(THREAD_ID_QUERY_PARAM);
+        router.replace(`?${queryParams.toString()}`, { scroll: false });
+
+        toast({
+          title: "Error",
+          description: "Thread ID in query params not found",
+          variant: "destructive",
+          duration: 5000,
+        });
+
+        return;
+      }
+
+      const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+      if (threadIdQueryParam) {
+        // If the thread ID is in query params, load it as the active thread.
+        switchSelectedThread(thread);
+      }
+    });
+  }, [
+    userData.user,
+    threadData.createThreadLoading,
+    searchParams,
+    router,
+    toast,
+    threadData.searchOrCreateThread,
+  ]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!userData.user) return;
-
-    if (!threadData.threadId) {
-      threadData.searchOrCreateThread(userData.user.id);
-    }
+    if (typeof window === "undefined" || !userData.user) return;
 
     // Get or create a new assistant if there isn't one set in state, and we're not
     // loading all assistants already.
@@ -225,6 +269,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     artifactToUpdate: ArtifactV3,
     threadId: string
   ) => {
+    setArtifactUpdateFailed(false);
     if (isStreaming) return;
 
     try {
@@ -236,9 +281,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       });
       setIsArtifactSaved(true);
       lastSavedArtifact.current = artifactToUpdate;
-    } catch (e) {
-      console.error("Failed to update artifact", e);
-      console.error("Artifact:", artifactToUpdate);
+    } catch (_) {
+      setArtifactUpdateFailed(true);
     }
   };
 
@@ -250,6 +294,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
   const streamMessageV2 = async (params: GraphInput) => {
     setFirstTokenReceived(false);
+    setError(false);
     if (!threadData.threadId) {
       toast({
         title: "Error",
@@ -269,7 +314,22 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const threadIdQueryParam = searchParams.get("threadId");
+    if (!threadIdQueryParam) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("threadId", threadData.threadId);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+
     const client = createClient();
+
+    const messagesInput = {
+      // `messages` contains the full, unfiltered list of messages
+      messages: params.messages,
+      // `_messages` contains the list of messages which are included
+      // in the LLMs context, including summarization messages.
+      _messages: params.messages,
+    };
 
     // TODO: update to properly pass the highlight data back
     // one field for highlighted text, and one for code
@@ -277,6 +337,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       ...DEFAULT_INPUTS,
       artifact,
       ...params,
+      ...messagesInput,
       ...(selectedBlocks && {
         highlightedText: selectedBlocks,
       }),
@@ -364,6 +425,20 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       let highlightedText: TextHighlight | undefined = undefined;
 
       for await (const chunk of stream) {
+        if (chunk.event === "error") {
+          const errorMessage =
+            chunk?.data?.message || "Unknown error. Please try again.";
+          toast({
+            title: "Error generating content",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          });
+          setError(true);
+          setIsStreaming(false);
+          break;
+        }
+
         try {
           if (!runId && chunk.data?.metadata?.run_id) {
             runId = chunk.data.metadata.run_id;
@@ -395,9 +470,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (chunk.data.metadata.langgraph_node === "generateArtifact") {
+              const message = extractStreamDataChunk(chunk.data.data.chunk);
               generateArtifactToolCallStr +=
-                extractStreamDataChunk(chunk.data.data.chunk)
-                  ?.tool_call_chunks?.[0]?.args || "";
+                message?.tool_call_chunks?.[0]?.args || message.content;
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
               );
@@ -729,18 +804,355 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           if (chunk.data.event === "on_chat_model_end") {
             if (
               chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
+              chunk.data.name === "rewrite_artifact_model_call" &&
+              rewriteArtifactMeta &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
+            ) {
+              if (!artifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              const message = extractStreamDataOutput(chunk.data.data.output);
+
+              newArtifactContent += message.content || "";
+
+              // Ensure we have the language to update the artifact with
+              let artifactLanguage = params.portLanguage || undefined;
+              if (
+                !artifactLanguage &&
+                rewriteArtifactMeta.type === "code" &&
+                rewriteArtifactMeta.language
+              ) {
+                // If the type is `code` we should have a programming language populated
+                // in the rewriteArtifactMeta and can use that.
+                artifactLanguage =
+                  rewriteArtifactMeta.language as ProgrammingLanguageOptions;
+              } else if (!artifactLanguage) {
+                artifactLanguage =
+                  (prevCurrentContent?.title as ProgrammingLanguageOptions) ??
+                  "other";
+              }
+
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
+                let content = newArtifactContent;
+                if (!rewriteArtifactMeta) {
+                  console.error(
+                    "No rewrite artifact meta found when updating artifact"
+                  );
+                  return prev;
+                }
+                if (rewriteArtifactMeta.type === "code") {
+                  content = removeCodeBlockFormatting(content);
+                }
+
+                return updateRewrittenArtifact({
+                  prevArtifact: prev,
+                  newArtifactContent: content,
+                  rewriteArtifactMeta: rewriteArtifactMeta,
+                  prevCurrentContent,
+                  newArtifactIndex,
+                  isFirstUpdate: firstUpdateCopy,
+                  artifactLanguage,
+                });
+              });
+
+              if (isFirstUpdate) {
+                isFirstUpdate = false;
+              }
+            }
+
+            if (
+              chunk.data.metadata.langgraph_node === "updateHighlightedText" &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
+            ) {
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              if (!message) {
+                continue;
+              }
+              if (!artifact) {
+                console.error(
+                  "No artifacts found when updating highlighted markdown..."
+                );
+                continue;
+              }
+              if (!highlightedText) {
+                toast({
+                  title: "Error",
+                  description: "No highlighted text found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                continue;
+              }
+              if (!prevCurrentContent) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (!isArtifactMarkdownContent(prevCurrentContent)) {
+                toast({
+                  title: "Error",
+                  description: "Received non markdown block update",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              const partialUpdatedContent = message.content || "";
+              const startIndexOfHighlightedText =
+                highlightedText.fullMarkdown.indexOf(
+                  highlightedText.markdownBlock
+                );
+
+              if (
+                updatedArtifactStartContent === undefined &&
+                updatedArtifactRestContent === undefined
+              ) {
+                // Initialize the start and rest content on first chunk
+                updatedArtifactStartContent =
+                  highlightedText.fullMarkdown.slice(
+                    0,
+                    startIndexOfHighlightedText
+                  );
+                updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
+                  startIndexOfHighlightedText +
+                    highlightedText.markdownBlock.length
+                );
+              }
+
+              if (
+                updatedArtifactStartContent !== undefined &&
+                updatedArtifactRestContent !== undefined
+              ) {
+                updatedArtifactStartContent += partialUpdatedContent;
+              }
+
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+                return updateHighlightedMarkdown(
+                  prev,
+                  `${updatedArtifactStartContent}${updatedArtifactRestContent}`,
+                  newArtifactIndex,
+                  prevCurrentContent,
+                  firstUpdateCopy
+                );
+              });
+
+              if (isFirstUpdate) {
+                isFirstUpdate = false;
+              }
+            }
+
+            if (
+              chunk.data.metadata.langgraph_node === "updateArtifact" &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
+            ) {
+              if (!artifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (!params.highlightedCode) {
+                toast({
+                  title: "Error",
+                  description: "No highlighted code found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              if (!message) {
+                continue;
+              }
+
+              const partialUpdatedContent = message.content || "";
+              const { startCharIndex, endCharIndex } = params.highlightedCode;
+
+              if (!prevCurrentContent) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (prevCurrentContent.type !== "code") {
+                toast({
+                  title: "Error",
+                  description: "Received non code block update",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+
+              if (
+                updatedArtifactStartContent === undefined &&
+                updatedArtifactRestContent === undefined
+              ) {
+                updatedArtifactStartContent =
+                  prevCurrentContent.code.slice(0, startCharIndex) +
+                  partialUpdatedContent;
+                updatedArtifactRestContent =
+                  prevCurrentContent.code.slice(endCharIndex);
+              }
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+                const content = removeCodeBlockFormatting(
+                  `${updatedArtifactStartContent}${updatedArtifactRestContent}`
+                );
+                return updateHighlightedCode(
+                  prev,
+                  content,
+                  newArtifactIndex,
+                  prevCurrentContent,
+                  firstUpdateCopy
+                );
+              });
+
+              if (isFirstUpdate) {
+                isFirstUpdate = false;
+              }
+            }
+
+            if (
+              [
+                "rewriteArtifactTheme",
+                "rewriteCodeArtifactTheme",
+                "customAction",
+              ].includes(chunk.data.metadata.langgraph_node) &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
+            ) {
+              if (!artifact) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              if (!prevCurrentContent) {
+                toast({
+                  title: "Error",
+                  description: "Original artifact not found",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              newArtifactContent += message?.content || "";
+
+              // Ensure we have the language to update the artifact with
+              const artifactLanguage =
+                params.portLanguage ||
+                (isArtifactCodeContent(prevCurrentContent)
+                  ? prevCurrentContent.language
+                  : "other");
+
+              const langGraphNode = chunk.data.metadata.langgraph_node;
+              let artifactType: ArtifactType;
+              if (langGraphNode === "rewriteCodeArtifactTheme") {
+                artifactType = "code";
+              } else if (langGraphNode === "rewriteArtifactTheme") {
+                artifactType = "text";
+              } else {
+                artifactType = prevCurrentContent.type;
+              }
+              const firstUpdateCopy = isFirstUpdate;
+              setFirstTokenReceived(true);
+              setArtifact((prev) => {
+                if (!prev) {
+                  throw new Error("No artifact found when updating markdown");
+                }
+
+                let content = newArtifactContent;
+                if (artifactType === "code") {
+                  content = removeCodeBlockFormatting(content);
+                }
+
+                return updateRewrittenArtifact({
+                  prevArtifact: prev ?? artifact,
+                  newArtifactContent: content,
+                  rewriteArtifactMeta: {
+                    type: artifactType,
+                    title: prevCurrentContent.title,
+                    language: artifactLanguage,
+                  },
+                  prevCurrentContent,
+                  newArtifactIndex,
+                  isFirstUpdate: firstUpdateCopy,
+                  artifactLanguage,
+                });
+              });
+            }
+
+            if (
+              ["generateFollowup", "replyToGeneralInput"].includes(
+                chunk.data.metadata.langgraph_node
+              ) &&
+              !followupMessageId &&
+              NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
+            ) {
+              const message = extractStreamDataOutput(chunk.data.data.output);
+              followupMessageId = message.id;
+              setMessages((prevMessages) =>
+                replaceOrInsertMessageChunk(prevMessages, message)
+              );
+            }
+          }
+
+          if (chunk.data.event === "on_chain_end") {
+            if (
+              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
               chunk.data.name === "optionally_update_artifact_meta"
             ) {
-              rewriteArtifactMeta = chunk.data.data.output.tool_calls[0].args;
+              rewriteArtifactMeta = chunk.data.data.output;
             }
 
             if (
               chunk.data.metadata.langgraph_node === "generateArtifact" &&
               !generateArtifactToolCallStr &&
-              threadData.modelName.includes("gemini-")
+              NON_STREAMING_TOOL_CALLING_MODELS.some(
+                (m) => m === threadData.modelName
+              )
             ) {
+              const message = chunk.data.data.output;
               generateArtifactToolCallStr +=
-                chunk.data.data.output.tool_call_chunks?.[0]?.args || "";
+                message?.tool_call_chunks?.[0]?.args || message?.content || "";
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
               );
@@ -751,28 +1163,29 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 setArtifact(() => result);
               }
             }
-
-            if (
-              ["generateFollowup", "replyToGeneralInput"].includes(
-                chunk.data.metadata.langgraph_node
-              )
-            ) {
-              const message = extractStreamDataOutput(chunk.data.data.output);
-              if (!followupMessageId) {
-                followupMessageId = message.id;
-              }
-              setMessages((prevMessages) =>
-                replaceOrInsertMessageChunk(prevMessages, message)
-              );
-            }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error(
             "Failed to parse stream chunk",
             chunk,
             "\n\nError:\n",
             e
           );
+
+          let errorMessage = "Unknown error. Please try again.";
+          if (typeof e === "object" && e?.message) {
+            errorMessage = e.message;
+          }
+
+          toast({
+            title: "Error generating content",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          });
+          setError(true);
+          setIsStreaming(false);
+          break;
         }
       }
       lastSavedArtifact.current = artifact;
@@ -894,8 +1307,23 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const switchSelectedThread = (thread: Thread) => {
     setUpdateRenderedArtifactRequired(true);
     setThreadSwitched(true);
+    setChatStarted(true);
+
+    // Set the thread ID in state. Then set in cookies so a new thread
+    // isn't created on page load if one already exists.
     threadData.setThreadId(thread.thread_id);
     setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+
+    // Ensure the URL has the new thread ID in query params. If it doesn't,
+    // add it, or replace if present but it doesn't match
+    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+    const params = new URLSearchParams(searchParams.toString());
+    if (threadIdQueryParam !== thread.thread_id) {
+      params.set(THREAD_ID_QUERY_PARAM, thread.thread_id);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+
+    // Set the model name and config
     if (thread.metadata?.customModelName) {
       threadData.setModelName(
         thread.metadata.customModelName as ALL_MODEL_NAMES
@@ -952,12 +1380,11 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   };
 
   const contextValue: GraphContentType = {
-    userData,
-    threadData,
     assistantsData,
     graphData: {
       runId,
       isStreaming,
+      error,
       selectedBlocks,
       messages,
       artifact,
@@ -965,6 +1392,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       isArtifactSaved,
       firstTokenReceived,
       feedbackSubmitted,
+      chatStarted,
+      artifactUpdateFailed,
+      setChatStarted,
+      setIsStreaming,
       setFeedbackSubmitted,
       setArtifact,
       setSelectedBlocks,

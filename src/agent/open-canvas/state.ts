@@ -1,3 +1,4 @@
+import { BaseMessage, BaseMessageLike } from "@langchain/core/messages";
 import {
   ArtifactLengthOptions,
   LanguageOptions,
@@ -7,10 +8,68 @@ import {
   ArtifactV3,
   TextHighlight,
 } from "../../types";
-import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
+import {
+  Annotation,
+  MessagesAnnotation,
+  messagesStateReducer,
+} from "@langchain/langgraph";
+import { OC_SUMMARIZED_MESSAGE_KEY } from "@/constants";
+
+export type Messages =
+  | Array<BaseMessage | BaseMessageLike>
+  | BaseMessage
+  | BaseMessageLike;
+
+function isSummaryMessage(msg: unknown): boolean {
+  if (typeof msg !== "object" || Array.isArray(msg) || !msg) return false;
+
+  if (!("additional_kwargs" in msg) && !("kwargs" in msg)) return false;
+
+  if (
+    "additional_kwargs" in msg &&
+    (msg.additional_kwargs as Record<string, any>)?.[
+      OC_SUMMARIZED_MESSAGE_KEY
+    ] === true
+  ) {
+    return true;
+  }
+
+  if (
+    "kwargs" in msg &&
+    (msg.kwargs as Record<string, any>)?.additional_kwargs?.[
+      OC_SUMMARIZED_MESSAGE_KEY
+    ] === true
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 export const OpenCanvasGraphAnnotation = Annotation.Root({
+  /**
+   * The full list of messages in the conversation.
+   */
   ...MessagesAnnotation.spec,
+  /**
+   * The list of messages passed to the model. Can include summarized messages,
+   * and others which are NOT shown to the user.
+   */
+  _messages: Annotation<BaseMessage[], Messages>({
+    reducer: (state, update) => {
+      const latestMsg = Array.isArray(update)
+        ? update[update.length - 1]
+        : update;
+
+      if (isSummaryMessage(latestMsg)) {
+        // The state list has been updated by a summary message. Clear the existing state messages.
+        return messagesStateReducer([], update);
+      }
+
+      return messagesStateReducer(state, update);
+    },
+    default: () => [],
+  }),
   /**
    * The part of the artifact the user highlighted. Use the `selectedArtifactId`
    * to determine which artifact the highlight belongs to.

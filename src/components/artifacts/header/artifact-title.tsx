@@ -1,8 +1,9 @@
-import { CircleCheck, LoaderCircle } from "lucide-react";
+import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 
 interface ArtifactTitleProps {
   title: string;
   isArtifactSaved: boolean;
+  artifactUpdateFailed: boolean;
 }
 
 export function ArtifactTitle(props: ArtifactTitleProps) {
@@ -17,12 +18,17 @@ export function ArtifactTitle(props: ArtifactTitleProps) {
             <p className="text-xs font-light">Saved</p>
             <CircleCheck className="w-[10px] h-[10px]" />
           </span>
-        ) : (
+        ) : !props.artifactUpdateFailed ? (
           <span className="flex items-center justify-start gap-1 text-gray-400">
             <p className="text-xs font-light">Saving</p>
             <LoaderCircle className="animate-spin w-[10px] h-[10px]" />
           </span>
-        )}
+        ) : props.artifactUpdateFailed ? (
+          <span className="flex items-center justify-start gap-1 text-red-300">
+            <p className="text-xs font-light">Failed to save</p>
+            <CircleX className="w-[10px] h-[10px]" />
+          </span>
+        ) : null}
       </span>
     </div>
   );

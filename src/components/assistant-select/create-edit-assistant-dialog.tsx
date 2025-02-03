@@ -1,8 +1,8 @@
+"use client";
+
 import {
-  ContextDocument,
   CreateCustomAssistantArgs,
   EditCustomAssistantArgs,
-  fileToBase64,
 } from "@/hooks/useAssistants";
 import { Assistant } from "@langchain/langgraph-sdk";
 import {
@@ -30,50 +30,10 @@ import { useToast } from "@/hooks/use-toast";
 import { ColorPicker } from "./color-picker";
 import { Textarea } from "../ui/textarea";
 import { InlineContextTooltip } from "../ui/inline-context-tooltip";
-import { UploadedFiles } from "./uploaded-file";
-
-function arrayToFileList(files: File[] | undefined) {
-  if (!files || !files.length) return undefined;
-  const dt = new DataTransfer();
-  files?.forEach((file) => dt.items.add(file));
-  return dt.files;
-}
-
-function contextDocumentToFile(document: ContextDocument): File {
-  // Remove any data URL prefix if it exists
-  let base64String = document.data;
-  if (base64String.includes(",")) {
-    base64String = base64String.split(",")[1];
-  }
-
-  // Fix padding if necessary
-  while (base64String.length % 4 !== 0) {
-    base64String += "=";
-  }
-
-  // Clean the string (remove whitespace and invalid characters)
-  base64String = base64String.replace(/\s/g, "");
-
-  try {
-    // Convert base64 to binary
-    const binaryString = atob(base64String);
-
-    // Convert binary string to Uint8Array
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    // Create Blob from the bytes
-    const blob = new Blob([bytes], { type: document.type });
-
-    // Create File object
-    return new File([blob], document.name, { type: document.type });
-  } catch (error) {
-    console.error("Error converting base64 to file:", error);
-    throw error;
-  }
-}
+import { useStore } from "@/hooks/useStore";
+import { arrayToFileList, contextDocumentToFile } from "@/lib/attachments";
+import { ContextDocuments } from "./context-documents";
+import { useContextDocuments } from "@/hooks/useContextDocuments";
 
 interface CreateEditAssistantDialogProps {
   open: boolean;
@@ -85,7 +45,7 @@ interface CreateEditAssistantDialogProps {
     newAssistant,
     userId,
     successCallback,
-  }: CreateCustomAssistantArgs) => Promise<boolean>;
+  }: CreateCustomAssistantArgs) => Promise<Assistant | undefined>;
   editCustomAssistant: ({
     editedAssistant,
     assistantId,
@@ -116,19 +76,10 @@ const SystemPromptWhatsThis = (): React.ReactNode => (
   </span>
 );
 
-const ContextDocumentsWhatsThis = (): React.ReactNode => (
-  <span className="flex flex-col gap-1 text-sm text-gray-600">
-    <p className="text-sm text-gray-600">
-      Context documents are text or PDF files which will be included in the
-      LLM&apos;s context for ALL interactions <i>except</i> quick actions, when
-      generating, re-writing and editing artifacts.
-    </p>
-  </span>
-);
-
 export function CreateEditAssistantDialog(
   props: CreateEditAssistantDialogProps
 ) {
+  const { putContextDocuments, getContextDocuments } = useStore();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -138,12 +89,21 @@ export function CreateEditAssistantDialog(
   const [iconColor, setIconColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
-  const [documents, setDocuments] = useState<FileList>();
+  const {
+    documents,
+    setDocuments,
+    urls,
+    setUrls,
+    loadingDocuments,
+    setLoadingDocuments,
+    processDocuments,
+    setProcessedContextDocuments,
+  } = useContextDocuments(props.userId || "");
 
   const metadata = props.assistant?.metadata as Record<string, any> | undefined;
 
   useEffect(() => {
-    if ((props.assistant, props.isEditing)) {
+    if (props.assistant && props.isEditing) {
       setName(props.assistant?.name || "");
       setDescription(metadata?.description || "");
       setSystemPrompt(
@@ -154,13 +114,35 @@ export function CreateEditAssistantDialog(
       setHasSelectedIcon(true);
       setIconName(metadata?.iconData?.iconName || "User");
       setIconColor(metadata?.iconData?.iconColor || "#000000");
-      const documents = props.assistant?.config?.configurable?.documents as
-        | ContextDocument[]
-        | undefined;
-      if (documents && documents.length > 0) {
-        const files = documents.map(contextDocumentToFile);
-        setDocuments(arrayToFileList(files));
-      }
+      setLoadingDocuments(true);
+      getContextDocuments(props.assistant.assistant_id)
+        .then((documents) => {
+          if (documents) {
+            const files = documents
+              .filter((d) => !d.metadata?.url)
+              .map(contextDocumentToFile);
+
+            const urls = documents
+              .filter((d) => d.metadata?.url)
+              .map((d) => d.metadata?.url);
+
+            setProcessedContextDocuments(
+              new Map(
+                documents.map((d) => {
+                  if (d.metadata?.url) {
+                    return [d.metadata?.url, d];
+                  } else {
+                    return [d.name, d];
+                  }
+                })
+              )
+            );
+
+            setUrls(urls);
+            setDocuments(arrayToFileList(files));
+          }
+        })
+        .finally(() => setLoadingDocuments(false));
     } else if (!props.isEditing) {
       setName("");
       setDescription("");
@@ -168,6 +150,7 @@ export function CreateEditAssistantDialog(
       setIconName("User");
       setIconColor("#000000");
       setDocuments(undefined);
+      setUrls([]);
     }
   }, [props.assistant, props.isEditing]);
 
@@ -192,19 +175,11 @@ export function CreateEditAssistantDialog(
 
     props.setAllDisabled(true);
 
-    const contentDocuments: ContextDocument[] = [];
-    if (documents?.length) {
-      const documentsPromise = Array.from(documents).map(async (doc) => ({
-        name: doc.name,
-        type: doc.type,
-        data: await fileToBase64(doc),
-      }));
-      contentDocuments.push(...(await Promise.all(documentsPromise)));
-    }
+    const contentDocuments = await processDocuments();
 
-    let res: boolean;
+    let success: boolean;
     if (props.isEditing && props.assistant) {
-      res = !!(await props.editCustomAssistant({
+      const updatedAssistant = await props.editCustomAssistant({
         editedAssistant: {
           name,
           description,
@@ -213,13 +188,19 @@ export function CreateEditAssistantDialog(
             iconName,
             iconColor,
           },
-          documents: contentDocuments,
         },
         assistantId: props.assistant.assistant_id,
         userId: props.userId,
-      }));
+      });
+      success = !!updatedAssistant;
+      if (updatedAssistant) {
+        await putContextDocuments({
+          assistantId: props.assistant.assistant_id,
+          documents: contentDocuments,
+        });
+      }
     } else {
-      res = await props.createCustomAssistant({
+      const assistant = await props.createCustomAssistant({
         newAssistant: {
           name,
           description,
@@ -228,13 +209,19 @@ export function CreateEditAssistantDialog(
             iconName,
             iconColor,
           },
-          documents: contentDocuments,
         },
         userId: props.userId,
       });
+      success = !!assistant;
+      if (assistant) {
+        await putContextDocuments({
+          assistantId: assistant.assistant_id,
+          documents: contentDocuments,
+        });
+      }
     }
 
-    if (res) {
+    if (success) {
       toast({
         title: `Assistant ${props.isEditing ? "edited" : "created"} successfully`,
         duration: 5000,
@@ -391,62 +378,15 @@ export function CreateEditAssistantDialog(
             </div>
           </div>
 
-          <Label htmlFor="context-documents">
-            <TighterText className="flex items-center">
-              Context Documents (Max 20, 10MB each)
-              <InlineContextTooltip cardContentClassName="w-[500px] ml-10">
-                <ContextDocumentsWhatsThis />
-              </InlineContextTooltip>
-            </TighterText>
-          </Label>
-          {!documents && (
-            <Input
-              disabled={props.allDisabled}
-              required={false}
-              id="context-documents"
-              type="file"
-              multiple
-              accept=".txt,.pdf,.doc,.docx"
-              onChange={(e) => {
-                const files = e.target.files;
-                if (!files) return;
-
-                if (files.length > 20) {
-                  alert("You can only upload up to 20 files");
-                  e.target.value = "";
-                  return;
-                }
-
-                // Check each file size (10MB = 10485760 bytes)
-                const tenMbBytes = 10485760;
-                for (let i = 0; i < files.length; i += 1) {
-                  if (files[i].size > tenMbBytes) {
-                    alert(
-                      `File "${files[i].name}" exceeds the 10MB size limit`
-                    );
-                    e.target.value = "";
-                    return;
-                  }
-                }
-
-                setDocuments(files || undefined);
-              }}
-            />
-          )}
-          <UploadedFiles
-            files={documents}
+          <ContextDocuments
+            documents={documents}
+            setDocuments={setDocuments}
+            loadingDocuments={loadingDocuments}
+            allDisabled={props.allDisabled}
             handleRemoveFile={handleRemoveFile}
+            urls={urls}
+            setUrls={setUrls}
           />
-          {documents && (
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-2"
-              onClick={() => setDocuments(undefined)}
-            >
-              Choose Different Files
-            </Button>
-          )}
 
           <div className="flex items-center justify-center w-full mt-4 gap-3">
             <Button

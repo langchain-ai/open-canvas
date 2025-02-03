@@ -5,23 +5,6 @@ import { createClient } from "./utils";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, removeCookie } from "@/lib/cookies";
 
-export function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-      } else {
-        reject(
-          `Failed to convert file to base64. Received ${typeof reader.result} result.`
-        );
-      }
-    };
-    reader.onerror = (error) => reject(error);
-  });
-}
-
 export type AssistantTool = {
   /**
    * The name of the tool
@@ -47,9 +30,14 @@ export type ContextDocument = {
    */
   type: string;
   /**
-   * The base64 encoded content of the document.
+   * The base64 encoded content of the document, or plain
+   * text value if the type is `text`
    */
   data: string;
+  /**
+   * Optional metadata about the document.
+   */
+  metadata?: Record<string, any>;
 };
 
 export interface CreateAssistantFields {
@@ -165,7 +153,7 @@ export function useAssistants() {
     newAssistant,
     userId,
     successCallback,
-  }: CreateCustomAssistantArgs): Promise<boolean> => {
+  }: CreateCustomAssistantArgs): Promise<Assistant | undefined> => {
     setIsCreatingAssistant(true);
     try {
       const client = createClient();
@@ -192,7 +180,7 @@ export function useAssistants() {
       setSelectedAssistant(createdAssistant);
       successCallback?.(createdAssistant.assistant_id);
       setIsCreatingAssistant(false);
-      return true;
+      return createdAssistant;
     } catch (e) {
       toast({
         title: "Failed to create assistant",
@@ -200,7 +188,7 @@ export function useAssistants() {
       });
       setIsCreatingAssistant(false);
       console.error("Failed to create an assistant", e);
-      return false;
+      return undefined;
     }
   };
 

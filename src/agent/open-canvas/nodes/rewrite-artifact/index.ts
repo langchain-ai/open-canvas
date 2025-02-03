@@ -28,7 +28,7 @@ export const rewriteArtifact = async (
     state,
     config
   );
-  const artifactType = artifactMetaToolCall?.args?.type;
+  const artifactType = artifactMetaToolCall.type;
   const isNewType = artifactType !== currentArtifactContent.type;
 
   const artifactContent = isArtifactMarkdownContent(currentArtifactContent)

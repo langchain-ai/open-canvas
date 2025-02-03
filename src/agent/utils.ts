@@ -5,8 +5,12 @@ import { initChatModel } from "langchain/chat_models/universal";
 import { ArtifactCodeV3, ArtifactMarkdownV3, Reflections } from "../types";
 import { ContextDocument } from "@/hooks/useAssistants";
 import pdfParse from "pdf-parse";
-import { MessageContentComplex } from "@langchain/core/messages";
 import {
+  MessageContentComplex,
+  MessageFieldWithRole,
+} from "@langchain/core/messages";
+import {
+  CONTEXT_DOCUMENTS_NAMESPACE,
   LANGCHAIN_USER_ONLY_MODELS,
   TEMPERATURE_EXCLUDED_MODELS,
 } from "@/constants";
@@ -194,7 +198,11 @@ export const getModelConfig = (
     modelConfig,
   };
 
-  if (customModelName.includes("gpt-") || customModelName.includes("o1")) {
+  if (
+    customModelName.includes("gpt-") ||
+    customModelName.includes("o1") ||
+    customModelName.includes("o3")
+  ) {
     let actualModelName = providerConfig.modelName;
     if (extra?.isToolCalling && actualModelName.includes("o1")) {
       // Fallback to 4o model for tool calling since o1 does not support tools.
@@ -222,8 +230,14 @@ export const getModelConfig = (
     };
   }
   if (customModelName.includes("gemini-")) {
+    let actualModelName = providerConfig.modelName;
+    if (extra?.isToolCalling && actualModelName.includes("thinking")) {
+      // Gemini thinking does not support tools.
+      actualModelName = "gemini-2.0-flash-exp";
+    }
     return {
       ...providerConfig,
+      modelName: actualModelName,
       modelProvider: "google-genai",
       apiKey: process.env.GOOGLE_API_KEY,
     };
@@ -251,20 +265,23 @@ async function getUserFromConfig(
 ): Promise<User | undefined> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    !process.env.SUPABASE_SERVICE_ROLE
   ) {
     return undefined;
   }
+
   const accessToken = (
     config.configurable?.supabase_session as Session | undefined
   )?.access_token;
   if (!accessToken) {
     return undefined;
   }
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    process.env.SUPABASE_SERVICE_ROLE
   );
+
   const authRes = await supabase.auth.getUser(accessToken);
   return authRes.data.user || undefined;
 }
@@ -348,7 +365,7 @@ const cleanBase64 = (base64String: string): string => {
   return base64String.replace(/^data:.*?;base64,/, "");
 };
 
-async function convertPDFToText(base64PDF: string) {
+export async function convertPDFToText(base64PDF: string) {
   try {
     // Convert base64 to buffer
     const pdfBuffer = Buffer.from(base64PDF, "base64");
@@ -367,17 +384,11 @@ async function convertPDFToText(base64PDF: string) {
 }
 
 export async function createContextDocumentMessagesAnthropic(
-  config: LangGraphRunnableConfig,
+  documents: ContextDocument[],
   options?: { nativeSupport: boolean }
 ) {
-  if (!config.configurable?.documents) {
-    return [];
-  }
-
-  const messagesPromises = (
-    config.configurable?.documents as ContextDocument[]
-  ).map(async (doc) => {
-    if (doc.type.includes("pdf") && options?.nativeSupport) {
+  const messagesPromises = documents.map(async (doc) => {
+    if (doc.type === "application/pdf" && options?.nativeSupport) {
       return {
         type: "document",
         source: {
@@ -389,10 +400,12 @@ export async function createContextDocumentMessagesAnthropic(
     }
 
     let text = "";
-    if (doc.type.includes("pdf") && !options?.nativeSupport) {
+    if (doc.type === "application/pdf" && !options?.nativeSupport) {
       text = await convertPDFToText(doc.data);
     } else if (doc.type.startsWith("text/")) {
-      text = atob(doc.data);
+      text = atob(cleanBase64(doc.data));
+    } else if (doc.type === "text") {
+      text = doc.data;
     }
 
     return {
@@ -405,14 +418,10 @@ export async function createContextDocumentMessagesAnthropic(
 }
 
 export function createContextDocumentMessagesGemini(
-  config: LangGraphRunnableConfig
+  documents: ContextDocument[]
 ) {
-  if (!config.configurable?.documents) {
-    return [];
-  }
-
-  return (config.configurable?.documents as ContextDocument[]).map((doc) => {
-    if (doc.type.includes("pdf")) {
+  return documents.map((doc) => {
+    if (doc.type === "application/pdf") {
       return {
         type: doc.type,
         data: cleanBase64(doc.data),
@@ -420,7 +429,12 @@ export function createContextDocumentMessagesGemini(
     } else if (doc.type.startsWith("text/")) {
       return {
         type: "text",
-        text: atob(doc.data),
+        text: atob(cleanBase64(doc.data)),
+      };
+    } else if (doc.type === "text") {
+      return {
+        type: "text",
+        text: doc.data,
       };
     }
     throw new Error("Unsupported document type: " + doc.type);
@@ -428,21 +442,17 @@ export function createContextDocumentMessagesGemini(
 }
 
 export async function createContextDocumentMessagesOpenAI(
-  config: LangGraphRunnableConfig
+  documents: ContextDocument[]
 ) {
-  if (!config.configurable?.documents) {
-    return [];
-  }
-
-  const messagesPromises = (
-    config.configurable?.documents as ContextDocument[]
-  ).map(async (doc) => {
+  const messagesPromises = documents.map(async (doc) => {
     let text = "";
 
-    if (doc.type.includes("pdf")) {
+    if (doc.type === "application/pdf") {
       text = await convertPDFToText(doc.data);
     } else if (doc.type.startsWith("text/")) {
-      text = atob(doc.data);
+      text = atob(cleanBase64(doc.data));
+    } else if (doc.type === "text") {
+      text = doc.data;
     }
 
     return {
@@ -454,23 +464,49 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
-export async function createContextDocumentMessages(
+async function getContextDocuments(
   config: LangGraphRunnableConfig
-) {
+): Promise<ContextDocument[]> {
+  const store = config.store;
+  const assistantId = config.configurable?.assistant_id;
+  if (!store || !assistantId) {
+    return [];
+  }
+
+  const result = await store.get(CONTEXT_DOCUMENTS_NAMESPACE, assistantId);
+  return result?.value?.documents || [];
+}
+
+export async function createContextDocumentMessages(
+  config: LangGraphRunnableConfig,
+  contextDocuments?: ContextDocument[]
+): Promise<MessageFieldWithRole[]> {
   const { modelProvider, modelName } = getModelConfig(config);
+  const documents: ContextDocument[] = contextDocuments || [];
+
+  if (!documents.length && config) {
+    const docs = await getContextDocuments(config);
+    documents.push(...docs);
+  }
+
+  if (!documents.length) {
+    return [];
+  }
+
   let contextDocumentMessages: Record<string, any>[] = [];
   if (modelProvider === "openai") {
-    contextDocumentMessages = await createContextDocumentMessagesOpenAI(config);
+    contextDocumentMessages =
+      await createContextDocumentMessagesOpenAI(documents);
   } else if (modelProvider === "anthropic") {
     const nativeSupport = modelName.includes("3-5-sonnet");
     contextDocumentMessages = await createContextDocumentMessagesAnthropic(
-      config,
+      documents,
       {
         nativeSupport,
       }
     );
   } else if (modelProvider === "google-genai") {
-    contextDocumentMessages = createContextDocumentMessagesGemini(config);
+    contextDocumentMessages = createContextDocumentMessagesGemini(documents);
   }
 
   if (!contextDocumentMessages.length) return [];

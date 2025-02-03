@@ -16,6 +16,8 @@ export const generateFollowup = async (
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = await getModelFromConfig(config, {
     maxTokens: 250,
+    // We say tool calling is true here because that'll cause it to use a small model
+    isToolCalling: true,
   });
 
   const store = ensureStoreInConfig(config);
@@ -49,7 +51,7 @@ export const generateFollowup = async (
     .replace("{reflections}", memoriesAsString)
     .replace(
       "{conversation}",
-      state.messages
+      state._messages
         .map((msg) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
         .join("\n\n")
     );
@@ -61,5 +63,6 @@ export const generateFollowup = async (
 
   return {
     messages: [response],
+    _messages: [response],
   };
 };

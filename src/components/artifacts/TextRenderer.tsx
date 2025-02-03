@@ -129,7 +129,6 @@ export function TextRendererComponent(props: TextRendererProps) {
       !manuallyUpdatingArtifact &&
       !updateRenderedArtifactRequired
     ) {
-      console.error("Can only update via useEffect when streaming");
       return;
     }
 
