@@ -27,10 +27,7 @@ type ThreadContentType = {
   clearThreadsWithNoValues: () => Promise<void>;
   searchOrCreateThread: () => Promise<Thread | undefined>;
   getUserThreads: () => Promise<void>;
-  deleteThread: (
-    id: string,
-    clearMessages: () => void
-  ) => Promise<void>;
+  deleteThread: (id: string, clearMessages: () => void) => Promise<void>;
   setThreadId: (id: string) => void;
   setModelName: (name: ALL_MODEL_NAMES) => void;
   setModelConfig: (
@@ -44,7 +41,7 @@ const ThreadContext = createContext<ThreadContentType | undefined>(undefined);
 export function ThreadProvider({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const { user } = useUserContext();
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [threadId, setThreadId] = useState<string>();
   const [userThreads, setUserThreads] = useState<Thread[]>([]);
   const [isUserThreadsLoading, setIsUserThreadsLoading] = useState(false);
@@ -173,12 +170,13 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
       console.error("Failed to create thread", e);
       toast({
         title: "Failed to create thread",
-        description: "An error occurred while trying to create a new thread. Please try again.",
+        description:
+          "An error occurred while trying to create a new thread. Please try again.",
         duration: 5000,
         variant: "destructive",
       });
     } finally {
-      setCreateThreadLoading(false)
+      setCreateThreadLoading(false);
     }
   };
 
@@ -339,10 +337,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteThread = async (
-    id: string,
-    clearMessages: () => void
-  ) => {
+  const deleteThread = async (id: string, clearMessages: () => void) => {
     setUserThreads((prevThreads) => {
       const newThreads = prevThreads.filter(
         (thread) => thread.thread_id !== id

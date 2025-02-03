@@ -162,7 +162,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const searchOrCreateEffectRan = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !userData.user || threadData.createThreadLoading) return;
+    if (
+      typeof window === "undefined" ||
+      !userData.user ||
+      threadData.createThreadLoading
+    )
+      return;
 
     // Only run effect once in development
     if (searchOrCreateEffectRan.current) return;
@@ -191,7 +196,14 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         switchSelectedThread(thread);
       }
     });
-  }, [userData.user, threadData.createThreadLoading, searchParams, router, toast, threadData.searchOrCreateThread])
+  }, [
+    userData.user,
+    threadData.createThreadLoading,
+    searchParams,
+    router,
+    toast,
+    threadData.searchOrCreateThread,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !userData.user) return;
@@ -531,7 +543,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                  highlightedText.markdownBlock.length
+                    highlightedText.markdownBlock.length
                 );
               }
 
@@ -921,7 +933,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                  highlightedText.markdownBlock.length
+                    highlightedText.markdownBlock.length
                 );
               }
 
