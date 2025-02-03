@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --config .prettierrc --write \"src\" \"evals\"",
-    "eval:highlights": "yarn tsx evals/highlights.ts"
+    "eval:highlights": "yarn tsx evals/highlights.ts",
+    "dev:server": "npx @langchain/langgraph-cli dev --port 54367"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.5.71",
