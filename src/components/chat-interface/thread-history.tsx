@@ -11,6 +11,8 @@ import { TighterText } from "../ui/header";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
+import { useUserContext } from "@/contexts/UserContext";
+import { useThreadContext } from "@/contexts/ThreadProvider";
 
 interface ThreadHistoryProps {
   switchSelectedThreadCallback: (thread: Thread) => void;
@@ -195,21 +197,17 @@ function ThreadsList(props: ThreadsListProps) {
 export function ThreadHistoryComponent(props: ThreadHistoryProps) {
   const { toast } = useToast();
   const {
-    userData: { user },
-    threadData: {
-      deleteThread,
-      getUserThreads,
-      userThreads,
-      isUserThreadsLoading,
-    },
     graphData: { setMessages, switchSelectedThread },
   } = useGraphContext();
+  const { deleteThread, getUserThreads, userThreads, isUserThreadsLoading } =
+    useThreadContext();
+  const { user } = useUserContext();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window == "undefined" || userThreads.length || !user) return;
 
-    getUserThreads(user.id);
+    getUserThreads();
   }, [user]);
 
   const handleDeleteThread = async (id: string) => {
@@ -223,7 +221,7 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
       return;
     }
 
-    await deleteThread(id, user.id, () => setMessages([]));
+    await deleteThread(id, () => setMessages([]));
   };
 
   const groupedThreads = groupThreads(

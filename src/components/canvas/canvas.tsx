@@ -20,12 +20,14 @@ import {
 import React, { useEffect, useState } from "react";
 import { ContentComposerChatInterface } from "./content-composer";
 import NoSSRWrapper from "../NoSSRWrapper";
+import { useUserContext } from "@/contexts/UserContext";
+import { useThreadContext } from "@/contexts/ThreadProvider";
 
 export function CanvasComponent() {
-  const { threadData, graphData, userData } = useGraphContext();
-  const { user } = userData;
+  const { graphData } = useGraphContext();
+  const { user } = useUserContext();
   const { threadId, clearThreadsWithNoValues, setModelName, setModelConfig } =
-    threadData;
+    useThreadContext();
   const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -33,7 +35,7 @@ export function CanvasComponent() {
   useEffect(() => {
     if (!threadId || !user) return;
     // Clear threads with no values
-    clearThreadsWithNoValues(user.id);
+    clearThreadsWithNoValues();
   }, [threadId, user]);
 
   const handleQuickStart = (

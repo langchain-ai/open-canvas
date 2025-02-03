@@ -18,6 +18,7 @@ import { ArtifactLoading } from "./ArtifactLoading";
 import { AskOpenCanvas } from "./components/AskOpenCanvas";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { ArtifactHeader } from "./header";
+import { useUserContext } from "@/contexts/UserContext";
 
 export interface ArtifactRendererProps {
   isEditing: boolean;
@@ -34,8 +35,8 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
   const {
     graphData,
     assistantsData: { selectedAssistant },
-    userData: { user },
   } = useGraphContext();
+  const { user } = useUserContext();
   const {
     artifact,
     selectedBlocks,

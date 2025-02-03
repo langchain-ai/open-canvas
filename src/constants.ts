@@ -14,6 +14,7 @@ export const LS_HAS_SEEN_MODEL_DROPDOWN_ALERT =
   "oc_has_seen_model_dropdown_alert";
 export const OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT =
   "oc_has_seen_custom_assistants_alert";
+export const THREAD_ID_QUERY_PARAM = "threadId";
 export const DEFAULT_INPUTS = {
   highlightedCode: undefined,
   highlightedText: undefined,
@@ -53,6 +54,46 @@ export const AZURE_MODELS: ModelConfigurationParams[] = [
 ];
 
 export const OPENAI_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "gpt-4o",
+    label: "GPT-4o",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: false,
+  },
+  {
+    name: "gpt-4o-mini",
+    label: "GPT-4o mini",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: false,
+  },
   {
     name: "o3-mini",
     label: "o3 mini",
@@ -112,46 +153,6 @@ export const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
     },
     isNew: true,
-  },
-  {
-    name: "gpt-4o",
-    label: "GPT-4o",
-    config: {
-      provider: "openai",
-      temperatureRange: {
-        min: 0,
-        max: 1,
-        default: 0.5,
-        current: 0.5,
-      },
-      maxTokens: {
-        min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
-      },
-    },
-    isNew: false,
-  },
-  {
-    name: "gpt-4o-mini",
-    label: "GPT-4o mini",
-    config: {
-      provider: "openai",
-      temperatureRange: {
-        min: 0,
-        max: 1,
-        default: 0.5,
-        current: 0.5,
-      },
-      maxTokens: {
-        min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
-      },
-    },
-    isNew: false,
   },
 ];
 

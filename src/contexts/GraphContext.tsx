@@ -1,5 +1,4 @@
-import { useUser } from "@/hooks/useUser";
-import { useThread } from "@/hooks/useThread";
+import { useUserContext } from "@/contexts/UserContext";
 import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
@@ -30,6 +29,7 @@ import {
   NON_STREAMING_TEXT_MODELS,
   NON_STREAMING_TOOL_CALLING_MODELS,
   THREAD_ID_COOKIE_NAME,
+  THREAD_ID_QUERY_PARAM,
 } from "@/constants";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +55,7 @@ import {
 import { useAssistants } from "@/hooks/useAssistants";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useThreadContext } from "./ThreadProvider";
 
 interface GraphData {
   runId: string | undefined;
@@ -83,16 +84,10 @@ interface GraphData {
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
 }
 
-type UserDataContextType = ReturnType<typeof useUser>;
-
-type ThreadDataContextType = ReturnType<typeof useThread>;
-
 type AssistantsDataContextType = ReturnType<typeof useAssistants>;
 
 type GraphContentType = {
   graphData: GraphData;
-  userData: UserDataContextType;
-  threadData: ThreadDataContextType;
   assistantsData: AssistantsDataContextType;
 };
 
@@ -134,11 +129,11 @@ function extractStreamDataOutput(output: any) {
 }
 
 export function GraphProvider({ children }: { children: ReactNode }) {
-  const userData = useUser();
+  const userData = useUserContext();
   const assistantsData = useAssistants();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const threadData = useThread();
+  const threadData = useThreadContext();
   const { toast } = useToast();
   const { shareRun } = useRuns();
   const [chatStarted, setChatStarted] = useState(false);
@@ -164,42 +159,42 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
 
-  useEffect(() => {
-    if (userData.user) return;
-    userData.getUser();
-  }, []);
+  const searchOrCreateEffectRan = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!userData.user) return;
+    if (typeof window === "undefined" || !userData.user || threadData.createThreadLoading) return;
 
-    const threadIdQueryParam = searchParams.get("threadId");
-    if (threadIdQueryParam) {
-      threadData.getThreadById(threadIdQueryParam).then((thread) => {
-        if (!thread) {
-          // Thread not found. Clear it & send an error message.
-          const queryParams = new URLSearchParams(searchParams.toString());
-          queryParams.delete("threadId");
-          router.replace(`?${queryParams.toString()}`, { scroll: false });
+    // Only run effect once in development
+    if (searchOrCreateEffectRan.current) return;
+    searchOrCreateEffectRan.current = true;
 
-          toast({
-            title: "Error",
-            description: "Thread ID in query params not found",
-            variant: "destructive",
-            duration: 5000,
-          });
+    threadData.searchOrCreateThread().then((thread) => {
+      if (!thread) {
+        // Thread not found. Clear it & send an error message.
+        const queryParams = new URLSearchParams(searchParams.toString());
+        queryParams.delete(THREAD_ID_QUERY_PARAM);
+        router.replace(`?${queryParams.toString()}`, { scroll: false });
 
-          return;
-        }
+        toast({
+          title: "Error",
+          description: "Thread ID in query params not found",
+          variant: "destructive",
+          duration: 5000,
+        });
 
-        // Otherwise, call the `switchSelectedThread` method to set this thread as the active thread.
+        return;
+      }
+
+      const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+      if (threadIdQueryParam) {
+        // If the thread ID is in query params, load it as the active thread.
         switchSelectedThread(thread);
-      });
-    }
+      }
+    });
+  }, [userData.user, threadData.createThreadLoading, searchParams, router, toast, threadData.searchOrCreateThread])
 
-    if (!threadData.threadId) {
-      threadData.searchOrCreateThread(userData.user.id);
-    }
+  useEffect(() => {
+    if (typeof window === "undefined" || !userData.user) return;
 
     // Get or create a new assistant if there isn't one set in state, and we're not
     // loading all assistants already.
@@ -317,7 +312,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     const client = createClient();
 
     const messagesInput = {
+      // `messages` contains the full, unfiltered list of messages
       messages: params.messages,
+      // `_messages` contains the list of messages which are included
+      // in the LLMs context, including summarization messages.
       _messages: params.messages,
     };
 
@@ -533,7 +531,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                    highlightedText.markdownBlock.length
+                  highlightedText.markdownBlock.length
                 );
               }
 
@@ -923,7 +921,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                    highlightedText.markdownBlock.length
+                  highlightedText.markdownBlock.length
                 );
               }
 
@@ -1306,10 +1304,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
     // Ensure the URL has the new thread ID in query params. If it doesn't,
     // add it, or replace if present but it doesn't match
-    const threadIdQueryParam = searchParams.get("threadId");
+    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
     const params = new URLSearchParams(searchParams.toString());
     if (threadIdQueryParam !== thread.thread_id) {
-      params.set("threadId", thread.thread_id);
+      params.set(THREAD_ID_QUERY_PARAM, thread.thread_id);
       router.replace(`?${params.toString()}`, { scroll: false });
     }
 
@@ -1370,8 +1368,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   };
 
   const contextValue: GraphContentType = {
-    userData,
-    threadData,
     assistantsData,
     graphData: {
       runId,

@@ -26,7 +26,7 @@ import {
 } from "@radix-ui/react-popover";
 import { Check } from "lucide-react";
 import NextImage from "next/image";
-import { useUser } from "@/hooks/useUser";
+import { useUserContext } from "@/contexts/UserContext";
 
 interface ModelSelectorProps {
   modelName: ALL_MODEL_NAMES;
@@ -47,7 +47,7 @@ export default function ModelSelector({
   setModelName,
   modelConfigs,
 }: ModelSelectorProps) {
-  const { getUser } = useUser();
+  const { user } = useUserContext();
   const [isLangChainUser, setIsLangChainUser] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [open, setOpen] = useState(false);
@@ -55,10 +55,9 @@ export default function ModelSelector({
     useState<ALL_MODEL_NAMES | null>(null);
 
   useEffect(() => {
-    getUser().then((user) => {
-      setIsLangChainUser(user?.email?.endsWith("@langchain.dev") || false);
-    });
-  }, []);
+    if (!user) return;
+    setIsLangChainUser(user?.email?.endsWith("@langchain.dev") || false);
+  }, [user]);
 
   const handleModelChange = useCallback(
     async (newModel: ALL_MODEL_NAMES) => {
