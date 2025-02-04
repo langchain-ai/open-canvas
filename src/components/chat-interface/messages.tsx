@@ -30,7 +30,7 @@ interface AssistantMessageProps {
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
 }
 
-const ThinkingAssistantMessage = ({
+const ThinkingAssistantMessageComponent = ({
   message,
 }: {
   message: MessageState;
@@ -65,6 +65,8 @@ const ThinkingAssistantMessage = ({
   );
 };
 
+const ThinkingAssistantMessage = React.memo(ThinkingAssistantMessageComponent);
+
 export const AssistantMessage: FC<AssistantMessageProps> = ({
   runId,
   feedbackSubmitted,
@@ -75,7 +77,6 @@ export const AssistantMessage: FC<AssistantMessageProps> = ({
   const isThinkingMessage = message.id.startsWith("thinking-");
 
   if (isThinkingMessage) {
-    // TODO: This will currently cause replies to be missing.
     return <ThinkingAssistantMessage message={message} />;
   }
 
@@ -105,7 +106,7 @@ export const UserMessage: FC = () => {
   const msg = useMessage(getExternalStoreMessage<HumanMessage>);
   const humanMessage = Array.isArray(msg) ? msg[0] : msg;
 
-  if (humanMessage.additional_kwargs?.[OC_HIDE_FROM_UI_KEY]) return null;
+  if (humanMessage?.additional_kwargs?.[OC_HIDE_FROM_UI_KEY]) return null;
 
   return (
     <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-4">

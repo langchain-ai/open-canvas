@@ -44,10 +44,10 @@
   resolved "https://registry.yarnpkg.com/@assistant-ui/react-syntax-highlighter/-/react-syntax-highlighter-0.7.9.tgz#8a6f2b5b0ba9ae41abf07ed4232799f58c6358b7"
   integrity sha512-cmwkdxkaQkk8pa1OQxZqT3Eh1m097ifnNZdUX4n8+Iv1Fa11FeBd5JthKXpw4lzMWK0JUop9gO5SxedkTPf31Q==
 
-"@assistant-ui/react@^0.7.7":
-  version "0.7.59"
-  resolved "https://registry.yarnpkg.com/@assistant-ui/react/-/react-0.7.59.tgz#4a705a702e1e54ebe48f9f1e57c2482e008e679b"
-  integrity sha512-NXXVdeMKkCC1lzODgm+vbMjgYkybwGCqFADfL5RaeG68s3EldQQD0VX1WGicWpBaRnmlpjFVjEWXCp3CFXxpOg==
+"@assistant-ui/react@^0.7.68":
+  version "0.7.68"
+  resolved "https://registry.yarnpkg.com/@assistant-ui/react/-/react-0.7.68.tgz#aeec434a12936cb57b7d1ac510ea733b973c5242"
+  integrity sha512-qqSs54ueaXbJkRiqMuEb2Mmgbdx2/MebuJiHlMC/FseNtrGHOabM1GxuOx/uFHinMS64BBHDmesoRbLkrAGlFQ==
   dependencies:
     "@ai-sdk/provider" "^1.0.4"
     "@radix-ui/primitive" "^1.1.1"

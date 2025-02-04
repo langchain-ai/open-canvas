@@ -16,7 +16,7 @@
   },
   "packageManager": "yarn@1.22.22",
   "dependencies": {
-    "@assistant-ui/react": "^0.7.7",
+    "@assistant-ui/react": "^0.7.68",
     "@assistant-ui/react-markdown": "^0.7.2",
     "@assistant-ui/react-syntax-highlighter": "^0.7.2",
     "@blocknote/core": "^0.17.1",
