@@ -1,10 +1,16 @@
+import { v4 as uuidv4 } from "uuid";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "../../../contexts/utils";
+import {
+  extractThinkingAndResponseTokens,
+  getArtifactContent,
+  isThinkingModel,
+} from "../../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../../lib/artifact_content_types";
 import { ArtifactV3, Reflections } from "../../../types";
 import {
   ensureStoreInConfig,
   formatReflections,
+  getModelConfig,
   getModelFromConfig,
 } from "../../utils";
 import {
@@ -15,11 +21,13 @@ import {
   CHANGE_ARTIFACT_TO_PIRATE_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
+import { AIMessage } from "@langchain/core/messages";
 
 export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
+  const { modelName } = getModelConfig(config);
   const smallModel = await getModelFromConfig(config);
 
   const store = ensureStoreInConfig(config);
@@ -110,6 +118,19 @@ export const rewriteArtifactTheme = async (
     { role: "user", content: formattedPrompt },
   ]);
 
+  let thinkingMessage: AIMessage | undefined;
+  let artifactContentText = newArtifactValues.content as string;
+
+  if (isThinkingModel(modelName)) {
+    const { thinking, response } =
+      extractThinkingAndResponseTokens(artifactContentText);
+    thinkingMessage = new AIMessage({
+      id: `thinking-${uuidv4()}`,
+      content: thinking,
+    });
+    artifactContentText = response;
+  }
+
   const newArtifact: ArtifactV3 = {
     ...state.artifact,
     currentIndex: state.artifact.contents.length + 1,
@@ -118,12 +139,14 @@ export const rewriteArtifactTheme = async (
       {
         ...currentArtifactContent,
         index: state.artifact.contents.length + 1,
-        fullMarkdown: newArtifactValues.content as string,
+        fullMarkdown: artifactContentText,
       },
     ],
   };
 
   return {
     artifact: newArtifact,
+    messages: [...(thinkingMessage ? [thinkingMessage] : [])],
+    _messages: [...(thinkingMessage ? [thinkingMessage] : [])],
   };
 };

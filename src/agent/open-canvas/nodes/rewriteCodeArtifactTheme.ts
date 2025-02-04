@@ -1,8 +1,13 @@
+import { v4 as uuidv4 } from "uuid";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "../../../contexts/utils";
+import {
+  extractThinkingAndResponseTokens,
+  getArtifactContent,
+  isThinkingModel,
+} from "../../../contexts/utils";
 import { isArtifactCodeContent } from "../../../lib/artifact_content_types";
 import { ArtifactCodeV3, ArtifactV3 } from "../../../types";
-import { getModelFromConfig } from "../../utils";
+import { getModelConfig, getModelFromConfig } from "../../utils";
 import {
   ADD_COMMENTS_TO_CODE_ARTIFACT_PROMPT,
   ADD_LOGS_TO_CODE_ARTIFACT_PROMPT,
@@ -10,11 +15,13 @@ import {
   PORT_LANGUAGE_CODE_ARTIFACT_PROMPT,
 } from "../prompts";
 import { OpenCanvasGraphAnnotation, OpenCanvasGraphReturnType } from "../state";
+import { AIMessage } from "@langchain/core/messages";
 
 export const rewriteCodeArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
+  const { modelName } = getModelConfig(config);
   const smallModel = await getModelFromConfig(config);
 
   const currentArtifactContent = state.artifact
@@ -80,13 +87,26 @@ export const rewriteCodeArtifactTheme = async (
     { role: "user", content: formattedPrompt },
   ]);
 
+  let thinkingMessage: AIMessage | undefined;
+  let artifactContentText = newArtifactValues.content as string;
+
+  if (isThinkingModel(modelName)) {
+    const { thinking, response } =
+      extractThinkingAndResponseTokens(artifactContentText);
+    thinkingMessage = new AIMessage({
+      id: `thinking-${uuidv4()}`,
+      content: thinking,
+    });
+    artifactContentText = response;
+  }
+
   const newArtifactContent: ArtifactCodeV3 = {
     index: state.artifact.contents.length + 1,
     type: "code",
     title: currentArtifactContent.title,
     // Ensure the new artifact's language is updated, if necessary
     language: state.portLanguage || currentArtifactContent.language,
-    code: newArtifactValues.content as string,
+    code: artifactContentText,
   };
 
   const newArtifact: ArtifactV3 = {
@@ -97,5 +117,7 @@ export const rewriteCodeArtifactTheme = async (
 
   return {
     artifact: newArtifact,
+    messages: [...(thinkingMessage ? [thinkingMessage] : [])],
+    _messages: [...(thinkingMessage ? [thinkingMessage] : [])],
   };
 };
