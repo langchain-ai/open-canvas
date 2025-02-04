@@ -118,6 +118,7 @@ export function ContentComposerChatInterfaceComponent(
     callback: convertLangchainMessages,
     messages,
     isRunning,
+    joinStrategy: "none",
   });
 
   const runtime = useExternalStoreRuntime({

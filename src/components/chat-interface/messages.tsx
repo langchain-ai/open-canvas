@@ -1,9 +1,16 @@
 "use client";
 
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   ActionBarPrimitive,
   getExternalStoreMessage,
   MessagePrimitive,
+  MessageState,
   useMessage,
 } from "@assistant-ui/react";
 import React, { Dispatch, SetStateAction, type FC } from "react";
@@ -23,12 +30,56 @@ interface AssistantMessageProps {
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
 }
 
+const ThinkingAssistantMessageComponent = ({
+  message,
+}: {
+  message: MessageState;
+}): React.ReactElement => {
+  const { id, content } = message;
+  let contentText = "";
+  if (typeof content === "string") {
+    contentText = content;
+  } else {
+    const firstItem = content?.[0];
+    if (firstItem?.type === "text") {
+      contentText = firstItem.text;
+    }
+  }
+
+  if (contentText === "") {
+    return <></>;
+  }
+
+  return (
+    <Accordion
+      defaultValue={`accordion-${id}`}
+      type="single"
+      collapsible
+      className="w-full"
+    >
+      <AccordionItem value={`accordion-${id}`}>
+        <AccordionTrigger>Thoughts</AccordionTrigger>
+        <AccordionContent>{contentText}</AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+};
+
+const ThinkingAssistantMessage = React.memo(ThinkingAssistantMessageComponent);
+
 export const AssistantMessage: FC<AssistantMessageProps> = ({
   runId,
   feedbackSubmitted,
   setFeedbackSubmitted,
 }) => {
-  const isLast = useMessage().isLast;
+  const message = useMessage();
+  const { isLast } = message;
+  const isThinkingMessage = message.id.startsWith("thinking-");
+
+  if (isThinkingMessage) {
+    return <ThinkingAssistantMessage message={message} />;
+  }
+
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
@@ -55,7 +106,7 @@ export const UserMessage: FC = () => {
   const msg = useMessage(getExternalStoreMessage<HumanMessage>);
   const humanMessage = Array.isArray(msg) ? msg[0] : msg;
 
-  if (humanMessage.additional_kwargs?.[OC_HIDE_FROM_UI_KEY]) return null;
+  if (humanMessage?.additional_kwargs?.[OC_HIDE_FROM_UI_KEY]) return null;
 
   return (
     <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-4">

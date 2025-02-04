@@ -68,6 +68,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   } = useThreadContext();
   const { user } = useUserContext();
 
+  // Render the LangSmith trace link
   useLangSmithLinkToolUI();
 
   const handleCreateThread = async () => {
@@ -98,7 +99,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     setModelConfig(modelName, modelConfig);
     clearState();
     setChatStarted(false);
-    const thread = await searchOrCreateThread();
+    // Set `true` for `isNewThread` because we want to create a new thread
+    // if the existing one has values.
+    const thread = await searchOrCreateThread(true);
     if (!thread) {
       toast({
         title: "Failed to create a new thread",

@@ -6,7 +6,7 @@ export const ContextDocumentsUI = ({
   message,
   className,
 }: {
-  message: HumanMessage;
+  message: HumanMessage | undefined;
   className?: string;
 }) => {
   const documents = message?.additional_kwargs?.documents as ContextDocument[];

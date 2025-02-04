@@ -238,7 +238,7 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <TooltipIconButton
-          tooltip="New chat"
+          tooltip="History"
           variant="ghost"
           className="w-fit h-fit p-2"
         >

@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { useUserContext } from "@/contexts/UserContext";
 import {
   isArtifactCodeContent,
@@ -46,6 +47,8 @@ import {
 import {
   convertToArtifactV3,
   handleGenerateArtifactToolCallChunk,
+  handleRewriteArtifactThinkingModel,
+  isThinkingModel,
   removeCodeBlockFormatting,
   replaceOrInsertMessageChunk,
   updateHighlightedCode,
@@ -374,7 +377,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     // The root level run ID of this stream
     let runId = "";
     let followupMessageId = "";
-    // let lastMessage: AIMessage | undefined = undefined;
+    // The ID of the message containing the thinking content.
+    let thinkingMessageId = "";
 
     try {
       const stream = client.runs.stream(
@@ -418,11 +422,16 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       // Whether or not the first update has been made when updating highlighted code.
       let isFirstUpdate = true;
 
-      // The new text of an artifact that is being rewritten
+      // The full text content of an artifact that is being rewritten.
+      // This may include thinking tokens if the model generates them.
+      let fullNewArtifactContent = "";
+      // The response text ONLY of the artifact that is being rewritten.
       let newArtifactContent = "";
 
       // The updated full markdown text when using the highlight update tool
       let highlightedText: TextHighlight | undefined = undefined;
+
+      // The message ID of the message containing the thinking content.
 
       for await (const chunk of stream) {
         if (chunk.event === "error") {
@@ -669,8 +678,21 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              newArtifactContent +=
+              fullNewArtifactContent +=
                 extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
+
+              if (isThinkingModel(threadData.modelName)) {
+                if (!thinkingMessageId) {
+                  thinkingMessageId = `thinking-${uuidv4()}`;
+                }
+                newArtifactContent = handleRewriteArtifactThinkingModel({
+                  newArtifactContent: fullNewArtifactContent,
+                  setMessages,
+                  thinkingMessageId,
+                });
+              } else {
+                newArtifactContent = fullNewArtifactContent;
+              }
 
               // Ensure we have the language to update the artifact with
               let artifactLanguage = params.portLanguage || undefined;
@@ -749,8 +771,21 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              newArtifactContent +=
+              fullNewArtifactContent +=
                 extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
+
+              if (isThinkingModel(threadData.modelName)) {
+                if (!thinkingMessageId) {
+                  thinkingMessageId = `thinking-${uuidv4()}`;
+                }
+                newArtifactContent = handleRewriteArtifactThinkingModel({
+                  newArtifactContent: fullNewArtifactContent,
+                  setMessages,
+                  thinkingMessageId,
+                });
+              } else {
+                newArtifactContent = fullNewArtifactContent;
+              }
 
               // Ensure we have the language to update the artifact with
               const artifactLanguage =
@@ -820,7 +855,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
               const message = extractStreamDataOutput(chunk.data.data.output);
 
-              newArtifactContent += message.content || "";
+              fullNewArtifactContent += message.content || "";
 
               // Ensure we have the language to update the artifact with
               let artifactLanguage = params.portLanguage || undefined;
@@ -846,7 +881,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   throw new Error("No artifact found when updating markdown");
                 }
 
-                let content = newArtifactContent;
+                let content = fullNewArtifactContent;
                 if (!rewriteArtifactMeta) {
                   console.error(
                     "No rewrite artifact meta found when updating artifact"
@@ -1074,7 +1109,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
               const message = extractStreamDataOutput(chunk.data.data.output);
-              newArtifactContent += message?.content || "";
+              fullNewArtifactContent += message?.content || "";
 
               // Ensure we have the language to update the artifact with
               const artifactLanguage =
@@ -1099,7 +1134,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   throw new Error("No artifact found when updating markdown");
                 }
 
-                let content = newArtifactContent;
+                let content = fullNewArtifactContent;
                 if (artifactType === "code") {
                   content = removeCodeBlockFormatting(content);
                 }
