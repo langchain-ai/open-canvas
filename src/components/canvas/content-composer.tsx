@@ -54,6 +54,8 @@ export function ContentComposerChatInterfaceComponent(
   const ffmpegRef = useRef(new FFmpeg());
 
   async function onNew(message: AppendMessage): Promise<void> {
+    console.log(message);
+    if (!message.startRun) return;
     if (!userData.user) {
       toast({
         title: "User not found",
