@@ -1,14 +1,19 @@
 import React, { DragEvent } from "react";
+import { useComposer, useComposerRuntime } from "@assistant-ui/react";
 
 interface DragAndDropWrapperProps {
-  onFilesDrop: (files: File[]) => void;
   children: React.ReactNode;
 }
 
 export function DragAndDropWrapper({
-  onFilesDrop,
   children,
 }: DragAndDropWrapperProps) {
+  const disabled = useComposer((c) => !c.isEditing);
+  const composerRuntime = useComposerRuntime();
+  const attachmentsCount = useComposer((s) => s.attachments.length);
+
+  console.log("Attachments count", attachmentsCount);
+
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -27,9 +32,23 @@ export function DragAndDropWrapper({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const files = Array.from(e.dataTransfer.files);
-    onFilesDrop(files);
+    console.log("DROP");
+    if (!disabled) {
+      console.log("Disabled false")
+      const files = Array.from(e.dataTransfer.files);
+      console.log("Files", files)
+      const attachmentAccept = composerRuntime.getAttachmentAccept();
+      console.log("xyz")
+      composerRuntime.addAttachment(files[0]);
+      
+      files.forEach(file => {
+        console.log("Adding file", file)
+        composerRuntime.addAttachment(file);
+        // if (attachmentAccept === "*" || file.type.match(attachmentAccept)) {
+          
+        // }
+      });
+    }
   };
 
   return (

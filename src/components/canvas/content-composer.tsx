@@ -54,7 +54,7 @@ export function ContentComposerChatInterfaceComponent(
   const ffmpegRef = useRef(new FFmpeg());
 
   async function onNew(message: AppendMessage): Promise<void> {
-    console.log(message);
+    console.log("onNew:", message);
     if (!message.startRun) return;
     if (!userData.user) {
       toast({

@@ -3,6 +3,7 @@
 import {
   ComposerPrimitive,
   ThreadPrimitive,
+  useComposerRuntime,
   useThreadRuntime,
 } from "@assistant-ui/react";
 import { type FC } from "react";
@@ -12,6 +13,8 @@ import { Paperclip, SendHorizontalIcon } from "lucide-react";
 import { AssistantSelect } from "../assistant-select";
 import { AttachmentUI } from "@/components/ui/assistant-ui/attachment-ui";
 import { DragAndDropWrapper } from "./drag-drop-wrapper";
+import { ComposerAddAttachment, ComposerAttachments } from "../assistant-ui/attachment";
+import { useToast } from "@/hooks/use-toast";
 
 const CircleStopIcon = () => {
   return (
@@ -33,56 +36,36 @@ interface ComposerProps {
 }
 
 export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
-  const thread = useThreadRuntime();
+  const composerRuntime = useComposerRuntime();
+  const { toast } = useToast();
 
-  const onFilesDrop = (files: File[]) => {
-    thread.append({
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: "",
-        },
-      ],
-      attachments: files.map((file) => ({
-        status: {
-          type: "complete",
-        },
-        content: [
-          {
-            type: "text",
-            text: "",
-          },
-        ],
-        id: `${file.name}-${Date.now()}`,
-        type: "file",
-        name: file.name,
-        contentType: file.type,
-        file,
-      })),
-      startRun: false,
-    });
+  const onFilesDrop = async (files: File[]) => {
+    try {
+      const addAttachmentPromises = files.map(async (file) => {
+        await composerRuntime.addAttachment(file)
+      })
+      await Promise.all(addAttachmentPromises)
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Error",
+        description: "Failed to add attachments",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
   };
 
   return (
-    <DragAndDropWrapper onFilesDrop={onFilesDrop}>
+    <DragAndDropWrapper>
       <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex flex-col w-full min-h-[64px] flex-wrap items-center justify-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">
         <div className="flex flex-wrap gap-2 items-start mr-auto">
-          <ComposerPrimitive.Attachments
-            components={{ Attachment: AttachmentUI }}
-          />
+          <ComposerAttachments />
         </div>
 
         <div className="flex flex-row w-full items-start justify-center my-auto">
-          <ComposerPrimitive.AddAttachment asChild>
-            <TooltipIconButton
-              tooltip="Add attachment"
-              className="w-15 h-15 transition-colors ease-in-out duration-200 my-auto"
-              variant="ghost"
-            >
-              <Paperclip />
-            </TooltipIconButton>
-          </ComposerPrimitive.AddAttachment>
+          <ComposerAddAttachment />
+
           <AssistantSelect
             userId={props.userId}
             chatStarted={props.chatStarted}
