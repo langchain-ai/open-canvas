@@ -215,6 +215,7 @@ export const getModelConfig = (
       apiKey: process.env.OPENAI_API_KEY,
     };
   }
+
   if (customModelName.includes("claude-")) {
     return {
       ...providerConfig,
@@ -222,13 +223,32 @@ export const getModelConfig = (
       apiKey: process.env.ANTHROPIC_API_KEY,
     };
   }
+
   if (customModelName.includes("fireworks/")) {
+    let actualModelName = providerConfig.modelName;
+    if (
+      extra?.isToolCalling &&
+      actualModelName !== "accounts/fireworks/models/llama-v3p3-70b-instruct"
+    ) {
+      actualModelName = "accounts/fireworks/models/llama-v3p3-70b-instruct";
+    }
     return {
       ...providerConfig,
+      modelName: actualModelName,
       modelProvider: "fireworks",
       apiKey: process.env.FIREWORKS_API_KEY,
     };
   }
+
+  if (customModelName.startsWith("groq/")) {
+    const actualModelName = customModelName.replace("groq/", "");
+    return {
+      modelName: actualModelName,
+      modelProvider: "groq",
+      apiKey: process.env.GROQ_API_KEY,
+    };
+  }
+
   if (customModelName.includes("gemini-")) {
     let actualModelName = providerConfig.modelName;
     if (extra?.isToolCalling && actualModelName.includes("thinking")) {
@@ -242,6 +262,21 @@ export const getModelConfig = (
       apiKey: process.env.GOOGLE_API_KEY,
     };
   }
+
+  if (customModelName.includes("gemini-")) {
+    let actualModelName = providerConfig.modelName;
+    if (extra?.isToolCalling && actualModelName.includes("thinking")) {
+      // Gemini thinking does not support tools.
+      actualModelName = "gemini-2.0-flash-exp";
+    }
+    return {
+      ...providerConfig,
+      modelName: actualModelName,
+      modelProvider: "google-genai",
+      apiKey: process.env.GOOGLE_API_KEY,
+    };
+  }
+
   if (customModelName.startsWith("ollama-")) {
     return {
       modelName: customModelName.replace("ollama-", ""),

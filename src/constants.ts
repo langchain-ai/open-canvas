@@ -247,8 +247,28 @@ export const ANTHROPIC_MODELS = [
 
 export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
   {
+    name: "accounts/fireworks/models/llama-v3p3-70b-instruct",
+    label: "Llama 3.3 70B",
+    config: {
+      provider: "fireworks",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+  {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
-    label: "Llama 70B (Fireworks)",
+    label: "Llama 70B (old)",
     config: {
       provider: "fireworks",
       temperatureRange: {
@@ -268,7 +288,7 @@ export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
   },
   {
     name: "accounts/fireworks/models/deepseek-v3",
-    label: "DeepSeek V3 (Fireworks)",
+    label: "DeepSeek V3",
     config: {
       provider: "fireworks",
       temperatureRange: {
@@ -288,9 +308,32 @@ export const FIREWORKS_MODELS: ModelConfigurationParams[] = [
   },
   {
     name: "accounts/fireworks/models/deepseek-r1",
-    label: "DeepSeek R1 (Fireworks)",
+    label: "DeepSeek R1",
     config: {
       provider: "fireworks",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8000,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
+];
+
+export const GROQ_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "groq/deepseek-r1-distill-llama-70b",
+    label: "DeepSeek R1 Llama 70b Distill",
+    config: {
+      provider: "groq",
       temperatureRange: {
         min: 0,
         max: 1,
@@ -392,6 +435,8 @@ export const NON_STREAMING_TEXT_MODELS = [
   "o1",
   "gemini-2.0-flash-thinking-exp-01-21",
 ];
+// Models which preform CoT before generating a final response.
+export const THINKING_MODELS = ["accounts/fireworks/models/deepseek-r1"];
 
 export const ALL_MODELS: ModelConfigurationParams[] = [
   ...OPENAI_MODELS,
@@ -400,6 +445,7 @@ export const ALL_MODELS: ModelConfigurationParams[] = [
   ...GEMINI_MODELS,
   ...AZURE_MODELS,
   ...OLLAMA_MODELS,
+  ...GROQ_MODELS,
 ];
 
 export type OPENAI_MODEL_NAMES = (typeof OPENAI_MODELS)[number]["name"];
@@ -408,13 +454,15 @@ export type FIREWORKS_MODEL_NAMES = (typeof FIREWORKS_MODELS)[number]["name"];
 export type GEMINI_MODEL_NAMES = (typeof GEMINI_MODELS)[number]["name"];
 export type AZURE_MODEL_NAMES = (typeof AZURE_MODELS)[number]["name"];
 export type OLLAMA_MODEL_NAMES = (typeof OLLAMA_MODELS)[number]["name"];
+export type GROQ_MODEL_NAMES = (typeof GROQ_MODELS)[number]["name"];
 export type ALL_MODEL_NAMES =
   | OPENAI_MODEL_NAMES
   | ANTHROPIC_MODEL_NAMES
   | FIREWORKS_MODEL_NAMES
   | GEMINI_MODEL_NAMES
   | AZURE_MODEL_NAMES
-  | OLLAMA_MODEL_NAMES;
+  | OLLAMA_MODEL_NAMES
+  | GROQ_MODEL_NAMES;
 
 export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
 export const DEFAULT_MODEL_CONFIG: CustomModelConfig = {

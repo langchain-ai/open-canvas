@@ -48,7 +48,7 @@ export const reflectNode = async (
       // This lets us "debounce" repeated requests to the memory graph
       // if the user is actively engaging in a conversation. This saves us $$ and
       // can help reduce the occurrence of duplicate memories.
-      afterSeconds: 15,
+      afterSeconds: 5 * 60, // 5 minutes
     }
   );
 

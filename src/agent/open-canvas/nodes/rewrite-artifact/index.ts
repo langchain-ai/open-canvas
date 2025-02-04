@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
@@ -8,16 +9,23 @@ import { buildPrompt, createNewArtifactContent, validateState } from "./utils";
 import {
   createContextDocumentMessages,
   getFormattedReflections,
+  getModelConfig,
   getModelFromConfig,
   isUsingO1MiniModel,
   optionallyGetSystemPromptFromConfig,
 } from "@/agent/utils";
 import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { AIMessage } from "@langchain/core/messages";
+import {
+  extractThinkingAndResponseTokens,
+  isThinkingModel,
+} from "@/contexts/utils";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
+  const { modelName } = getModelConfig(config);
   const smallModelWithConfig = (await getModelFromConfig(config)).withConfig({
     runName: "rewrite_artifact_model_call",
   });
@@ -55,12 +63,25 @@ export const rewriteArtifact = async (
     recentHumanMessage,
   ]);
 
+  let thinkingMessage: AIMessage | undefined;
+  let artifactContentText = newArtifactResponse.content as string;
+
+  if (isThinkingModel(modelName)) {
+    const { thinking, response } =
+      extractThinkingAndResponseTokens(artifactContentText);
+    thinkingMessage = new AIMessage({
+      id: `thinking-${uuidv4()}`,
+      content: thinking,
+    });
+    artifactContentText = response;
+  }
+
   const newArtifactContent = createNewArtifactContent({
     artifactType,
     state,
     currentArtifactContent,
     artifactMetaToolCall,
-    newContent: newArtifactResponse.content as string,
+    newContent: artifactContentText as string,
   });
 
   return {
@@ -69,5 +90,7 @@ export const rewriteArtifact = async (
       currentIndex: state.artifact.contents.length + 1,
       contents: [...state.artifact.contents, newArtifactContent],
     },
+    messages: [...(thinkingMessage ? [thinkingMessage] : [])],
+    _messages: [...(thinkingMessage ? [thinkingMessage] : [])],
   };
 };

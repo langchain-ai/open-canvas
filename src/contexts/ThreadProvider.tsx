@@ -25,7 +25,7 @@ type ThreadContentType = {
   modelConfigs: Record<ALL_MODEL_NAMES, CustomModelConfig>;
   createThreadLoading: boolean;
   clearThreadsWithNoValues: () => Promise<void>;
-  searchOrCreateThread: () => Promise<Thread | undefined>;
+  searchOrCreateThread: (isNewThread?: boolean) => Promise<Thread | undefined>;
   getUserThreads: () => Promise<void>;
   deleteThread: (id: string, clearMessages: () => void) => Promise<void>;
   setThreadId: (id: string) => void;
@@ -87,7 +87,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   });
 
   const modelConfig = useMemo(() => {
-    // Try exact match first, then try without azure/ prefix
+    // Try exact match first, then try without "azure/" or "groq/" prefixes
     return (
       modelConfigs[modelName] || modelConfigs[modelName.replace("azure/", "")]
     );
@@ -215,7 +215,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const searchOrCreateThread = async () => {
+  const searchOrCreateThread = async (isNewThread?: boolean) => {
     const storedThreadId =
       searchParams.get(THREAD_ID_QUERY_PARAM) ||
       getCookie(THREAD_ID_COOKIE_NAME);
@@ -228,8 +228,15 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     // Thread ID is in cookies.
     const thread = await getThreadById(storedThreadId);
     if (thread) {
-      setThreadId(storedThreadId);
-      return thread;
+      const isEmptyThread =
+        !thread.values || Object.keys(thread.values).length === 0;
+      const shouldUseExistingThread =
+        !isNewThread || (isNewThread && isEmptyThread);
+
+      if (shouldUseExistingThread) {
+        setThreadId(storedThreadId);
+        return thread;
+      }
     }
 
     // Current thread has activity. Create a new thread.

@@ -1,9 +1,16 @@
 "use client";
 
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   ActionBarPrimitive,
   getExternalStoreMessage,
   MessagePrimitive,
+  MessageState,
   useMessage,
 } from "@assistant-ui/react";
 import React, { Dispatch, SetStateAction, type FC } from "react";
@@ -23,12 +30,55 @@ interface AssistantMessageProps {
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
 }
 
+const ThinkingAssistantMessage = ({
+  message,
+}: {
+  message: MessageState;
+}): React.ReactElement => {
+  const { id, content } = message;
+  let contentText = "";
+  if (typeof content === "string") {
+    contentText = content;
+  } else {
+    const firstItem = content?.[0];
+    if (firstItem?.type === "text") {
+      contentText = firstItem.text;
+    }
+  }
+
+  if (contentText === "") {
+    return <></>;
+  }
+
+  return (
+    <Accordion
+      defaultValue={`accordion-${id}`}
+      type="single"
+      collapsible
+      className="w-full"
+    >
+      <AccordionItem value={`accordion-${id}`}>
+        <AccordionTrigger>Thoughts</AccordionTrigger>
+        <AccordionContent>{contentText}</AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+};
+
 export const AssistantMessage: FC<AssistantMessageProps> = ({
   runId,
   feedbackSubmitted,
   setFeedbackSubmitted,
 }) => {
-  const isLast = useMessage().isLast;
+  const message = useMessage();
+  const { isLast } = message;
+  const isThinkingMessage = message.id.startsWith("thinking-");
+
+  if (isThinkingMessage) {
+    // TODO: This will currently cause replies to be missing.
+    return <ThinkingAssistantMessage message={message} />;
+  }
+
   return (
     <MessagePrimitive.Root className="relative grid w-full max-w-2xl grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] py-4">
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
