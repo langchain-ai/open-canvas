@@ -34,26 +34,24 @@ export function DragAndDropWrapper({ children }: DragAndDropWrapperProps) {
       try {
         const files = Array.from(e.dataTransfer.files);
         const attachmentAccept = composerRuntime.getAttachmentAccept();
-        console.log("About to add attachments", files, attachmentAccept);
         const addAttachmentPromises = files.map(async (file) => {
           if (
             attachmentAccept === "*" ||
             attachmentAccept.split(",").some((t) => t.trim() === file.type)
           ) {
-            console.log("Adding da file!");
             await composerRuntime.addAttachment(file);
           } else {
             toast({
               title: "Incompatible file type",
               description: (
-                <div className="flex flex-col gap-2 text-pretty">
-                  <p>This file type is not supported.</p>
+                <div className="flex flex-col gap-1 text-pretty">
+                  <p>This file {file.name} is not supported.</p>
                   <p>
-                    Received <span className="font-mono">{file.type}</span>.
-                    Must be one of:{" "}
+                    Received type <span className="font-mono">{file.type}</span>
+                    . Must be one of:{" "}
                   </p>
-                  <p className="font-mono w-[50%] text-wrap">
-                    {attachmentAccept}
+                  <p className="font-mono text-wrap">
+                    {attachmentAccept.split(",").join(", ")}
                   </p>
                 </div>
               ),
