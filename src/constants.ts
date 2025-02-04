@@ -436,7 +436,10 @@ export const NON_STREAMING_TEXT_MODELS = [
   "gemini-2.0-flash-thinking-exp-01-21",
 ];
 // Models which preform CoT before generating a final response.
-export const THINKING_MODELS = ["accounts/fireworks/models/deepseek-r1"];
+export const THINKING_MODELS = [
+  "accounts/fireworks/models/deepseek-r1",
+  "groq/deepseek-r1-distill-llama-70b",
+];
 
 export const ALL_MODELS: ModelConfigurationParams[] = [
   ...OPENAI_MODELS,
