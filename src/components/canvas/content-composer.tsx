@@ -30,6 +30,7 @@ import { arrayToFileList, convertDocuments } from "@/lib/attachments";
 import { VideoAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/video";
 import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
+import { PDFAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/pdf";
 
 export interface ContentComposerChatInterfaceProps {
   switchSelectedThreadCallback: (thread: ThreadType) => void;
@@ -54,6 +55,7 @@ export function ContentComposerChatInterfaceComponent(
   const ffmpegRef = useRef(new FFmpeg());
 
   async function onNew(message: AppendMessage): Promise<void> {
+    if (!message.startRun) return;
     if (!userData.user) {
       toast({
         title: "User not found",
@@ -130,6 +132,7 @@ export function ContentComposerChatInterfaceComponent(
         new SimpleTextAttachmentAdapter(),
         new AudioAttachmentAdapter(),
         new VideoAttachmentAdapter(),
+        new PDFAttachmentAdapter(),
       ]),
     },
   });
