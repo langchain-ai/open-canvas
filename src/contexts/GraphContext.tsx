@@ -778,7 +778,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 if (!thinkingMessageId) {
                   thinkingMessageId = `thinking-${uuidv4()}`;
                 }
-                console.log("Extracting thinking message");
                 newArtifactContent = handleRewriteArtifactThinkingModel({
                   newArtifactContent: fullNewArtifactContent,
                   setMessages,
