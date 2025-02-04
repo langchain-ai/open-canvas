@@ -1,20 +1,16 @@
 "use client";
 
-import {
-  ComposerPrimitive,
-  ThreadPrimitive,
-  useComposerRuntime,
-  useThreadRuntime,
-} from "@assistant-ui/react";
+import { ComposerPrimitive, ThreadPrimitive } from "@assistant-ui/react";
 import { type FC } from "react";
 
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { Paperclip, SendHorizontalIcon } from "lucide-react";
+import { SendHorizontalIcon } from "lucide-react";
 import { AssistantSelect } from "../assistant-select";
-import { AttachmentUI } from "@/components/ui/assistant-ui/attachment-ui";
 import { DragAndDropWrapper } from "./drag-drop-wrapper";
-import { ComposerAddAttachment, ComposerAttachments } from "../assistant-ui/attachment";
-import { useToast } from "@/hooks/use-toast";
+import {
+  ComposerAddAttachment,
+  ComposerAttachments,
+} from "../assistant-ui/attachment";
 
 const CircleStopIcon = () => {
   return (
@@ -36,26 +32,6 @@ interface ComposerProps {
 }
 
 export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
-  const composerRuntime = useComposerRuntime();
-  const { toast } = useToast();
-
-  const onFilesDrop = async (files: File[]) => {
-    try {
-      const addAttachmentPromises = files.map(async (file) => {
-        await composerRuntime.addAttachment(file)
-      })
-      await Promise.all(addAttachmentPromises)
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: "Error",
-        description: "Failed to add attachments",
-        variant: "destructive",
-        duration: 5000,
-      })
-    }
-  };
-
   return (
     <DragAndDropWrapper>
       <ComposerPrimitive.Root className="focus-within:border-aui-ring/20 flex flex-col w-full min-h-[64px] flex-wrap items-center justify-center rounded-lg border px-2.5 shadow-sm transition-colors ease-in bg-white">

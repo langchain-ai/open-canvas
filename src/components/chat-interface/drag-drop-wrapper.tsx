@@ -1,18 +1,15 @@
 import React, { DragEvent } from "react";
 import { useComposer, useComposerRuntime } from "@assistant-ui/react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DragAndDropWrapperProps {
   children: React.ReactNode;
 }
 
-export function DragAndDropWrapper({
-  children,
-}: DragAndDropWrapperProps) {
+export function DragAndDropWrapper({ children }: DragAndDropWrapperProps) {
+  const { toast } = useToast();
   const disabled = useComposer((c) => !c.isEditing);
   const composerRuntime = useComposerRuntime();
-  const attachmentsCount = useComposer((s) => s.attachments.length);
-
-  console.log("Attachments count", attachmentsCount);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -29,24 +26,60 @@ export function DragAndDropWrapper({
     e.stopPropagation();
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("DROP");
+
     if (!disabled) {
-      console.log("Disabled false")
-      const files = Array.from(e.dataTransfer.files);
-      console.log("Files", files)
-      const attachmentAccept = composerRuntime.getAttachmentAccept();
-      console.log("xyz")
-      composerRuntime.addAttachment(files[0]);
-      
-      files.forEach(file => {
-        console.log("Adding file", file)
-        composerRuntime.addAttachment(file);
-        // if (attachmentAccept === "*" || file.type.match(attachmentAccept)) {
-          
-        // }
+      try {
+        const files = Array.from(e.dataTransfer.files);
+        const attachmentAccept = composerRuntime.getAttachmentAccept();
+        console.log("About to add attachments", files, attachmentAccept);
+        const addAttachmentPromises = files.map(async (file) => {
+          if (
+            attachmentAccept === "*" ||
+            attachmentAccept.split(",").some((t) => t.trim() === file.type)
+          ) {
+            console.log("Adding da file!");
+            await composerRuntime.addAttachment(file);
+          } else {
+            toast({
+              title: "Incompatible file type",
+              description: (
+                <div className="flex flex-col gap-2 text-pretty">
+                  <p>This file type is not supported.</p>
+                  <p>
+                    Received <span className="font-mono">{file.type}</span>.
+                    Must be one of:{" "}
+                  </p>
+                  <p className="font-mono w-[50%] text-wrap">
+                    {attachmentAccept}
+                  </p>
+                </div>
+              ),
+              variant: "destructive",
+              duration: 5000,
+            });
+          }
+        });
+
+        await Promise.all(addAttachmentPromises);
+      } catch (e) {
+        console.error(e);
+        toast({
+          title: "Error",
+          description:
+            "Failed to add attachment. This is likely due to an incompatible file type.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+    } else {
+      toast({
+        title: "Drag and drop disabled",
+        description:
+          "Drag and drop is disabled in this mode. Please try again later.",
+        duration: 5000,
       });
     }
   };
