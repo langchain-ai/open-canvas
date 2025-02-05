@@ -55,7 +55,9 @@ export function ContentComposerChatInterfaceComponent(
   const ffmpegRef = useRef(new FFmpeg());
 
   async function onNew(message: AppendMessage): Promise<void> {
-    if (!message.startRun) return;
+    // Explicitly check for false and not ! since this does not provide a default value
+    // so we should assume undefined is true.
+    if (message.startRun === false) return;
     if (!userData.user) {
       toast({
         title: "User not found",
