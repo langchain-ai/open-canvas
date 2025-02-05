@@ -5,10 +5,10 @@
     "."
   ],
   "graphs": {
-    "agent": "./agents/src/open-canvas/index.ts:graph",
-    "reflection": "./agents/src/reflection/index.ts:graph",
-    "thread_title": "./agents/src/thread-title/index.ts:graph",
-    "summarizer": "./agents/src/summarizer/index.ts:graph"
+    "agent": "./apps/agents/src/open-canvas/index.ts:graph",
+    "reflection": "./apps/agents/src/reflection/index.ts:graph",
+    "thread_title": "./apps/agents/src/thread-title/index.ts:graph",
+    "summarizer": "./apps/agents/src/summarizer/index.ts:graph"
   },
   "env": ".env"
 }

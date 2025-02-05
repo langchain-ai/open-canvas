@@ -7,7 +7,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:server": "npx @langchain/langgraph-cli dev --port 54367",
     "build": "turbo build:internal --filter=@opencanvas/web",
     "build:internal": "next build",
     "start": "next start",
