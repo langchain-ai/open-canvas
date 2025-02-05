@@ -1,14 +1,16 @@
 import {
-  ALL_MODEL_NAMES,
-  ALL_MODELS,
-  DEFAULT_MODEL_CONFIG,
-  DEFAULT_MODEL_NAME,
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
   THREAD_ID_QUERY_PARAM,
 } from "@/constants";
+import {
+  ALL_MODEL_NAMES,
+  ALL_MODELS,
+  DEFAULT_MODEL_CONFIG,
+  DEFAULT_MODEL_NAME,
+} from "@opencanvas/shared/dist/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
-import { CustomModelConfig } from "@/types";
+import { CustomModelConfig } from "@opencanvas/shared/dist/types";
 import { Thread } from "@langchain/langgraph-sdk";
 import { createClient } from "../hooks/utils";
 import { useSearchParams } from "next/navigation";

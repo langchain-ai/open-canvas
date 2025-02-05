@@ -47,6 +47,25 @@ export interface Artifact {
   currentContentIndex: number;
 }
 
+export interface ArtifactToolResponse {
+  artifact?: string;
+  title?: string;
+  language?: string;
+  type?: string;
+}
+
+export type RewriteArtifactMetaToolResponse =
+  | {
+      type: "text";
+      title?: string;
+      language: ProgrammingLanguageOptions;
+    }
+  | {
+      type: "code";
+      title: string;
+      language: ProgrammingLanguageOptions;
+    };
+
 export type LanguageOptions =
   | "english"
   | "mandarin"

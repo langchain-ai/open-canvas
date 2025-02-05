@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { ArtifactMarkdownV3 } from "@/types";
+import { ArtifactMarkdownV3 } from "@opencanvas/shared/dist/types";
 import "@blocknote/core/fonts/inter.css";
 import {
   getDefaultReactSlashMenuItems,
@@ -8,9 +8,9 @@ import {
 } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
-import { isArtifactMarkdownContent } from "@/lib/artifact_content_types";
+import { isArtifactMarkdownContent } from "@opencanvas/shared/dist/utils/artifacts";
 import { CopyText } from "./components/CopyText";
-import { getArtifactContent } from "@/contexts/utils";
+import { getArtifactContent } from "@opencanvas/shared/dist/utils/artifacts";
 import { useGraphContext } from "@/contexts/GraphContext";
 import React from "react";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";

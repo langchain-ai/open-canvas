@@ -4,7 +4,7 @@ import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
-} from "@/lib/artifact_content_types";
+} from "@opencanvas/shared/dist/utils/artifacts";
 import { setCookie } from "@/lib/cookies";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import {
@@ -18,20 +18,19 @@ import {
   ReadingLevelOptions,
   RewriteArtifactMetaToolResponse,
   TextHighlight,
-} from "@/types";
+} from "@opencanvas/shared/dist/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useRuns } from "@/hooks/useRuns";
 import { createClient } from "@/hooks/utils";
+import { THREAD_ID_COOKIE_NAME, THREAD_ID_QUERY_PARAM } from "@/constants";
 import {
-  ALL_MODEL_NAMES,
   DEFAULT_INPUTS,
-  DEFAULT_MODEL_CONFIG,
-  DEFAULT_MODEL_NAME,
+  ALL_MODEL_NAMES,
   NON_STREAMING_TEXT_MODELS,
   NON_STREAMING_TOOL_CALLING_MODELS,
-  THREAD_ID_COOKIE_NAME,
-  THREAD_ID_QUERY_PARAM,
-} from "@/constants";
+  DEFAULT_MODEL_CONFIG,
+  DEFAULT_MODEL_NAME,
+} from "@opencanvas/shared/dist/constants";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -47,14 +46,16 @@ import {
 import {
   convertToArtifactV3,
   handleGenerateArtifactToolCallChunk,
-  handleRewriteArtifactThinkingModel,
-  isThinkingModel,
   removeCodeBlockFormatting,
   replaceOrInsertMessageChunk,
   updateHighlightedCode,
   updateHighlightedMarkdown,
   updateRewrittenArtifact,
 } from "./utils";
+import {
+  handleRewriteArtifactThinkingModel,
+  isThinkingModel,
+} from "@opencanvas/shared/dist/utils/thinking";
 import { useAssistants } from "@/hooks/useAssistants";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";

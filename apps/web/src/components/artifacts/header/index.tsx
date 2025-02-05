@@ -1,7 +1,10 @@
 import { ReflectionsDialog } from "../../reflections-dialog/ReflectionsDialog";
 import { ArtifactTitle } from "./artifact-title";
 import { NavigateArtifactHistory } from "./navigate-artifact-history";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@/types";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+} from "@opencanvas/shared/dist/types";
 import { Assistant } from "@langchain/langgraph-sdk";
 
 interface ArtifactHeaderProps {

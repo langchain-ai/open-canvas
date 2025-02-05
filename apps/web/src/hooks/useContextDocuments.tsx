@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { arrayToFileList, convertDocuments, load } from "@/lib/attachments";
 import { useToast } from "./use-toast";
-import { ContextDocument } from "./useAssistants";
+import { ContextDocument } from "@opencanvas/shared/dist/types";
 
 export function useContextDocuments(userId: string) {
   const { toast } = useToast();

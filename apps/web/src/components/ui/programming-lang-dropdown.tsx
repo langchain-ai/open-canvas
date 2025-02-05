@@ -1,4 +1,4 @@
-import { ProgrammingLanguageOptions } from "@/types";
+import { ProgrammingLanguageOptions } from "@opencanvas/shared/dist/types";
 import {
   DropdownMenu,
   DropdownMenuContent,

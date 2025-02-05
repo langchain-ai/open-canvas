@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { ArtifactLengthOptions } from "@/types";
+import { ArtifactLengthOptions } from "@opencanvas/shared/dist/types";
 import {
   Tooltip,
   TooltipContent,

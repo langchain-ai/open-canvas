@@ -22,7 +22,7 @@ import { TighterText } from "../ui/header";
 import { useFeedback } from "@/hooks/useFeedback";
 import { ContextDocumentsUI } from "../tool-hooks/AttachmentsToolUI";
 import { HumanMessage } from "@langchain/core/messages";
-import { OC_HIDE_FROM_UI_KEY } from "@/constants";
+import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/dist/constants";
 
 interface AssistantMessageProps {
   runId: string | undefined;

@@ -1,4 +1,4 @@
-import { ProgrammingLanguageOptions } from "@/types";
+import { ProgrammingLanguageOptions } from "@opencanvas/shared/dist/types";
 import { ThreadPrimitive, useThreadRuntime } from "@assistant-ui/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FC } from "react";

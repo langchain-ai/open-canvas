@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { useToast } from "@/hooks/use-toast";
-import { isArtifactCodeContent } from "@/lib/artifact_content_types";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@/types";
+import { isArtifactCodeContent } from "@opencanvas/shared/dist/utils/artifacts";
+import {
+  ArtifactCodeV3,
+  ArtifactMarkdownV3,
+} from "@opencanvas/shared/dist/types";
 import { Copy } from "lucide-react";
 
 interface CopyTextProps {

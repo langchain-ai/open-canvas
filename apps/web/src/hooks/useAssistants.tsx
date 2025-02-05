@@ -4,6 +4,7 @@ import { useToast } from "./use-toast";
 import { createClient } from "./utils";
 import { ASSISTANT_ID_COOKIE } from "@/constants";
 import { getCookie, removeCookie } from "@/lib/cookies";
+import { ContextDocument } from "@opencanvas/shared/dist/types";
 
 export type AssistantTool = {
   /**
@@ -18,26 +19,6 @@ export type AssistantTool = {
    * JSON Schema for the parameters of the tool.
    */
   parameters: Record<string, any>;
-};
-
-export type ContextDocument = {
-  /**
-   * The name of the document.
-   */
-  name: string;
-  /**
-   * The type of the document.
-   */
-  type: string;
-  /**
-   * The base64 encoded content of the document, or plain
-   * text value if the type is `text`
-   */
-  data: string;
-  /**
-   * Optional metadata about the document.
-   */
-  metadata?: Record<string, any>;
 };
 
 export interface CreateAssistantFields {

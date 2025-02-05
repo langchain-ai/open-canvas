@@ -11,7 +11,7 @@ import {
   ALL_MODEL_NAMES,
   ALL_MODELS,
   LANGCHAIN_USER_ONLY_MODELS,
-} from "@/constants";
+} from "@opencanvas/shared/dist/constants";
 import {
   Dispatch,
   SetStateAction,
@@ -23,7 +23,10 @@ import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
 import { ModelConfigPanel } from "./model-config-pannel";
 import { IsNewBadge } from "./new-badge";
 import { cn } from "@/lib/utils";
-import { CustomModelConfig, ModelConfigurationParams } from "@/types";
+import {
+  CustomModelConfig,
+  ModelConfigurationParams,
+} from "@opencanvas/shared/dist/types";
 import { CaretSortIcon, GearIcon } from "@radix-ui/react-icons";
 import {
   Popover,

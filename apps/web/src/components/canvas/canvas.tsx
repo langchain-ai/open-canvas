@@ -5,7 +5,7 @@ import {
   ALL_MODEL_NAMES,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
-} from "@/constants";
+} from "@opencanvas/shared/dist/constants";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useToast } from "@/hooks/use-toast";
 import { getLanguageTemplate } from "@/lib/get_language_template";
@@ -16,7 +16,7 @@ import {
   ArtifactV3,
   CustomModelConfig,
   ProgrammingLanguageOptions,
-} from "@/types";
+} from "@opencanvas/shared/dist/types";
 import React, { useEffect, useState } from "react";
 import { ContentComposerChatInterface } from "./content-composer";
 import NoSSRWrapper from "../NoSSRWrapper";

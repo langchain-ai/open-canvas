@@ -5,7 +5,10 @@ import {
   convertLangchainMessages,
   convertToOpenAIFormat,
 } from "@/lib/convert_messages";
-import { ProgrammingLanguageOptions } from "@/types";
+import {
+  ProgrammingLanguageOptions,
+  ContextDocument,
+} from "@opencanvas/shared/dist/types";
 import {
   AppendMessage,
   AssistantRuntimeProvider,
@@ -25,7 +28,6 @@ import {
 } from "@assistant-ui/react";
 import { AudioAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/audio";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { ContextDocument } from "@/hooks/useAssistants";
 import { arrayToFileList, convertDocuments } from "@/lib/attachments";
 import { VideoAttachmentAdapter } from "../ui/assistant-ui/attachment-adapters/video";
 import { useUserContext } from "@/contexts/UserContext";

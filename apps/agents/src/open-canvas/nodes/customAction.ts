@@ -21,7 +21,7 @@ import {
   CUSTOM_QUICK_ACTION_ARTIFACT_PROMPT_PREFIX,
   CUSTOM_QUICK_ACTION_CONVERSATION_CONTEXT,
   REFLECTIONS_QUICK_ACTION_PROMPT,
-} from "../prompts.js";
+} from "@opencanvas/shared/dist/prompts/quick-actions";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,

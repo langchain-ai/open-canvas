@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ContextDocument } from "@/hooks/useAssistants";
+import { ContextDocument } from "@opencanvas/shared/dist/types";
 import { FireCrawlLoader } from "@langchain/community/document_loaders/web/firecrawl";
 
 export async function POST(req: NextRequest) {
