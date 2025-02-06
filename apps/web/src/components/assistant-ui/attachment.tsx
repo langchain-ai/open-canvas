@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { cn } from "@/lib/utils";
 
 const useFileSrc = (file: File | undefined) => {
   const [src, setSrc] = useState<string | undefined>(undefined);
@@ -194,11 +195,11 @@ export const ComposerAttachments: FC = () => {
   );
 };
 
-export const ComposerAddAttachment: FC = () => {
+export const ComposerAddAttachment: FC<{ className?: string }> = ({ className }) => {
   return (
     <ComposerPrimitive.AddAttachment asChild>
       <TooltipIconButton
-        className="my-2.5 size-8 p-2 transition-opacity ease-in"
+        className={cn("size-7", className)}
         tooltip="Add Attachment"
         variant="ghost"
       >

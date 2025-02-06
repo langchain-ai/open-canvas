@@ -1,7 +1,7 @@
 {
   "name": "@opencanvas/web",
   "author": "Brace Sproul",
-  "homepage": "https://open-canvas-lc.vercel.app",
+  "homepage": "https://opencanvas.langchain.com",
   "repository": "https://github.com/langchain-ai/open-canvas",
   "version": "0.0.1",
   "private": true,

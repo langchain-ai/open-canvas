@@ -74,6 +74,8 @@ interface GraphData {
   feedbackSubmitted: boolean;
   artifactUpdateFailed: boolean;
   chatStarted: boolean;
+  searchEnabled: boolean;
+  setSearchEnabled: Dispatch<SetStateAction<boolean>>;
   setChatStarted: Dispatch<SetStateAction<boolean>>;
   setIsStreaming: Dispatch<SetStateAction<boolean>>;
   setFeedbackSubmitted: Dispatch<SetStateAction<boolean>>;
@@ -162,6 +164,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [error, setError] = useState(false);
   const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(false);
 
   const searchOrCreateEffectRan = useRef(false);
 
@@ -1430,6 +1433,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       feedbackSubmitted,
       chatStarted,
       artifactUpdateFailed,
+      searchEnabled,
+      setSearchEnabled,
       setChatStarted,
       setIsStreaming,
       setFeedbackSubmitted,
