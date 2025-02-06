@@ -8,6 +8,7 @@ import { AssistantSelect } from "../assistant-select";
 import { TooltipIconButton } from "../assistant-ui/tooltip-icon-button";
 import { cn } from "@/lib/utils";
 import { useGraphContext } from "@/contexts/GraphContext";
+import { useAssistantContext } from "@/contexts/AssistantContext";
 
 interface ComposerActionsPopOutProps {
   userId: string | undefined;
@@ -21,10 +22,19 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
   const {
     graphData: { searchEnabled, setSearchEnabled },
   } = useGraphContext();
+  const { selectedAssistant } = useAssistantContext();
+  const isDefaultSelected = !!selectedAssistant?.metadata?.is_default;
 
   const containerVariants = {
     collapsed: {
-      width: searchEnabled ? "80px" : "40px",
+      width:
+        searchEnabled && !isDefaultSelected
+          ? "120px"
+          : searchEnabled
+            ? "80px"
+            : !isDefaultSelected
+              ? "80px"
+              : "40px",
       transition: {
         type: "spring",
         stiffness: 500,
@@ -73,7 +83,7 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
       }}
     >
       <motion.div
-        className="rounded-full flex items-center h-8 justify-start px-2 py-5 bg-blue-50"
+        className="rounded-full flex items-center h-8 justify-start px-2 py-5 bg-blue-50 overflow-hidden"
         variants={containerVariants}
         animate={isExpanded ? "expanded" : "collapsed"}
         initial="collapsed"
@@ -94,6 +104,19 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
             >
               <Globe />
             </TooltipIconButton>
+          )}
+          {!isDefaultSelected && (
+            <AssistantSelect
+              userId={props.userId}
+              chatStarted={props.chatStarted}
+              className="bg-blue-100 hover:bg-blue-100 transition-colors ease-in-out"
+              onOpenChange={(isOpen) => {
+                setIsAssistantSelectOpen(isOpen);
+                if (!isOpen && !isMouseOver) {
+                  setIsExpanded(false);
+                }
+              }}
+            />
           )}
         </div>
 
@@ -116,18 +139,20 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
                   <Globe />
                 </TooltipIconButton>
               )}
+              {isDefaultSelected && (
+                <AssistantSelect
+                  userId={props.userId}
+                  chatStarted={props.chatStarted}
+                  className="hover:bg-blue-100 transition-colors ease-in-out"
+                  onOpenChange={(isOpen) => {
+                    setIsAssistantSelectOpen(isOpen);
+                    if (!isOpen && !isMouseOver) {
+                      setIsExpanded(false);
+                    }
+                  }}
+                />
+              )}
               <ComposerAddAttachment className="hover:bg-blue-100 transition-colors ease-in-out" />
-              <AssistantSelect
-                userId={props.userId}
-                chatStarted={props.chatStarted}
-                className="hover:bg-blue-100 transition-colors ease-in-out"
-                onOpenChange={(isOpen) => {
-                  setIsAssistantSelectOpen(isOpen);
-                  if (!isOpen && !isMouseOver) {
-                    setIsExpanded(false);
-                  }
-                }}
-              />
             </motion.div>
           )}
         </AnimatePresence>
