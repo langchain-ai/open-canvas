@@ -13,7 +13,6 @@ import * as Icons from "lucide-react";
 import React from "react";
 import { TighterText } from "../ui/header";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { useGraphContext } from "@/contexts/GraphContext";
 import { CreateEditAssistantDialog } from "./create-edit-assistant-dialog";
 import { getIcon } from "./utils";
 import { AssistantItem } from "./assistant-item";
@@ -22,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertNewAssistantsFeature } from "./alert-new-feature";
 import { OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT } from "@/constants";
 import { cn } from "@/lib/utils";
+import { useAssistantContext } from "@/contexts/AssistantContext";
 
 interface AssistantSelectProps {
   userId: string | undefined;
@@ -41,16 +41,14 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
   const [showAlert, setShowAlert] = useState(false);
 
   const {
-    assistantsData: {
-      assistants,
-      selectedAssistant,
-      isLoadingAllAssistants,
-      setSelectedAssistant,
-      createCustomAssistant,
-      editCustomAssistant,
-      deleteAssistant,
-    },
-  } = useGraphContext();
+    assistants,
+    selectedAssistant,
+    isLoadingAllAssistants,
+    setSelectedAssistant,
+    createCustomAssistant,
+    editCustomAssistant,
+    deleteAssistant,
+  } = useAssistantContext();
 
   const handleNewAssistantClick = (event: Event) => {
     event.preventDefault();

@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { THREAD_ID_QUERY_PARAM } from "@/constants";
 import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
+import { useAssistantContext } from "@/contexts/AssistantContext";
 
 const ThreadScrollToBottom: FC = () => {
   return (
@@ -55,9 +56,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   } = props;
   const { toast } = useToast();
   const {
-    assistantsData: { selectedAssistant },
     graphData: { clearState, runId, feedbackSubmitted, setFeedbackSubmitted },
   } = useGraphContext();
+  const { selectedAssistant } = useAssistantContext();
   const {
     searchOrCreateThread,
     modelName,

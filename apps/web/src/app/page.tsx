@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@/components/canvas";
+import { AssistantProvider } from "@/contexts/AssistantContext";
 import { GraphProvider } from "@/contexts/GraphContext";
 import { ThreadProvider } from "@/contexts/ThreadProvider";
 import { UserProvider } from "@/contexts/UserContext";
@@ -11,9 +12,11 @@ export default function Home() {
     <Suspense>
       <UserProvider>
         <ThreadProvider>
-          <GraphProvider>
-            <Canvas />
-          </GraphProvider>
+          <AssistantProvider>
+            <GraphProvider>
+              <Canvas />
+            </GraphProvider>
+          </AssistantProvider>
         </ThreadProvider>
       </UserProvider>
     </Suspense>

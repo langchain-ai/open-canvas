@@ -56,10 +56,10 @@ import {
   handleRewriteArtifactThinkingModel,
   isThinkingModel,
 } from "@opencanvas/shared/dist/utils/thinking";
-import { useAssistants } from "@/hooks/useAssistants";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useThreadContext } from "./ThreadProvider";
+import { useAssistantContext } from "./AssistantContext";
 
 interface GraphData {
   runId: string | undefined;
@@ -90,11 +90,8 @@ interface GraphData {
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
 }
 
-type AssistantsDataContextType = ReturnType<typeof useAssistants>;
-
 type GraphContentType = {
   graphData: GraphData;
-  assistantsData: AssistantsDataContextType;
 };
 
 const GraphContext = createContext<GraphContentType | undefined>(undefined);
@@ -136,7 +133,7 @@ function extractStreamDataOutput(output: any) {
 
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUserContext();
-  const assistantsData = useAssistants();
+  const assistantsData = useAssistantContext();
   const searchParams = useSearchParams();
   const router = useRouter();
   const threadData = useThreadContext();
@@ -1420,7 +1417,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   };
 
   const contextValue: GraphContentType = {
-    assistantsData,
     graphData: {
       runId,
       isStreaming,
