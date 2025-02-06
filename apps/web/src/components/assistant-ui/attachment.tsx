@@ -195,7 +195,9 @@ export const ComposerAttachments: FC = () => {
   );
 };
 
-export const ComposerAddAttachment: FC<{ className?: string }> = ({ className }) => {
+export const ComposerAddAttachment: FC<{ className?: string }> = ({
+  className,
+}) => {
   return (
     <ComposerPrimitive.AddAttachment asChild>
       <TooltipIconButton

@@ -18,7 +18,9 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAssistantSelectOpen, setIsAssistantSelectOpen] = useState(false);
   const [isMouseOver, setIsMouseOver] = useState(false);
-  const { graphData: { searchEnabled, setSearchEnabled } } = useGraphContext();
+  const {
+    graphData: { searchEnabled, setSearchEnabled },
+  } = useGraphContext();
 
   const containerVariants = {
     collapsed: {
@@ -26,17 +28,17 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
       transition: {
         type: "spring",
         stiffness: 500,
-        damping: 30
-      }
+        damping: 30,
+      },
     },
     expanded: {
       width: "160px",
       transition: {
         type: "spring",
         stiffness: 500,
-        damping: 30
-      }
-    }
+        damping: 30,
+      },
+    },
   };
 
   const iconsContainerVariants = {
@@ -44,17 +46,17 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
       opacity: 0,
       x: -20,
       transition: {
-        duration: 0.2
-      }
+        duration: 0.2,
+      },
     },
     expanded: {
       opacity: 1,
       x: 0,
       transition: {
         duration: 0.2,
-        delay: 0.1
-      }
-    }
+        delay: 0.1,
+      },
+    },
   };
 
   return (
@@ -77,7 +79,12 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
         initial="collapsed"
       >
         <div className="flex items-center gap-2">
-          <CirclePlus className={cn("size-6 flex-shrink-0", isExpanded && "opacity-60 transition-all ease-in-out")} />
+          <CirclePlus
+            className={cn(
+              "size-6 flex-shrink-0",
+              isExpanded && "opacity-60 transition-all ease-in-out"
+            )}
+          />
           {searchEnabled && (
             <TooltipIconButton
               tooltip="Web search"
@@ -89,7 +96,7 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
             </TooltipIconButton>
           )}
         </div>
-        
+
         <AnimatePresence>
           {isExpanded && (
             <motion.div

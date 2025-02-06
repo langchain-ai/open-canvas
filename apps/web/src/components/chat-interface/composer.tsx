@@ -6,9 +6,7 @@ import { type FC } from "react";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { SendHorizontalIcon } from "lucide-react";
 import { DragAndDropWrapper } from "./drag-drop-wrapper";
-import {
-  ComposerAttachments,
-} from "../assistant-ui/attachment";
+import { ComposerAttachments } from "../assistant-ui/attachment";
 import { ComposerActionsPopOut } from "./composer-actions-popout";
 
 const CircleStopIcon = () => {
