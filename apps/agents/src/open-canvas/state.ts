@@ -7,6 +7,7 @@ import {
   CodeHighlight,
   ArtifactV3,
   TextHighlight,
+  SearchResult,
 } from "@opencanvas/shared/dist/types";
 import {
   Annotation,
@@ -124,6 +125,14 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * The ID of the custom quick action to use.
    */
   customQuickActionId: Annotation<string | undefined>,
+  /**
+   * Whether or not to search the web for additional context.
+   */
+  webSearchEnabled: Annotation<boolean | undefined>,
+  /**
+   * The search results to include in context.
+   */
+  webSearchResults: Annotation<SearchResult[] | undefined>,
 });
 
 export type OpenCanvasGraphReturnType = Partial<

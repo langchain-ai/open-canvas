@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { CirclePlus, Paperclip, User, Globe } from "lucide-react";
+import { CirclePlus, Globe } from "lucide-react";
 import { useState } from "react";
 import { ComposerAddAttachment } from "../assistant-ui/attachment";
 import { AssistantSelect } from "../assistant-select";

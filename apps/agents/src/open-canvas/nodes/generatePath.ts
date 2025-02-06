@@ -16,7 +16,10 @@ import {
   ROUTE_QUERY_OPTIONS_NO_ARTIFACTS,
   ROUTE_QUERY_PROMPT,
 } from "../prompts.js";
-import { OpenCanvasGraphAnnotation } from "../state.js";
+import {
+  OpenCanvasGraphAnnotation,
+  OpenCanvasGraphReturnType,
+} from "../state.js";
 import { ContextDocument } from "@opencanvas/shared/dist/types";
 import {
   BaseMessage,
@@ -151,7 +154,7 @@ async function fixMisFormattedContextDocMessage(
 export const generatePath = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
-) => {
+): Promise<OpenCanvasGraphReturnType> => {
   const { _messages } = state;
   const newMessages: BaseMessage[] = [];
   const docMessage = await convertContextDocumentToHumanMessage(
@@ -226,6 +229,15 @@ export const generatePath = async (
   if (state.customQuickActionId) {
     return {
       next: "customAction",
+      ...(newMessages.length
+        ? { messages: newMessages, _messages: newMessages }
+        : {}),
+    };
+  }
+
+  if (state.webSearchEnabled) {
+    return {
+      next: "webSearch",
       ...(newMessages.length
         ? { messages: newMessages, _messages: newMessages }
         : {}),

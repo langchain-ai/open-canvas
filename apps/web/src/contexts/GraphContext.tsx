@@ -348,6 +348,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       ...(selectedBlocks && {
         highlightedText: selectedBlocks,
       }),
+      webSearchEnabled: searchEnabled,
     };
     // Add check for multiple defined fields
     const fieldsToCheck = [

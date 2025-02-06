@@ -185,3 +185,14 @@ export type ContextDocument = {
    */
   metadata?: Record<string, any>;
 };
+
+/**
+ * The interface for a search result from Tavily.
+ */
+export interface SearchResult {
+  title: string;
+  url: string;
+  content: string;
+  score: number;
+  raw_content: string | undefined;
+}

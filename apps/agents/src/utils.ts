@@ -10,6 +10,7 @@ import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
 import pdfParse from "pdf-parse";
 import {
+  BaseMessage,
   MessageContentComplex,
   MessageFieldWithRole,
 } from "@langchain/core/messages";
@@ -570,4 +571,24 @@ export async function createContextDocumentMessages(
   }
 
   return contextMessages;
+}
+
+export function formatMessages(messages: BaseMessage[]): string {
+  return messages
+    .map((msg, idx) => {
+      const msgType =
+        "_getType" in msg
+          ? msg._getType()
+          : "type" in msg
+            ? (msg as Record<string, any>)?.type
+            : "unknown";
+      const messageContent =
+        typeof msg.content === "string"
+          ? msg.content
+          : msg.content
+              .flatMap((c) => ("text" in c ? (c.text as string) : []))
+              .join("\n");
+      return `<${msgType} index="${idx}">\n${messageContent}\n</${msgType}>`;
+    })
+    .join("\n");
 }
