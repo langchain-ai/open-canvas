@@ -95,12 +95,12 @@ export function useContextDocuments(userId: string) {
     const [fileDocuments, urlDocuments] = await Promise.all([
       unprocessedFileList?.length
         ? convertDocuments({
-          ffmpeg: ffmpegRef.current,
-          messageRef,
-          documents: unprocessedFileList,
-          userId: userId,
-          toast,
-        })
+            ffmpeg: ffmpegRef.current,
+            messageRef,
+            documents: unprocessedFileList,
+            userId: userId,
+            toast,
+          })
         : [],
       unprocessedUrls.length ? convertUrlsToDocuments(unprocessedUrls) : [],
     ]);

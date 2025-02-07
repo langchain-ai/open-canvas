@@ -603,7 +603,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                  highlightedText.markdownBlock.length
+                    highlightedText.markdownBlock.length
                 );
               }
 
@@ -1019,7 +1019,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                  highlightedText.markdownBlock.length
+                    highlightedText.markdownBlock.length
                 );
               }
 

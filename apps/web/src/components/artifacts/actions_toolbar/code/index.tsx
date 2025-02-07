@@ -130,23 +130,23 @@ export function CodeToolBar(props: CodeToolbarProps) {
         <div className="flex flex-col gap-3 items-center w-full border-[1px] border-gray-200 rounded-3xl py-4 px-3">
           {activeOption && activeOption !== "addEmojis"
             ? toolbarOptions
-              .find((option) => option.id === activeOption)
-              ?.component?.({
-                ...props,
-                handleClose,
-              })
+                .find((option) => option.id === activeOption)
+                ?.component?.({
+                  ...props,
+                  handleClose,
+                })
             : toolbarOptions.map((option) => (
-              <TooltipIconButton
-                key={option.id}
-                tooltip={option.tooltip}
-                variant="ghost"
-                className="transition-colors w-[36px] h-[36px]"
-                delayDuration={400}
-                onClick={async (e) => await handleOptionClick(e, option.id)}
-              >
-                {option.icon}
-              </TooltipIconButton>
-            ))}
+                <TooltipIconButton
+                  key={option.id}
+                  tooltip={option.tooltip}
+                  variant="ghost"
+                  className="transition-colors w-[36px] h-[36px]"
+                  delayDuration={400}
+                  onClick={async (e) => await handleOptionClick(e, option.id)}
+                >
+                  {option.icon}
+                </TooltipIconButton>
+              ))}
         </div>
       ) : (
         <TooltipIconButton

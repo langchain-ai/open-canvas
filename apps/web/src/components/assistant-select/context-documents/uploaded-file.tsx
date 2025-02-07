@@ -47,13 +47,13 @@ export function UploadedFiles({
           {ALLOWED_VIDEO_TYPE_ENDINGS.some((ending) =>
             file.name.endsWith(ending)
           ) && (
-              <NextImage alt="MP4 icon" src={MP4Icon} width={24} height={24} />
-            )}
+            <NextImage alt="MP4 icon" src={MP4Icon} width={24} height={24} />
+          )}
           {ALLOWED_AUDIO_TYPE_ENDINGS.some((ending) =>
             file.name.endsWith(ending)
           ) && (
-              <NextImage alt="MP3 icon" src={MP3Icon} width={24} height={24} />
-            )}
+            <NextImage alt="MP3 icon" src={MP3Icon} width={24} height={24} />
+          )}
           <p className="text-sm text-gray-600">{file.name}</p>
           {handleRemoveFile && (
             <Button
