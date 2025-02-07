@@ -15,7 +15,7 @@ import { updateHighlightedText } from "./nodes/updateHighlightedText.js";
 import { OpenCanvasGraphAnnotation } from "./state.js";
 import { summarizer } from "./nodes/summarizer.js";
 import { graph as webSearchGraph } from "../web-search/index.js";
-import { createAIMessageFromWebResults } from "@/utils.js";
+import { createAIMessageFromWebResults } from "../utils.js";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {

@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { WebSearchState } from "../state.js";
-import { formatMessages } from "@/utils.js";
+import { formatMessages } from "../../utils.js";
 
 const QUERY_GENERATOR_PROMPT = `You're a helpful AI assistant tasked with writing a query to search the web.
 You're provided with a list of messages between a user and an AI assistant.
