@@ -9,9 +9,9 @@ import {
   ALL_MODELS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
-} from "@opencanvas/shared/dist/constants";
+} from "@opencanvas/shared/constants";
 import { getCookie, setCookie } from "@/lib/cookies";
-import { CustomModelConfig } from "@opencanvas/shared/dist/types";
+import { CustomModelConfig } from "@opencanvas/shared/types";
 import { Thread } from "@langchain/langgraph-sdk";
 import { createClient } from "../hooks/utils";
 import { useRouter, useSearchParams } from "next/navigation";

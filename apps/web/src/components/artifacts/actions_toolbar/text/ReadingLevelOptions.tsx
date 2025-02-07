@@ -5,7 +5,7 @@ import {
   School,
   Swords,
 } from "lucide-react";
-import { ReadingLevelOptions as ReadingLevelOptionsType } from "@opencanvas/shared/dist/types";
+import { ReadingLevelOptions as ReadingLevelOptionsType } from "@opencanvas/shared/types";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { GraphInput } from "@/contexts/GraphContext";
 

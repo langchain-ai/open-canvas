@@ -17,7 +17,8 @@
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\"",
     "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "lint:fix": "eslint src --fix",
+    "postinstall": "yarn turbo build"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",

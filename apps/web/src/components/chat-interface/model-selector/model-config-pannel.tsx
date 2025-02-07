@@ -6,14 +6,14 @@ import {
 import {
   CustomModelConfig,
   ModelConfigurationParams,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
   ALL_MODEL_NAMES,
   TEMPERATURE_EXCLUDED_MODELS,
-} from "@opencanvas/shared/dist/constants";
+} from "@opencanvas/shared/constants";
 import { cn } from "@/lib/utils";
 import { GearIcon, ResetIcon } from "@radix-ui/react-icons";
 import { useCallback } from "react";

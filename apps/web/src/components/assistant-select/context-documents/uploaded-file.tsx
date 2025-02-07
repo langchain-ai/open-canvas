@@ -9,7 +9,7 @@ import {
   ALLOWED_AUDIO_TYPE_ENDINGS,
   ALLOWED_VIDEO_TYPE_ENDINGS,
 } from "@/constants";
-import { ContextDocument } from "@opencanvas/shared/dist/types";
+import { ContextDocument } from "@opencanvas/shared/types";
 import { cn } from "@/lib/utils";
 
 export function UploadedFiles({

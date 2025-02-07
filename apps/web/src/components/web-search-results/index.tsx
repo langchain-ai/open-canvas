@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
 import { useGraphContext } from "@/contexts/GraphContext";
-import { SearchResult } from "@opencanvas/shared/dist/types";
+import { SearchResult } from "@opencanvas/shared/types";
 import { TighterText } from "../ui/header";
 import {
   Card,

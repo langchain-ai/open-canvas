@@ -2,7 +2,7 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { StateGraph, START } from "@langchain/langgraph";
 import { SummarizerGraphAnnotation, SummarizeState } from "./state.js";
 import { HumanMessage } from "@langchain/core/messages";
-import { OC_SUMMARIZED_MESSAGE_KEY } from "@opencanvas/shared/dist/constants";
+import { OC_SUMMARIZED_MESSAGE_KEY } from "@opencanvas/shared/constants";
 import { v4 as uuidv4 } from "uuid";
 import { Client } from "@langchain/langgraph-sdk";
 import { formatMessages } from "../utils.js";

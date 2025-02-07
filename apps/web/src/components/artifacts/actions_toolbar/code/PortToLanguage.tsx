@@ -1,4 +1,4 @@
-import { ProgrammingLanguageOptions } from "@opencanvas/shared/dist/types";
+import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageList } from "@/components/ui/programming-lang-dropdown";
 import { GraphInput } from "@/contexts/GraphContext";

@@ -7,7 +7,7 @@ import {
   ArtifactV3,
   ProgrammingLanguageOptions,
   RewriteArtifactMetaToolResponse,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import {
   AIMessage,
   BaseMessage,

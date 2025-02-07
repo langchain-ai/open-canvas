@@ -24,7 +24,7 @@ import { InlineContextTooltip } from "@/components/ui/inline-context-tooltip";
 import { useStore } from "@/hooks/useStore";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
-import { CustomQuickAction } from "@opencanvas/shared/dist/types";
+import { CustomQuickAction } from "@opencanvas/shared/types";
 import { TighterText } from "@/components/ui/header";
 import { User } from "@supabase/supabase-js";
 

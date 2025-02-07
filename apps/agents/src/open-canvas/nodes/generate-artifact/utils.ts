@@ -3,7 +3,7 @@ import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
   ProgrammingLanguageOptions,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import { z } from "zod";
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas.js";
 

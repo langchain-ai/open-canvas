@@ -1,4 +1,4 @@
-import { ArtifactCodeV3 } from "@opencanvas/shared/dist/types";
+import { ArtifactCodeV3 } from "@opencanvas/shared/types";
 import React, { MutableRefObject, useEffect } from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -17,7 +17,7 @@ import styles from "./CodeRenderer.module.css";
 import { cleanContent } from "@/lib/normalize_string";
 import { cn } from "@/lib/utils";
 import { CopyText } from "./components/CopyText";
-import { getArtifactContent } from "@opencanvas/shared/dist/utils/artifacts";
+import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { useGraphContext } from "@/contexts/GraphContext";
 
 export interface CodeRendererProps {

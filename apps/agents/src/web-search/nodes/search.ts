@@ -1,4 +1,4 @@
-import { SearchResult } from "@opencanvas/shared/dist/types";
+import { SearchResult } from "@opencanvas/shared/types";
 import { WebSearchState } from "../state.js";
 import ExaClient from "exa-js";
 import { ExaRetriever } from "@langchain/exa";

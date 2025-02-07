@@ -3,7 +3,7 @@ import {
   CUSTOM_QUICK_ACTION_ARTIFACT_PROMPT_PREFIX,
   CUSTOM_QUICK_ACTION_CONVERSATION_CONTEXT,
   REFLECTIONS_QUICK_ACTION_PROMPT,
-} from "@opencanvas/shared/dist/prompts/quick-actions";
+} from "@opencanvas/shared/prompts/quick-actions";
 import {
   Tooltip,
   TooltipContent,
@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { CustomQuickAction } from "@opencanvas/shared/dist/types";
+import { CustomQuickAction } from "@opencanvas/shared/types";
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 

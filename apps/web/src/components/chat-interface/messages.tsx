@@ -22,7 +22,7 @@ import { TighterText } from "../ui/header";
 import { useFeedback } from "@/hooks/useFeedback";
 import { ContextDocumentsUI } from "../tool-hooks/AttachmentsToolUI";
 import { HumanMessage } from "@langchain/core/messages";
-import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/dist/constants";
+import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/constants";
 import { Button } from "../ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";

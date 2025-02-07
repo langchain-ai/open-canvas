@@ -7,7 +7,7 @@ import {
 } from "@/components/icons/flags";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { GraphInput } from "@/contexts/GraphContext";
-import { LanguageOptions } from "@opencanvas/shared/dist/types";
+import { LanguageOptions } from "@opencanvas/shared/types";
 
 export interface TranslateOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;

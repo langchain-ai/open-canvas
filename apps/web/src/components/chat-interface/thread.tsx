@@ -1,6 +1,6 @@
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useToast } from "@/hooks/use-toast";
-import { ProgrammingLanguageOptions } from "@opencanvas/shared/dist/types";
+import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
 import { ArrowDownIcon, SquarePen } from "lucide-react";

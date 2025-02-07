@@ -8,14 +8,14 @@ import {
   ReflectionGraphAnnotation,
   ReflectionGraphReturnType,
 } from "./state.js";
-import { Reflections } from "@opencanvas/shared/dist/types";
+import { Reflections } from "@opencanvas/shared/types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts.js";
 import { z } from "zod";
 import { ensureStoreInConfig, formatReflections } from "../utils.js";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
-} from "@opencanvas/shared/dist/utils/artifacts";
+} from "@opencanvas/shared/utils/artifacts";
 
 export const reflect = async (
   state: typeof ReflectionGraphAnnotation.State,
