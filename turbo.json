@@ -14,9 +14,6 @@
     },
     "format": {
       "dependsOn": ["^format"]
-    },
-    "build:internal": {
-      "dependsOn": ["^build:internal"]
     }
   }
 }

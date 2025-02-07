@@ -6,8 +6,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "turbo build:internal --filter=@opencanvas/evals",
-    "build:internal": "yarn clean && tsc",
+    "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\"",
     "lint": "eslint src",

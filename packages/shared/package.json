@@ -12,8 +12,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "turbo build:internal --filter=@opencanvas/shared",
-    "build:internal": "yarn clean && tsc",
+    "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\"",
     "lint": "eslint src",
