@@ -17,12 +17,17 @@ import {
   ProgrammingLanguageOptions,
   ReadingLevelOptions,
   RewriteArtifactMetaToolResponse,
+  SearchResult,
   TextHighlight,
 } from "@opencanvas/shared/dist/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useRuns } from "@/hooks/useRuns";
 import { createClient } from "@/hooks/utils";
-import { THREAD_ID_COOKIE_NAME, THREAD_ID_QUERY_PARAM } from "@/constants";
+import {
+  THREAD_ID_COOKIE_NAME,
+  THREAD_ID_QUERY_PARAM,
+  WEB_SEARCH_RESULTS_QUERY_PARAM,
+} from "@/constants";
 import {
   DEFAULT_INPUTS,
   ALL_MODEL_NAMES,
@@ -30,6 +35,7 @@ import {
   NON_STREAMING_TOOL_CALLING_MODELS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
+  OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
 } from "@opencanvas/shared/dist/constants";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +51,7 @@ import {
 } from "react";
 import {
   convertToArtifactV3,
+  extractChunkFields,
   handleGenerateArtifactToolCallChunk,
   removeCodeBlockFormatting,
   replaceOrInsertMessageChunk,
@@ -180,9 +187,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     threadData.searchOrCreateThread().then((thread) => {
       if (!thread) {
         // Thread not found. Clear it & send an error message.
-        const queryParams = new URLSearchParams(searchParams.toString());
-        queryParams.delete(THREAD_ID_QUERY_PARAM);
-        router.replace(`?${queryParams.toString()}`, { scroll: false });
+        threadData.removeThreadIdQueryParam();
 
         toast({
           title: "Error",
@@ -318,12 +323,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const threadIdQueryParam = searchParams.get("threadId");
-    if (!threadIdQueryParam) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("threadId", threadData.threadId);
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }
+    threadData.setThreadIdQueryParam(threadData.threadId);
 
     const client = createClient();
 
@@ -433,7 +433,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       // The updated full markdown text when using the highlight update tool
       let highlightedText: TextHighlight | undefined = undefined;
 
-      // The message ID of the message containing the thinking content.
+      // The ID of the message for the web search operation during this turn
+      let webSearchMessageId = "";
 
       for await (const chunk of stream) {
         if (chunk.event === "error") {
@@ -451,27 +452,60 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-          if (!runId && chunk.data?.metadata?.run_id) {
-            runId = chunk.data.metadata.run_id;
+          const {
+            runId: runId_,
+            event,
+            langgraphNode,
+            nodeInput,
+            nodeChunk,
+            nodeOutput,
+            taskName,
+          } = extractChunkFields(chunk);
+
+          if (!runId && runId_) {
+            runId = runId_;
             setRunId(runId);
           }
 
-          if (chunk.data.event === "on_chain_start") {
-            if (
-              chunk.data.metadata.langgraph_node === "updateHighlightedText"
-            ) {
-              highlightedText = chunk.data.data?.input?.highlightedText;
+          if (event === "on_chain_start") {
+            if (langgraphNode === "updateHighlightedText") {
+              highlightedText = nodeInput?.highlightedText;
+            }
+
+            if (langgraphNode === "queryGenerator" && !webSearchMessageId) {
+              webSearchMessageId = `web-search-results-${uuidv4()}`;
+              // The web search is starting. Add a new message.
+              setMessages((prev) => {
+                return [
+                  ...prev,
+                  new AIMessage({
+                    id: webSearchMessageId,
+                    content: "",
+                    additional_kwargs: {
+                      [OC_WEB_SEARCH_RESULTS_MESSAGE_KEY]: true,
+                      webSearchResults: [],
+                      webSearchStatus: "searching",
+                    },
+                  }),
+                ];
+              });
+              // Set the query param to trigger the UI
+              const params = new URLSearchParams(window.location.search);
+              console.log("original params", params.toString());
+              params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, webSearchMessageId);
+              console.log("new params", params.toString());
+              router.replace(`?${params.toString()}`, { scroll: false });
             }
           }
 
-          if (chunk.data.event === "on_chat_model_stream") {
+          if (event === "on_chat_model_stream") {
             // These are generating new messages to insert to the chat window.
             if (
               ["generateFollowup", "replyToGeneralInput"].includes(
-                chunk.data.metadata.langgraph_node
+                langgraphNode
               )
             ) {
-              const message = extractStreamDataChunk(chunk.data.data.chunk);
+              const message = extractStreamDataChunk(nodeChunk);
               if (!followupMessageId) {
                 followupMessageId = message.id;
               }
@@ -480,25 +514,42 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               );
             }
 
-            if (chunk.data.metadata.langgraph_node === "generateArtifact") {
-              const message = extractStreamDataChunk(chunk.data.data.chunk);
-              generateArtifactToolCallStr +=
-                message?.tool_call_chunks?.[0]?.args || message.content;
+            if (langgraphNode === "generateArtifact") {
+              const message = extractStreamDataChunk(nodeChunk);
+
+              // Accumulate content
+              if (
+                message?.tool_call_chunks?.length > 0 &&
+                typeof message?.tool_call_chunks?.[0]?.args === "string"
+              ) {
+                generateArtifactToolCallStr += message.tool_call_chunks[0].args;
+              } else if (
+                message?.content &&
+                typeof message?.content === "string"
+              ) {
+                generateArtifactToolCallStr += message.content;
+              }
+
+              // Process accumulated content with rate limiting
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
               );
-              if (result && result === "continue") {
-                continue;
-              } else if (result && typeof result === "object") {
-                setFirstTokenReceived(true);
-                setArtifact(() => result);
+
+              if (result) {
+                if (result === "continue") {
+                  continue;
+                } else if (typeof result === "object") {
+                  if (!firstTokenReceived) {
+                    setFirstTokenReceived(true);
+                  }
+                  // Use debounced setter to prevent too frequent updates
+                  setArtifact(result);
+                }
               }
             }
 
-            if (
-              chunk.data.metadata.langgraph_node === "updateHighlightedText"
-            ) {
-              const message = extractStreamDataChunk(chunk.data.data?.chunk);
+            if (langgraphNode === "updateHighlightedText") {
+              const message = extractStreamDataChunk(nodeChunk);
               if (!message) {
                 continue;
               }
@@ -585,7 +636,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
             }
 
-            if (chunk.data.metadata.langgraph_node === "updateArtifact") {
+            if (langgraphNode === "updateArtifact") {
               if (!artifact) {
                 toast({
                   title: "Error",
@@ -606,7 +657,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
 
               const partialUpdatedContent =
-                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
+                extractStreamDataChunk(nodeChunk)?.content || "";
               const { startCharIndex, endCharIndex } = params.highlightedCode;
 
               if (!prevCurrentContent) {
@@ -666,8 +717,8 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
-              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
-              chunk.data.name === "rewrite_artifact_model_call" &&
+              langgraphNode === "rewriteArtifact" &&
+              taskName === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta
             ) {
               if (!artifact) {
@@ -681,7 +732,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
 
               fullNewArtifactContent +=
-                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
+                extractStreamDataChunk(nodeChunk)?.content || "";
 
               if (isThinkingModel(threadData.modelName)) {
                 if (!thinkingMessageId) {
@@ -752,7 +803,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 "rewriteArtifactTheme",
                 "rewriteCodeArtifactTheme",
                 "customAction",
-              ].includes(chunk.data.metadata.langgraph_node)
+              ].includes(langgraphNode)
             ) {
               if (!artifact) {
                 toast({
@@ -774,7 +825,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               }
 
               fullNewArtifactContent +=
-                extractStreamDataChunk(chunk.data.data.chunk)?.content || "";
+                extractStreamDataChunk(nodeChunk)?.content || "";
 
               if (isThinkingModel(threadData.modelName)) {
                 if (!thinkingMessageId) {
@@ -796,7 +847,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   ? prevCurrentContent.language
                   : "other");
 
-              const langGraphNode = chunk.data.metadata.langgraph_node;
+              const langGraphNode = langgraphNode;
               let artifactType: ArtifactType;
               if (langGraphNode === "rewriteCodeArtifactTheme") {
                 artifactType = "code";
@@ -838,10 +889,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          if (chunk.data.event === "on_chat_model_end") {
+          if (event === "on_chat_model_end") {
             if (
-              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
-              chunk.data.name === "rewrite_artifact_model_call" &&
+              langgraphNode === "rewriteArtifact" &&
+              taskName === "rewrite_artifact_model_call" &&
               rewriteArtifactMeta &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
@@ -855,7 +906,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              const message = extractStreamDataOutput(chunk.data.data.output);
+              const message = extractStreamDataOutput(nodeOutput);
 
               fullNewArtifactContent += message.content || "";
 
@@ -911,10 +962,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
-              chunk.data.metadata.langgraph_node === "updateHighlightedText" &&
+              langgraphNode === "updateHighlightedText" &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
-              const message = extractStreamDataOutput(chunk.data.data.output);
+              const message = extractStreamDataOutput(nodeOutput);
               if (!message) {
                 continue;
               }
@@ -1002,7 +1053,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
-              chunk.data.metadata.langgraph_node === "updateArtifact" &&
+              langgraphNode === "updateArtifact" &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
               if (!artifact) {
@@ -1024,7 +1075,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              const message = extractStreamDataOutput(chunk.data.data.output);
+              const message = extractStreamDataOutput(nodeOutput);
               if (!message) {
                 continue;
               }
@@ -1089,7 +1140,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 "rewriteArtifactTheme",
                 "rewriteCodeArtifactTheme",
                 "customAction",
-              ].includes(chunk.data.metadata.langgraph_node) &&
+              ].includes(langgraphNode) &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
               if (!artifact) {
@@ -1110,7 +1161,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 });
                 return;
               }
-              const message = extractStreamDataOutput(chunk.data.data.output);
+              const message = extractStreamDataOutput(nodeOutput);
               fullNewArtifactContent += message?.content || "";
 
               // Ensure we have the language to update the artifact with
@@ -1120,11 +1171,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   ? prevCurrentContent.language
                   : "other");
 
-              const langGraphNode = chunk.data.metadata.langgraph_node;
               let artifactType: ArtifactType;
-              if (langGraphNode === "rewriteCodeArtifactTheme") {
+              if (langgraphNode === "rewriteCodeArtifactTheme") {
                 artifactType = "code";
-              } else if (langGraphNode === "rewriteArtifactTheme") {
+              } else if (langgraphNode === "rewriteArtifactTheme") {
                 artifactType = "text";
               } else {
                 artifactType = prevCurrentContent.type;
@@ -1159,12 +1209,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
             if (
               ["generateFollowup", "replyToGeneralInput"].includes(
-                chunk.data.metadata.langgraph_node
+                langgraphNode
               ) &&
               !followupMessageId &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
-              const message = extractStreamDataOutput(chunk.data.data.output);
+              const message = extractStreamDataOutput(nodeOutput);
               followupMessageId = message.id;
               setMessages((prevMessages) =>
                 replaceOrInsertMessageChunk(prevMessages, message)
@@ -1172,22 +1222,43 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          if (chunk.data.event === "on_chain_end") {
+          if (event === "on_chain_end") {
             if (
-              chunk.data.metadata.langgraph_node === "rewriteArtifact" &&
-              chunk.data.name === "optionally_update_artifact_meta"
+              langgraphNode === "rewriteArtifact" &&
+              taskName === "optionally_update_artifact_meta"
             ) {
-              rewriteArtifactMeta = chunk.data.data.output;
+              rewriteArtifactMeta = nodeOutput;
+            }
+
+            if (langgraphNode === "search" && webSearchMessageId) {
+              const output = nodeOutput as {
+                webSearchResults: SearchResult[];
+              };
+
+              setMessages((prev) => {
+                return prev.map((m) => {
+                  if (m.id !== webSearchMessageId) return m;
+
+                  return new AIMessage({
+                    ...m,
+                    additional_kwargs: {
+                      ...m.additional_kwargs,
+                      webSearchResults: output.webSearchResults,
+                      webSearchStatus: "done",
+                    },
+                  });
+                });
+              });
             }
 
             if (
-              chunk.data.metadata.langgraph_node === "generateArtifact" &&
+              langgraphNode === "generateArtifact" &&
               !generateArtifactToolCallStr &&
               NON_STREAMING_TOOL_CALLING_MODELS.some(
                 (m) => m === threadData.modelName
               )
             ) {
-              const message = chunk.data.data.output;
+              const message = nodeOutput;
               generateArtifactToolCallStr +=
                 message?.tool_call_chunks?.[0]?.args || message?.content || "";
               const result = handleGenerateArtifactToolCallChunk(
@@ -1197,7 +1268,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 continue;
               } else if (result && typeof result === "object") {
                 setFirstTokenReceived(true);
-                setArtifact(() => result);
+                setArtifact(result);
               }
             }
           }
@@ -1267,25 +1338,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           });
           return newMsgs;
         });
-
-        // if (threadId && lastMessage && lastMessage.id) {
-        //   // Update the state of the last message to include the run URL
-        //   // for proper rendering when loading history.
-        //   const newMessages = [new RemoveMessage({ id: lastMessage.id }), new AIMessage({
-        //     ...lastMessage,
-        //     content: lastMessage.content,
-        //     response_metadata: {
-        //       ...lastMessage.response_metadata,
-        //       langSmithRunURL: sharedRunURL,
-        //     }
-        //   })];
-        //   await client.threads.updateState(threadId, {
-        //     values: {
-        //       messages: newMessages
-        //     },
-        //   });
-        //   const newState = await client.threads.getState(threadId);
-        // }
       });
     }
   };
@@ -1353,12 +1405,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
     // Ensure the URL has the new thread ID in query params. If it doesn't,
     // add it, or replace if present but it doesn't match
-    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
-    const params = new URLSearchParams(searchParams.toString());
-    if (threadIdQueryParam !== thread.thread_id) {
-      params.set(THREAD_ID_QUERY_PARAM, thread.thread_id);
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }
+    threadData.setThreadIdQueryParam(thread.thread_id);
 
     // Set the model name and config
     if (thread.metadata?.customModelName) {

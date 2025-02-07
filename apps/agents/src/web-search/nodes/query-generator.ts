@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { WebSearchState } from "../state.js";
 import { formatMessages } from "@/utils.js";
@@ -14,6 +15,10 @@ Here is the conversation between the user and the assistant, in order of oldest 
 {conversation}
 </conversation>
 
+<additional_context>
+{additional_context}
+</additional_context>
+
 Respond ONLY with the search query, and nothing else.`;
 
 export async function queryGenerator(
@@ -24,11 +29,13 @@ export async function queryGenerator(
     temperature: 0,
   });
 
+  const additionalContext = `The current date is ${format(new Date(), "PPpp")}`;
+
   const formattedMessages = formatMessages(state.messages);
   const formattedPrompt = QUERY_GENERATOR_PROMPT.replace(
     "{conversation}",
     formattedMessages
-  );
+  ).replace("{additional_context}", additionalContext);
 
   const response = await model.invoke([["user", formattedPrompt]]);
 

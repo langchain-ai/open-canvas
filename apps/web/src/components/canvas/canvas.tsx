@@ -1,6 +1,7 @@
 "use client";
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
+import { WebSearchResults } from "@/components/web-search-results";
 import {
   ALL_MODEL_NAMES,
   DEFAULT_MODEL_CONFIG,
@@ -86,7 +87,7 @@ export function CanvasComponent() {
       <div
         className={cn(
           "transition-all duration-700",
-          chatStarted ? "w-[35%]" : "w-full",
+          chatStarted ? "min-w-[448px] max-w-[448px]" : "w-full",
           "h-full mr-auto bg-gray-50/70 shadow-inner-right"
         )}
       >
@@ -128,6 +129,7 @@ export function CanvasComponent() {
           <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
         </div>
       )}
+      <WebSearchResults />
     </main>
   );
 }

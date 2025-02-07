@@ -14,8 +14,6 @@ import { AssistantMessage, UserMessage } from "./messages";
 import ModelSelector from "./model-selector";
 import { ThreadHistory } from "./thread-history";
 import { ThreadWelcome } from "./welcome";
-import { useRouter, useSearchParams } from "next/navigation";
-import { THREAD_ID_QUERY_PARAM } from "@/constants";
 import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
 import { useAssistantContext } from "@/contexts/AssistantContext";
@@ -46,8 +44,6 @@ export interface ThreadProps {
 }
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const {
     setChatStarted,
     hasChatStarted,
@@ -66,6 +62,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     modelConfig,
     setModelConfig,
     modelConfigs,
+    removeThreadIdQueryParam,
   } = useThreadContext();
   const { user } = useUserContext();
 
@@ -84,17 +81,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     }
 
     // Remove the threadId param from the URL
-    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
-    if (threadIdQueryParam) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete(THREAD_ID_QUERY_PARAM);
-      // If there are still params, replace with the new URL. Else, replace with /
-      if (params.size > 0) {
-        router.replace(`?${params.toString()}`, { scroll: false });
-      } else {
-        router.replace("/", { scroll: false });
-      }
-    }
+    removeThreadIdQueryParam();
 
     setModelName(modelName);
     setModelConfig(modelName, modelConfig);
@@ -113,7 +100,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   };
 
   return (
-    <ThreadPrimitive.Root className="flex flex-col h-full">
+    <ThreadPrimitive.Root className="flex flex-col h-full w-full">
       <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between">
         <div className="flex items-center justify-start gap-2 text-gray-600">
           <ThreadHistory

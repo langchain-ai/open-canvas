@@ -1,3 +1,5 @@
+import { DocumentInterface } from "@langchain/core/documents";
+
 export interface ModelConfigurationParams {
   name: string;
   label: string;
@@ -187,12 +189,16 @@ export type ContextDocument = {
 };
 
 /**
- * The interface for a search result from Tavily.
+ * The metadata included in search results from Exa.
  */
-export interface SearchResult {
-  title: string;
+export type ExaMetadata = {
+  id: string;
   url: string;
-  content: string;
-  score: number;
-  raw_content: string | undefined;
-}
+  title: string;
+  author: string;
+  publishedDate: string;
+  image?: string;
+  favicon?: string;
+};
+
+export interface SearchResult extends DocumentInterface<ExaMetadata> {}

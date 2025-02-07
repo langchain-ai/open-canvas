@@ -1,21 +1,24 @@
 import { SearchResult } from "@opencanvas/shared/dist/types";
 import { WebSearchState } from "../state.js";
-import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
+import ExaClient from "exa-js";
+import { ExaRetriever } from "@langchain/exa";
 
 export async function search(
   state: WebSearchState
 ): Promise<Partial<WebSearchState>> {
-  const searchTool = new TavilySearchResults({
-    maxResults: 5, // default
-    includeAnswer: true,
-    days: 14, // include answers from the last 14 days
+  const exaClient = new ExaClient(process.env.EXA_API_KEY || "");
+  const retriever = new ExaRetriever({
+    client: exaClient,
+    searchArgs: {
+      filterEmptyResults: true,
+      numResults: 5,
+    },
   });
 
   const query = state.messages[state.messages.length - 1].content as string;
-  const resultsStr: string = await searchTool.invoke(query);
-  const results: SearchResult[] = JSON.parse(resultsStr);
+  const results = await retriever.invoke(query);
 
   return {
-    webSearchResults: results,
+    webSearchResults: results as SearchResult[],
   };
 }

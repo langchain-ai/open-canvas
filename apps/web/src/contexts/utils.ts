@@ -393,3 +393,39 @@ export function handleGenerateArtifactToolCallChunk(toolCallChunkArgs: string) {
     };
   }
 }
+
+type StreamChunkFields = {
+  runId: string | undefined;
+  event: string;
+  langgraphNode: string;
+  nodeInput: any | undefined;
+  nodeChunk: any | undefined;
+  nodeOutput: any | undefined;
+  taskName: string | undefined;
+};
+
+export function extractChunkFields(
+  chunk: Record<string, any> | undefined
+): StreamChunkFields {
+  if (!chunk || !chunk.data) {
+    return {
+      runId: undefined,
+      event: "",
+      langgraphNode: "",
+      nodeInput: undefined,
+      nodeChunk: undefined,
+      nodeOutput: undefined,
+      taskName: undefined,
+    };
+  }
+
+  return {
+    runId: chunk.data?.metadata?.run_id,
+    event: chunk.data?.event || "",
+    langgraphNode: chunk.data?.metadata?.langgraph_node || "",
+    nodeInput: chunk.data?.data?.input,
+    nodeChunk: chunk.data?.data?.chunk,
+    nodeOutput: chunk.data?.data?.output,
+    taskName: chunk.data?.name,
+  };
+}

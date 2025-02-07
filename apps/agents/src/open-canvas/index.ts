@@ -1,9 +1,5 @@
-import { v4 as uuidv4 } from "uuid";
-import { END, Send, START, StateGraph } from "@langchain/langgraph";
-import {
-  DEFAULT_INPUTS,
-  OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
-} from "@opencanvas/shared/dist/constants";
+import { Command, END, Send, START, StateGraph } from "@langchain/langgraph";
+import { DEFAULT_INPUTS } from "@opencanvas/shared/dist/constants";
 import { customAction } from "./nodes/customAction.js";
 import { generateArtifact } from "./nodes/generate-artifact/index.js";
 import { generateFollowup } from "./nodes/generateFollowup.js";
@@ -19,7 +15,7 @@ import { updateHighlightedText } from "./nodes/updateHighlightedText.js";
 import { OpenCanvasGraphAnnotation } from "./state.js";
 import { summarizer } from "./nodes/summarizer.js";
 import { graph as webSearchGraph } from "../web-search/index.js";
-import { HumanMessage } from "@langchain/core/messages";
+import { createAIMessageFromWebResults } from "@/utils.js";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -81,11 +77,12 @@ const conditionallyGenerateTitle = (
  */
 function routePostWebSearch(
   state: typeof OpenCanvasGraphAnnotation.State
-): Send {
+): Send | Command {
   // If there is more than one artifact, then route to the "rewriteArtifact" node. Otherwise, generate the artifact.
   const includesArtifacts = state.artifact?.contents?.length > 1;
-
+  console.log("routePostWebSearch", includesArtifacts, state.webSearchResults);
   if (!state.webSearchResults?.length) {
+    console.log("No web search results, so routing to generateArtifact");
     return new Send(
       includesArtifacts ? "rewriteArtifact" : "generateArtifact",
       {
@@ -95,28 +92,18 @@ function routePostWebSearch(
     );
   }
 
-  // Web search has results, so add them to the messages state.
-  const content = state.webSearchResults
-    .map(
-      (r, index) =>
-        `<search-result index="${index}">\n[${r.title}](${r.url})\n\n${r.content}\n</search-result>`
-    )
-    .join("\n\n");
   // This message is used as a way to reference the web search results in future chats.
-  const webSearchResultsMessage = new HumanMessage({
-    content,
-    id: `web-search-results-${uuidv4()}`,
-    additional_kwargs: {
-      [OC_WEB_SEARCH_RESULTS_MESSAGE_KEY]: true,
-      webSearchResults: state.webSearchResults,
-    },
-  });
+  const webSearchResultsMessage = createAIMessageFromWebResults(
+    state.webSearchResults
+  );
 
-  return new Send(includesArtifacts ? "rewriteArtifact" : "generateArtifact", {
-    ...state,
-    webSearchEnabled: false,
-    messages: [webSearchResultsMessage],
-    _messages: [webSearchResultsMessage],
+  return new Command({
+    goto: includesArtifacts ? "rewriteArtifact" : "generateArtifact",
+    update: {
+      webSearchEnabled: false,
+      messages: [webSearchResultsMessage],
+      _messages: [webSearchResultsMessage],
+    },
   });
 }
 
@@ -139,6 +126,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("generateTitle", generateTitleNode)
   .addNode("summarizer", summarizer)
   .addNode("webSearch", webSearchGraph)
+  .addNode("routePostWebSearch", routePostWebSearch)
   // Initial router
   .addConditionalEdges("generatePath", routeNode, [
     "updateArtifact",
@@ -159,10 +147,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("rewriteArtifactTheme", "generateFollowup")
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   .addEdge("customAction", "generateFollowup")
-  .addConditionalEdges("webSearch", routePostWebSearch, [
-    "generateArtifact",
-    "rewriteArtifact",
-  ])
+  .addEdge("webSearch", "routePostWebSearch")
   // End edges
   .addEdge("replyToGeneralInput", "cleanState")
   // Only reflect if an artifact was generated/updated.
