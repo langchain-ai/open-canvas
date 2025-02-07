@@ -142,7 +142,7 @@ export function ContentComposerChatInterfaceComponent(
   });
 
   return (
-    <div className="h-full">
+    <div className="h-full w-full">
       <AssistantRuntimeProvider runtime={runtime}>
         <Thread
           userId={userData?.user?.id}

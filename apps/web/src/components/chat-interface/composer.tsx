@@ -5,12 +5,9 @@ import { type FC } from "react";
 
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { SendHorizontalIcon } from "lucide-react";
-import { AssistantSelect } from "../assistant-select";
 import { DragAndDropWrapper } from "./drag-drop-wrapper";
-import {
-  ComposerAddAttachment,
-  ComposerAttachments,
-} from "../assistant-ui/attachment";
+import { ComposerAttachments } from "../assistant-ui/attachment";
+import { ComposerActionsPopOut } from "./composer-actions-popout";
 
 const CircleStopIcon = () => {
   return (
@@ -39,10 +36,8 @@ export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
           <ComposerAttachments />
         </div>
 
-        <div className="flex flex-row w-full items-start justify-center my-auto">
-          <ComposerAddAttachment />
-
-          <AssistantSelect
+        <div className="flex flex-row w-full items-center justify-start my-auto">
+          <ComposerActionsPopOut
             userId={props.userId}
             chatStarted={props.chatStarted}
           />

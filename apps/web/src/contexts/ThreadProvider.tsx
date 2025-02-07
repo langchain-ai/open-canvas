@@ -2,6 +2,7 @@ import {
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
   THREAD_ID_QUERY_PARAM,
+  WEB_SEARCH_RESULTS_QUERY_PARAM,
 } from "@/constants";
 import {
   ALL_MODEL_NAMES,
@@ -13,7 +14,7 @@ import { getCookie, setCookie } from "@/lib/cookies";
 import { CustomModelConfig } from "@opencanvas/shared/dist/types";
 import { Thread } from "@langchain/langgraph-sdk";
 import { createClient } from "../hooks/utils";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { useUserContext } from "./UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,8 @@ type ThreadContentType = {
   modelConfig: CustomModelConfig;
   modelConfigs: Record<ALL_MODEL_NAMES, CustomModelConfig>;
   createThreadLoading: boolean;
+  removeThreadIdQueryParam: () => void;
+  setThreadIdQueryParam: (id: string) => void;
   clearThreadsWithNoValues: () => Promise<void>;
   searchOrCreateThread: (isNewThread?: boolean) => Promise<Thread | undefined>;
   getUserThreads: () => Promise<void>;
@@ -42,6 +45,7 @@ const ThreadContext = createContext<ThreadContentType | undefined>(undefined);
 
 export function ThreadProvider({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { user } = useUserContext();
   const { toast } = useToast();
   const [threadId, setThreadId] = useState<string>();
@@ -368,6 +372,36 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const removeThreadIdQueryParam = () => {
+    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+    const webSearchResultsQueryParam = searchParams.get(
+      WEB_SEARCH_RESULTS_QUERY_PARAM
+    );
+
+    if (threadIdQueryParam || webSearchResultsQueryParam) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete(THREAD_ID_QUERY_PARAM);
+      params.delete(WEB_SEARCH_RESULTS_QUERY_PARAM);
+      // If there are still params, replace with the new URL. Else, replace with /
+      if (params.size > 0) {
+        router.replace(`?${params.toString()}`, { scroll: false });
+      } else {
+        router.replace("/", { scroll: false });
+      }
+    }
+  };
+
+  const setThreadIdQueryParam = (id: string) => {
+    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+    const params = new URLSearchParams(searchParams.toString());
+    if (threadIdQueryParam !== id) {
+      params.set(THREAD_ID_QUERY_PARAM, id);
+      // Remove the web search results param to avoid showing web results from the wrong thread
+      params.delete(WEB_SEARCH_RESULTS_QUERY_PARAM);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  };
+
   const contextValue: ThreadContentType = {
     threadId,
     userThreads,
@@ -376,6 +410,8 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     modelConfig,
     modelConfigs,
     createThreadLoading,
+    removeThreadIdQueryParam,
+    setThreadIdQueryParam,
     clearThreadsWithNoValues,
     searchOrCreateThread,
     getUserThreads,

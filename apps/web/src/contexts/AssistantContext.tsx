@@ -1,10 +1,36 @@
+import { useToast } from "@/hooks/use-toast";
 import { Assistant } from "@langchain/langgraph-sdk";
-import { useState } from "react";
-import { useToast } from "./use-toast";
-import { createClient } from "./utils";
-import { ASSISTANT_ID_COOKIE } from "@/constants";
-import { getCookie, removeCookie } from "@/lib/cookies";
 import { ContextDocument } from "@opencanvas/shared/dist/types";
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
+import { createClient } from "@/hooks/utils";
+import { getCookie, removeCookie } from "@/lib/cookies";
+import { ASSISTANT_ID_COOKIE } from "@/constants";
+
+type AssistantContentType = {
+  assistants: Assistant[];
+  selectedAssistant: Assistant | undefined;
+  isLoadingAllAssistants: boolean;
+  isDeletingAssistant: boolean;
+  isCreatingAssistant: boolean;
+  isEditingAssistant: boolean;
+  getOrCreateAssistant: (userId: string) => Promise<void>;
+  getAssistants: (userId: string) => Promise<void>;
+  deleteAssistant: (assistantId: string) => Promise<boolean>;
+  createCustomAssistant: (
+    args: CreateCustomAssistantArgs
+  ) => Promise<Assistant | undefined>;
+  editCustomAssistant: (
+    args: EditCustomAssistantArgs
+  ) => Promise<Assistant | undefined>;
+  setSelectedAssistant: Dispatch<SetStateAction<Assistant | undefined>>;
+};
 
 export type AssistantTool = {
   /**
@@ -68,7 +94,11 @@ export type EditCustomAssistantArgs = {
   userId: string;
 };
 
-export function useAssistants() {
+const AssistantContext = createContext<AssistantContentType | undefined>(
+  undefined
+);
+
+export function AssistantProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [isLoadingAllAssistants, setIsLoadingAllAssistants] = useState(false);
   const [isDeletingAssistant, setIsDeletingAssistant] = useState(false);
@@ -371,7 +401,7 @@ export function useAssistants() {
     setIsLoadingAllAssistants(false);
   };
 
-  return {
+  const contextValue: AssistantContentType = {
     assistants,
     selectedAssistant,
     isLoadingAllAssistants,
@@ -385,4 +415,20 @@ export function useAssistants() {
     editCustomAssistant,
     setSelectedAssistant,
   };
+
+  return (
+    <AssistantContext.Provider value={contextValue}>
+      {children}
+    </AssistantContext.Provider>
+  );
+}
+
+export function useAssistantContext() {
+  const context = useContext(AssistantContext);
+  if (context === undefined) {
+    throw new Error(
+      "useAssistantContext must be used within a AssistantProvider"
+    );
+  }
+  return context;
 }

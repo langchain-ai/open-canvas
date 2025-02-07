@@ -11,6 +11,7 @@ export const LS_HAS_SEEN_MODEL_DROPDOWN_ALERT =
 export const OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT =
   "oc_has_seen_custom_assistants_alert";
 export const THREAD_ID_QUERY_PARAM = "threadId";
+export const WEB_SEARCH_RESULTS_QUERY_PARAM = "webSearchResults";
 
 export const ALLOWED_AUDIO_TYPES = new Set([
   "audio/mp3",

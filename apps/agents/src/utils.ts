@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { isArtifactCodeContent } from "@opencanvas/shared/dist/utils/artifacts";
 import {
   CustomModelConfig,
@@ -5,17 +6,21 @@ import {
   ArtifactMarkdownV3,
   Reflections,
   ContextDocument,
+  SearchResult,
 } from "@opencanvas/shared/dist/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
 import pdfParse from "pdf-parse";
 import {
+  AIMessage,
+  BaseMessage,
   MessageContentComplex,
   MessageFieldWithRole,
 } from "@langchain/core/messages";
 import {
   CONTEXT_DOCUMENTS_NAMESPACE,
   LANGCHAIN_USER_ONLY_MODELS,
+  OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
   TEMPERATURE_EXCLUDED_MODELS,
 } from "@opencanvas/shared/dist/constants";
 import { createClient, Session, User } from "@supabase/supabase-js";
@@ -570,4 +575,54 @@ export async function createContextDocumentMessages(
   }
 
   return contextMessages;
+}
+
+export function formatMessages(messages: BaseMessage[]): string {
+  return messages
+    .map((msg, idx) => {
+      const msgType =
+        "_getType" in msg
+          ? msg._getType()
+          : "type" in msg
+            ? (msg as Record<string, any>)?.type
+            : "unknown";
+      const messageContent =
+        typeof msg.content === "string"
+          ? msg.content
+          : msg.content
+              .flatMap((c) => ("text" in c ? (c.text as string) : []))
+              .join("\n");
+      return `<${msgType} index="${idx}">\n${messageContent}\n</${msgType}>`;
+    })
+    .join("\n");
+}
+
+export function createAIMessageFromWebResults(
+  webResults: SearchResult[]
+): AIMessage {
+  const webResultsStr = webResults
+    .map(
+      (r, index) =>
+        `<search-result
+      index="${index}"
+      publishedDate="${r.metadata?.publishedDate || "Unknown"}"
+      author="${r.metadata?.author || "Unknown"}"
+    >
+      [${r.metadata?.title || "Unknown title"}](${r.metadata?.url || "Unknown URL"})
+      ${r.pageContent}
+    </search-result>`
+    )
+    .join("\n\n");
+
+  const content = `Here is some additional context I found from searching the web. This may be useful:\n\n${webResultsStr}`;
+
+  return new AIMessage({
+    content,
+    id: `web-search-results-${uuidv4()}`,
+    additional_kwargs: {
+      [OC_WEB_SEARCH_RESULTS_MESSAGE_KEY]: true,
+      webSearchResults: webResults,
+      webSearchStatus: "done",
+    },
+  });
 }

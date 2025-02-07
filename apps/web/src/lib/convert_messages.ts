@@ -117,6 +117,15 @@ export const convertLangchainMessages: useExternalMessageConverter.Callback<
             text: content,
           },
         ],
+        ...(message.additional_kwargs
+          ? {
+              metadata: {
+                custom: {
+                  ...message.additional_kwargs,
+                },
+              },
+            }
+          : {}),
       };
     case "tool":
       return {

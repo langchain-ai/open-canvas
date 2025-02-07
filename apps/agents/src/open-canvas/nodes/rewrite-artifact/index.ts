@@ -17,7 +17,7 @@ import {
   getModelFromConfig,
   isUsingO1MiniModel,
   optionallyGetSystemPromptFromConfig,
-} from "@/utils.js";
+} from "../../../utils.js";
 import { isArtifactMarkdownContent } from "@opencanvas/shared/dist/utils/artifacts";
 import { AIMessage } from "@langchain/core/messages";
 import {

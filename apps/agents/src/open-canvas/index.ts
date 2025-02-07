@@ -1,4 +1,4 @@
-import { END, Send, START, StateGraph } from "@langchain/langgraph";
+import { Command, END, Send, START, StateGraph } from "@langchain/langgraph";
 import { DEFAULT_INPUTS } from "@opencanvas/shared/dist/constants";
 import { customAction } from "./nodes/customAction.js";
 import { generateArtifact } from "./nodes/generate-artifact/index.js";
@@ -14,6 +14,8 @@ import { generateTitleNode } from "./nodes/generateTitle.js";
 import { updateHighlightedText } from "./nodes/updateHighlightedText.js";
 import { OpenCanvasGraphAnnotation } from "./state.js";
 import { summarizer } from "./nodes/summarizer.js";
+import { graph as webSearchGraph } from "../web-search/index.js";
+import { createAIMessageFromWebResults } from "../utils.js";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -69,6 +71,40 @@ const conditionallyGenerateTitle = (
   return "generateTitle";
 };
 
+/**
+ * Updates state & routes the graph based on whether or not the web search
+ * graph returned any results.
+ */
+function routePostWebSearch(
+  state: typeof OpenCanvasGraphAnnotation.State
+): Send | Command {
+  // If there is more than one artifact, then route to the "rewriteArtifact" node. Otherwise, generate the artifact.
+  const includesArtifacts = state.artifact?.contents?.length > 1;
+  if (!state.webSearchResults?.length) {
+    return new Send(
+      includesArtifacts ? "rewriteArtifact" : "generateArtifact",
+      {
+        ...state,
+        webSearchEnabled: false,
+      }
+    );
+  }
+
+  // This message is used as a way to reference the web search results in future chats.
+  const webSearchResultsMessage = createAIMessageFromWebResults(
+    state.webSearchResults
+  );
+
+  return new Command({
+    goto: includesArtifacts ? "rewriteArtifact" : "generateArtifact",
+    update: {
+      webSearchEnabled: false,
+      messages: [webSearchResultsMessage],
+      _messages: [webSearchResultsMessage],
+    },
+  });
+}
+
 const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Start node & edge
   .addNode("generatePath", generatePath)
@@ -87,6 +123,8 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("reflect", reflectNode)
   .addNode("generateTitle", generateTitleNode)
   .addNode("summarizer", summarizer)
+  .addNode("webSearch", webSearchGraph)
+  .addNode("routePostWebSearch", routePostWebSearch)
   // Initial router
   .addConditionalEdges("generatePath", routeNode, [
     "updateArtifact",
@@ -97,6 +135,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "rewriteArtifact",
     "customAction",
     "updateHighlightedText",
+    "webSearch",
   ])
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
@@ -106,6 +145,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("rewriteArtifactTheme", "generateFollowup")
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   .addEdge("customAction", "generateFollowup")
+  .addEdge("webSearch", "routePostWebSearch")
   // End edges
   .addEdge("replyToGeneralInput", "cleanState")
   // Only reflect if an artifact was generated/updated.

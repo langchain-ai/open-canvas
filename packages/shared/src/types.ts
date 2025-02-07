@@ -1,3 +1,5 @@
+import { DocumentInterface } from "@langchain/core/documents";
+
 export interface ModelConfigurationParams {
   name: string;
   label: string;
@@ -185,3 +187,18 @@ export type ContextDocument = {
    */
   metadata?: Record<string, any>;
 };
+
+/**
+ * The metadata included in search results from Exa.
+ */
+export type ExaMetadata = {
+  id: string;
+  url: string;
+  title: string;
+  author: string;
+  publishedDate: string;
+  image?: string;
+  favicon?: string;
+};
+
+export type SearchResult = DocumentInterface<ExaMetadata>;

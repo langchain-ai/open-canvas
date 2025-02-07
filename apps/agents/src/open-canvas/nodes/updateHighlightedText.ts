@@ -3,7 +3,7 @@ import {
   getModelConfig,
   getModelFromConfig,
   isUsingO1MiniModel,
-} from "@/utils.js";
+} from "../../utils.js";
 import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { AIMessageChunk } from "@langchain/core/messages";
 import { RunnableBinding } from "@langchain/core/runnables";

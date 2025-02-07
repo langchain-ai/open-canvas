@@ -23,6 +23,10 @@ import { useFeedback } from "@/hooks/useFeedback";
 import { ContextDocumentsUI } from "../tool-hooks/AttachmentsToolUI";
 import { HumanMessage } from "@langchain/core/messages";
 import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/dist/constants";
+import { Button } from "../ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
+import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
+import { Globe } from "lucide-react";
 
 interface AssistantMessageProps {
   runId: string | undefined;
@@ -67,6 +71,36 @@ const ThinkingAssistantMessageComponent = ({
 
 const ThinkingAssistantMessage = React.memo(ThinkingAssistantMessageComponent);
 
+const WebSearchMessageComponent = ({ message }: { message: MessageState }) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const handleShowWebSearchResults = () => {
+    if (!message.id) {
+      return;
+    }
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, message.id);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  return (
+    <div className="flex mx-8">
+      <Button
+        onClick={handleShowWebSearchResults}
+        variant="secondary"
+        className="bg-blue-50 hover:bg-blue-100 transition-all ease-in-out duration-200 w-full"
+      >
+        <Globe className="size-4 mr-2" />
+        Web Search Results
+      </Button>
+    </div>
+  );
+};
+
+const WebSearchMessage = React.memo(WebSearchMessageComponent);
+
 export const AssistantMessage: FC<AssistantMessageProps> = ({
   runId,
   feedbackSubmitted,
@@ -75,9 +109,14 @@ export const AssistantMessage: FC<AssistantMessageProps> = ({
   const message = useMessage();
   const { isLast } = message;
   const isThinkingMessage = message.id.startsWith("thinking-");
+  const isWebSearchMessage = message.id.startsWith("web-search-results-");
 
   if (isThinkingMessage) {
     return <ThinkingAssistantMessage message={message} />;
+  }
+
+  if (isWebSearchMessage) {
+    return <WebSearchMessage message={message} />;
   }
 
   return (

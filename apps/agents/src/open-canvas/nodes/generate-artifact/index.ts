@@ -5,7 +5,7 @@ import {
   getModelFromConfig,
   isUsingO1MiniModel,
   optionallyGetSystemPromptFromConfig,
-} from "@/utils.js";
+} from "../../../utils.js";
 import { ArtifactV3 } from "@opencanvas/shared/dist/types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import {

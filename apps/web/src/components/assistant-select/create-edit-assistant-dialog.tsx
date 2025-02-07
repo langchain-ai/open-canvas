@@ -3,7 +3,7 @@
 import {
   CreateCustomAssistantArgs,
   EditCustomAssistantArgs,
-} from "@/hooks/useAssistants";
+} from "@/contexts/AssistantContext";
 import { Assistant } from "@langchain/langgraph-sdk";
 import {
   Dispatch,

@@ -13,7 +13,6 @@ import * as Icons from "lucide-react";
 import React from "react";
 import { TighterText } from "../ui/header";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
-import { useGraphContext } from "@/contexts/GraphContext";
 import { CreateEditAssistantDialog } from "./create-edit-assistant-dialog";
 import { getIcon } from "./utils";
 import { AssistantItem } from "./assistant-item";
@@ -21,10 +20,14 @@ import { Assistant } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { AlertNewAssistantsFeature } from "./alert-new-feature";
 import { OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT } from "@/constants";
+import { cn } from "@/lib/utils";
+import { useAssistantContext } from "@/contexts/AssistantContext";
 
 interface AssistantSelectProps {
   userId: string | undefined;
   chatStarted: boolean;
+  className?: string;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
 function AssistantSelectComponent(props: AssistantSelectProps) {
@@ -38,16 +41,14 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
   const [showAlert, setShowAlert] = useState(false);
 
   const {
-    assistantsData: {
-      assistants,
-      selectedAssistant,
-      isLoadingAllAssistants,
-      setSelectedAssistant,
-      createCustomAssistant,
-      editCustomAssistant,
-      deleteAssistant,
-    },
-  } = useGraphContext();
+    assistants,
+    selectedAssistant,
+    isLoadingAllAssistants,
+    setSelectedAssistant,
+    createCustomAssistant,
+    editCustomAssistant,
+    deleteAssistant,
+  } = useAssistantContext();
 
   const handleNewAssistantClick = (event: Event) => {
     event.preventDefault();
@@ -87,15 +88,21 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
               setCreateEditDialogOpen(false);
             }
             setOpen(c);
+            props.onOpenChange?.(c);
           }}
         >
           <DropdownMenuTrigger className="text-gray-600" asChild>
             <TooltipIconButton
               tooltip="Change assistant"
               variant="ghost"
+              className={cn("size-7 mt-1", props.className)}
               delayDuration={200}
               style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
-              className="mt-[14px]"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpen(true);
+              }}
             >
               {getIcon(metadata?.iconData?.iconName as string | undefined)}
             </TooltipIconButton>
