@@ -2,11 +2,11 @@ import {
   CustomQuickAction,
   Reflections,
   ContextDocument,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
 import { Item } from "@langchain/langgraph";
-import { CONTEXT_DOCUMENTS_NAMESPACE } from "@opencanvas/shared/dist/constants";
+import { CONTEXT_DOCUMENTS_NAMESPACE } from "@opencanvas/shared/constants";
 
 export function useStore() {
   const { toast } = useToast();

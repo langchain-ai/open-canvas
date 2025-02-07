@@ -1,4 +1,4 @@
-import { ProgrammingLanguageOptions } from "@opencanvas/shared/dist/types";
+import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 
 export const getLanguageTemplate = (
   language: ProgrammingLanguageOptions

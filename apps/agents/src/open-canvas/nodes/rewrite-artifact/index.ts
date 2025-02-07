@@ -18,12 +18,12 @@ import {
   isUsingO1MiniModel,
   optionallyGetSystemPromptFromConfig,
 } from "../../../utils.js";
-import { isArtifactMarkdownContent } from "@opencanvas/shared/dist/utils/artifacts";
+import { isArtifactMarkdownContent } from "@opencanvas/shared/utils/artifacts";
 import { AIMessage } from "@langchain/core/messages";
 import {
   extractThinkingAndResponseTokens,
   isThinkingModel,
-} from "@opencanvas/shared/dist/utils/thinking";
+} from "@opencanvas/shared/utils/thinking";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,

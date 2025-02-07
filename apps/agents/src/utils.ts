@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { isArtifactCodeContent } from "@opencanvas/shared/dist/utils/artifacts";
+import { isArtifactCodeContent } from "@opencanvas/shared/utils/artifacts";
 import {
   CustomModelConfig,
   ArtifactCodeV3,
@@ -7,7 +7,7 @@ import {
   Reflections,
   ContextDocument,
   SearchResult,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import { BaseStore, LangGraphRunnableConfig } from "@langchain/langgraph";
 import { initChatModel } from "langchain/chat_models/universal";
 import pdfParse from "pdf-parse";
@@ -22,7 +22,7 @@ import {
   LANGCHAIN_USER_ONLY_MODELS,
   OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
   TEMPERATURE_EXCLUDED_MODELS,
-} from "@opencanvas/shared/dist/constants";
+} from "@opencanvas/shared/constants";
 import { createClient, Session, User } from "@supabase/supabase-js";
 
 export const formatReflections = (

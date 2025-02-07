@@ -1,5 +1,5 @@
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
-import { SearchResult } from "@opencanvas/shared/dist/types";
+import { SearchResult } from "@opencanvas/shared/types";
 
 export const WebSearchGraphAnnotation = Annotation.Root({
   /**

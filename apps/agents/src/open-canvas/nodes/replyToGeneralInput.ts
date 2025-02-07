@@ -1,6 +1,6 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getArtifactContent } from "@opencanvas/shared/dist/utils/artifacts";
-import { Reflections } from "@opencanvas/shared/dist/types";
+import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
+import { Reflections } from "@opencanvas/shared/types";
 import {
   createContextDocumentMessages,
   ensureStoreInConfig,

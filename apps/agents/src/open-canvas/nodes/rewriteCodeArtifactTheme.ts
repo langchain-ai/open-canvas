@@ -3,12 +3,12 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import {
   extractThinkingAndResponseTokens,
   isThinkingModel,
-} from "@opencanvas/shared/dist/utils/thinking";
+} from "@opencanvas/shared/utils/thinking";
 import {
   isArtifactCodeContent,
   getArtifactContent,
-} from "@opencanvas/shared/dist/utils/artifacts";
-import { ArtifactCodeV3, ArtifactV3 } from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/utils/artifacts";
+import { ArtifactCodeV3, ArtifactV3 } from "@opencanvas/shared/types";
 import { getModelConfig, getModelFromConfig } from "../../utils.js";
 import {
   ADD_COMMENTS_TO_CODE_ARTIFACT_PROMPT,

@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CustomQuickAction } from "@opencanvas/shared/dist/types";
+import { CustomQuickAction } from "@opencanvas/shared/types";
 import { NewCustomQuickActionDialog } from "./NewCustomQuickActionDialog";
 import { useEffect, useState } from "react";
 import { useStore } from "@/hooks/useStore";

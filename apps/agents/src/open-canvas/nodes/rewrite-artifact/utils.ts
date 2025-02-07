@@ -1,12 +1,12 @@
 import {
   getArtifactContent,
   isArtifactCodeContent,
-} from "@opencanvas/shared/dist/utils/artifacts";
+} from "@opencanvas/shared/utils/artifacts";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
   ProgrammingLanguageOptions,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import {
   OPTIONALLY_UPDATE_META_PROMPT,
   UPDATE_ENTIRE_ARTIFACT_PROMPT,

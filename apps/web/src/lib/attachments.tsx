@@ -1,7 +1,7 @@
 import * as Icons from "lucide-react";
 import { ALLOWED_VIDEO_TYPES, ALLOWED_AUDIO_TYPES } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
-import { ContextDocument } from "@opencanvas/shared/dist/types";
+import { ContextDocument } from "@opencanvas/shared/types";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 import { createClient } from "@supabase/supabase-js";

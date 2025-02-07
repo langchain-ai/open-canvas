@@ -3,8 +3,8 @@ import { getModelFromConfig } from "../../utils.js";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
-} from "@opencanvas/shared/dist/utils/artifacts";
-import { Reflections } from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/utils/artifacts";
+import { Reflections } from "@opencanvas/shared/types";
 import { ensureStoreInConfig, formatReflections } from "../../utils.js";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts.js";
 import {

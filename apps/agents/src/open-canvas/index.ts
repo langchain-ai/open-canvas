@@ -1,5 +1,5 @@
 import { Command, END, Send, START, StateGraph } from "@langchain/langgraph";
-import { DEFAULT_INPUTS } from "@opencanvas/shared/dist/constants";
+import { DEFAULT_INPUTS } from "@opencanvas/shared/constants";
 import { customAction } from "./nodes/customAction.js";
 import { generateArtifact } from "./nodes/generate-artifact/index.js";
 import { generateFollowup } from "./nodes/generateFollowup.js";

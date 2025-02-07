@@ -4,7 +4,7 @@ import {
   isArtifactCodeContent,
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
-} from "@opencanvas/shared/dist/utils/artifacts";
+} from "@opencanvas/shared/utils/artifacts";
 import { setCookie } from "@/lib/cookies";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import {
@@ -19,7 +19,7 @@ import {
   RewriteArtifactMetaToolResponse,
   SearchResult,
   TextHighlight,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useRuns } from "@/hooks/useRuns";
 import { createClient } from "@/hooks/utils";
@@ -36,7 +36,7 @@ import {
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
   OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
-} from "@opencanvas/shared/dist/constants";
+} from "@opencanvas/shared/constants";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -62,7 +62,7 @@ import {
 import {
   handleRewriteArtifactThinkingModel,
   isThinkingModel,
-} from "@opencanvas/shared/dist/utils/thinking";
+} from "@opencanvas/shared/utils/thinking";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useThreadContext } from "./ThreadProvider";
@@ -603,7 +603,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                    highlightedText.markdownBlock.length
+                  highlightedText.markdownBlock.length
                 );
               }
 
@@ -1019,7 +1019,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                   );
                 updatedArtifactRestContent = highlightedText.fullMarkdown.slice(
                   startIndexOfHighlightedText +
-                    highlightedText.markdownBlock.length
+                  highlightedText.markdownBlock.length
                 );
               }
 

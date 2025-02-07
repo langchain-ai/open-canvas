@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
-import { getArtifactContent } from "@opencanvas/shared/dist/utils/artifacts";
+import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import {
   convertPDFToText,
   createContextDocumentMessages,
@@ -20,13 +20,13 @@ import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
 } from "../state.js";
-import { ContextDocument } from "@opencanvas/shared/dist/types";
+import { ContextDocument } from "@opencanvas/shared/types";
 import {
   BaseMessage,
   HumanMessage,
   RemoveMessage,
 } from "@langchain/core/messages";
-import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/dist/constants";
+import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/constants";
 
 /**
  * Checks for context documents in a human message, and if found, converts

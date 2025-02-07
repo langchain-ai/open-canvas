@@ -4,7 +4,7 @@ import { NavigateArtifactHistory } from "./navigate-artifact-history";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import { Assistant } from "@langchain/langgraph-sdk";
 
 interface ArtifactHeaderProps {

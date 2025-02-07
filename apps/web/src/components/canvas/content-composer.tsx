@@ -8,7 +8,7 @@ import {
 import {
   ProgrammingLanguageOptions,
   ContextDocument,
-} from "@opencanvas/shared/dist/types";
+} from "@opencanvas/shared/types";
 import {
   AppendMessage,
   AssistantRuntimeProvider,

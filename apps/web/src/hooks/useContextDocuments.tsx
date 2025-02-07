@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { arrayToFileList, convertDocuments, load } from "@/lib/attachments";
 import { useToast } from "./use-toast";
-import { ContextDocument } from "@opencanvas/shared/dist/types";
+import { ContextDocument } from "@opencanvas/shared/types";
 
 export function useContextDocuments(userId: string) {
   const { toast } = useToast();
@@ -95,12 +95,12 @@ export function useContextDocuments(userId: string) {
     const [fileDocuments, urlDocuments] = await Promise.all([
       unprocessedFileList?.length
         ? convertDocuments({
-            ffmpeg: ffmpegRef.current,
-            messageRef,
-            documents: unprocessedFileList,
-            userId: userId,
-            toast,
-          })
+          ffmpeg: ffmpegRef.current,
+          messageRef,
+          documents: unprocessedFileList,
+          userId: userId,
+          toast,
+        })
         : [],
       unprocessedUrls.length ? convertUrlsToDocuments(unprocessedUrls) : [],
     ]);
