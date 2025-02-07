@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { TooltipIconButton } from "../assistant-ui/tooltip-icon-button";
 import { X } from "lucide-react";
 import { format } from "date-fns";
+import { LoadingSearchResultCards } from "./loading-cards";
 
 function SearchResultCard({ result }: { result: SearchResult }) {
   const [expanded, setExpanded] = useState(false);
@@ -160,7 +161,7 @@ export function WebSearchResults() {
             {!searchResults?.length && status === "done" && (
               <p>No results found</p>
             )}
-            {status === "searching" && <p>Searching...</p>}
+            {status === "searching" && <LoadingSearchResultCards />}
           </motion.div>
         </motion.div>
       )}
