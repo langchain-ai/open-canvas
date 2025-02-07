@@ -491,9 +491,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               });
               // Set the query param to trigger the UI
               const params = new URLSearchParams(window.location.search);
-              console.log("original params", params.toString());
               params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, webSearchMessageId);
-              console.log("new params", params.toString());
               router.replace(`?${params.toString()}`, { scroll: false });
             }
           }

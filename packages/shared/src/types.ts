@@ -201,4 +201,4 @@ export type ExaMetadata = {
   favicon?: string;
 };
 
-export interface SearchResult extends DocumentInterface<ExaMetadata> {}
+export type SearchResult = DocumentInterface<ExaMetadata>;

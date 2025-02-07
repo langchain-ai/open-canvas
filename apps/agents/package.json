@@ -38,6 +38,7 @@
     "@supabase/supabase-js": "^2.45.5",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
+    "exa-js": "^1.4.10",
     "framer-motion": "^11.11.9",
     "groq-sdk": "^0.13.0",
     "langchain": "^0.3.14",

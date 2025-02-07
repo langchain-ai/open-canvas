@@ -85,15 +85,11 @@ export function WebSearchResults() {
       setSearchResults([]);
       return;
     }
-    if (!webSearchResultsParam || !messages.length) {
-      console.log("no web search results param or messages");
-      return;
-    }
+    if (!webSearchResultsParam || !messages.length) return;
     const webResultsMessage =
       messages.find((message) => message.id === webSearchResultsParam) ||
       messages.find((message) => message.id?.startsWith("web-search-results-"));
     if (!webResultsMessage) {
-      console.log("no web search results message");
       return;
     } else if (
       webResultsMessage.id &&

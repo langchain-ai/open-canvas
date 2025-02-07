@@ -4170,7 +4170,7 @@ eventemitter3@^4.0.4:
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
 
-exa-js@^1.0.12:
+exa-js@^1.0.12, exa-js@^1.4.10:
   version "1.4.10"
   resolved "https://registry.yarnpkg.com/exa-js/-/exa-js-1.4.10.tgz#af90843e8b95dfd2493851dc38abfe5d571b87aa"
   integrity sha512-rffYWPU568gOiYmsHW3L5J6atoNfLJTrtAk/DAKyPuGtdDXrE9fsSfltP1X1pNVtLTsz8DIyhUHOXErueNLJrQ==

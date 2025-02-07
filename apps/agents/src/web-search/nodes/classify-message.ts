@@ -39,7 +39,7 @@ export async function classifyMessage(
   );
 
   const response = await model.invoke([["user", formattedPrompt]]);
-  console.log("Classification response:\n\n", response);
+
   return {
     shouldSearch: response.shouldSearch,
   };

@@ -80,9 +80,7 @@ function routePostWebSearch(
 ): Send | Command {
   // If there is more than one artifact, then route to the "rewriteArtifact" node. Otherwise, generate the artifact.
   const includesArtifacts = state.artifact?.contents?.length > 1;
-  console.log("routePostWebSearch", includesArtifacts, state.webSearchResults);
   if (!state.webSearchResults?.length) {
-    console.log("No web search results, so routing to generateArtifact");
     return new Send(
       includesArtifacts ? "rewriteArtifact" : "generateArtifact",
       {
