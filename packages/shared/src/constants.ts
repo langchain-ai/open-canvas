@@ -413,8 +413,6 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
 ];
 
 export const LANGCHAIN_USER_ONLY_MODELS = [
-  "o1-mini",
-  "o3-mini",
   "o1",
   "gpt-4o",
   "claude-3-5-sonnet-latest",
