@@ -1,6 +1,5 @@
 {
   "node_version": "20",
-  "dockerfile_lines": ["RUN yarn build --filter=@opencanvas/agents"],
   "dependencies": [
     "."
   ],
