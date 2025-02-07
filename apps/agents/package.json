@@ -13,8 +13,7 @@
   "private": true,
   "scripts": {
     "dev": "npx @langchain/langgraph-cli dev --port 54367 --config ../../langgraph.json",
-    "build": "turbo build:internal --filter=@opencanvas/agents",
-    "build:internal": "yarn clean && tsc",
+    "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\"",
     "lint": "eslint src",
