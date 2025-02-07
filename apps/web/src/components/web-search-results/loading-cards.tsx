@@ -11,7 +11,7 @@ export function LoadingSearchResultCards() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Card className="w-full">
+        <Card className="w-full" key={`card-loading-web-search-${i}`}>
           <CardHeader>
             <CardTitle>
               <Skeleton className="w-[85%] h-5" />
