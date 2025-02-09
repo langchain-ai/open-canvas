@@ -1,6 +1,7 @@
 import {
   HAS_EMPTY_THREADS_CLEARED_COOKIE,
   THREAD_ID_COOKIE_NAME,
+  THREAD_ID_LS_NAME,
   THREAD_ID_QUERY_PARAM,
   WEB_SEARCH_RESULTS_QUERY_PARAM,
 } from "@/constants";
@@ -10,7 +11,7 @@ import {
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
 } from "@opencanvas/shared/constants";
-import { getCookie, setCookie } from "@/lib/cookies";
+import { getCookie, removeCookie, setCookie } from "@/lib/cookies";
 import { CustomModelConfig } from "@opencanvas/shared/types";
 import { Thread } from "@langchain/langgraph-sdk";
 import { createClient } from "../hooks/utils";
@@ -18,6 +19,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { useUserContext } from "./UserContext";
 import { useToast } from "@/hooks/use-toast";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 type ThreadContentType = {
   threadId: string | undefined;
@@ -54,6 +56,10 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   const [modelName, setModelName] =
     useState<ALL_MODEL_NAMES>(DEFAULT_MODEL_NAME);
   const [createThreadLoading, setCreateThreadLoading] = useState(false);
+  const [threadIdLS, setThreadIdLS] = useLocalStorage<string>(
+    THREAD_ID_LS_NAME,
+    ""
+  );
 
   const [modelConfigs, setModelConfigs] = useState<
     Record<ALL_MODEL_NAMES, CustomModelConfig>
@@ -168,7 +174,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
         },
       });
       setThreadId(thread.thread_id);
-      setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+      setThreadIdLS(thread.thread_id);
       // Fetch updated threads so the new thread is included.
       await getUserThreads();
       return thread;
@@ -221,10 +227,20 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getThreadId = () => {
+    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+    const threadIdCookie = getCookie(THREAD_ID_COOKIE_NAME);
+    if (threadIdCookie) {
+      // Cookie is legacy. Remove it
+      setThreadIdLS(threadIdCookie);
+      removeCookie(THREAD_ID_COOKIE_NAME);
+    }
+
+    return threadIdQueryParam || threadIdLS || threadIdCookie;
+  };
+
   const searchOrCreateThread = async (isNewThread?: boolean) => {
-    const storedThreadId =
-      searchParams.get(THREAD_ID_QUERY_PARAM) ||
-      getCookie(THREAD_ID_COOKIE_NAME);
+    const storedThreadId = getThreadId();
 
     if (!storedThreadId) {
       const newThread = await createThread();
