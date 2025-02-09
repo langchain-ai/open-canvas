@@ -41,6 +41,7 @@ export interface ThreadProps {
   ) => void;
   setChatStarted: Dispatch<SetStateAction<boolean>>;
   switchSelectedThreadCallback: (thread: ThreadType) => void;
+  searchEnabled: boolean;
 }
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
@@ -138,7 +139,14 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         {!hasChatStarted && (
           <ThreadWelcome
             handleQuickStart={handleQuickStart}
-            composer={<Composer chatStarted={false} userId={props.userId} />}
+            composer={
+              <Composer
+                chatStarted={false}
+                userId={props.userId}
+                searchEnabled={props.searchEnabled}
+              />
+            }
+            searchEnabled={props.searchEnabled}
           />
         )}
         <ThreadPrimitive.Messages
@@ -168,7 +176,11 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 setModelConfig={setModelConfig}
                 modelConfigs={modelConfigs}
               />
-              <Composer chatStarted={true} userId={props.userId} />
+              <Composer
+                chatStarted={true}
+                userId={props.userId}
+                searchEnabled={props.searchEnabled}
+              />
             </div>
           )}
         </div>

@@ -7,15 +7,54 @@ import { NotebookPen } from "lucide-react";
 import { ProgrammingLanguagesDropdown } from "../ui/programming-lang-dropdown";
 import { Button } from "../ui/button";
 
+const QUICK_START_PROMPTS_SEARCH = [
+  "Write a market analysis of AI chip manufacturers in 2025",
+  "Create a blog post about the latest climate change policies and their impact",
+  "Draft an investor update on renewable energy trends this quarter",
+  "Write a report on current cybersecurity threats in cloud computing",
+  "Analyze the latest developments in quantum computing for a tech newsletter",
+  "Create a summary of emerging medical breakthroughs in cancer treatment",
+  "Write about the impact of current interest rates on the housing market",
+  "Draft an article about breakthroughs in battery technology this year",
+  "Analyze current supply chain disruptions in semiconductor manufacturing",
+  "Write about how recent AI regulations affect business innovation",
+];
+
+const QUICK_START_PROMPTS = [
+  "Write a bedtime story about a brave little robot",
+  "Create a function to calculate Fibonacci numbers in TypeScript",
+  "Draft a resignation letter for a position I've had for 2 years",
+  "Build a simple weather dashboard using React and Tailwind",
+  "Write a poem about artificial intelligence",
+  "Create a basic Express.js REST API with two endpoints",
+  "Draft a congratulatory speech for my sister's graduation",
+  "Build a command-line calculator in Python",
+  "Write instructions for making perfect scrambled eggs",
+  "Create a simple snake game using HTML canvas",
+  "Write me a TODO app in React",
+  "Explain why the sky is blue in a short essay",
+  "Help me draft an email to my professor Craig",
+  "Write a web scraping program in Python",
+];
+
+function getRandomPrompts(prompts: string[], count: number = 4): string[] {
+  return [...prompts].sort(() => Math.random() - 0.5).slice(0, count);
+}
+
 interface QuickStartButtonsProps {
   handleQuickStart: (
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
   composer: React.ReactNode;
+  searchEnabled: boolean;
 }
 
-const QuickStartPrompts = () => {
+interface QuickStartPromptsProps {
+  searchEnabled: boolean;
+}
+
+const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
   const threadRuntime = useThreadRuntime();
 
   const handleClick = (text: string) => {
@@ -27,49 +66,30 @@ const QuickStartPrompts = () => {
 
   return (
     <div className="flex flex-col w-full gap-2 text-gray-700">
-      <div className="flex gap-2 w-full">
-        <Button
-          onClick={(e) =>
-            handleClick((e.target as HTMLButtonElement).textContent || "")
-          }
-          variant="outline"
-          className="flex-1"
-        >
-          <TighterText>Write me a TODO app in React</TighterText>
-        </Button>
-        <Button
-          onClick={(e) =>
-            handleClick((e.target as HTMLButtonElement).textContent || "")
-          }
-          variant="outline"
-          className="flex-1"
-        >
-          <TighterText>
-            Explain why the sky is blue in a short essay
-          </TighterText>
-        </Button>
-      </div>
-      <div className="flex gap-2 w-full">
-        <Button
-          onClick={(e) =>
-            handleClick((e.target as HTMLButtonElement).textContent || "")
-          }
-          variant="outline"
-          className="flex-1"
-        >
-          <TighterText>
-            Help me draft an email to my professor Craig
-          </TighterText>
-        </Button>
-        <Button
-          onClick={(e) =>
-            handleClick((e.target as HTMLButtonElement).textContent || "")
-          }
-          variant="outline"
-          className="flex-1"
-        >
-          <TighterText>Write a web scraping program in Python</TighterText>
-        </Button>
+      <div className="flex flex-wrap gap-2 w-full">
+        {searchEnabled
+          ? getRandomPrompts(QUICK_START_PROMPTS_SEARCH).map(
+              (prompt, index) => (
+                <Button
+                  key={`quick-start-prompt-${index}`}
+                  onClick={() => handleClick(prompt)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <TighterText>{prompt}</TighterText>
+                </Button>
+              )
+            )
+          : getRandomPrompts(QUICK_START_PROMPTS).map((prompt, index) => (
+              <Button
+                key={`quick-start-prompt-search-${index}`}
+                onClick={() => handleClick(prompt)}
+                variant="outline"
+                className="flex-1"
+              >
+                <TighterText>{prompt}</TighterText>
+              </Button>
+            ))}
       </div>
     </div>
   );
@@ -98,8 +118,8 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
       </div>
       <div className="flex flex-col gap-6 mt-2 w-full">
         <p className="text-gray-600 text-sm">or with a message</p>
-        <QuickStartPrompts />
         {props.composer}
+        <QuickStartPrompts searchEnabled={props.searchEnabled} />
       </div>
     </div>
   );
@@ -111,6 +131,7 @@ interface ThreadWelcomeProps {
     language?: ProgrammingLanguageOptions
   ) => void;
   composer: React.ReactNode;
+  searchEnabled: boolean;
 }
 
 export const ThreadWelcome: FC<ThreadWelcomeProps> = (
@@ -131,6 +152,7 @@ export const ThreadWelcome: FC<ThreadWelcomeProps> = (
             <QuickStartButtons
               composer={props.composer}
               handleQuickStart={props.handleQuickStart}
+              searchEnabled={props.searchEnabled}
             />
           </div>
         </div>

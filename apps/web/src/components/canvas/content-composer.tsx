@@ -50,7 +50,13 @@ export function ContentComposerChatInterfaceComponent(
   const { toast } = useToast();
   const userData = useUserContext();
   const { graphData } = useGraphContext();
-  const { messages, setMessages, streamMessage, setIsStreaming } = graphData;
+  const {
+    messages,
+    setMessages,
+    streamMessage,
+    setIsStreaming,
+    searchEnabled,
+  } = graphData;
   const { getUserThreads } = useThreadContext();
   const [isRunning, setIsRunning] = useState(false);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -150,6 +156,7 @@ export function ContentComposerChatInterfaceComponent(
           handleQuickStart={props.handleQuickStart}
           hasChatStarted={props.hasChatStarted}
           switchSelectedThreadCallback={props.switchSelectedThreadCallback}
+          searchEnabled={searchEnabled}
         />
       </AssistantRuntimeProvider>
       <Toaster />
