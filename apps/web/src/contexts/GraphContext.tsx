@@ -5,7 +5,6 @@ import {
   isArtifactMarkdownContent,
   isDeprecatedArtifactType,
 } from "@opencanvas/shared/utils/artifacts";
-import { setCookie } from "@/lib/cookies";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import {
   ArtifactLengthOptions,
@@ -24,7 +23,7 @@ import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useRuns } from "@/hooks/useRuns";
 import { createClient } from "@/hooks/utils";
 import {
-  THREAD_ID_COOKIE_NAME,
+  THREAD_ID_LS_NAME,
   THREAD_ID_QUERY_PARAM,
   WEB_SEARCH_RESULTS_QUERY_PARAM,
 } from "@/constants";
@@ -67,6 +66,7 @@ import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useThreadContext } from "./ThreadProvider";
 import { useAssistantContext } from "./AssistantContext";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 interface GraphData {
   runId: string | undefined;
@@ -169,6 +169,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
+  const [_threadIdLS, setThreadIdLS] = useLocalStorage<string>(
+    THREAD_ID_LS_NAME,
+    ""
+  );
 
   const searchOrCreateEffectRan = useRef(false);
 
@@ -1399,7 +1403,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     // Set the thread ID in state. Then set in cookies so a new thread
     // isn't created on page load if one already exists.
     threadData.setThreadId(thread.thread_id);
-    setCookie(THREAD_ID_COOKIE_NAME, thread.thread_id);
+    setThreadIdLS(thread.thread_id);
 
     // Ensure the URL has the new thread ID in query params. If it doesn't,
     // add it, or replace if present but it doesn't match
