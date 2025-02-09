@@ -68,20 +68,22 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
     <div className="flex flex-col w-full gap-2 text-gray-700">
       <div className="flex flex-wrap gap-2 w-full">
         {searchEnabled
-          ? getRandomPrompts(QUICK_START_PROMPTS_SEARCH).map((prompt, index) => (
-              <Button
-                key={`quick-start-prompt-${index}`}
-                onClick={(e) => handleClick(prompt)}
-                variant="outline"
-                className="flex-1"
-              >
-                <TighterText>{prompt}</TighterText>
-              </Button>
-            ))
+          ? getRandomPrompts(QUICK_START_PROMPTS_SEARCH).map(
+              (prompt, index) => (
+                <Button
+                  key={`quick-start-prompt-${index}`}
+                  onClick={() => handleClick(prompt)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <TighterText>{prompt}</TighterText>
+                </Button>
+              )
+            )
           : getRandomPrompts(QUICK_START_PROMPTS).map((prompt, index) => (
               <Button
                 key={`quick-start-prompt-search-${index}`}
-                onClick={(e) => handleClick(prompt)}
+                onClick={() => handleClick(prompt)}
                 variant="outline"
                 className="flex-1"
               >
