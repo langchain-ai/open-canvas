@@ -9,6 +9,42 @@ import { DragAndDropWrapper } from "./drag-drop-wrapper";
 import { ComposerAttachments } from "../assistant-ui/attachment";
 import { ComposerActionsPopOut } from "./composer-actions-popout";
 
+const GENERIC_PLACEHOLDERS = [
+  "Share your big idea and let's write something amazing",
+  "Type your vision for the next great piece of content",
+  "Your masterpiece begins with this prompt",
+  "What would you like us to write about today?",
+  "Drop your content idea here and let's create",
+  "Your next great piece starts with this prompt",
+  "Share your story idea and watch it unfold",
+  "Let's write something incredible - start here",
+  "Your writing journey begins with this prompt",
+  "Turn your idea into content magic - start here",
+];
+
+const SEARCH_PLACEHOLDERS = [
+  "Share your topic - I'll add live data",
+  "Write about anything - I'll find sources",
+  "Your idea + fresh research = great content",
+  "Start here with real-time facts",
+  "Topic here for data-rich content",
+  "Create with current insights",
+  "Write now with live sources",
+  "Your story + fresh data",
+  "Ideas welcome - research ready",
+  "Start fresh with live facts",
+];
+
+const getRandomPlaceholder = (searchEnabled: boolean) => {
+  return searchEnabled
+    ? SEARCH_PLACEHOLDERS[
+        Math.floor(Math.random() * SEARCH_PLACEHOLDERS.length)
+      ]
+    : GENERIC_PLACEHOLDERS[
+        Math.floor(Math.random() * GENERIC_PLACEHOLDERS.length)
+      ];
+};
+
 const CircleStopIcon = () => {
   return (
     <svg
@@ -26,6 +62,7 @@ const CircleStopIcon = () => {
 interface ComposerProps {
   chatStarted: boolean;
   userId: string | undefined;
+  searchEnabled: boolean;
 }
 
 export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
@@ -43,7 +80,7 @@ export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
           />
           <ComposerPrimitive.Input
             autoFocus
-            placeholder="Write a message..."
+            placeholder={getRandomPlaceholder(props.searchEnabled)}
             rows={1}
             className="placeholder:text-muted-foreground max-h-40 flex-grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-none focus:ring-0 disabled:cursor-not-allowed"
           />
