@@ -371,7 +371,7 @@ export const GEMINI_MODELS: ModelConfigurationParams[] = [
     isNew: false,
   },
   {
-    name: "gemini-2.0-flash-exp",
+    name: "gemini-2.0-flash",
     label: "Gemini 2.0 Flash",
     config: {
       provider: "google-genai",

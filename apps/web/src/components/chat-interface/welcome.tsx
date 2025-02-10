@@ -66,7 +66,7 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
 
   return (
     <div className="flex flex-col w-full gap-2 text-gray-700">
-      <div className="flex flex-wrap gap-2 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-full">
         {searchEnabled
           ? getRandomPrompts(QUICK_START_PROMPTS_SEARCH).map(
               (prompt, index) => (
@@ -74,9 +74,11 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
                   key={`quick-start-prompt-${index}`}
                   onClick={() => handleClick(prompt)}
                   variant="outline"
-                  className="flex-1"
+                  className="h-full w-full flex items-center justify-center p-4"
                 >
-                  <TighterText>{prompt}</TighterText>
+                  <TighterText className="text-center break-words">
+                    {prompt}
+                  </TighterText>
                 </Button>
               )
             )
@@ -85,9 +87,11 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
                 key={`quick-start-prompt-search-${index}`}
                 onClick={() => handleClick(prompt)}
                 variant="outline"
-                className="flex-1"
+                className="h-full w-full flex items-center justify-center p-4"
               >
-                <TighterText>{prompt}</TighterText>
+                <TighterText className="text-center break-words">
+                  {prompt}
+                </TighterText>
               </Button>
             ))}
       </div>

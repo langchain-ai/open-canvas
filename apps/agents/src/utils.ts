@@ -14,6 +14,7 @@ import pdfParse from "pdf-parse";
 import {
   AIMessage,
   BaseMessage,
+  MessageContent,
   MessageContentComplex,
   MessageFieldWithRole,
 } from "@langchain/core/messages";
@@ -625,4 +626,13 @@ export function createAIMessageFromWebResults(
       webSearchStatus: "done",
     },
   });
+}
+
+export function getStringFromContent(content: MessageContent): string {
+  if (typeof content === "string") {
+    return content;
+  }
+  return content
+    .flatMap((c) => ("text" in c ? (c.text as string) : []))
+    .join("\n");
 }
