@@ -117,9 +117,9 @@ export const ProgrammingLanguagesDropdown = ({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
+          className="text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl flex items-center justify-center gap-2 w-[250px] h-[64px]"
         >
-          <TighterText>New Code File</TighterText>
+          New Code File
           <Code />
         </Button>
       </DropdownMenuTrigger>
