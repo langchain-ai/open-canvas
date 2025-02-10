@@ -3,7 +3,7 @@ import { DEFAULT_INPUTS } from "@opencanvas/shared/constants";
 import { customAction } from "./nodes/customAction.js";
 import { generateArtifact } from "./nodes/generate-artifact/index.js";
 import { generateFollowup } from "./nodes/generateFollowup.js";
-import { generatePath } from "./nodes/generatePath.js";
+import { generatePath } from "./nodes/generate-path/index.js";
 import { reflectNode } from "./nodes/reflect.js";
 import { rewriteArtifact } from "./nodes/rewrite-artifact/index.js";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme.js";
