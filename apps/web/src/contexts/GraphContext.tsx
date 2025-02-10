@@ -29,13 +29,15 @@ import {
 } from "@/constants";
 import {
   DEFAULT_INPUTS,
+  OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
+} from "@opencanvas/shared/constants";
+import {
   ALL_MODEL_NAMES,
   NON_STREAMING_TEXT_MODELS,
   NON_STREAMING_TOOL_CALLING_MODELS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
-  OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
-} from "@opencanvas/shared/constants";
+} from "@opencanvas/shared/models";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
 import {

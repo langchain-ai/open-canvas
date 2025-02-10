@@ -20,10 +20,12 @@ import {
 } from "@langchain/core/messages";
 import {
   CONTEXT_DOCUMENTS_NAMESPACE,
-  LANGCHAIN_USER_ONLY_MODELS,
   OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
-  TEMPERATURE_EXCLUDED_MODELS,
 } from "@opencanvas/shared/constants";
+import {
+  TEMPERATURE_EXCLUDED_MODELS,
+  LANGCHAIN_USER_ONLY_MODELS,
+} from "@opencanvas/shared/models";
 import { createClient, Session, User } from "@supabase/supabase-js";
 
 export const formatReflections = (

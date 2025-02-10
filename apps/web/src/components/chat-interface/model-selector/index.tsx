@@ -11,7 +11,7 @@ import {
   ALL_MODEL_NAMES,
   ALL_MODELS,
   LANGCHAIN_USER_ONLY_MODELS,
-} from "@opencanvas/shared/constants";
+} from "@opencanvas/shared/models";
 import {
   Dispatch,
   SetStateAction,
