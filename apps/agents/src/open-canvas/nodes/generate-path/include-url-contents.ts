@@ -59,43 +59,48 @@ async function includeURLContentsFunc(
   message: HumanMessage,
   urls: string[]
 ): Promise<HumanMessage | undefined> {
-  const prompt = message.content as string;
+  try {
+    const prompt = message.content as string;
 
-  const model = (
-    await initChatModel("gemini-2.0-flash", {
-      modelProvider: "google-genai",
-      temperature: 0,
-    })
-  ).withStructuredOutput(schema, {
-    name: "determine_include_url_contents",
-  });
+    const model = (
+      await initChatModel("gemini-2.0-flash", {
+        modelProvider: "google-genai",
+        temperature: 0,
+      })
+    ).withStructuredOutput(schema, {
+      name: "determine_include_url_contents",
+    });
 
-  const formattedPrompt = PROMPT.replace("{message}", prompt);
+    const formattedPrompt = PROMPT.replace("{message}", prompt);
 
-  const { shouldIncludeUrlContents } = await model.invoke([
-    ["user", formattedPrompt],
-  ]);
+    const { shouldIncludeUrlContents } = await model.invoke([
+      ["user", formattedPrompt],
+    ]);
 
-  if (!shouldIncludeUrlContents) {
+    if (!shouldIncludeUrlContents) {
+      return undefined;
+    }
+
+    const urlContents = await Promise.all(urls.map(fetchUrlContents));
+
+    let transformedPrompt = prompt;
+    for (const { url, pageContent } of urlContents) {
+      transformedPrompt = transformedPrompt.replace(
+        url,
+        `<page-contents url="${url}">
+  ${pageContent}
+  </page-contents>`
+      );
+    }
+
+    return new HumanMessage({
+      ...message,
+      content: transformedPrompt,
+    });
+  } catch (e) {
+    console.error("Failed to handle included URLs", e);
     return undefined;
   }
-
-  const urlContents = await Promise.all(urls.map(fetchUrlContents));
-
-  let transformedPrompt = prompt;
-  for (const { url, pageContent } of urlContents) {
-    transformedPrompt = transformedPrompt.replace(
-      url,
-      `<page-contents url="${url}">
-${pageContent}
-</page-contents>`
-    );
-  }
-
-  return new HumanMessage({
-    ...message,
-    content: transformedPrompt,
-  });
 }
 
 export const includeURLContents = traceable(includeURLContentsFunc, {

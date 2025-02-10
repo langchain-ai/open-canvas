@@ -125,7 +125,6 @@ export async function generatePath(
       state._messages[state._messages.length - 1],
       messageUrls
     );
-    console.log("updatedMessageWithContents", updatedMessageWithContents);
   }
 
   // Update the internal message list with the new message, if one was generated
