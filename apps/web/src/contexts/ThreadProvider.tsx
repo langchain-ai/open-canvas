@@ -10,7 +10,7 @@ import {
   ALL_MODELS,
   DEFAULT_MODEL_CONFIG,
   DEFAULT_MODEL_NAME,
-} from "@opencanvas/shared/constants";
+} from "@opencanvas/shared/models";
 import { getCookie, removeCookie, setCookie } from "@/lib/cookies";
 import { CustomModelConfig } from "@opencanvas/shared/types";
 import { Thread } from "@langchain/langgraph-sdk";

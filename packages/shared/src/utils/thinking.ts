@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { AIMessage, type BaseMessage } from "@langchain/core/messages";
-import { THINKING_MODELS } from "../constants.js";
+import { THINKING_MODELS } from "../models.js";
 
 type ThinkingAndResponseTokens = {
   thinking: string;

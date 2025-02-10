@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import {
   ALL_MODEL_NAMES,
   TEMPERATURE_EXCLUDED_MODELS,
-} from "@opencanvas/shared/constants";
+} from "@opencanvas/shared/models";
 import { cn } from "@/lib/utils";
 import { GearIcon, ResetIcon } from "@radix-ui/react-icons";
 import { useCallback } from "react";
