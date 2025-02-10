@@ -9,7 +9,6 @@ import {
 import { Code } from "lucide-react";
 import { Button } from "./button";
 import { TooltipIconButton } from "./assistant-ui/tooltip-icon-button";
-import { TighterText } from "./header";
 
 interface ProgrammingLanguageListProps {
   handleSubmit: (portLanguage: ProgrammingLanguageOptions) => Promise<void>;
