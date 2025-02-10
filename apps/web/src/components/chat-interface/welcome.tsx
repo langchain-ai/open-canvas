@@ -1,7 +1,7 @@
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { ThreadPrimitive, useThreadRuntime } from "@assistant-ui/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { TighterText } from "../ui/header";
 import { NotebookPen } from "lucide-react";
 import { ProgrammingLanguagesDropdown } from "../ui/programming-lang-dropdown";
@@ -64,36 +64,29 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
     });
   };
 
+  const selectedPrompts = useMemo(
+    () =>
+      getRandomPrompts(
+        searchEnabled ? QUICK_START_PROMPTS_SEARCH : QUICK_START_PROMPTS
+      ),
+    [searchEnabled]
+  );
+
   return (
-    <div className="flex flex-col w-full gap-2 text-gray-700">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-full">
-        {searchEnabled
-          ? getRandomPrompts(QUICK_START_PROMPTS_SEARCH).map(
-              (prompt, index) => (
-                <Button
-                  key={`quick-start-prompt-${index}`}
-                  onClick={() => handleClick(prompt)}
-                  variant="outline"
-                  className="h-full w-full flex items-center justify-center p-4"
-                >
-                  <TighterText className="text-center break-words">
-                    {prompt}
-                  </TighterText>
-                </Button>
-              )
-            )
-          : getRandomPrompts(QUICK_START_PROMPTS).map((prompt, index) => (
-              <Button
-                key={`quick-start-prompt-search-${index}`}
-                onClick={() => handleClick(prompt)}
-                variant="outline"
-                className="h-full w-full flex items-center justify-center p-4"
-              >
-                <TighterText className="text-center break-words">
-                  {prompt}
-                </TighterText>
-              </Button>
-            ))}
+    <div className="flex flex-col w-full gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+        {selectedPrompts.map((prompt, index) => (
+          <Button
+            key={`quick-start-prompt-${index}`}
+            onClick={() => handleClick(prompt)}
+            variant="outline"
+            className="min-h-[60px] w-full flex items-center justify-center p-6 whitespace-normal text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl"
+          >
+            <p className="text-center break-words text-sm font-normal">
+              {prompt}
+            </p>
+          </Button>
+        ))}
       </div>
     </div>
   );
@@ -111,10 +104,10 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
         <div className="flex flex-row gap-1 items-center justify-center w-full">
           <Button
             variant="outline"
-            className="transition-colors text-gray-600 flex items-center justify-center gap-2 w-[250px] h-[64px]"
+            className="text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl flex items-center justify-center gap-2 w-[250px] h-[64px]"
             onClick={() => props.handleQuickStart("text")}
           >
-            <TighterText>New Markdown</TighterText>
+            New Markdown
             <NotebookPen />
           </Button>
           <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
