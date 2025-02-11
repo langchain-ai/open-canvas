@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
@@ -67,8 +67,12 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   );
 }
 
-export function WebSearchResults() {
-  const [open, setOpen] = useState(false);
+interface WebSearchResultsProps {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+export function WebSearchResults({ open, setOpen }: WebSearchResultsProps) {
   const [status, setStatus] = useState<"searching" | "done">("searching");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const {
@@ -82,15 +86,24 @@ export function WebSearchResults() {
 
   useEffect(() => {
     if (!webSearchResultsParam && open) {
+      console.log(
+        "closing web search. search results param is false and open is true"
+      );
       setOpen(false);
       setSearchResults([]);
       return;
     }
-    if (!webSearchResultsParam || !messages.length) return;
+    if (!webSearchResultsParam || !messages.length) {
+      console.log(
+        "closing web search. no web search results param or messages"
+      );
+      return;
+    }
     const webResultsMessage =
       messages.find((message) => message.id === webSearchResultsParam) ||
       messages.find((message) => message.id?.startsWith("web-search-results-"));
     if (!webResultsMessage) {
+      console.log("closing web search. web results message not found");
       return;
     } else if (
       webResultsMessage.id &&
@@ -122,7 +135,7 @@ export function WebSearchResults() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="flex flex-col gap-6 w-full max-w-md p-5 border-l-[1px] border-gray-200 shadow-inner-left"
+          className="flex flex-col gap-6 w-full max-w-md p-5 border-l-[1px] border-gray-200 shadow-inner-left h-screen overflow-hidden"
           initial={{ x: "100%", opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: "100%", opacity: 0 }}
@@ -145,7 +158,7 @@ export function WebSearchResults() {
             </TooltipIconButton>
           </div>
           <motion.div
-            className="flex flex-col gap-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+            className="flex flex-col gap-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 flex-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}

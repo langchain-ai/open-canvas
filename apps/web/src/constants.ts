@@ -39,3 +39,5 @@ export const ALLOWED_VIDEO_TYPES = new Set([
   "video/webm",
 ]);
 export const ALLOWED_VIDEO_TYPE_ENDINGS = [".mp4", ".mpeg", ".webm"];
+
+export const CHAT_COLLAPSED_QUERY_PARAM = "chatCollapsed";

@@ -24,6 +24,8 @@ import { useAssistantContext } from "@/contexts/AssistantContext";
 export interface ArtifactRendererProps {
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  chatCollapsed: boolean;
+  setChatCollapsed: (c: boolean) => void;
 }
 
 interface SelectionBox {
@@ -314,6 +316,8 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
         totalArtifactVersions={artifact.contents.length}
         selectedAssistant={selectedAssistant}
         artifactUpdateFailed={artifactUpdateFailed}
+        chatCollapsed={props.chatCollapsed}
+        setChatCollapsed={props.setChatCollapsed}
       />
       <div
         ref={contentRef}

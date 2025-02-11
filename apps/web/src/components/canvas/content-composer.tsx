@@ -42,6 +42,8 @@ export interface ContentComposerChatInterfaceProps {
     type: "text" | "code",
     language?: ProgrammingLanguageOptions
   ) => void;
+  chatCollapsed: boolean;
+  setChatCollapsed: (c: boolean) => void;
 }
 
 export function ContentComposerChatInterfaceComponent(
@@ -157,6 +159,7 @@ export function ContentComposerChatInterfaceComponent(
           hasChatStarted={props.hasChatStarted}
           switchSelectedThreadCallback={props.switchSelectedThreadCallback}
           searchEnabled={searchEnabled}
+          setChatCollapsed={props.setChatCollapsed}
         />
       </AssistantRuntimeProvider>
       <Toaster />
