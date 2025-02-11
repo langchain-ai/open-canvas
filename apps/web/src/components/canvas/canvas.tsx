@@ -10,7 +10,6 @@ import {
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useToast } from "@/hooks/use-toast";
 import { getLanguageTemplate } from "@/lib/get_language_template";
-import { cn } from "@/lib/utils";
 import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,

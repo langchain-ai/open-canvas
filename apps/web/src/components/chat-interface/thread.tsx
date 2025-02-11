@@ -3,12 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import {
-  ArrowDownIcon,
-  ArrowLeftToLine,
-  PanelRightOpen,
-  SquarePen,
-} from "lucide-react";
+import { ArrowDownIcon, PanelRightOpen, SquarePen } from "lucide-react";
 import { Dispatch, FC, SetStateAction } from "react";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { useLangSmithLinkToolUI } from "../tool-hooks/LangSmithLinkToolUI";
