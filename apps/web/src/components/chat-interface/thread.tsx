@@ -111,7 +111,6 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           <TighterText className="text-xl">Open Canvas</TighterText>
           {!hasChatStarted && (
             <ModelSelector
-              chatStarted={false}
               modelName={modelName}
               setModelName={setModelName}
               modelConfig={modelConfig}
@@ -181,7 +180,6 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           {hasChatStarted && (
             <div className="flex flex-col space-y-2">
               <ModelSelector
-                chatStarted={true}
                 modelName={modelName}
                 setModelName={setModelName}
                 modelConfig={modelConfig}

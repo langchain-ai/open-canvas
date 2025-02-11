@@ -10,8 +10,6 @@ export const HAS_ASSISTANT_COOKIE_BEEN_SET = "has_oc_assistant_id_been_set";
 export const THREAD_ID_COOKIE_NAME = "oc_thread_id_v2";
 export const THREAD_ID_LS_NAME = "oc_thread_id";
 export const HAS_EMPTY_THREADS_CLEARED_COOKIE = "has_empty_threads_cleared";
-export const LS_HAS_SEEN_MODEL_DROPDOWN_ALERT =
-  "oc_has_seen_model_dropdown_alert";
 export const OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT =
   "oc_has_seen_custom_assistants_alert";
 export const THREAD_ID_QUERY_PARAM = "threadId";
