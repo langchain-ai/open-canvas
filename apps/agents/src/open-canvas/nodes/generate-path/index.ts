@@ -10,7 +10,7 @@ import {
   convertContextDocumentToHumanMessage,
   fixMisFormattedContextDocMessage,
 } from "./documents.js";
-import { getStringFromContent } from "@/utils.js";
+import { getStringFromContent } from ".././../../utils.js";
 import { includeURLContents } from "./include-url-contents.js";
 
 function extractURLsFromLastMessage(messages: BaseMessage[]): string[] {

@@ -18,8 +18,6 @@ import { getIcon } from "./utils";
 import { AssistantItem } from "./assistant-item";
 import { Assistant } from "@langchain/langgraph-sdk";
 import { useToast } from "@/hooks/use-toast";
-import { AlertNewAssistantsFeature } from "./alert-new-feature";
-import { OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT } from "@/constants";
 import { cn } from "@/lib/utils";
 import { useAssistantContext } from "@/contexts/AssistantContext";
 
@@ -38,7 +36,6 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
     Assistant | undefined
   >();
   const [allDisabled, setAllDisabled] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
 
   const {
     assistants,
@@ -68,104 +65,85 @@ function AssistantSelectComponent(props: AssistantSelectProps) {
     return res;
   };
 
-  const handleHideNewFeatureAlert = () => {
-    if (showAlert) {
-      setShowAlert(false);
-      localStorage.setItem(OC_HAS_SEEN_CUSTOM_ASSISTANTS_ALERT, "true");
-    }
-  };
-
   const metadata = selectedAssistant?.metadata as Record<string, any>;
 
   return (
     <>
-      <div className="relative">
-        <DropdownMenu
-          open={open}
-          onOpenChange={(c) => {
-            if (!c) {
-              setEditingAssistant(undefined);
-              setCreateEditDialogOpen(false);
-            }
-            setOpen(c);
-            props.onOpenChange?.(c);
-          }}
-        >
-          <DropdownMenuTrigger className="text-gray-600" asChild>
-            <TooltipIconButton
-              tooltip="Change assistant"
-              variant="ghost"
-              className={cn("size-7 mt-1", props.className)}
-              delayDuration={200}
-              style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpen(true);
-              }}
-            >
-              {getIcon(metadata?.iconData?.iconName as string | undefined)}
-            </TooltipIconButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-4">
-            <DropdownMenuLabel>
-              <TighterText>My Assistants</TighterText>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {isLoadingAllAssistants && !assistants?.length ? (
-              <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
-                Loading
-                <Icons.LoaderCircle className="w-4 h-4 animate-spin" />
-              </span>
-            ) : (
-              <>
-                <DropdownMenuItem
-                  onSelect={(e) => {
-                    handleNewAssistantClick(e);
-                    handleHideNewFeatureAlert();
+      <DropdownMenu
+        open={open}
+        onOpenChange={(c) => {
+          if (!c) {
+            setEditingAssistant(undefined);
+            setCreateEditDialogOpen(false);
+          }
+          setOpen(c);
+          props.onOpenChange?.(c);
+        }}
+      >
+        <DropdownMenuTrigger className="text-gray-600" asChild>
+          <TooltipIconButton
+            tooltip="Change assistant"
+            variant="ghost"
+            className={cn("size-7 mt-1", props.className)}
+            delayDuration={200}
+            style={{ color: metadata?.iconData?.iconColor || "#4b5563" }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(true);
+            }}
+          >
+            {getIcon(metadata?.iconData?.iconName as string | undefined)}
+          </TooltipIconButton>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-4">
+          <DropdownMenuLabel>
+            <TighterText>My Assistants</TighterText>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {isLoadingAllAssistants && !assistants?.length ? (
+            <span className="text-sm text-gray-600 flex items-center justify-start gap-1 p-2">
+              Loading
+              <Icons.LoaderCircle className="w-4 h-4 animate-spin" />
+            </span>
+          ) : (
+            <>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  handleNewAssistantClick(e);
+                }}
+                className="flex items-center justify-start gap-2"
+                disabled={allDisabled}
+              >
+                <Icons.CirclePlus className="w-4 h-4" />
+                <TighterText className="font-medium">New</TighterText>
+              </DropdownMenuItem>
+              {assistants.map((assistant) => (
+                <AssistantItem
+                  setAllDisabled={setAllDisabled}
+                  allDisabled={allDisabled}
+                  key={assistant.assistant_id}
+                  assistant={assistant}
+                  setEditModalOpen={setCreateEditDialogOpen}
+                  setAssistantDropdownOpen={setOpen}
+                  setEditingAssistant={setEditingAssistant}
+                  deleteAssistant={handleDeleteAssistant}
+                  selectedAssistantId={selectedAssistant?.assistant_id}
+                  onClick={() => {
+                    if (
+                      selectedAssistant?.assistant_id === assistant.assistant_id
+                    ) {
+                      setOpen(false);
+                      return;
+                    }
+                    setSelectedAssistant(assistant);
                   }}
-                  className="flex items-center justify-start gap-2"
-                  disabled={allDisabled}
-                >
-                  <Icons.CirclePlus className="w-4 h-4" />
-                  <TighterText className="font-medium">New</TighterText>
-                </DropdownMenuItem>
-                {assistants.map((assistant) => (
-                  <AssistantItem
-                    setAllDisabled={setAllDisabled}
-                    allDisabled={allDisabled}
-                    key={assistant.assistant_id}
-                    assistant={assistant}
-                    setEditModalOpen={setCreateEditDialogOpen}
-                    setAssistantDropdownOpen={setOpen}
-                    setEditingAssistant={setEditingAssistant}
-                    deleteAssistant={handleDeleteAssistant}
-                    selectedAssistantId={selectedAssistant?.assistant_id}
-                    onClick={() => {
-                      if (
-                        selectedAssistant?.assistant_id ===
-                        assistant.assistant_id
-                      ) {
-                        setOpen(false);
-                        return;
-                      }
-                      setSelectedAssistant(assistant);
-                      handleHideNewFeatureAlert();
-                    }}
-                  />
-                ))}
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <div className="absolute left-1/2 -translate-x-1/2 mt-6 w-[500px]">
-          <AlertNewAssistantsFeature
-            showAlert={showAlert}
-            setShowAlert={setShowAlert}
-            shouldRender={!props.chatStarted}
-          />
-        </div>
-      </div>
+                />
+              ))}
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <CreateEditAssistantDialog
         allDisabled={allDisabled}

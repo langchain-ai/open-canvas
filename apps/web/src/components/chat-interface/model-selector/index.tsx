@@ -19,7 +19,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { AlertNewModelSelectorFeature } from "./alert-new-model-selector";
 import { ModelConfigPanel } from "./model-config-pannel";
 import { IsNewBadge } from "./new-badge";
 import { cn } from "@/lib/utils";
@@ -40,7 +39,6 @@ import { useUserContext } from "@/contexts/UserContext";
 interface ModelSelectorProps {
   modelName: ALL_MODEL_NAMES;
   setModelName: (name: ALL_MODEL_NAMES) => void;
-  chatStarted: boolean;
   modelConfig: CustomModelConfig;
   setModelConfig: (
     modelName: ALL_MODEL_NAMES,
@@ -115,7 +113,6 @@ function CommandModelItem({
 }
 
 export default function ModelSelector({
-  chatStarted,
   modelName,
   setModelConfig,
   setModelName,
@@ -123,7 +120,6 @@ export default function ModelSelector({
 }: ModelSelectorProps) {
   const { user } = useUserContext();
   const [isLangChainUser, setIsLangChainUser] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
   const [open, setOpen] = useState(false);
   const [openConfigModelId, setOpenConfigModelId] = useState<ALL_MODEL_NAMES>();
 
@@ -225,181 +221,171 @@ export default function ModelSelector({
   );
 
   return (
-    <div className="relative">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          className="min-w-[180px] w-[250px] bg-transparent shadow-none focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600 h-9 px-3 py-2 text-sm focus:ring-1 focus:ring-ring"
-          asChild
-        >
-          <div className="flex items-center pr-2 truncate">
-            <NextImage
-              alt="Model icon"
-              src={LLMIcon}
-              width={14}
-              height={14}
-              className="mr-2"
-            />
-            <span className="flex flex-row items-center justify-start gap-2">
-              {selectedModelLabel}
-              {isSelectedModelNew && <IsNewBadge />}
-            </span>
-            <CaretSortIcon className="size-4 opacity-50 ml-auto" />
-          </div>
-        </PopoverTrigger>
-        <PopoverContent className="min-w-[180px] w-[280px] p-0 shadow-md rounded-md">
-          <Command>
-            <CommandList>
-              {openaiModelGroup.length > 0 && (
-                <CommandGroup heading="OpenAI" className="w-full">
-                  {openaiModelGroup.map((model) => {
-                    const config = modelConfigs[model.name];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        className="min-w-[180px] w-[250px] bg-transparent shadow-none focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600 h-9 px-3 py-2 text-sm focus:ring-1 focus:ring-ring"
+        asChild
+      >
+        <div className="flex items-center pr-2 truncate">
+          <NextImage
+            alt="Model icon"
+            src={LLMIcon}
+            width={14}
+            height={14}
+            className="mr-2"
+          />
+          <span className="flex flex-row items-center justify-start gap-2">
+            {selectedModelLabel}
+            {isSelectedModelNew && <IsNewBadge />}
+          </span>
+          <CaretSortIcon className="size-4 opacity-50 ml-auto" />
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="min-w-[180px] w-[280px] p-0 shadow-md rounded-md">
+        <Command>
+          <CommandList>
+            {openaiModelGroup.length > 0 && (
+              <CommandGroup heading="OpenAI" className="w-full">
+                {openaiModelGroup.map((model) => {
+                  const config = modelConfigs[model.name];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
 
-              {azureModelGroup.length > 0 && (
-                <CommandGroup heading="Azure OpenAI" className="w-full">
-                  {azureModelGroup.map((model) => {
-                    const config =
-                      modelConfigs[model.name.replace("azure/", "")];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
+            {azureModelGroup.length > 0 && (
+              <CommandGroup heading="Azure OpenAI" className="w-full">
+                {azureModelGroup.map((model) => {
+                  const config = modelConfigs[model.name.replace("azure/", "")];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
 
-              {anthropicModelGroup.length > 0 && (
-                <CommandGroup heading="Anthropic" className="w-full">
-                  {anthropicModelGroup.map((model) => {
-                    const config = modelConfigs[model.name];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
+            {anthropicModelGroup.length > 0 && (
+              <CommandGroup heading="Anthropic" className="w-full">
+                {anthropicModelGroup.map((model) => {
+                  const config = modelConfigs[model.name];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
 
-              {genAiModelGroup.length > 0 && (
-                <CommandGroup heading="Google GenAI" className="w-full">
-                  {genAiModelGroup.map((model) => {
-                    const config = modelConfigs[model.name];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
+            {genAiModelGroup.length > 0 && (
+              <CommandGroup heading="Google GenAI" className="w-full">
+                {genAiModelGroup.map((model) => {
+                  const config = modelConfigs[model.name];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
 
-              {groqModelGroup.length > 0 && (
-                <CommandGroup heading="Groq" className="w-full">
-                  {groqModelGroup.map((model) => {
-                    const config = modelConfigs[model.name];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
+            {groqModelGroup.length > 0 && (
+              <CommandGroup heading="Groq" className="w-full">
+                {groqModelGroup.map((model) => {
+                  const config = modelConfigs[model.name];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
 
-              {fireworksModelGroup.length > 0 && (
-                <CommandGroup heading="Fireworks" className="w-full">
-                  {fireworksModelGroup.map((model) => {
-                    const config = modelConfigs[model.name];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
+            {fireworksModelGroup.length > 0 && (
+              <CommandGroup heading="Fireworks" className="w-full">
+                {fireworksModelGroup.map((model) => {
+                  const config = modelConfigs[model.name];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
 
-              {ollamaModelGroup.length > 0 && (
-                <CommandGroup heading="Ollama" className="w-full">
-                  {ollamaModelGroup.map((model) => {
-                    const config = modelConfigs[model.name];
-                    return (
-                      <CommandModelItem
-                        key={model.name}
-                        model={model}
-                        handleModelChange={handleModelChange}
-                        config={config}
-                        selectedModelName={modelName}
-                        openConfigModelId={openConfigModelId}
-                        setOpenConfigModelId={setOpenConfigModelId}
-                        setModelConfig={setModelConfig}
-                      />
-                    );
-                  })}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      <div className="absolute top-full -left-10 pt-2 w-max min-w-full">
-        <AlertNewModelSelectorFeature
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
-          chatStarted={chatStarted}
-        />
-      </div>
-    </div>
+            {ollamaModelGroup.length > 0 && (
+              <CommandGroup heading="Ollama" className="w-full">
+                {ollamaModelGroup.map((model) => {
+                  const config = modelConfigs[model.name];
+                  return (
+                    <CommandModelItem
+                      key={model.name}
+                      model={model}
+                      handleModelChange={handleModelChange}
+                      config={config}
+                      selectedModelName={modelName}
+                      openConfigModelId={openConfigModelId}
+                      setOpenConfigModelId={setOpenConfigModelId}
+                      setModelConfig={setModelConfig}
+                    />
+                  );
+                })}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
