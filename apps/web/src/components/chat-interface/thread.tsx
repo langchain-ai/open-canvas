@@ -3,7 +3,12 @@ import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { ArrowDownIcon, SquarePen } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowLeftToLine,
+  PanelRightOpen,
+  SquarePen,
+} from "lucide-react";
 import { Dispatch, FC, SetStateAction } from "react";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { useLangSmithLinkToolUI } from "../tool-hooks/LangSmithLinkToolUI";
@@ -42,6 +47,7 @@ export interface ThreadProps {
   setChatStarted: Dispatch<SetStateAction<boolean>>;
   switchSelectedThreadCallback: (thread: ThreadType) => void;
   searchEnabled: boolean;
+  setChatCollapsed: (c: boolean) => void;
 }
 
 export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
@@ -120,15 +126,26 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           )}
         </div>
         {hasChatStarted ? (
-          <TooltipIconButton
-            tooltip="New chat"
-            variant="ghost"
-            className="w-fit h-fit p-2"
-            delayDuration={400}
-            onClick={handleCreateThread}
-          >
-            <SquarePen className="w-6 h-6 text-gray-600" />
-          </TooltipIconButton>
+          <div className="flex flex-row flex-1 gap-2 items-center justify-end">
+            <TooltipIconButton
+              tooltip="Collapse Chat"
+              variant="ghost"
+              className="w-8 h-8"
+              delayDuration={400}
+              onClick={() => props.setChatCollapsed(true)}
+            >
+              <PanelRightOpen className="text-gray-600" />
+            </TooltipIconButton>
+            <TooltipIconButton
+              tooltip="New chat"
+              variant="ghost"
+              className="w-8 h-8"
+              delayDuration={400}
+              onClick={handleCreateThread}
+            >
+              <SquarePen className="text-gray-600" />
+            </TooltipIconButton>
+          </div>
         ) : (
           <div className="flex flex-row gap-2 items-center">
             <ReflectionsDialog selectedAssistant={selectedAssistant} />
