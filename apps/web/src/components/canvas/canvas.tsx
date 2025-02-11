@@ -23,6 +23,11 @@ import { ContentComposerChatInterface } from "./content-composer";
 import NoSSRWrapper from "../NoSSRWrapper";
 import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 export function CanvasComponent() {
   const { graphData } = useGraphContext();
@@ -32,6 +37,8 @@ export function CanvasComponent() {
   const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [webSearchResultsOpen, setWebSearchResultsOpen] = useState(false);
+  console.log("webSearchResultsOpen", webSearchResultsOpen);
 
   useEffect(() => {
     if (!threadId || !user) return;
@@ -83,6 +90,75 @@ export function CanvasComponent() {
   };
 
   return (
+    <ResizablePanelGroup direction="horizontal" className="h-screen">
+      <ResizablePanel
+        defaultSize={chatStarted ? 25 : 100}
+        minSize={15}
+        maxSize={50}
+        className="transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right"
+        id="chat-panel-main"
+        order={1}
+      >
+        <NoSSRWrapper>
+          <ContentComposerChatInterface
+            switchSelectedThreadCallback={(thread) => {
+              // Chat should only be "started" if there are messages present
+              if ((thread.values as Record<string, any>)?.messages?.length) {
+                setChatStarted(true);
+                if (thread?.metadata?.customModelName) {
+                  setModelName(
+                    thread.metadata.customModelName as ALL_MODEL_NAMES
+                  );
+                } else {
+                  setModelName(DEFAULT_MODEL_NAME);
+                }
+
+                if (thread?.metadata?.modelConfig) {
+                  setModelConfig(
+                    thread?.metadata?.customModelName as ALL_MODEL_NAMES,
+                    thread.metadata?.modelConfig as CustomModelConfig
+                  );
+                } else {
+                  setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+                }
+              } else {
+                setChatStarted(false);
+              }
+            }}
+            setChatStarted={setChatStarted}
+            hasChatStarted={chatStarted}
+            handleQuickStart={handleQuickStart}
+          />
+        </NoSSRWrapper>
+      </ResizablePanel>
+      {chatStarted && (
+        <>
+          <ResizableHandle />
+          <ResizablePanel
+            defaultSize={75}
+            maxSize={85}
+            minSize={50}
+            id="canvas-panel"
+            order={2}
+            className="flex flex-row w-full"
+          >
+            <div className="w-full ml-auto">
+              <ArtifactRenderer
+                setIsEditing={setIsEditing}
+                isEditing={isEditing}
+              />
+            </div>
+            <WebSearchResults
+              open={webSearchResultsOpen}
+              setOpen={setWebSearchResultsOpen}
+            />
+          </ResizablePanel>
+        </>
+      )}
+    </ResizablePanelGroup>
+  );
+
+  return (
     <main className="h-screen flex flex-row">
       <div
         className={cn(
@@ -129,7 +205,10 @@ export function CanvasComponent() {
           <ArtifactRenderer setIsEditing={setIsEditing} isEditing={isEditing} />
         </div>
       )}
-      <WebSearchResults />
+      <WebSearchResults
+        open={webSearchResultsOpen}
+        setOpen={setWebSearchResultsOpen}
+      />
     </main>
   );
 }
