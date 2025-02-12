@@ -6,7 +6,7 @@ import {
   FrenchFlag,
 } from "@/components/icons/flags";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
-import { GraphInput } from "@/contexts/GraphContext";
+import { GraphInput } from "@opencanvas/shared/types";
 import { LanguageOptions } from "@opencanvas/shared/types";
 
 export interface TranslateOptionsProps {
