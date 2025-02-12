@@ -896,6 +896,16 @@
     p-retry "4"
     uuid "^9.0.0"
 
+"@langchain/langgraph-sdk@^0.0.39":
+  version "0.0.39"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.39.tgz#147c1dd2a7008202ccdff43c1adfb64d21f9e001"
+  integrity sha512-MuGWfvmmnWV+Gy1bhDohiSyrl+a7K8Y+4Hs9FbvmvVghgJa2FBwdNEaWLJ3Kuk8iJ1HuFIPQVutm1cixeEXjAg==
+  dependencies:
+    "@types/json-schema" "^7.0.15"
+    p-queue "^6.6.2"
+    p-retry "4"
+    uuid "^9.0.0"
+
 "@langchain/langgraph-sdk@~0.0.32":
   version "0.0.36"
   resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.36.tgz#b375884552ae3f1c7bf68a0248104786754d04cd"

@@ -58,7 +58,6 @@
     "@typescript-eslint/eslint-plugin": "^8.12.2",
     "@typescript-eslint/parser": "^8.8.1",
     "eslint": "^8",
-    "eslint-config-next": "14.2.10",
     "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.3.3",
     "tsx": "^4.19.1",

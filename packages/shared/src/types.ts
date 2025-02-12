@@ -202,3 +202,28 @@ export type ExaMetadata = {
 };
 
 export type SearchResult = DocumentInterface<ExaMetadata>;
+
+export interface GraphInput {
+  messages?: Record<string, any>[];
+
+  highlightedCode?: CodeHighlight;
+  highlightedText?: TextHighlight;
+
+  artifact?: ArtifactV3;
+
+  next?: string;
+
+  language?: LanguageOptions;
+  artifactLength?: ArtifactLengthOptions;
+  regenerateWithEmojis?: boolean;
+  readingLevel?: ReadingLevelOptions;
+
+  addComments?: boolean;
+  addLogs?: boolean;
+  portLanguage?: ProgrammingLanguageOptions;
+  fixBugs?: boolean;
+  customQuickActionId?: string;
+
+  webSearchEnabled?: boolean;
+  webSearchResults?: SearchResult[];
+}
