@@ -44,7 +44,8 @@
     "react": "^19.0.0",
     "tsx": "^4.19.1",
     "turbo": "latest",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.8.1"
   },
   "dependencies": {
     "@langchain/core": "^0.3.38"

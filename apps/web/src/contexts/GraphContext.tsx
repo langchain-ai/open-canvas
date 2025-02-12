@@ -7,14 +7,11 @@ import {
 } from "@opencanvas/shared/utils/artifacts";
 import { reverseCleanContent } from "@/lib/normalize_string";
 import {
-  ArtifactLengthOptions,
   ArtifactType,
   ArtifactV3,
-  CodeHighlight,
   CustomModelConfig,
-  LanguageOptions,
+  GraphInput,
   ProgrammingLanguageOptions,
-  ReadingLevelOptions,
   RewriteArtifactMetaToolResponse,
   SearchResult,
   TextHighlight,
@@ -69,6 +66,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useThreadContext } from "./ThreadProvider";
 import { useAssistantContext } from "./AssistantContext";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { StreamWorkerService } from "@/workers/graph-stream/streamWorker";
 
 interface GraphData {
   runId: string | undefined;
@@ -104,26 +102,6 @@ type GraphContentType = {
 };
 
 const GraphContext = createContext<GraphContentType | undefined>(undefined);
-
-export interface GraphInput {
-  messages?: Record<string, any>[];
-
-  highlightedCode?: CodeHighlight;
-  highlightedText?: TextHighlight;
-
-  artifact?: ArtifactV3;
-
-  language?: LanguageOptions;
-  artifactLength?: ArtifactLengthOptions;
-  regenerateWithEmojis?: boolean;
-  readingLevel?: ReadingLevelOptions;
-
-  addComments?: boolean;
-  addLogs?: boolean;
-  portLanguage?: ProgrammingLanguageOptions;
-  fixBugs?: boolean;
-  customQuickActionId?: string;
-}
 
 // Shim for recent LangGraph bugfix
 function extractStreamDataChunk(chunk: any) {
@@ -331,8 +309,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
     threadData.setThreadIdQueryParam(threadData.threadId);
 
-    const client = createClient();
-
     const messagesInput = {
       // `messages` contains the full, unfiltered list of messages
       messages: params.messages,
@@ -389,20 +365,14 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     let thinkingMessageId = "";
 
     try {
-      const stream = client.runs.stream(
-        threadData.threadId,
-        assistantsData.selectedAssistant.assistant_id,
-        {
-          input,
-          streamMode: "events",
-          config: {
-            configurable: {
-              customModelName: threadData.modelName,
-              modelConfig: threadData.modelConfigs[threadData.modelName],
-            },
-          },
-        }
-      );
+      const workerService = new StreamWorkerService();
+      const stream = workerService.streamData({
+        threadId: threadData.threadId,
+        assistantId: assistantsData.selectedAssistant.assistant_id,
+        input,
+        modelName: threadData.modelName,
+        modelConfigs: threadData.modelConfigs,
+      });
 
       // Variables to keep track of content specific to this stream
       const prevCurrentContent = artifact
