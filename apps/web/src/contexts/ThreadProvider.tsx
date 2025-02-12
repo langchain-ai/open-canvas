@@ -227,8 +227,10 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const getThreadId = () => {
-    const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
+  const getThreadId = (ignoreQueryParams = false) => {
+    const threadIdQueryParam = !ignoreQueryParams
+      ? searchParams.get(THREAD_ID_QUERY_PARAM)
+      : undefined;
     const threadIdCookie = getCookie(THREAD_ID_COOKIE_NAME);
     if (threadIdCookie) {
       // Cookie is legacy. Remove it
@@ -240,7 +242,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   };
 
   const searchOrCreateThread = async (isNewThread?: boolean) => {
-    const storedThreadId = getThreadId();
+    const storedThreadId = getThreadId(isNewThread);
 
     if (!storedThreadId) {
       const newThread = await createThread();

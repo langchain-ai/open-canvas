@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
-import { GraphInput } from "@/contexts/GraphContext";
+import { GraphInput } from "@opencanvas/shared/types";
 
 type SharedComponentProps = {
   handleClose: () => void;

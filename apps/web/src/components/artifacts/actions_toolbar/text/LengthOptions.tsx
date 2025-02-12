@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
-import { GraphInput } from "@/contexts/GraphContext";
+import { GraphInput } from "@opencanvas/shared/types";
 
 export interface LengthOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;

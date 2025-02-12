@@ -21,7 +21,7 @@ import { useStore } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { TighterText } from "@/components/ui/header";
-import { GraphInput } from "@/contexts/GraphContext";
+import { GraphInput } from "@opencanvas/shared/types";
 import { User } from "@supabase/supabase-js";
 
 export interface CustomQuickActionsProps {

@@ -6,7 +6,7 @@ import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
-import { GraphInput } from "@/contexts/GraphContext";
+import { GraphInput } from "@opencanvas/shared/types";
 
 type SharedComponentProps = {
   streamMessage: (params: GraphInput) => Promise<void>;

@@ -86,24 +86,17 @@ export function WebSearchResults({ open, setOpen }: WebSearchResultsProps) {
 
   useEffect(() => {
     if (!webSearchResultsParam && open) {
-      console.log(
-        "closing web search. search results param is false and open is true"
-      );
       setOpen(false);
       setSearchResults([]);
       return;
     }
     if (!webSearchResultsParam || !messages.length) {
-      console.log(
-        "closing web search. no web search results param or messages"
-      );
       return;
     }
     const webResultsMessage =
       messages.find((message) => message.id === webSearchResultsParam) ||
       messages.find((message) => message.id?.startsWith("web-search-results-"));
     if (!webResultsMessage) {
-      console.log("closing web search. web results message not found");
       return;
     } else if (
       webResultsMessage.id &&
