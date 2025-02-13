@@ -414,16 +414,17 @@ const cleanBase64 = (base64String: string): string => {
 
 export async function convertPDFToText(base64PDF: string) {
   try {
-    // Convert base64 to buffer
-    const pdfBuffer = Buffer.from(base64PDF, "base64");
+    // Clean the base64 input first
+    const cleanedBase64 = cleanBase64(base64PDF);
+
+    // Convert cleaned base64 to buffer
+    const pdfBuffer = Buffer.from(cleanedBase64, "base64");
 
     // Parse PDF
     const data = await pdfParse(pdfBuffer);
 
     // Get text content
-    const text = data.text;
-
-    return cleanBase64(text);
+    return data.text;
   } catch (error) {
     console.error("Error converting PDF to text:", error);
     throw error;

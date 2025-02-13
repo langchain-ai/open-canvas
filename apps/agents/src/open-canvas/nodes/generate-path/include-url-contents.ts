@@ -67,15 +67,27 @@ async function includeURLContentsFunc(
         modelProvider: "google-genai",
         temperature: 0,
       })
-    ).withStructuredOutput(schema, {
-      name: "determine_include_url_contents",
-    });
+    ).bindTools(
+      [
+        {
+          name: "determine_include_url_contents",
+          description: schema.description,
+          schema,
+        },
+      ],
+      {
+        tool_choice: "determine_include_url_contents",
+      }
+    );
 
     const formattedPrompt = PROMPT.replace("{message}", prompt);
 
-    const { shouldIncludeUrlContents } = await model.invoke([
-      ["user", formattedPrompt],
-    ]);
+    const result = await model.invoke([["user", formattedPrompt]]);
+
+    const args = result.tool_calls?.[0].args as
+      | z.infer<typeof schema>
+      | undefined;
+    const shouldIncludeUrlContents = args?.shouldIncludeUrlContents;
 
     if (!shouldIncludeUrlContents) {
       return undefined;

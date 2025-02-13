@@ -138,7 +138,7 @@ export async function generatePath(
       })
     : state._messages;
 
-  const { route } = await dynamicDeterminePath({
+  const routingResult = await dynamicDeterminePath({
     state: {
       ...state,
       _messages: newInternalMessageList,
@@ -146,6 +146,10 @@ export async function generatePath(
     newMessages,
     config,
   });
+  const route = routingResult?.route;
+  if (!route) {
+    throw new Error("Route not found");
+  }
 
   // Create the messages object including the new messages if any
   const messages = newMessages.length
