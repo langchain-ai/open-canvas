@@ -109,41 +109,46 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     modelName: ALL_MODEL_NAMES,
     config: CustomModelConfig
   ) => {
-    setModelConfigs((prevConfigs) => ({
-      ...prevConfigs,
-      [modelName]: {
-        ...config,
-        provider: config.provider,
-        temperatureRange: {
-          ...(config.temperatureRange || DEFAULT_MODEL_CONFIG.temperatureRange),
-        },
-        maxTokens: {
-          ...(config.maxTokens || DEFAULT_MODEL_CONFIG.maxTokens),
-        },
-        ...(config.provider === "azure_openai" && {
-          azureConfig: {
-            ...config.azureConfig,
-            azureOpenAIApiKey:
-              config.azureConfig?.azureOpenAIApiKey ||
-              process.env._AZURE_OPENAI_API_KEY ||
-              "",
-            azureOpenAIApiInstanceName:
-              config.azureConfig?.azureOpenAIApiInstanceName ||
-              process.env._AZURE_OPENAI_API_INSTANCE_NAME ||
-              "",
-            azureOpenAIApiDeploymentName:
-              config.azureConfig?.azureOpenAIApiDeploymentName ||
-              process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME ||
-              "",
-            azureOpenAIApiVersion:
-              config.azureConfig?.azureOpenAIApiVersion || "2024-08-01-preview",
-            azureOpenAIBasePath:
-              config.azureConfig?.azureOpenAIBasePath ||
-              process.env._AZURE_OPENAI_API_BASE_PATH,
+    setModelConfigs((prevConfigs) => {
+      if (!config || !modelName) {
+        return prevConfigs;
+      }
+      return {
+        ...prevConfigs,
+        [modelName]: {
+          ...config,
+          provider: config.provider,
+          temperatureRange: {
+            ...(config.temperatureRange || DEFAULT_MODEL_CONFIG.temperatureRange),
           },
-        }),
-      },
-    }));
+          maxTokens: {
+            ...(config.maxTokens || DEFAULT_MODEL_CONFIG.maxTokens),
+          },
+          ...(config.provider === "azure_openai" && {
+            azureConfig: {
+              ...config.azureConfig,
+              azureOpenAIApiKey:
+                config.azureConfig?.azureOpenAIApiKey ||
+                process.env._AZURE_OPENAI_API_KEY ||
+                "",
+              azureOpenAIApiInstanceName:
+                config.azureConfig?.azureOpenAIApiInstanceName ||
+                process.env._AZURE_OPENAI_API_INSTANCE_NAME ||
+                "",
+              azureOpenAIApiDeploymentName:
+                config.azureConfig?.azureOpenAIApiDeploymentName ||
+                process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME ||
+                "",
+              azureOpenAIApiVersion:
+                config.azureConfig?.azureOpenAIApiVersion || "2024-08-01-preview",
+              azureOpenAIBasePath:
+                config.azureConfig?.azureOpenAIBasePath ||
+                process.env._AZURE_OPENAI_API_BASE_PATH,
+            },
+          }),
+        },
+      }
+    });
   };
 
   const createThread = async (): Promise<Thread | undefined> => {
