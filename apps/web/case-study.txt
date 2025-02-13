@@ -1,0 +1,50 @@
+How AppFolio transformed property management workflows with Realm-X, built using LangGraph and LangSmith
+See how AppFolio's AI-powered copilot Realm-X has saved property managers over 10 hours per week. Learn how they improved Realm-X's performance 2x using LangSmith and built an agent architecture with LangGraph.
+
+Case Studies
+4 min read
+Dec 16, 2024
+AppFolio, the technology leader powering the future of the real estate industry, has released Realm-X Assistant, an AI-powered copilot designed to improve the efficiency of property managers’ day-to-day work. Realm-X is embedded generative AI that provides intelligent, real-time assistance by combining the latest foundation models with industry-specific context. Realm-X provides a conversational interface that helps users understand the state of their business, get help, and execute actions in bulk – whether it’s querying information, sending messages, or scheduling actions related to residents, vendors, units, bills, or work orders and many more. Early users have reported saving over 10 hours a week in completing their to-do list.
+
+While designing Realm-X, AppFolio realized that they needed a better natural language interface to help property managers engage with the platform and simplify operational processes. The team turned to LangChain, LangGraph, and LangSmith to improve their execution flow and add visibility into how users were interacting with Realm-X. 
+
+
+Realm-X assistant interface
+Choosing LangGraph for flexibility and control
+Realm-X Assistant was initially built using LangChain for interoperability, making it easy to switch out model providers without changing any code. LangChain also made it easy to use tools and structured outputs when making requests with their tool calling agent. 
+
+As the Assistant evolved, AppFolio needed a way to handle even more complexity with their requests. Their team made a strategic transition from LangChain to LangGraph, which simplified response aggregation from different nodes to display to the user. 
+
+
+Realm-X architecture with LangGraph
+After switching to LangGraph, the AppFolio team could clearly see the execution flow of the Realm-X Assistant, which allowed them to design workflows that could reason before acting. By parallelizing branch execution, AppFolio has also been able to reduce latency and code complexity.  
+
+One major benefit of LangGraph has been its ability to run independent code branches in parallel. While determining relevant actions, it simultaneously calculates fallbacks and runs a question-answering bot over help pages. This allows Realm-X to offer related suggestions which enhances the user experience, while keeping latency at a minimum. 
+
+Leveraging LangSmith to monitor and pinpoint issues in production
+To add a layer of visibility into their production traffic, AppFolio used LangSmith to facilitate debugging during development and gain more insights into user interactions. In production, the AppFolio team keeps a close eye on real-time feedback charts in LangSmith — tracking error rates, costs, and latency to keep everything on course. The team also added in automatic triggers to collect feedback when users submit an action drafted by Realm-X. 
+
+
+In addition, automatic feedback is generated based on LLM or heuristic evaluators to continuously monitor system health.
+
+
+LangSmith’s tracing also makes it easy for AppFolio to pinpoint issues when they occur. During development, engineers rely on comparison views and the LangSmith playground to iterate on workflows, ensuring they're battle-tested before deployment. Traces are also shareable across the team, streamlining the process of collaborating across stakeholders.
+
+Iterating on prompts to improve system performance 
+One key innovation that LangSmith supports in AppFolio’s system is dynamic few-shot prompting — which involves dynamically pulling relevant examples to deliver more personalized and accurate responses to Realm-X users. With LangSmith, the AppFolio team has been able to quickly identify whether wrong samples were used or if a relevant sample was missing or poorly formatted, ultimately helping optimize the examples pulled for a given query.
+
+The comparison view in LangSmith was particularly useful for identifying subtle differences in how prompts were constructed, helping AppFolio ensure precise outputs. The LangSmith Playground also enabled the team to rapidly iterate on prompts, base models, or tool descriptions with modifying the underlying code – shortening the feedback cycle between stakeholders.
+
+Dynamic few-shot prompting has been crucial in improving the performance of specific Realm-X features like its text-to-data functionality, where performance significantly increased from ~40% to ~80%. This showcases the impact of tailored examples in improving system accuracy. AppFolio has also maintained high performance as they’ve increased the number of actions and data models that users can query in Realm-X.
+
+LLM evaluations for continuous improvement
+AppFolio prioritizes user experience and feedback in its testing and evaluation process. Every step in the Realm-X workflow— from individual actions to end-to-end executions— is rigorously tested using custom evaluators and LangSmith’s tools.
+
+To ensure quality, AppFolio maintains a central repository of sample cases containing message history, metadata, and ideal outputs. These can be used as evals, unit tests, or examples. Evals are run in CI, with results tracked and integrated into PRs. To avoid regressions, code changes merge only when all unit tests pass and eval thresholds are met.
+
+LangGraph also helps streamline complex workflows like text-to-data processing by organizing intricate if-statement logic into clear, flexible code paths. This, combined with rigorous testing, ensures that Realm-X Assistant produces accurate and reliable responses for property managers.
+
+The path forward for AppFolio
+As AppFolio continues to innovate with the Realm-X Assistant, the focus remains on enhancing user-centric features and optimizing performance. As an early LangSmith user, AppFolio seamlessly integrated LangGraph with LangSmith’s robust monitoring, which helped Realm-X Assistant aggregate responses from multiple system parts to ensure clear, actionable user outputs.
+
+Looking ahead, AppFolio is expanding Realm-X to further improve overall performance and reliability by using LangGraph for state management and self-validation loops. By combining these tools with their commitment to innovation, AppFolio continues to empower property managers everywhere to succeed.

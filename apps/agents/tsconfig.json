@@ -1,0 +1,34 @@
+{
+  "extends": "@tsconfig/recommended",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "target": "ES2021",
+    "lib": [
+      "ES2021",
+      "ES2022.Object",
+      "DOM",
+      "es2023"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "declaration": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "useDefineForClassFields": true,
+    "strictPropertyInitialization": false,
+    "allowJs": true,
+    "strict": true
+  },
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules/",
+    "dist"
+  ]
+}

@@ -2,9 +2,11 @@
 
 # dependencies
 /node_modules
+**/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+.yarn/cache
 
 # testing
 /coverage
@@ -15,6 +17,9 @@
 
 # production
 /build
+/dist
+**/dist
+.turbo/
 
 # misc
 .DS_Store
@@ -37,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 credentials.json
+
+# LangGraph API
+.langgraph_api

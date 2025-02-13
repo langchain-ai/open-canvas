@@ -1,0 +1,38 @@
+{
+  "name": "@opencanvas/evals",
+  "author": "Brace Sproul",
+  "homepage": "https://opencanvas.langchain.com",
+  "repository": "https://github.com/langchain-ai/open-canvas",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rm -rf ./dist .turbo || true",
+    "format": "prettier --config .prettierrc --write \"src\"",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.38",
+    "@langchain/openai": "^0.4.2",
+    "@opencanvas/agents": "*",
+    "langsmith": "^0.3.5",
+    "zod": "^3.24.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-no-instanceof": "^1.0.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.1",
+    "turbo": "latest",
+    "typescript": "^5",
+    "vitest": "^3.0.4"
+  }
+}

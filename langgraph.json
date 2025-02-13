@@ -1,13 +1,14 @@
 {
   "node_version": "20",
-  "dockerfile_lines": [],
   "dependencies": [
     "."
   ],
   "graphs": {
-    "agent": "./src/agent/open-canvas/index.ts:graph",
-    "reflection": "./src/agent/reflection/index.ts:graph",
-    "thread_title": "./src/agent/thread-title/index.ts:graph"
+    "agent": "./apps/agents/src/open-canvas/index.ts:graph",
+    "reflection": "./apps/agents/src/reflection/index.ts:graph",
+    "thread_title": "./apps/agents/src/thread-title/index.ts:graph",
+    "summarizer": "./apps/agents/src/summarizer/index.ts:graph",
+    "web_search": "./apps/agents/src/web-search/index.ts:graph"
   },
   "env": ".env"
 }

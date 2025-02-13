@@ -1,0 +1,53 @@
+{
+  "name": "@opencanvas/shared",
+  "author": "Brace Sproul",
+  "repository": "https://github.com/langchain-ai/open-canvas",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "require": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rm -rf ./dist .turbo || true",
+    "format": "prettier --config .prettierrc --write \"src\"",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@tsconfig/recommended": "^1.0.8",
+    "@types/eslint__js": "^8.42.3",
+    "@types/node": "^20",
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.8.1",
+    "eslint": "^8",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "prettier": "^3.3.3",
+    "react": "^19.0.0",
+    "tsx": "^4.19.1",
+    "turbo": "latest",
+    "typescript": "^5",
+    "typescript-eslint": "^8.8.1"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.38"
+  }
+}
