@@ -132,8 +132,10 @@ export function CanvasComponent() {
 
                 if (thread?.metadata?.modelConfig) {
                   setModelConfig(
-                    thread?.metadata?.customModelName as ALL_MODEL_NAMES,
-                    thread.metadata?.modelConfig as CustomModelConfig
+                    (thread?.metadata?.customModelName ??
+                      DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
+                    (thread.metadata?.modelConfig ??
+                      DEFAULT_MODEL_CONFIG) as CustomModelConfig
                   );
                 } else {
                   setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
@@ -182,8 +184,10 @@ export function CanvasComponent() {
 
                   if (thread?.metadata?.modelConfig) {
                     setModelConfig(
-                      thread?.metadata?.customModelName as ALL_MODEL_NAMES,
-                      thread.metadata?.modelConfig as CustomModelConfig
+                      (thread?.metadata.customModelName ??
+                        DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
+                      (thread.metadata.modelConfig ??
+                        DEFAULT_MODEL_CONFIG) as CustomModelConfig
                     );
                   } else {
                     setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
