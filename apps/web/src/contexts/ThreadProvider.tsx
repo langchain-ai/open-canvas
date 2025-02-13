@@ -119,7 +119,8 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
           ...config,
           provider: config.provider,
           temperatureRange: {
-            ...(config.temperatureRange || DEFAULT_MODEL_CONFIG.temperatureRange),
+            ...(config.temperatureRange ||
+              DEFAULT_MODEL_CONFIG.temperatureRange),
           },
           maxTokens: {
             ...(config.maxTokens || DEFAULT_MODEL_CONFIG.maxTokens),
@@ -140,14 +141,15 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
                 process.env._AZURE_OPENAI_API_DEPLOYMENT_NAME ||
                 "",
               azureOpenAIApiVersion:
-                config.azureConfig?.azureOpenAIApiVersion || "2024-08-01-preview",
+                config.azureConfig?.azureOpenAIApiVersion ||
+                "2024-08-01-preview",
               azureOpenAIBasePath:
                 config.azureConfig?.azureOpenAIBasePath ||
                 process.env._AZURE_OPENAI_API_BASE_PATH,
             },
           }),
         },
-      }
+      };
     });
   };
 
