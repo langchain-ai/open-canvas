@@ -438,9 +438,9 @@ export type ALL_MODEL_NAMES =
   | OLLAMA_MODEL_NAMES
   | GROQ_MODEL_NAMES;
 
-export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[0].name;
+export const DEFAULT_MODEL_NAME: ALL_MODEL_NAMES = OPENAI_MODELS[1].name;
 export const DEFAULT_MODEL_CONFIG: CustomModelConfig = {
-  ...OPENAI_MODELS[0].config,
-  temperatureRange: { ...OPENAI_MODELS[0].config.temperatureRange },
-  maxTokens: { ...OPENAI_MODELS[0].config.maxTokens },
+  ...OPENAI_MODELS[1].config,
+  temperatureRange: { ...OPENAI_MODELS[1].config.temperatureRange },
+  maxTokens: { ...OPENAI_MODELS[1].config.maxTokens },
 };
