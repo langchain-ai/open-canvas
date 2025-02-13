@@ -12,33 +12,34 @@ export const generateTitleNode = async (
     return {};
   }
 
-  const langGraphClient = new Client({
-    apiUrl: `http://localhost:${process.env.PORT}`,
-    defaultHeaders: {
-      "X-API-KEY": process.env.LANGCHAIN_API_KEY,
-    },
-  });
+  try {
+    const langGraphClient = new Client({
+      apiUrl: `http://localhost:${process.env.PORT}`,
+    });
 
-  const titleInput = {
-    messages: state.messages,
-    artifact: state.artifact,
-  };
-  const titleConfig = {
-    configurable: {
-      open_canvas_thread_id: config.configurable?.thread_id,
-    },
-  };
+    const titleInput = {
+      messages: state.messages,
+      artifact: state.artifact,
+    };
+    const titleConfig = {
+      configurable: {
+        open_canvas_thread_id: config.configurable?.thread_id,
+      },
+    };
 
-  // Create a new thread for title generation
-  const newThread = await langGraphClient.threads.create();
+    // Create a new thread for title generation
+    const newThread = await langGraphClient.threads.create();
 
-  // Create a new title generation run in the background
-  await langGraphClient.runs.create(newThread.thread_id, "thread_title", {
-    input: titleInput,
-    config: titleConfig,
-    multitaskStrategy: "enqueue",
-    afterSeconds: 0,
-  });
+    // Create a new title generation run in the background
+    await langGraphClient.runs.create(newThread.thread_id, "thread_title", {
+      input: titleInput,
+      config: titleConfig,
+      multitaskStrategy: "enqueue",
+      afterSeconds: 0,
+    });
+  } catch (e) {
+    console.error("Failed to call generate title graph\n\n", e);
+  }
 
   return {};
 };
