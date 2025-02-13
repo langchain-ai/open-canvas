@@ -81,9 +81,6 @@ export const generateTitle = async (
 
   const langGraphClient = new Client({
     apiUrl: `http://localhost:${process.env.PORT}`,
-    defaultHeaders: {
-      "X-API-KEY": process.env.LANGCHAIN_API_KEY,
-    },
   });
 
   // Update thread metadata with the generated title
