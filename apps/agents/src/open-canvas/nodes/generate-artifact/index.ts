@@ -14,6 +14,7 @@ import {
 } from "../../state.js";
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas.js";
 import { createArtifactContent, formatNewArtifactPrompt } from "./utils.js";
+import { z } from "zod";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -30,10 +31,16 @@ export const generateArtifact = async (
     isToolCalling: true,
   });
 
-  const modelWithArtifactTool = smallModel.withStructuredOutput(
-    ARTIFACT_TOOL_SCHEMA,
+  const modelWithArtifactTool = smallModel.bindTools(
+    [
+      {
+        name: "generate_artifact",
+        description: ARTIFACT_TOOL_SCHEMA.description,
+        schema: ARTIFACT_TOOL_SCHEMA,
+      },
+    ],
     {
-      name: "generate_artifact",
+      tool_choice: "generate_artifact",
     }
   );
 
@@ -58,8 +65,14 @@ export const generateArtifact = async (
     ],
     { runName: "generate_artifact" }
   );
+  const args = response.tool_calls?.[0].args as
+    | z.infer<typeof ARTIFACT_TOOL_SCHEMA>
+    | undefined;
+  if (!args) {
+    throw new Error("No args found in response");
+  }
 
-  const newArtifactContent = createArtifactContent(response);
+  const newArtifactContent = createArtifactContent(args);
   const newArtifact: ArtifactV3 = {
     currentIndex: 1,
     contents: [newArtifactContent],

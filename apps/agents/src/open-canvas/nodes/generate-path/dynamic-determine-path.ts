@@ -67,14 +67,23 @@ async function dynamicDeterminePathFunc({
     temperature: 0,
     isToolCalling: true,
   });
-  const modelWithTool = model.withStructuredOutput(
-    z.object({
-      route: z
-        .enum(["replyToGeneralInput", artifactRoute])
-        .describe("The route to take based on the user's query."),
-    }),
+
+  const schema = z.object({
+    route: z
+      .enum(["replyToGeneralInput", artifactRoute])
+      .describe("The route to take based on the user's query."),
+  });
+
+  const modelWithTool = model.bindTools(
+    [
+      {
+        name: "route_query",
+        description: "The route to take based on the user's query.",
+        schema,
+      },
+    ],
     {
-      name: "route_query",
+      tool_choice: "route_query",
     }
   );
 
@@ -88,7 +97,7 @@ async function dynamicDeterminePathFunc({
     },
   ]);
 
-  return result;
+  return result.tool_calls?.[0]?.args as z.infer<typeof schema> | undefined;
 }
 
 export const dynamicDeterminePath = traceable(dynamicDeterminePathFunc, {
