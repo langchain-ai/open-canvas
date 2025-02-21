@@ -1,0 +1,3 @@
+[submodule "opencanvaspython"]
+	path = opencanvaspython
+	url = https://github.com/phy101/opencanvaspython.git
