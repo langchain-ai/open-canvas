@@ -1,0 +1,33 @@
+[project]
+name = "opencanvaspython"
+version = "0.1.0"
+description = "OpenCanvas Python Implementation. This code is ported from Typescript to Python. Original Typescript code by Brace Sproul. Ported to Python by Paulo Hermanny"
+requires-python = ">=3.12"
+
+dependencies = [
+    "langgraph",
+    "langchain",
+    "langchain-openai",
+    "langchain-anthropic",
+    "langchain-google-genai",
+    "pydantic",
+    "python-dotenv",
+    "tavily-python",
+    "langchain-community",
+    "langchain-core",
+    "supabase",
+    "websockets"
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+
+[project.optional-dependencies]
+dev = ["mypy>=1.11.1", "ruff>=0.6.1"]
+
+[build-system]
+requires = ["setuptools>=73.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["agents", "shared"]

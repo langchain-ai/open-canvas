@@ -1,0 +1,16 @@
+langgraph
+langchain
+langchain-openai
+langchain-anthropic
+langchain-google-genai
+pydantic
+python-dotenv
+tavily-python
+langchain-community
+langchain-core
+supabase
+websockets
+
+[dev]
+mypy>=1.11.1
+ruff>=0.6.1

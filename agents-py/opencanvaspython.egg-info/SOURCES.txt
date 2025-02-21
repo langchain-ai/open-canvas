@@ -1,0 +1,8 @@
+pyproject.toml
+agents/__init__.py
+opencanvaspython.egg-info/PKG-INFO
+opencanvaspython.egg-info/SOURCES.txt
+opencanvaspython.egg-info/dependency_links.txt
+opencanvaspython.egg-info/requires.txt
+opencanvaspython.egg-info/top_level.txt
+shared/__init__.py

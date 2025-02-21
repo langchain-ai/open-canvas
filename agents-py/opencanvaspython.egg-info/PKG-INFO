@@ -1,0 +1,20 @@
+Metadata-Version: 2.2
+Name: opencanvaspython
+Version: 0.1.0
+Summary: OpenCanvas Python Implementation. This code is ported from Typescript to Python. Original Typescript code by Brace Sproul. Ported to Python by Paulo Hermanny
+Requires-Python: >=3.12
+Requires-Dist: langgraph
+Requires-Dist: langchain
+Requires-Dist: langchain-openai
+Requires-Dist: langchain-anthropic
+Requires-Dist: langchain-google-genai
+Requires-Dist: pydantic
+Requires-Dist: python-dotenv
+Requires-Dist: tavily-python
+Requires-Dist: langchain-community
+Requires-Dist: langchain-core
+Requires-Dist: supabase
+Requires-Dist: websockets
+Provides-Extra: dev
+Requires-Dist: mypy>=1.11.1; extra == "dev"
+Requires-Dist: ruff>=0.6.1; extra == "dev"
