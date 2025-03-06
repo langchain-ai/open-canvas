@@ -19,9 +19,7 @@ import {
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useRuns } from "@/hooks/useRuns";
 import { createClient } from "@/hooks/utils";
-import {
-  WEB_SEARCH_RESULTS_QUERY_PARAM,
-} from "@/constants";
+import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
 import {
   DEFAULT_INPUTS,
   OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
@@ -205,6 +203,38 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       debouncedAPIUpdate(artifact, threadData.threadId);
     }
   }, [artifact, threadData.threadId]);
+
+  const searchOrCreateEffectRan = useRef(false);
+
+  // Attempt to load the thread if an ID is present in query params.
+  useEffect(() => {
+    console.log("Get thread ID defined!!");
+    if (
+      typeof window === "undefined" ||
+      !userData.user ||
+      threadData.createThreadLoading ||
+      !threadData.threadId
+    ) {
+      console.log("Returning early");
+      return;
+    }
+
+    // Only run effect once in development
+    if (searchOrCreateEffectRan.current) {
+      return;
+    }
+    searchOrCreateEffectRan.current = true;
+
+    threadData.getThread(threadData.threadId).then((thread) => {
+      if (thread) {
+        switchSelectedThread(thread);
+        return;
+      }
+
+      // Failed to fetch thread. Remove from query params
+      threadData.setThreadId(null);
+    });
+  }, [threadData.threadId, userData.user]);
 
   const updateArtifact = async (
     artifactToUpdate: ArtifactV3,

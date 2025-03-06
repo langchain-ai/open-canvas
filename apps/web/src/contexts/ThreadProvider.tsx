@@ -10,7 +10,7 @@ import { createClient } from "../hooks/utils";
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { useUserContext } from "./UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryState } from 'nuqs'
+import { useQueryState } from "nuqs";
 
 type ThreadContentType = {
   threadId: string | null;
@@ -20,6 +20,7 @@ type ThreadContentType = {
   modelConfig: CustomModelConfig;
   modelConfigs: Record<ALL_MODEL_NAMES, CustomModelConfig>;
   createThreadLoading: boolean;
+  getThread: (id: string) => Promise<Thread | undefined>;
   createThread: () => Promise<Thread | undefined>;
   getUserThreads: () => Promise<void>;
   deleteThread: (id: string, clearMessages: () => void) => Promise<void>;
@@ -237,6 +238,23 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getThread = async (id: string): Promise<Thread | undefined> => {
+    try {
+      const client = createClient();
+      return client.threads.get(id);
+    } catch (e) {
+      console.error("Failed to get thread by ID.", id, e);
+      toast({
+        title: "Failed to get thread",
+        description: "An error occurred while trying to get a thread.",
+        duration: 5000,
+        variant: "destructive",
+      });
+    }
+
+    return undefined;
+  };
+
   const contextValue: ThreadContentType = {
     threadId,
     userThreads,
@@ -245,6 +263,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     modelConfig,
     modelConfigs,
     createThreadLoading,
+    getThread,
     createThread,
     getUserThreads,
     deleteThread,

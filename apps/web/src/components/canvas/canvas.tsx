@@ -31,8 +31,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export function CanvasComponent() {
   const { graphData } = useGraphContext();
-  const { setModelName, setModelConfig } =
-    useThreadContext();
+  const { setModelName, setModelConfig } = useThreadContext();
   const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
