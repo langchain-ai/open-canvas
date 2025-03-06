@@ -58,10 +58,10 @@ import {
   isThinkingModel,
 } from "@opencanvas/shared/utils/thinking";
 import { debounce } from "lodash";
-import { useRouter } from "next/navigation";
 import { useThreadContext } from "./ThreadProvider";
 import { useAssistantContext } from "./AssistantContext";
 import { StreamWorkerService } from "@/workers/graph-stream/streamWorker";
+import { useQueryState } from "nuqs";
 
 interface GraphData {
   runId: string | undefined;
@@ -116,7 +116,6 @@ function extractStreamDataOutput(output: any) {
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUserContext();
   const assistantsData = useAssistantContext();
-  const router = useRouter();
   const threadData = useThreadContext();
   const { toast } = useToast();
   const { shareRun } = useRuns();
@@ -143,6 +142,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
+
+  const [_, setWebSearchResultsId] = useQueryState(
+    WEB_SEARCH_RESULTS_QUERY_PARAM
+  );
 
   useEffect(() => {
     if (typeof window === "undefined" || !userData.user) return;
@@ -446,9 +449,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 ];
               });
               // Set the query param to trigger the UI
-              const params = new URLSearchParams(window.location.search);
-              params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, webSearchMessageId);
-              router.replace(`?${params.toString()}`, { scroll: false });
+              setWebSearchResultsId(webSearchMessageId);
             }
           }
 
