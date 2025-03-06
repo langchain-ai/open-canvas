@@ -19,11 +19,7 @@ import {
 import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { useRuns } from "@/hooks/useRuns";
 import { createClient } from "@/hooks/utils";
-import {
-  THREAD_ID_LS_NAME,
-  THREAD_ID_QUERY_PARAM,
-  WEB_SEARCH_RESULTS_QUERY_PARAM,
-} from "@/constants";
+import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
 import {
   DEFAULT_INPUTS,
   OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
@@ -62,11 +58,10 @@ import {
   isThinkingModel,
 } from "@opencanvas/shared/utils/thinking";
 import { debounce } from "lodash";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useThreadContext } from "./ThreadProvider";
 import { useAssistantContext } from "./AssistantContext";
-import useLocalStorage from "@/hooks/useLocalStorage";
 import { StreamWorkerService } from "@/workers/graph-stream/streamWorker";
+import { useQueryState } from "nuqs";
 
 interface GraphData {
   runId: string | undefined;
@@ -121,8 +116,6 @@ function extractStreamDataOutput(output: any) {
 export function GraphProvider({ children }: { children: ReactNode }) {
   const userData = useUserContext();
   const assistantsData = useAssistantContext();
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const threadData = useThreadContext();
   const { toast } = useToast();
   const { shareRun } = useRuns();
@@ -149,54 +142,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
-  const [_threadIdLS, setThreadIdLS] = useLocalStorage<string>(
-    THREAD_ID_LS_NAME,
-    ""
+
+  const [_, setWebSearchResultsId] = useQueryState(
+    WEB_SEARCH_RESULTS_QUERY_PARAM
   );
-
-  const searchOrCreateEffectRan = useRef(false);
-
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !userData.user ||
-      threadData.createThreadLoading
-    )
-      return;
-
-    // Only run effect once in development
-    if (searchOrCreateEffectRan.current) return;
-    searchOrCreateEffectRan.current = true;
-
-    threadData.searchOrCreateThread().then((thread) => {
-      if (!thread) {
-        // Thread not found. Clear it & send an error message.
-        threadData.removeThreadIdQueryParam();
-
-        toast({
-          title: "Error",
-          description: "Thread ID in query params not found",
-          variant: "destructive",
-          duration: 5000,
-        });
-
-        return;
-      }
-
-      const threadIdQueryParam = searchParams.get(THREAD_ID_QUERY_PARAM);
-      if (threadIdQueryParam) {
-        // If the thread ID is in query params, load it as the active thread.
-        switchSelectedThread(thread);
-      }
-    });
-  }, [
-    userData.user,
-    threadData.createThreadLoading,
-    searchParams,
-    router,
-    toast,
-    threadData.searchOrCreateThread,
-  ]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !userData.user) return;
@@ -258,6 +207,38 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     }
   }, [artifact, threadData.threadId]);
 
+  const searchOrCreateEffectRan = useRef(false);
+
+  // Attempt to load the thread if an ID is present in query params.
+  useEffect(() => {
+    console.log("Get thread ID defined!!");
+    if (
+      typeof window === "undefined" ||
+      !userData.user ||
+      threadData.createThreadLoading ||
+      !threadData.threadId
+    ) {
+      console.log("Returning early");
+      return;
+    }
+
+    // Only run effect once in development
+    if (searchOrCreateEffectRan.current) {
+      return;
+    }
+    searchOrCreateEffectRan.current = true;
+
+    threadData.getThread(threadData.threadId).then((thread) => {
+      if (thread) {
+        switchSelectedThread(thread);
+        return;
+      }
+
+      // Failed to fetch thread. Remove from query params
+      threadData.setThreadId(null);
+    });
+  }, [threadData.threadId, userData.user]);
+
   const updateArtifact = async (
     artifactToUpdate: ArtifactV3,
     threadId: string
@@ -288,15 +269,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const streamMessageV2 = async (params: GraphInput) => {
     setFirstTokenReceived(false);
     setError(false);
-    if (!threadData.threadId) {
-      toast({
-        title: "Error",
-        description: "No thread ID found",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
     if (!assistantsData.selectedAssistant) {
       toast({
         title: "Error",
@@ -307,7 +279,18 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    threadData.setThreadIdQueryParam(threadData.threadId);
+    const newThread = await threadData.createThread();
+    if (!newThread) {
+      toast({
+        title: "Error",
+        description: "Failed to create thread",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
+    threadData.setThreadId(newThread.thread_id);
 
     const messagesInput = {
       // `messages` contains the full, unfiltered list of messages
@@ -367,7 +350,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     try {
       const workerService = new StreamWorkerService();
       const stream = workerService.streamData({
-        threadId: threadData.threadId,
+        threadId: newThread.thread_id,
         assistantId: assistantsData.selectedAssistant.assistant_id,
         input,
         modelName: threadData.modelName,
@@ -466,9 +449,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 ];
               });
               // Set the query param to trigger the UI
-              const params = new URLSearchParams(window.location.search);
-              params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, webSearchMessageId);
-              router.replace(`?${params.toString()}`, { scroll: false });
+              setWebSearchResultsId(webSearchMessageId);
             }
           }
 
@@ -1375,11 +1356,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     // Set the thread ID in state. Then set in cookies so a new thread
     // isn't created on page load if one already exists.
     threadData.setThreadId(thread.thread_id);
-    setThreadIdLS(thread.thread_id);
-
-    // Ensure the URL has the new thread ID in query params. If it doesn't,
-    // add it, or replace if present but it doesn't match
-    threadData.setThreadIdQueryParam(thread.thread_id);
 
     // Set the model name and config
     if (thread.metadata?.customModelName) {

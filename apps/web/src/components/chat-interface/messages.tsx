@@ -24,9 +24,9 @@ import { ContextDocumentsUI } from "../tool-hooks/AttachmentsToolUI";
 import { HumanMessage } from "@langchain/core/messages";
 import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/constants";
 import { Button } from "../ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
 import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
 import { Globe } from "lucide-react";
+import { useQueryState } from "nuqs";
 
 interface AssistantMessageProps {
   runId: string | undefined;
@@ -72,17 +72,16 @@ const ThinkingAssistantMessageComponent = ({
 const ThinkingAssistantMessage = React.memo(ThinkingAssistantMessageComponent);
 
 const WebSearchMessageComponent = ({ message }: { message: MessageState }) => {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const [_, setShowWebResultsId] = useQueryState(
+    WEB_SEARCH_RESULTS_QUERY_PARAM
+  );
 
   const handleShowWebSearchResults = () => {
     if (!message.id) {
       return;
     }
 
-    const params = new URLSearchParams(searchParams.toString());
-    params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, message.id);
-    router.replace(`?${params.toString()}`, { scroll: false });
+    setShowWebResultsId(message.id);
   };
 
   return (

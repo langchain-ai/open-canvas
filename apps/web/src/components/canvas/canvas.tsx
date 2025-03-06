@@ -20,7 +20,6 @@ import {
 import React, { useEffect, useState } from "react";
 import { ContentComposerChatInterface } from "./content-composer";
 import NoSSRWrapper from "../NoSSRWrapper";
-import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
 import {
   ResizableHandle,
@@ -32,9 +31,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export function CanvasComponent() {
   const { graphData } = useGraphContext();
-  const { user } = useUserContext();
-  const { threadId, clearThreadsWithNoValues, setModelName, setModelConfig } =
-    useThreadContext();
+  const { setModelName, setModelConfig } = useThreadContext();
   const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -56,12 +53,6 @@ export function CanvasComponent() {
       router.replace(`?${queryParams.toString()}`, { scroll: false });
     }
   }, [chatCollapsedSearchParam]);
-
-  useEffect(() => {
-    if (!threadId || !user) return;
-    // Clear threads with no values
-    clearThreadsWithNoValues();
-  }, [threadId, user]);
 
   const handleQuickStart = (
     type: "text" | "code",

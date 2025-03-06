@@ -1,6 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
 import { WEB_SEARCH_RESULTS_QUERY_PARAM } from "@/constants";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { SearchResult } from "@opencanvas/shared/types";
@@ -17,6 +16,7 @@ import { TooltipIconButton } from "../assistant-ui/tooltip-icon-button";
 import { X } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSearchResultCards } from "./loading-cards";
+import { useQueryState } from "nuqs";
 
 function SearchResultCard({ result }: { result: SearchResult }) {
   const [expanded, setExpanded] = useState(false);
@@ -78,33 +78,27 @@ export function WebSearchResults({ open, setOpen }: WebSearchResultsProps) {
   const {
     graphData: { messages },
   } = useGraphContext();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const webSearchResultsParam = searchParams.get(
-    WEB_SEARCH_RESULTS_QUERY_PARAM
-  );
+  const [webSearchResultsId, setWebSearchResultsId] = useQueryState(WEB_SEARCH_RESULTS_QUERY_PARAM)
 
   useEffect(() => {
-    if (!webSearchResultsParam && open) {
+    if (!webSearchResultsId && open) {
       setOpen(false);
       setSearchResults([]);
       return;
     }
-    if (!webSearchResultsParam || !messages.length) {
+    if (!webSearchResultsId || !messages.length) {
       return;
     }
     const webResultsMessage =
-      messages.find((message) => message.id === webSearchResultsParam) ||
+      messages.find((message) => message.id === webSearchResultsId) ||
       messages.find((message) => message.id?.startsWith("web-search-results-"));
     if (!webResultsMessage) {
       return;
     } else if (
       webResultsMessage.id &&
-      webResultsMessage.id !== webSearchResultsParam
+      webResultsMessage.id !== webSearchResultsId
     ) {
-      const params = new URLSearchParams(window.location.search);
-      params.set(WEB_SEARCH_RESULTS_QUERY_PARAM, webResultsMessage.id);
-      router.replace(`?${params.toString()}`, { scroll: false });
+      setWebSearchResultsId(webResultsMessage.id);
     }
     const searchResults = webResultsMessage.additional_kwargs
       ?.webSearchResults as SearchResult[] | undefined;
@@ -114,14 +108,12 @@ export function WebSearchResults({ open, setOpen }: WebSearchResultsProps) {
     setOpen(true);
     setSearchResults(searchResults || []);
     setStatus(status);
-  }, [webSearchResultsParam, messages]);
+  }, [webSearchResultsId, messages]);
 
   const handleClose = () => {
     setOpen(false);
     setSearchResults([]);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete(WEB_SEARCH_RESULTS_QUERY_PARAM);
-    router.replace(`?${params.toString()}`, { scroll: false });
+    setWebSearchResultsId(null);
   };
 
   return (

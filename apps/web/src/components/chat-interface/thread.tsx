@@ -58,20 +58,19 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   } = useGraphContext();
   const { selectedAssistant } = useAssistantContext();
   const {
-    searchOrCreateThread,
     modelName,
     setModelName,
     modelConfig,
     setModelConfig,
     modelConfigs,
-    removeThreadIdQueryParam,
+    setThreadId,
   } = useThreadContext();
   const { user } = useUserContext();
 
   // Render the LangSmith trace link
   useLangSmithLinkToolUI();
 
-  const handleCreateThread = async () => {
+  const handleNewSession = async () => {
     if (!user) {
       toast({
         title: "User not found",
@@ -83,22 +82,12 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     }
 
     // Remove the threadId param from the URL
-    removeThreadIdQueryParam();
+    setThreadId(null);
 
     setModelName(modelName);
     setModelConfig(modelName, modelConfig);
     clearState();
     setChatStarted(false);
-    // Set `true` for `isNewThread` because we want to create a new thread
-    // if the existing one has values.
-    const thread = await searchOrCreateThread(true);
-    if (!thread) {
-      toast({
-        title: "Failed to create a new thread",
-        duration: 5000,
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -135,7 +124,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
               variant="ghost"
               className="w-8 h-8"
               delayDuration={400}
-              onClick={handleCreateThread}
+              onClick={handleNewSession}
             >
               <SquarePen className="text-gray-600" />
             </TooltipIconButton>
