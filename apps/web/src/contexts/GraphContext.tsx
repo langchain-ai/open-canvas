@@ -211,14 +211,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
   // Attempt to load the thread if an ID is present in query params.
   useEffect(() => {
-    console.log("Get thread ID defined!!");
     if (
       typeof window === "undefined" ||
       !userData.user ||
       threadData.createThreadLoading ||
       !threadData.threadId
     ) {
-      console.log("Returning early");
       return;
     }
 
