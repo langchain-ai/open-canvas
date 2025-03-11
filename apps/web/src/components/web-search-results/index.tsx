@@ -78,7 +78,9 @@ export function WebSearchResults({ open, setOpen }: WebSearchResultsProps) {
   const {
     graphData: { messages },
   } = useGraphContext();
-  const [webSearchResultsId, setWebSearchResultsId] = useQueryState(WEB_SEARCH_RESULTS_QUERY_PARAM)
+  const [webSearchResultsId, setWebSearchResultsId] = useQueryState(
+    WEB_SEARCH_RESULTS_QUERY_PARAM
+  );
 
   useEffect(() => {
     if (!webSearchResultsId && open) {

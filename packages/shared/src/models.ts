@@ -26,7 +26,7 @@ const AZURE_MODELS: ModelConfigurationParams[] = [
 const OPENAI_MODELS: ModelConfigurationParams[] = [
   {
     name: "gpt-4o",
-    label: "GPT-4o",
+    label: "GPT 4o",
     config: {
       provider: "openai",
       temperatureRange: {
@@ -46,7 +46,7 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
   },
   {
     name: "gpt-4o-mini",
-    label: "GPT-4o mini",
+    label: "GPT 4o mini",
     config: {
       provider: "openai",
       temperatureRange: {
@@ -63,6 +63,26 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
     },
     isNew: false,
+  },
+  {
+    name: "gpt-4.5-preview",
+    label: "GPT 4.5",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 16384,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
   },
   {
     name: "o3-mini",
@@ -153,6 +173,26 @@ const OLLAMA_MODELS = [
 ];
 
 const ANTHROPIC_MODELS = [
+  {
+    name: "claude-3-7-sonnet-latest",
+    label: "Claude 3.7 Sonnet",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 8192,
+        default: 4096,
+        current: 4096,
+      },
+    },
+    isNew: true,
+  },
   {
     name: "claude-3-5-sonnet-latest",
     label: "Claude 3.5 Sonnet",
@@ -387,7 +427,9 @@ const GEMINI_MODELS: ModelConfigurationParams[] = [
 export const LANGCHAIN_USER_ONLY_MODELS = [
   "o1",
   "gpt-4o",
+  "gpt-4.5-preview",
   "claude-3-5-sonnet-latest",
+  "claude-3-7-sonnet-latest",
   "gemini-2.0-flash-thinking-exp-01-21",
 ];
 
