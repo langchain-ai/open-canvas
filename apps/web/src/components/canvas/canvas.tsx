@@ -38,6 +38,7 @@ export function CanvasComponent() {
   const [isEditing, setIsEditing] = useState(false);
   const [webSearchResultsOpen, setWebSearchResultsOpen] = useState(false);
   const [chatCollapsed, setChatCollapsed] = useState(false);
+  const [panelSize, setPanelSize] = useState(25);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -98,6 +99,8 @@ export function CanvasComponent() {
     setIsEditing(true);
   };
 
+  const mainPanelSize = chatCollapsed ? 95 : (100 - panelSize);
+
   return (
     <ResizablePanelGroup direction="horizontal" className="h-screen">
       {!chatStarted && (
@@ -143,70 +146,78 @@ export function CanvasComponent() {
         </NoSSRWrapper>
       )}
       {chatStarted && (
-        <div className={cn(
-          "transition-all duration-700",
-          chatCollapsed ? "w-[60px]" : "flex-1"
-        )}>
-          <ResizablePanel
-            defaultSize={100}
-            className={cn(
-              "transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right",
-              chatCollapsed && "!w-[60px]"
-            )}
-            id="chat-panel-main"
-            order={1}
-          >
-            <NoSSRWrapper>
-              <ContentComposerChatInterface
-                chatCollapsed={chatCollapsed}
-                setChatCollapsed={(c) => {
-                  setChatCollapsed(c);
-                  const queryParams = new URLSearchParams(
-                    searchParams.toString()
-                  );
-                  queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
-                  router.replace(`?${queryParams.toString()}`, { scroll: false });
-                }}
-                switchSelectedThreadCallback={(thread) => {
-                  // Chat should only be "started" if there are messages present
-                  if ((thread.values as Record<string, any>)?.messages?.length) {
-                    setChatStarted(true);
-                    if (thread?.metadata?.customModelName) {
-                      setModelName(
-                        thread.metadata.customModelName as ALL_MODEL_NAMES
-                      );
-                    } else {
-                      setModelName(DEFAULT_MODEL_NAME);
-                    }
-
-                    if (thread?.metadata?.modelConfig) {
-                      setModelConfig(
-                        (thread?.metadata.customModelName ??
-                          DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
-                        (thread.metadata.modelConfig ??
-                          DEFAULT_MODEL_CONFIG) as CustomModelConfig
-                      );
-                    } else {
-                      setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
-                    }
+        <ResizablePanel
+          defaultSize={chatCollapsed ? 5 : panelSize}
+          minSize={chatCollapsed ? 5 : 15}
+          maxSize={chatCollapsed ? 5 : 50}
+          className={cn(
+            "h-screen mr-auto bg-gray-50/70 shadow-inner-right transition-[width] duration-200 ease-in-out",
+            chatCollapsed && "!w-[60px]"
+          )}
+          id="chat-panel-main"
+          order={1}
+          onResize={(size) => {
+            if (!chatCollapsed) {
+              setPanelSize(size);
+            }
+          }}
+          style={{
+            width: chatCollapsed ? '60px' : undefined,
+            minWidth: chatCollapsed ? '60px' : undefined,
+            maxWidth: chatCollapsed ? '60px' : undefined,
+          }}
+        >
+          <NoSSRWrapper>
+            <ContentComposerChatInterface
+              chatCollapsed={chatCollapsed}
+              setChatCollapsed={(c) => {
+                setChatCollapsed(c);
+                if (!c) {
+                  setPanelSize(25);
+                }
+                const queryParams = new URLSearchParams(searchParams.toString());
+                queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
+                router.replace(`?${queryParams.toString()}`, { scroll: false });
+              }}
+              switchSelectedThreadCallback={(thread) => {
+                // Chat should only be "started" if there are messages present
+                if ((thread.values as Record<string, any>)?.messages?.length) {
+                  setChatStarted(true);
+                  if (thread?.metadata?.customModelName) {
+                    setModelName(
+                      thread.metadata.customModelName as ALL_MODEL_NAMES
+                    );
                   } else {
-                    setChatStarted(false);
+                    setModelName(DEFAULT_MODEL_NAME);
                   }
-                }}
-                setChatStarted={setChatStarted}
-                hasChatStarted={chatStarted}
-                handleQuickStart={handleQuickStart}
-              />
-            </NoSSRWrapper>
-          </ResizablePanel>
-        </div>
+
+                  if (thread?.metadata?.modelConfig) {
+                    setModelConfig(
+                      (thread?.metadata.customModelName ??
+                        DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
+                      (thread.metadata.modelConfig ??
+                        DEFAULT_MODEL_CONFIG) as CustomModelConfig
+                    );
+                  } else {
+                    setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+                  }
+                } else {
+                  setChatStarted(false);
+                }
+              }}
+              setChatStarted={setChatStarted}
+              hasChatStarted={chatStarted}
+              handleQuickStart={handleQuickStart}
+            />
+          </NoSSRWrapper>
+        </ResizablePanel>
       )}
 
       {chatStarted && (
         <>
-          <ResizableHandle />
+          <ResizableHandle className="transition-opacity duration-300" />
           <ResizablePanel
-            defaultSize={chatCollapsed ? 95 : 75}
+            defaultSize={mainPanelSize}
             maxSize={85}
             minSize={50}
             id="canvas-panel"

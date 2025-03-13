@@ -96,18 +96,14 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
 
   return (
     <ThreadPrimitive.Root 
-      className={cn(
-        "flex flex-col h-full",
-        // Adjust width based on collapsed state
-        chatCollapsed ? "w-auto" : "w-full"
-      )}
+      className="flex flex-col h-full"
     >
-      {/* Header - Always visible */}
-      <div className={cn(
-        "pr-3 pl-6 pt-3 pb-2 flex flex-col gap-2",
-        // Adjust width when collapsed and reduce left padding
-        chatCollapsed && "w-fit pl-2"
-      )}>
+      <div
+        className={cn(
+          "pr-3 pl-6 pt-3 pb-2 flex flex-col gap-2",
+          chatCollapsed && "pl-2 w-[60px]"
+        )}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center justify-start gap-2 text-gray-600">
             {!chatCollapsed && (
@@ -166,10 +162,11 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         )}
       </div>
 
-      {/* Collapsible content */}
       {!chatCollapsed && (
-        <>
-          <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">
+        <div className="flex flex-col flex-1">
+          <ThreadPrimitive.Viewport 
+            className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8 min-h-0"
+          >
             {!hasChatStarted && (
               <ThreadWelcome
                 handleQuickStart={handleQuickStart}
@@ -209,7 +206,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
     </ThreadPrimitive.Root>
   );
