@@ -100,7 +100,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     >
       <div
         className={cn(
-          "pr-3 pl-6 pt-3 pb-2 flex flex-col gap-2",
+          "pr-3 pl-6 pt-3 pb-2 flex flex-col gap-2 transition-all duration-300 ease-in-out",
           chatCollapsed && "pl-2 w-[60px]"
         )}
       >
@@ -113,7 +113,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
             )}
             {/* Only show title when expanded */}
             {!chatCollapsed && (
-              <TighterText className="text-xl">Open Canvas</TighterText>
+              <TighterText className="text-xl transition-opacity duration-300 ease-in-out">Open Canvas</TighterText>
             )}
           </div>
           {hasChatStarted ? (
@@ -122,7 +122,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 tooltip={chatCollapsed ? "Expand Chat" : "Collapse Chat"}
                 variant="ghost"
                 className={cn(
-                  "w-8 h-8",
+                  "w-8 h-8 transition-all duration-300 ease-in-out",
                   // Add margin when collapsed
                   chatCollapsed && "mx-2"
                 )}
@@ -139,7 +139,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
                 <TooltipIconButton
                   tooltip="New chat"
                   variant="ghost"
-                  className="w-8 h-8"
+                  className="w-8 h-8 transition-opacity duration-300 ease-in-out"
                   delayDuration={400}
                   onClick={handleNewSession}
                 >
@@ -152,18 +152,20 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           )}
         </div>
         {!chatCollapsed && (
-          <ModelSelector
-            modelName={modelName}
-            setModelName={setModelName}
-            modelConfig={modelConfig}
-            setModelConfig={setModelConfig}
-            modelConfigs={modelConfigs}
-          />
+          <div className="transition-opacity duration-300 ease-in-out">
+            <ModelSelector
+              modelName={modelName}
+              setModelName={setModelName}
+              modelConfig={modelConfig}
+              setModelConfig={setModelConfig}
+              modelConfigs={modelConfigs}
+            />
+          </div>
         )}
       </div>
 
       {!chatCollapsed && (
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 transition-opacity duration-300 ease-in-out">
           <ThreadPrimitive.Viewport 
             className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8 min-h-0"
           >
