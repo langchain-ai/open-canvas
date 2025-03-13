@@ -1,4 +1,10 @@
-import { isToday, isYesterday, isWithinInterval, subDays, format } from "date-fns";
+import {
+  isToday,
+  isYesterday,
+  isWithinInterval,
+  subDays,
+  format,
+} from "date-fns";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
@@ -29,9 +35,7 @@ interface ThreadProps {
 
 const ThreadItem = (props: ThreadProps) => {
   return (
-    <div
-      className="flex flex-row gap-2 items-center justify-start w-full group relative border border-transparent hover:border-gray-200 rounded-lg transition-all duration-200 p-2 my-1"
-    >
+    <div className="flex flex-row gap-2 items-center justify-start w-full group relative border border-transparent hover:border-gray-200 rounded-lg transition-all duration-200 p-2 my-1">
       <div className="relative">
         <MessageCircle className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
       </div>
@@ -282,7 +286,9 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
         ) : !userThreads.length ? (
           <div className="flex flex-col items-center justify-center py-12 px-3">
             <MessageCircle className="w-12 h-12 text-gray-300 mb-4" />
-            <p className="text-gray-500 text-center">No items found in history.</p>
+            <p className="text-gray-500 text-center">
+              No items found in history.
+            </p>
           </div>
         ) : (
           <ThreadsList groupedThreads={groupedThreads} />

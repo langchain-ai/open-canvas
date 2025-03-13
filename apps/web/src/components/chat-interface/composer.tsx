@@ -38,11 +38,11 @@ const SEARCH_PLACEHOLDERS = [
 const getRandomPlaceholder = (searchEnabled: boolean) => {
   return searchEnabled
     ? SEARCH_PLACEHOLDERS[
-    Math.floor(Math.random() * SEARCH_PLACEHOLDERS.length)
-    ]
+        Math.floor(Math.random() * SEARCH_PLACEHOLDERS.length)
+      ]
     : GENERIC_PLACEHOLDERS[
-    Math.floor(Math.random() * GENERIC_PLACEHOLDERS.length)
-    ];
+        Math.floor(Math.random() * GENERIC_PLACEHOLDERS.length)
+      ];
 };
 
 const CircleStopIcon = () => {
@@ -80,7 +80,6 @@ export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
         </div>
 
         <div className="flex flex-row w-full items-center justify-start my-auto">
-
           <ComposerPrimitive.Input
             autoFocus
             placeholder={placeholder}

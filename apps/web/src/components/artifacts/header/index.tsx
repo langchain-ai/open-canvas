@@ -4,7 +4,6 @@ import { NavigateArtifactHistory } from "./navigate-artifact-history";
 import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@opencanvas/shared/types";
 import { Assistant } from "@langchain/langgraph-sdk";
 
-
 interface ArtifactHeaderProps {
   isBackwardsDisabled: boolean;
   isForwardDisabled: boolean;

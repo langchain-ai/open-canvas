@@ -3,7 +3,12 @@ import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { ArrowDownIcon, PanelRightOpen, PanelRightClose, SquarePen } from "lucide-react";
+import {
+  ArrowDownIcon,
+  PanelRightOpen,
+  PanelRightClose,
+  SquarePen,
+} from "lucide-react";
 import { Dispatch, FC, SetStateAction } from "react";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { useLangSmithLinkToolUI } from "../tool-hooks/LangSmithLinkToolUI";
@@ -95,9 +100,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
   };
 
   return (
-    <ThreadPrimitive.Root 
-      className="flex flex-col h-full"
-    >
+    <ThreadPrimitive.Root className="flex flex-col h-full">
       <div
         className={cn(
           "pr-3 pl-6 pt-3 pb-2 flex flex-col gap-2 transition-all duration-300 ease-in-out",
@@ -113,7 +116,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
             )}
             {/* Only show title when expanded */}
             {!chatCollapsed && (
-              <TighterText className="text-xl transition-opacity duration-300 ease-in-out">Open Canvas</TighterText>
+              <TighterText className="text-xl transition-opacity duration-300 ease-in-out">
+                Open Canvas
+              </TighterText>
             )}
           </div>
           {hasChatStarted ? (
@@ -148,7 +153,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
               )}
             </div>
           ) : (
-            !chatCollapsed && <ReflectionsDialog selectedAssistant={selectedAssistant} />
+            !chatCollapsed && (
+              <ReflectionsDialog selectedAssistant={selectedAssistant} />
+            )
           )}
         </div>
         {!chatCollapsed && (
@@ -166,9 +173,7 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
 
       {!chatCollapsed && (
         <div className="flex flex-col flex-1 transition-opacity duration-300 ease-in-out">
-          <ThreadPrimitive.Viewport 
-            className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8 min-h-0"
-          >
+          <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8 min-h-0">
             {!hasChatStarted && (
               <ThreadWelcome
                 handleQuickStart={handleQuickStart}

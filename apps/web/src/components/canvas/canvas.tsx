@@ -99,7 +99,7 @@ export function CanvasComponent() {
     setIsEditing(true);
   };
 
-  const mainPanelSize = chatCollapsed ? 95 : (100 - panelSize);
+  const mainPanelSize = chatCollapsed ? 95 : 100 - panelSize;
 
   return (
     <ResizablePanelGroup direction="horizontal" className="h-screen">
@@ -162,9 +162,9 @@ export function CanvasComponent() {
             }
           }}
           style={{
-            width: chatCollapsed ? '60px' : undefined,
-            minWidth: chatCollapsed ? '60px' : undefined,
-            maxWidth: chatCollapsed ? '60px' : undefined,
+            width: chatCollapsed ? "60px" : undefined,
+            minWidth: chatCollapsed ? "60px" : undefined,
+            maxWidth: chatCollapsed ? "60px" : undefined,
           }}
         >
           <NoSSRWrapper>
@@ -175,7 +175,9 @@ export function CanvasComponent() {
                 if (!c) {
                   setPanelSize(25);
                 }
-                const queryParams = new URLSearchParams(searchParams.toString());
+                const queryParams = new URLSearchParams(
+                  searchParams.toString()
+                );
                 queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
                 router.replace(`?${queryParams.toString()}`, { scroll: false });
               }}
