@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/resizable";
 import { CHAT_COLLAPSED_QUERY_PARAM } from "@/constants";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function CanvasComponent() {
   const { graphData } = useGraphContext();
@@ -141,65 +142,71 @@ export function CanvasComponent() {
           />
         </NoSSRWrapper>
       )}
-      {!chatCollapsed && chatStarted && (
-        <ResizablePanel
-          defaultSize={25}
-          minSize={15}
-          maxSize={50}
-          className="transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right"
-          id="chat-panel-main"
-          order={1}
-        >
-          <NoSSRWrapper>
-            <ContentComposerChatInterface
-              chatCollapsed={chatCollapsed}
-              setChatCollapsed={(c) => {
-                setChatCollapsed(c);
-                const queryParams = new URLSearchParams(
-                  searchParams.toString()
-                );
-                queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
-                router.replace(`?${queryParams.toString()}`, { scroll: false });
-              }}
-              switchSelectedThreadCallback={(thread) => {
-                // Chat should only be "started" if there are messages present
-                if ((thread.values as Record<string, any>)?.messages?.length) {
-                  setChatStarted(true);
-                  if (thread?.metadata?.customModelName) {
-                    setModelName(
-                      thread.metadata.customModelName as ALL_MODEL_NAMES
-                    );
-                  } else {
-                    setModelName(DEFAULT_MODEL_NAME);
-                  }
+      {chatStarted && (
+        <div className={cn(
+          "transition-all duration-700",
+          chatCollapsed ? "w-[60px]" : "flex-1"
+        )}>
+          <ResizablePanel
+            defaultSize={100}
+            className={cn(
+              "transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right",
+              chatCollapsed && "!w-[60px]"
+            )}
+            id="chat-panel-main"
+            order={1}
+          >
+            <NoSSRWrapper>
+              <ContentComposerChatInterface
+                chatCollapsed={chatCollapsed}
+                setChatCollapsed={(c) => {
+                  setChatCollapsed(c);
+                  const queryParams = new URLSearchParams(
+                    searchParams.toString()
+                  );
+                  queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
+                  router.replace(`?${queryParams.toString()}`, { scroll: false });
+                }}
+                switchSelectedThreadCallback={(thread) => {
+                  // Chat should only be "started" if there are messages present
+                  if ((thread.values as Record<string, any>)?.messages?.length) {
+                    setChatStarted(true);
+                    if (thread?.metadata?.customModelName) {
+                      setModelName(
+                        thread.metadata.customModelName as ALL_MODEL_NAMES
+                      );
+                    } else {
+                      setModelName(DEFAULT_MODEL_NAME);
+                    }
 
-                  if (thread?.metadata?.modelConfig) {
-                    setModelConfig(
-                      (thread?.metadata.customModelName ??
-                        DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
-                      (thread.metadata.modelConfig ??
-                        DEFAULT_MODEL_CONFIG) as CustomModelConfig
-                    );
+                    if (thread?.metadata?.modelConfig) {
+                      setModelConfig(
+                        (thread?.metadata.customModelName ??
+                          DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
+                        (thread.metadata.modelConfig ??
+                          DEFAULT_MODEL_CONFIG) as CustomModelConfig
+                      );
+                    } else {
+                      setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+                    }
                   } else {
-                    setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+                    setChatStarted(false);
                   }
-                } else {
-                  setChatStarted(false);
-                }
-              }}
-              setChatStarted={setChatStarted}
-              hasChatStarted={chatStarted}
-              handleQuickStart={handleQuickStart}
-            />
-          </NoSSRWrapper>
-        </ResizablePanel>
+                }}
+                setChatStarted={setChatStarted}
+                hasChatStarted={chatStarted}
+                handleQuickStart={handleQuickStart}
+              />
+            </NoSSRWrapper>
+          </ResizablePanel>
+        </div>
       )}
 
       {chatStarted && (
         <>
           <ResizableHandle />
           <ResizablePanel
-            defaultSize={chatCollapsed ? 100 : 75}
+            defaultSize={chatCollapsed ? 95 : 75}
             maxSize={85}
             minSize={50}
             id="canvas-panel"
