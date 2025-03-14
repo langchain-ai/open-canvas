@@ -1,4 +1,10 @@
-import { isToday, isYesterday, isWithinInterval, subDays } from "date-fns";
+import {
+  isToday,
+  isYesterday,
+  isWithinInterval,
+  subDays,
+  format,
+} from "date-fns";
 import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
@@ -13,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import React from "react";
 import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
+import { MessageCircle } from "lucide-react";
 
 interface ThreadHistoryProps {
   switchSelectedThreadCallback: (thread: Thread) => void;
@@ -27,38 +34,47 @@ interface ThreadProps {
 }
 
 const ThreadItem = (props: ThreadProps) => {
-  const [isHovering, setIsHovering] = useState(false);
-
   return (
-    <div
-      className="flex flex-row gap-0 items-center justify-start w-full"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
+    <div className="flex flex-row gap-2 items-center justify-start w-full group relative border border-transparent hover:border-gray-200 rounded-lg transition-all duration-200 p-2 my-1">
+      <div className="relative">
+        <MessageCircle className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+      </div>
       <Button
-        className="px-2 justify-start items-center flex-grow min-w-[191px] pr-0"
+        className="px-3 py-1.5 justify-start items-center flex-grow min-w-[191px] pr-0 hover:bg-transparent transition-all duration-200 rounded-md relative group"
         size="sm"
         variant="ghost"
         onClick={props.onClick}
       >
-        <TighterText className="truncate text-sm font-light w-full text-left">
-          {props.label}
-        </TighterText>
+        <div className="flex flex-col w-full">
+          <TighterText className="truncate text-sm font-normal w-full text-left text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+            {props.label}
+          </TighterText>
+          <TighterText className="text-xs text-gray-400 mt-0.5 text-left">
+            {format(props.createdAt, "MMM d, h:mm a")}
+          </TighterText>
+        </div>
       </Button>
-      {isHovering && (
-        <TooltipIconButton
-          tooltip="Delete thread"
-          variant="ghost"
-          onClick={props.onDelete}
-        >
-          <Trash2 className="w-12 h-12 text-[#575757] hover:text-red-500 transition-colors ease-in" />
-        </TooltipIconButton>
-      )}
+      <TooltipIconButton
+        tooltip="Delete thread"
+        variant="ghost"
+        onClick={props.onDelete}
+        className="opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+      >
+        <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors duration-200" />
+      </TooltipIconButton>
     </div>
   );
 };
 
-const LoadingThread = () => <Skeleton className="w-full h-8" />;
+const LoadingThread = () => (
+  <div className="flex items-center gap-2 w-full px-3 py-2">
+    <Skeleton className="w-4 h-4 rounded-full" />
+    <div className="flex flex-col gap-1 flex-grow">
+      <Skeleton className="w-3/4 h-4" />
+      <Skeleton className="w-1/2 h-3" />
+    </div>
+  </div>
+);
 
 const convertThreadActualToThreadProps = (
   thread: Thread,
@@ -175,14 +191,16 @@ interface ThreadsListProps {
 
 function ThreadsList(props: ThreadsListProps) {
   return (
-    <div className="flex flex-col pt-3 gap-4">
+    <div className="flex flex-col pt-3 gap-6">
       {Object.entries(props.groupedThreads).map(([group, threads]) =>
         threads.length > 0 ? (
-          <div key={group}>
-            <TighterText className="text-sm font-medium mb-1 pl-2">
-              {prettifyDateLabel(group)}
-            </TighterText>
-            <div className="flex flex-col gap-1">
+          <div key={group} className="relative">
+            <div className="sticky top-0 bg-white/80 backdrop-blur-sm z-10 py-2">
+              <TighterText className="text-sm font-medium mb-2 pl-2 text-gray-500 uppercase tracking-wider">
+                {prettifyDateLabel(group)}
+              </TighterText>
+            </div>
+            <div className="flex flex-col px-1">
               {threads.map((thread) => (
                 <ThreadItem key={thread.id} {...thread} />
               ))}
@@ -240,7 +258,7 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
         <TooltipIconButton
           tooltip="History"
           variant="ghost"
-          className="w-fit h-fit p-2"
+          className="w-fit h-fit p-2 hover:scale-105 transition-transform duration-200"
         >
           <PiChatsCircleLight
             className="w-6 h-6 text-gray-600"
@@ -250,23 +268,28 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="border-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+        className="border-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 bg-white/95 backdrop-blur-sm"
         aria-describedby={undefined}
       >
-        <SheetTitle>
-          <TighterText className="px-2 text-lg text-gray-600">
+        <SheetTitle className="border-b pb-4">
+          <TighterText className="px-2 text-xl font-medium text-gray-800">
             Chat History
           </TighterText>
         </SheetTitle>
 
         {isUserThreadsLoading && !userThreads.length ? (
           <div className="flex flex-col gap-1 px-2 pt-3">
-            {Array.from({ length: 25 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <LoadingThread key={`loading-thread-${i}`} />
             ))}
           </div>
         ) : !userThreads.length ? (
-          <p className="px-3 text-gray-500">No items found in history.</p>
+          <div className="flex flex-col items-center justify-center py-12 px-3">
+            <MessageCircle className="w-12 h-12 text-gray-300 mb-4" />
+            <p className="text-gray-500 text-center">
+              No items found in history.
+            </p>
+          </div>
         ) : (
           <ThreadsList groupedThreads={groupedThreads} />
         )}
