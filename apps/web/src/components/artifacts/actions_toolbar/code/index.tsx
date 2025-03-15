@@ -141,7 +141,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
       ref={toolbarRef}
       animate={{
         height: isExpanded ? "auto" : 48,
-        borderRadius: isExpanded ? "24px" : "48px"
+        borderRadius: isExpanded ? "24px" : "24px"
       }}
       transition={{
         type: "spring",
@@ -155,7 +155,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
     >
       <AnimatePresence>
       {isExpanded ? (
-        <motion.div  key="expanded" className="flex flex-col gap-3 items-center w-full py-4 px-3 ">
+        <motion.div  key="expanded" className="flex flex-col gap-3 items-center w-full py-4 px-1 ">
           {activeOption && activeOption !== "addEmojis"
             ? toolbarOptions
                 .find((option) => option.id === activeOption)

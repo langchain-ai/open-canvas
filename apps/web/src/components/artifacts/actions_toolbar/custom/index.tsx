@@ -201,7 +201,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
           />
         </TooltipIconButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="max-h-[600px] max-w-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <DropdownMenuContent className="max-h-[600px] max-w-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <DropdownMenuLabel>
           <TighterText>Custom Quick Actions</TighterText>
         </DropdownMenuLabel>
@@ -212,8 +212,8 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
             <LoaderCircle className="w-4 h-4 animate-spin" />
           </span>
         ) : !customQuickActions?.length ? (
-          <TighterText className="text-sm text-gray-600 p-2">
-            No custom quick actions found.
+          <TighterText className="text-xs text-gray-600 p-2">
+            No custom actions found
           </TighterText>
         ) : (
           <div className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
