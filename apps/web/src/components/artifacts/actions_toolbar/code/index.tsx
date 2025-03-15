@@ -5,6 +5,7 @@ import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-but
 import { PortToLanguageOptions } from "./PortToLanguage";
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { GraphInput } from "@opencanvas/shared/types";
+import { AnimatePresence, motion } from "framer-motion";
 
 type SharedComponentProps = {
   handleClose: () => void;
@@ -130,18 +131,25 @@ export function CodeToolBar(props: CodeToolbarProps) {
   };
 
   return (
-    <div
+    <motion.div
       ref={toolbarRef}
-      className={cn(
-        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center bg-white",
-        isExpanded ? "w-26 min-h-fit rounded-3xl" : "w-12 h-12 rounded-full"
-      )}
+      animate={{
+        height: isExpanded ? "auto" : 48,
+        borderRadius: isExpanded ? "24px" : "48px"
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }}
+      className="fixed bottom-4 right-4 flex flex-col items-center justify-center bg-white border-[1px] border-gray-200"  
       onClick={toggleExpand}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      <AnimatePresence>
       {isExpanded ? (
-        <div className="flex flex-col gap-3 items-center w-full border-[1px] border-gray-200 rounded-3xl py-4 px-3">
+        <motion.div  key="expanded" className="flex flex-col gap-3 items-center w-full py-4 px-3 ">
           {activeOption && activeOption !== "addEmojis"
             ? toolbarOptions
                 .find((option) => option.id === activeOption)
@@ -155,15 +163,18 @@ export function CodeToolBar(props: CodeToolbarProps) {
                   tooltip={option.tooltip}
                   variant="ghost"
                   className="transition-colors w-[36px] h-[36px]"
-                  delayDuration={400}
+                  delayDuration={200}
                   onClick={async (e) => await handleOptionClick(e, option.id)}
                   side="left"
                 >
                   {option.icon}
                 </TooltipIconButton>
               ))}
-        </div>
+              </motion.div>
       ) : (
+        <motion.div
+          key="collapsed"
+          className="flex items-center justify-center w-full h-full">
         <TooltipIconButton
           tooltip={
             props.isTextSelected
@@ -189,7 +200,9 @@ export function CodeToolBar(props: CodeToolbarProps) {
             )}
           />
         </TooltipIconButton>
+        </motion.div>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }
