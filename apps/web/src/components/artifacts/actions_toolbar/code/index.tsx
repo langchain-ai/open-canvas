@@ -59,6 +59,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
   const { streamMessage } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
+  const [clickedOption, setClickedOption] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -102,27 +103,32 @@ export function CodeToolBar(props: CodeToolbarProps) {
     optionId: string
   ) => {
     event.stopPropagation();
-
+    setClickedOption(optionId);
+    
     if (optionId === "portLanguage") {
       setActiveOption(optionId);
       return;
     }
 
-    setIsExpanded(false);
-    setActiveOption(null);
-    if (optionId === "addComments") {
-      await streamMessage({
-        addComments: true,
-      });
-    } else if (optionId === "addLogs") {
-      await streamMessage({
-        addLogs: true,
-      });
-    } else if (optionId === "fixBugs") {
-      await streamMessage({
-        fixBugs: true,
-      });
-    }
+    // Delay closing the toolbar until after the click effect
+    setTimeout(async () => {
+      setIsExpanded(false);
+      setActiveOption(null);
+      if (optionId === "addComments") {
+        await streamMessage({
+          addComments: true,
+        });
+      } else if (optionId === "addLogs") {
+        await streamMessage({
+          addLogs: true,
+        });
+      } else if (optionId === "fixBugs") {
+        await streamMessage({
+          fixBugs: true,
+        });
+      }
+      setClickedOption(null);
+    }, 1000);
   };
 
   const handleClose = () => {
@@ -162,12 +168,26 @@ export function CodeToolBar(props: CodeToolbarProps) {
                   key={option.id}
                   tooltip={option.tooltip}
                   variant="ghost"
-                  className="transition-colors w-[36px] h-[36px]"
+                  className="transition-colors w-[36px] h-[36px] relative overflow-hidden"
                   delayDuration={200}
                   onClick={async (e) => await handleOptionClick(e, option.id)}
                   side="left"
                 >
-                  {option.icon}
+                  {clickedOption === option.id && (
+                    <motion.div
+                      className="absolute inset-0 bg-black"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  )}
+                  <span className={cn(
+                    "relative z-10",
+                    clickedOption === option.id && "text-white"
+                  )}>
+                    {option.icon}
+                  </span>
                 </TooltipIconButton>
               ))}
               </motion.div>
