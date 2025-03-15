@@ -84,6 +84,18 @@ export function CodeToolBar(props: CodeToolbarProps) {
     setActiveOption(null);
   };
 
+  const handleMouseEnter = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (props.isTextSelected) return;
+    setIsExpanded(true);
+  };
+
+  const handleMouseLeave = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setIsExpanded(false);
+    setActiveOption(null);
+  };
+
   const handleOptionClick = async (
     event: React.MouseEvent,
     optionId: string
@@ -125,6 +137,8 @@ export function CodeToolBar(props: CodeToolbarProps) {
         isExpanded ? "w-26 min-h-fit rounded-3xl" : "w-12 h-12 rounded-full"
       )}
       onClick={toggleExpand}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {isExpanded ? (
         <div className="flex flex-col gap-3 items-center w-full border-[1px] border-gray-200 rounded-3xl py-4 px-3">
@@ -143,6 +157,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
                   className="transition-colors w-[36px] h-[36px]"
                   delayDuration={400}
                   onClick={async (e) => await handleOptionClick(e, option.id)}
+                  side="left"
                 >
                   {option.icon}
                 </TooltipIconButton>
@@ -163,6 +178,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
               : "cursor-pointer"
           )}
           delayDuration={400}
+          side="left"
         >
           <Code
             className={cn(
