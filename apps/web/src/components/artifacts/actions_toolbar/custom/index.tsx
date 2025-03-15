@@ -190,6 +190,7 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
               : "cursor-pointer"
           )}
           delayDuration={400}
+          side="left"
         >
           <WandSparkles
             className={cn(
