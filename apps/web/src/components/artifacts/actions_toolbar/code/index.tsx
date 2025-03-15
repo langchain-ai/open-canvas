@@ -104,7 +104,7 @@ export function CodeToolBar(props: CodeToolbarProps) {
   ) => {
     event.stopPropagation();
     setClickedOption(optionId);
-    
+
     if (optionId === "portLanguage") {
       setActiveOption(optionId);
       return;
@@ -141,87 +141,93 @@ export function CodeToolBar(props: CodeToolbarProps) {
       ref={toolbarRef}
       animate={{
         height: isExpanded ? "auto" : 48,
-        borderRadius: isExpanded ? "24px" : "24px"
+        borderRadius: isExpanded ? "24px" : "24px",
       }}
       transition={{
         type: "spring",
         stiffness: 300,
-        damping: 30
+        damping: 30,
       }}
-      className="fixed bottom-4 right-4 flex flex-col items-center justify-center bg-white border-[1px] border-gray-200"  
+      className="fixed bottom-4 right-4 flex flex-col items-center justify-center bg-white border-[1px] border-gray-200"
       onClick={toggleExpand}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <AnimatePresence>
-      {isExpanded ? (
-        <motion.div  key="expanded" className="flex flex-col gap-3 items-center w-full py-4 px-1 ">
-          {activeOption && activeOption !== "addEmojis"
-            ? toolbarOptions
-                .find((option) => option.id === activeOption)
-                ?.component?.({
-                  ...props,
-                  handleClose,
-                })
-            : toolbarOptions.map((option) => (
-                <TooltipIconButton
-                  key={option.id}
-                  tooltip={option.tooltip}
-                  variant="ghost"
-                  className="transition-colors w-[36px] h-[36px] relative overflow-hidden"
-                  delayDuration={200}
-                  onClick={async (e) => await handleOptionClick(e, option.id)}
-                  side="left"
-                >
-                  {clickedOption === option.id && (
-                    <motion.div
-                      className="absolute inset-0 bg-black"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  )}
-                  <span className={cn(
-                    "relative z-10",
-                    clickedOption === option.id && "text-white"
-                  )}>
-                    {option.icon}
-                  </span>
-                </TooltipIconButton>
-              ))}
-              </motion.div>
-      ) : (
-        <motion.div
-          key="collapsed"
-          className="flex items-center justify-center w-full h-full">
-        <TooltipIconButton
-          tooltip={
-            props.isTextSelected
-              ? "Quick actions disabled while text is selected"
-              : "Code tools"
-          }
-          variant="outline"
-          className={cn(
-            "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
-            props.isTextSelected
-              ? "cursor-default opacity-50 text-gray-400 hover:bg-background"
-              : "cursor-pointer"
-          )}
-          delayDuration={400}
-          side="left"
-        >
-          <Code
-            className={cn(
-              "w-[26px] h-[26px]",
-              props.isTextSelected
-                ? "text-gray-400"
-                : "hover:text-gray-900 transition-colors"
-            )}
-          />
-        </TooltipIconButton>
-        </motion.div>
-      )}
+        {isExpanded ? (
+          <motion.div
+            key="expanded"
+            className="flex flex-col gap-3 items-center w-full py-4 px-1 "
+          >
+            {activeOption && activeOption !== "addEmojis"
+              ? toolbarOptions
+                  .find((option) => option.id === activeOption)
+                  ?.component?.({
+                    ...props,
+                    handleClose,
+                  })
+              : toolbarOptions.map((option) => (
+                  <TooltipIconButton
+                    key={option.id}
+                    tooltip={option.tooltip}
+                    variant="ghost"
+                    className="transition-colors w-[36px] h-[36px] relative overflow-hidden"
+                    delayDuration={200}
+                    onClick={async (e) => await handleOptionClick(e, option.id)}
+                    side="left"
+                  >
+                    {clickedOption === option.id && (
+                      <motion.div
+                        className="absolute inset-0 bg-black"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                    <span
+                      className={cn(
+                        "relative z-10",
+                        clickedOption === option.id && "text-white"
+                      )}
+                    >
+                      {option.icon}
+                    </span>
+                  </TooltipIconButton>
+                ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="collapsed"
+            className="flex items-center justify-center w-full h-full"
+          >
+            <TooltipIconButton
+              tooltip={
+                props.isTextSelected
+                  ? "Quick actions disabled while text is selected"
+                  : "Code tools"
+              }
+              variant="outline"
+              className={cn(
+                "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
+                props.isTextSelected
+                  ? "cursor-default opacity-50 text-gray-400 hover:bg-background"
+                  : "cursor-pointer"
+              )}
+              delayDuration={400}
+              side="left"
+            >
+              <Code
+                className={cn(
+                  "w-[26px] h-[26px]",
+                  props.isTextSelected
+                    ? "text-gray-400"
+                    : "hover:text-gray-900 transition-colors"
+                )}
+              />
+            </TooltipIconButton>
+          </motion.div>
+        )}
       </AnimatePresence>
     </motion.div>
   );

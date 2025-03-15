@@ -26,14 +26,14 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ width: 0, opacity: 0 }}
       animate={{ width: "auto", opacity: 1 }}
       exit={{ width: 0, opacity: 0 }}
-      transition={{ 
+      transition={{
         type: "spring",
         stiffness: 300,
-        damping: 30
+        damping: 30,
       }}
       className="flex flex-col gap-3 items-center w-full overflow-hidden"
     >

@@ -37,19 +37,19 @@ export function LengthOptions(props: LengthOptionsProps) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      transition={{ 
+      transition={{
         type: "spring",
         stiffness: 300,
-        damping: 30
+        damping: 30,
       }}
       className="h-[200px] flex items-center justify-center px-4"
     >
       <TooltipProvider>
-        <Tooltip open={open}  >
+        <Tooltip open={open}>
           <TooltipTrigger asChild>
             <div className="relative">
               <Slider
@@ -108,11 +108,14 @@ export function LengthOptions(props: LengthOptionsProps) {
                   transition={{
                     type: "spring",
                     stiffness: 400,
-                    damping: 25
+                    damping: 25,
                   }}
                   className="absolute -left-32 bottom-full -translate-y-1/2 bg-black text-white px-2 py-1 rounded text-sm"
                 >
-                  {lengthOptions.find((option) => option.value === value[0])?.label}
+                  {
+                    lengthOptions.find((option) => option.value === value[0])
+                      ?.label
+                  }
                 </motion.div>
               </AnimatePresence>
             </div>

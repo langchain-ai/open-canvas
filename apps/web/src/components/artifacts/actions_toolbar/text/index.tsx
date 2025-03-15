@@ -104,7 +104,7 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
   ) => {
     event.stopPropagation();
     setClickedOption(optionId);
-    
+
     if (optionId === "addEmojis") {
       setTimeout(async () => {
         setIsExpanded(false);
@@ -129,22 +129,22 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
       ref={toolbarRef}
       animate={{
         height: isExpanded ? "auto" : 48,
-        borderRadius: isExpanded ? "24px" : "24px"
+        borderRadius: isExpanded ? "24px" : "24px",
       }}
       transition={{
         type: "spring",
         stiffness: 300,
-        damping: 30
+        damping: 30,
       }}
-      className="fixed bottom-4 right-4 flex flex-col items-center justify-center bg-white border-[1px] border-gray-200"  
+      className="fixed bottom-4 right-4 flex flex-col items-center justify-center bg-white border-[1px] border-gray-200"
       onClick={toggleExpand}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <AnimatePresence mode="wait">
         {isExpanded ? (
-          <motion.div 
-            key="expanded" 
+          <motion.div
+            key="expanded"
             className="flex flex-col gap-3 items-center w-full py-4 px-1"
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
@@ -175,10 +175,12 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
                         transition={{ duration: 0.3 }}
                       />
                     )}
-                    <span className={cn(
-                      "relative z-10",
-                      clickedOption === option.id && "text-white"
-                    )}>
+                    <span
+                      className={cn(
+                        "relative z-10",
+                        clickedOption === option.id && "text-white"
+                      )}
+                    >
                       {option.icon}
                     </span>
                   </TooltipIconButton>
@@ -204,7 +206,6 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
               )}
               delayDuration={400}
               side="left"
-              
             >
               <MagicPencilSVG
                 className={cn(
