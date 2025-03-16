@@ -64,6 +64,16 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
   const [inputValue, setInputValue] = useState("");
   const [isHoveringOverArtifact, setIsHoveringOverArtifact] = useState(false);
   const [isValidSelectionOrigin, setIsValidSelectionOrigin] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
+
+  useEffect(() => {
+    // Show loading state while generating artifact
+    if (isStreaming && graphData.currentNode === "generateArtifact") {
+      setShowLoading(true);
+    } else {
+      setShowLoading(false);
+    }
+  }, [isStreaming, graphData.currentNode]);
 
   const handleMouseUp = useCallback(() => {
     const selection = window.getSelection();
@@ -289,7 +299,7 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
     : undefined;
 
   // Show loading state only when generating a new artifact
-  if (isStreaming && !artifact && graphData.currentNode === "generateArtifact") {
+  if (showLoading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <ArtifactLoading />
