@@ -195,7 +195,7 @@ export function CanvasComponent() {
         </ResizablePanel>
       )}
 
-      {chatStarted && (
+      {chatStarted && graphData.artifact && (
         <>
           <ResizableHandle />
           <ResizablePanel
