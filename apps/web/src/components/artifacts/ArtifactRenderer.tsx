@@ -288,10 +288,16 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
     ? getArtifactContent(artifact)
     : undefined;
 
-  if (!artifact && isStreaming) {
-    return <ArtifactLoading />;
+  // Show loading state when streaming and no artifact exists yet
+  if (isStreaming && !artifact) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <ArtifactLoading />
+      </div>
+    );
   }
 
+  // Show empty state when no artifact exists
   if (!artifact || !currentArtifactContent) {
     return <div className="w-full h-full"></div>;
   }
