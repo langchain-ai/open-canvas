@@ -189,7 +189,7 @@ export function CanvasComponent() {
         </ResizablePanel>
       )}
 
-      {chatStarted && (graphData.artifact || isStreaming) && (
+      {chatStarted && (graphData.artifact || (isStreaming && graphData.currentNode === "generateArtifact")) && (
         <>
           <ResizableHandle />
           <ResizablePanel
