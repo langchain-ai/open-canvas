@@ -10,7 +10,7 @@ import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts.js";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
-} from "../state.js";
+} from "../state.j";
 
 /**
  * Generate a followup message after generating or updating an artifact.
