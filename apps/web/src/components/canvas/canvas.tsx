@@ -119,15 +119,19 @@ export function CanvasComponent() {
               if ((thread.values as Record<string, any>)?.messages?.length) {
                 setChatStarted(true);
                 if (thread?.metadata?.customModelName) {
-                  setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
+                  setModelName(
+                    thread.metadata.customModelName as ALL_MODEL_NAMES
+                  );
                 } else {
                   setModelName(DEFAULT_MODEL_NAME);
                 }
 
                 if (thread?.metadata?.modelConfig) {
                   setModelConfig(
-                    (thread?.metadata?.customModelName ?? DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
-                    (thread.metadata?.modelConfig ?? DEFAULT_MODEL_CONFIG) as CustomModelConfig
+                    (thread?.metadata?.customModelName ??
+                      DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
+                    (thread.metadata?.modelConfig ??
+                      DEFAULT_MODEL_CONFIG) as CustomModelConfig
                   );
                 } else {
                   setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
@@ -156,7 +160,9 @@ export function CanvasComponent() {
               chatCollapsed={chatCollapsed}
               setChatCollapsed={(c) => {
                 setChatCollapsed(c);
-                const queryParams = new URLSearchParams(searchParams.toString());
+                const queryParams = new URLSearchParams(
+                  searchParams.toString()
+                );
                 queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
                 router.replace(`?${queryParams.toString()}`, { scroll: false });
               }}
@@ -164,15 +170,19 @@ export function CanvasComponent() {
                 if ((thread.values as Record<string, any>)?.messages?.length) {
                   setChatStarted(true);
                   if (thread?.metadata?.customModelName) {
-                    setModelName(thread.metadata.customModelName as ALL_MODEL_NAMES);
+                    setModelName(
+                      thread.metadata.customModelName as ALL_MODEL_NAMES
+                    );
                   } else {
                     setModelName(DEFAULT_MODEL_NAME);
                   }
 
                   if (thread?.metadata?.modelConfig) {
                     setModelConfig(
-                      (thread?.metadata?.customModelName ?? DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
-                      (thread.metadata?.modelConfig ?? DEFAULT_MODEL_CONFIG) as CustomModelConfig
+                      (thread?.metadata?.customModelName ??
+                        DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
+                      (thread.metadata?.modelConfig ??
+                        DEFAULT_MODEL_CONFIG) as CustomModelConfig
                     );
                   } else {
                     setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
@@ -189,73 +199,91 @@ export function CanvasComponent() {
         </ResizablePanel>
       )}
 
-      {chatStarted && (graphData.artifact || (isStreaming && graphData.currentNode === "generateArtifact")) && (
-        <>
-          <ResizableHandle />
-          <ResizablePanel
-            defaultSize={chatCollapsed ? 100 : 75}
-            maxSize={85}
-            minSize={50}
-            id="canvas-panel"
-            order={2}
-            className="relative bg-white"
-          >
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-white"
-              initial={isArtifactAnimating ? { 
-                scale: 0.4,
-                opacity: 0,
-                x: "50%",
-                y: "50%",
-                width: "60%",
-                height: "60%",
-                margin: "auto",
-                borderRadius: "1rem",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
-              } : false}
-              animate={isArtifactAnimating ? {
-                scale: 1,
-                opacity: 1,
-                x: 0,
-                y: 0,
-                width: "100%",
-                height: "100%",
-                margin: 0,
-                borderRadius: 0,
-                boxShadow: "none",
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  duration: 1.5
-                }
-              } : false}
+      {chatStarted &&
+        (graphData.artifact ||
+          (isStreaming && graphData.currentNode === "generateArtifact")) && (
+          <>
+            <ResizableHandle />
+            <ResizablePanel
+              defaultSize={chatCollapsed ? 100 : 75}
+              maxSize={85}
+              minSize={50}
+              id="canvas-panel"
+              order={2}
+              className="relative bg-white"
             >
-              <div className="w-full h-full">
-                <ArtifactRenderer
-                  chatCollapsed={chatCollapsed}
-                  setChatCollapsed={(c) => {
-                    setChatCollapsed(c);
-                    const queryParams = new URLSearchParams(searchParams.toString());
-                    queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
-                    router.replace(`?${queryParams.toString()}`, { scroll: false });
-                  }}
-                  setIsEditing={setIsEditing}
-                  isEditing={isEditing}
-                />
-              </div>
-            </motion.div>
-            {!chatCollapsed && (
-              <div className="absolute right-0 top-0 h-full">
-                <WebSearchResults
-                  open={webSearchResultsOpen}
-                  setOpen={setWebSearchResultsOpen}
-                />
-              </div>
-            )}
-          </ResizablePanel>
-        </>
-      )}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-white"
+                initial={
+                  isArtifactAnimating
+                    ? {
+                        scale: 0.4,
+                        opacity: 0,
+                        x: "50%",
+                        y: "50%",
+                        width: "60%",
+                        height: "60%",
+                        margin: "auto",
+                        borderRadius: "1rem",
+                        boxShadow:
+                          "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+                      }
+                    : false
+                }
+                animate={
+                  isArtifactAnimating
+                    ? {
+                        scale: 1,
+                        opacity: 1,
+                        x: 0,
+                        y: 0,
+                        width: "100%",
+                        height: "100%",
+                        margin: 0,
+                        borderRadius: 0,
+                        boxShadow: "none",
+                        transition: {
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 25,
+                          duration: 1.5,
+                        },
+                      }
+                    : false
+                }
+              >
+                <div className="w-full h-full">
+                  <ArtifactRenderer
+                    chatCollapsed={chatCollapsed}
+                    setChatCollapsed={(c) => {
+                      setChatCollapsed(c);
+                      const queryParams = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      queryParams.set(
+                        CHAT_COLLAPSED_QUERY_PARAM,
+                        JSON.stringify(c)
+                      );
+                      router.replace(`?${queryParams.toString()}`, {
+                        scroll: false,
+                      });
+                    }}
+                    setIsEditing={setIsEditing}
+                    isEditing={isEditing}
+                  />
+                </div>
+              </motion.div>
+              {!chatCollapsed && (
+                <div className="absolute right-0 top-0 h-full">
+                  <WebSearchResults
+                    open={webSearchResultsOpen}
+                    setOpen={setWebSearchResultsOpen}
+                  />
+                </div>
+              )}
+            </ResizablePanel>
+          </>
+        )}
     </ResizablePanelGroup>
   );
 }

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export function ArtifactLoading() {
   return (
-    <motion.div 
+    <motion.div
       className="w-[80%] max-w-3xl bg-white rounded-lg shadow-lg p-6"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -19,7 +19,7 @@ export function ArtifactLoading() {
             <Skeleton className="w-6 h-6 rounded-full" />
           </div>
         </div>
-        
+
         <div className="flex flex-col gap-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton
