@@ -11,8 +11,6 @@ import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
 import { TighterText } from "../ui/header";
 import { Composer } from "./composer";
 import { AssistantMessage, UserMessage } from "./messages";
-import ModelSelector from "./model-selector";
-import { ThreadHistory } from "./thread-history";
 import { ThreadWelcome } from "./welcome";
 import { useUserContext } from "@/contexts/UserContext";
 import { useThreadContext } from "@/contexts/ThreadProvider";
@@ -92,46 +90,19 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
 
   return (
     <ThreadPrimitive.Root className="flex flex-col h-full w-full">
-      <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between">
+      <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between bg-[rgba(20,110,98,0.29)]">
         <div className="flex items-center justify-start gap-2 text-gray-600">
-          <ThreadHistory
-            switchSelectedThreadCallback={switchSelectedThreadCallback}
-          />
-          <TighterText className="text-xl">Open Canvas</TighterText>
-          {!hasChatStarted && (
-            <ModelSelector
-              modelName={modelName}
-              setModelName={setModelName}
-              modelConfig={modelConfig}
-              setModelConfig={setModelConfig}
-              modelConfigs={modelConfigs}
-            />
-          )}
+          <TighterText className="text-xl">Safe-IT Journal Helper</TighterText>
         </div>
-        {hasChatStarted ? (
-          <div className="flex flex-row flex-1 gap-2 items-center justify-end">
+        {!hasChatStarted && (
+          <div className="flex items-center gap-2">
             <TooltipIconButton
-              tooltip="Collapse Chat"
-              variant="ghost"
-              className="w-8 h-8"
-              delayDuration={400}
-              onClick={() => props.setChatCollapsed(true)}
-            >
-              <PanelRightOpen className="text-gray-600" />
-            </TooltipIconButton>
-            <TooltipIconButton
-              tooltip="New chat"
-              variant="ghost"
-              className="w-8 h-8"
-              delayDuration={400}
+              tooltip="New session"
+              variant="outline"
               onClick={handleNewSession}
             >
-              <SquarePen className="text-gray-600" />
+              <SquarePen />
             </TooltipIconButton>
-          </div>
-        ) : (
-          <div className="flex flex-row gap-2 items-center">
-            <ReflectionsDialog selectedAssistant={selectedAssistant} />
           </div>
         )}
       </div>
@@ -168,13 +139,6 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
         <div className="w-full max-w-2xl">
           {hasChatStarted && (
             <div className="flex flex-col space-y-2">
-              <ModelSelector
-                modelName={modelName}
-                setModelName={setModelName}
-                modelConfig={modelConfig}
-                setModelConfig={setModelConfig}
-                modelConfigs={modelConfigs}
-              />
               <Composer
                 chatStarted={true}
                 userId={props.userId}

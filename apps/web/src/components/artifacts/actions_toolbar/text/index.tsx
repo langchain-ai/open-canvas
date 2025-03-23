@@ -1,37 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import { Languages, BookOpen, SlidersVertical, SmilePlus } from "lucide-react";
+import { BookOpen, SlidersVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReadingLevelOptions } from "./ReadingLevelOptions";
-import { TranslateOptions } from "./TranslateOptions";
 import { LengthOptions } from "./LengthOptions";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { MagicPencilSVG } from "@/components/icons/magic_pencil";
 import { GraphInput } from "@opencanvas/shared/types";
 
-type SharedComponentProps = {
-  streamMessage: (params: GraphInput) => Promise<void>;
+interface SharedComponentProps {
+  onClose: () => void;
   handleClose: () => void;
-};
+  streamMessage: (input: GraphInput) => Promise<void>;
+}
 
-type ToolbarOption = {
+interface ToolbarOption {
   id: string;
   tooltip: string;
   icon: React.ReactNode;
   component: ((props: SharedComponentProps) => React.ReactNode) | null;
-};
+}
 
-export interface ActionsToolbarProps {
-  streamMessage: (params: GraphInput) => Promise<void>;
-  isTextSelected: boolean;
+interface TextActionsToolbarProps {
+  streamMessage: (input: GraphInput) => Promise<void>;
+  isTextSelected?: boolean;
 }
 
 const toolbarOptions: ToolbarOption[] = [
-  {
-    id: "translate",
-    tooltip: "Translate",
-    icon: <Languages className="w-[26px] h-[26px]" />,
-    component: (props: SharedComponentProps) => <TranslateOptions {...props} />,
-  },
   {
     id: "readingLevel",
     tooltip: "Reading level",
@@ -46,28 +40,21 @@ const toolbarOptions: ToolbarOption[] = [
     icon: <SlidersVertical className="w-[26px] h-[26px]" />,
     component: (props: SharedComponentProps) => <LengthOptions {...props} />,
   },
-  {
-    id: "addEmojis",
-    tooltip: "Add emojis",
-    icon: <SmilePlus className="w-[26px] h-[26px]" />,
-    component: null,
-  },
 ];
 
-export function ActionsToolbar(props: ActionsToolbarProps) {
-  const { streamMessage } = props;
+export function TextActionsToolbar(props: TextActionsToolbarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOption, setActiveOption] = useState<string | null>(null);
-  const toolbarRef = useRef<HTMLDivElement>(null);
+  const { streamMessage, isTextSelected } = props;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        toolbarRef.current &&
-        !toolbarRef.current.contains(event.target as Node)
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
       ) {
-        setIsExpanded(false);
-        setActiveOption(null);
+        handleClose();
       }
     };
 
@@ -77,27 +64,12 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     };
   }, []);
 
-  const toggleExpand = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (props.isTextSelected) return;
-    setIsExpanded(!isExpanded);
-    setActiveOption(null);
-  };
-
   const handleOptionClick = async (
-    event: React.MouseEvent,
+    event: React.MouseEvent<HTMLButtonElement>,
     optionId: string
   ) => {
     event.stopPropagation();
-    if (optionId === "addEmojis") {
-      setIsExpanded(false);
-      setActiveOption(null);
-      await streamMessage({
-        regenerateWithEmojis: true,
-      });
-    } else {
-      setActiveOption(optionId);
-    }
+    setActiveOption(optionId);
   };
 
   const handleClose = () => {
@@ -107,32 +79,36 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
 
   return (
     <div
-      ref={toolbarRef}
-      className={cn(
-        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center bg-white",
-        isExpanded
-          ? "w-fit-content min-h-fit rounded-3xl"
-          : "w-12 h-12 rounded-full"
-      )}
-      onClick={toggleExpand}
+      ref={containerRef}
+      className="fixed bottom-4 right-4 flex flex-col items-center justify-center transition-all duration-300 ease-in-out"
+      style={{
+        width: isExpanded ? "250px" : "40px",
+        minHeight: isExpanded ? "fit-content" : "40px",
+        borderRadius: isExpanded ? "24px" : "8px",
+        backgroundColor: "white",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+      }}
     >
       {isExpanded ? (
         <div className="flex flex-col gap-3 items-center w-full border-[1px] border-gray-200 rounded-3xl py-4 px-3">
-          {activeOption && activeOption !== "addEmojis"
+          {activeOption
             ? toolbarOptions
                 .find((option) => option.id === activeOption)
                 ?.component?.({
-                  ...props,
-                  handleClose,
+                  onClose: handleClose,
+                  handleClose: handleClose,
+                  streamMessage,
                 })
             : toolbarOptions.map((option) => (
                 <TooltipIconButton
                   key={option.id}
                   tooltip={option.tooltip}
                   variant="ghost"
-                  className="transition-colors w-[36px] h-[36px]"
-                  delayDuration={400}
-                  onClick={async (e) => await handleOptionClick(e, option.id)}
+                  className={cn(
+                    "w-[40px] h-[40px]",
+                    isTextSelected ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
+                  )}
+                  onClick={(e) => !isTextSelected && handleOptionClick(e, option.id)}
                 >
                   {option.icon}
                 </TooltipIconButton>
@@ -140,30 +116,19 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
         </div>
       ) : (
         <TooltipIconButton
-          tooltip={
-            props.isTextSelected
-              ? "Quick actions disabled while text is selected"
-              : "Writing tools"
-          }
-          variant="outline"
+          tooltip={isTextSelected ? "Actions disabled while text is selected" : "Actions"}
+          variant="ghost"
           className={cn(
-            "transition-colors w-[48px] h-[48px] p-0 rounded-xl",
-            props.isTextSelected
-              ? "cursor-default opacity-50 text-gray-400 hover:bg-background"
-              : "cursor-pointer"
+            "w-[40px] h-[40px]",
+            isTextSelected ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
           )}
-          delayDuration={400}
+          onClick={() => !isTextSelected && setIsExpanded(true)}
         >
-          <MagicPencilSVG
-            className={cn(
-              "w-[26px] h-[26px]",
-              props.isTextSelected
-                ? "text-gray-400"
-                : "hover:text-gray-900 transition-colors"
-            )}
-          />
+          <MagicPencilSVG />
         </TooltipIconButton>
       )}
     </div>
   );
 }
+
+export { TextActionsToolbar as ActionsToolbar };

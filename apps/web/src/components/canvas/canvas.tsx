@@ -1,7 +1,6 @@
 "use client";
 
 import { ArtifactRenderer } from "@/components/artifacts/ArtifactRenderer";
-import { WebSearchResults } from "@/components/web-search-results";
 import {
   ALL_MODEL_NAMES,
   DEFAULT_MODEL_CONFIG,
@@ -35,7 +34,6 @@ export function CanvasComponent() {
   const { setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [webSearchResultsOpen, setWebSearchResultsOpen] = useState(false);
   const [chatCollapsed, setChatCollapsed] = useState(false);
 
   const searchParams = useSearchParams();
@@ -113,24 +111,8 @@ export function CanvasComponent() {
               // Chat should only be "started" if there are messages present
               if ((thread.values as Record<string, any>)?.messages?.length) {
                 setChatStarted(true);
-                if (thread?.metadata?.customModelName) {
-                  setModelName(
-                    thread.metadata.customModelName as ALL_MODEL_NAMES
-                  );
-                } else {
-                  setModelName(DEFAULT_MODEL_NAME);
-                }
-
-                if (thread?.metadata?.modelConfig) {
-                  setModelConfig(
-                    (thread?.metadata?.customModelName ??
-                      DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
-                    (thread.metadata?.modelConfig ??
-                      DEFAULT_MODEL_CONFIG) as CustomModelConfig
-                  );
-                } else {
-                  setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
-                }
+                setModelName(DEFAULT_MODEL_NAME);
+                setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
               } else {
                 setChatStarted(false);
               }
@@ -155,9 +137,7 @@ export function CanvasComponent() {
               chatCollapsed={chatCollapsed}
               setChatCollapsed={(c) => {
                 setChatCollapsed(c);
-                const queryParams = new URLSearchParams(
-                  searchParams.toString()
-                );
+                const queryParams = new URLSearchParams(searchParams.toString());
                 queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
                 router.replace(`?${queryParams.toString()}`, { scroll: false });
               }}
@@ -165,24 +145,8 @@ export function CanvasComponent() {
                 // Chat should only be "started" if there are messages present
                 if ((thread.values as Record<string, any>)?.messages?.length) {
                   setChatStarted(true);
-                  if (thread?.metadata?.customModelName) {
-                    setModelName(
-                      thread.metadata.customModelName as ALL_MODEL_NAMES
-                    );
-                  } else {
-                    setModelName(DEFAULT_MODEL_NAME);
-                  }
-
-                  if (thread?.metadata?.modelConfig) {
-                    setModelConfig(
-                      (thread?.metadata.customModelName ??
-                        DEFAULT_MODEL_NAME) as ALL_MODEL_NAMES,
-                      (thread.metadata.modelConfig ??
-                        DEFAULT_MODEL_CONFIG) as CustomModelConfig
-                    );
-                  } else {
-                    setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
-                  }
+                  setModelName(DEFAULT_MODEL_NAME);
+                  setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
                 } else {
                   setChatStarted(false);
                 }
@@ -211,25 +175,14 @@ export function CanvasComponent() {
                 chatCollapsed={chatCollapsed}
                 setChatCollapsed={(c) => {
                   setChatCollapsed(c);
-                  const queryParams = new URLSearchParams(
-                    searchParams.toString()
-                  );
-                  queryParams.set(
-                    CHAT_COLLAPSED_QUERY_PARAM,
-                    JSON.stringify(c)
-                  );
-                  router.replace(`?${queryParams.toString()}`, {
-                    scroll: false,
-                  });
+                  const queryParams = new URLSearchParams(searchParams.toString());
+                  queryParams.set(CHAT_COLLAPSED_QUERY_PARAM, JSON.stringify(c));
+                  router.replace(`?${queryParams.toString()}`, { scroll: false });
                 }}
                 setIsEditing={setIsEditing}
                 isEditing={isEditing}
               />
             </div>
-            <WebSearchResults
-              open={webSearchResultsOpen}
-              setOpen={setWebSearchResultsOpen}
-            />
           </ResizablePanel>
         </>
       )}

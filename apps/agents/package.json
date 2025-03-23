@@ -14,11 +14,10 @@
   "scripts": {
     "dev": "npx @langchain/langgraph-cli dev --port 54367 --config ../../langgraph.json",
     "build": "yarn clean && tsc",
-    "clean": "rm -rf ./dist .turbo || true",
+    "clean": "rimraf ./dist .turbo",
     "format": "prettier --config .prettierrc --write \"src\"",
     "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
-    "postinstall": "yarn turbo build"
+    "lint:fix": "eslint src --fix"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
@@ -60,6 +59,7 @@
     "eslint": "^8",
     "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.3.3",
+    "rimraf": "^4.4.0",
     "tsx": "^4.19.1",
     "turbo": "latest",
     "typescript": "^5",

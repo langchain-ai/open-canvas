@@ -91,14 +91,7 @@ export type ProgrammingLanguageOptions =
   | "csharp"
   | "other";
 
-export type ReadingLevelOptions =
-  | "pirate"
-  | "child"
-  | "teenager"
-  | "college"
-  | "phd";
-
-export interface CodeHighlight {
+export type CodeHighlight {
   startCharIndex: number;
   endCharIndex: number;
 }
@@ -215,8 +208,6 @@ export interface GraphInput {
 
   language?: LanguageOptions;
   artifactLength?: ArtifactLengthOptions;
-  regenerateWithEmojis?: boolean;
-  readingLevel?: ReadingLevelOptions;
 
   addComments?: boolean;
   addLogs?: boolean;
