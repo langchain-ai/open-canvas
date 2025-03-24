@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProgrammingLanguageOptions } from "@opencanvas/shared/types";
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { Thread as ThreadType } from "@langchain/langgraph-sdk";
-import { ArrowDownIcon, PanelRightOpen, SquarePen } from "lucide-react";
+import { ArrowDownIcon, PanelRightOpen, SquarePen, Home } from "lucide-react";
 import { Dispatch, FC, SetStateAction } from "react";
 import { ReflectionsDialog } from "../reflections-dialog/ReflectionsDialog";
 import { useLangSmithLinkToolUI } from "../tool-hooks/LangSmithLinkToolUI";
@@ -88,12 +88,27 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
     setChatStarted(false);
   };
 
+  const handleReturnToWelcome = () => {
+    // Clear the thread state
+    clearState();
+    // Remove the threadId from URL
+    setThreadId(null);
+    // Reset chat state
+    setChatStarted(false);
+    // Keep chat collapsed
+    props.setChatCollapsed(true);
+  };
+
   return (
     <ThreadPrimitive.Root className="flex flex-col h-full w-full">
       <div className="pr-3 pl-6 pt-3 pb-2 flex flex-row gap-4 items-center justify-between bg-[rgba(20,110,98,0.29)]">
-        <div className="flex items-center justify-start gap-2 text-gray-600">
+        <button 
+          onClick={handleReturnToWelcome}
+          className="flex items-center justify-start gap-2 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+        >
+          <Home className="w-5 h-5" />
           <TighterText className="text-xl">Safe-IT Journal Helper</TighterText>
-        </div>
+        </button>
         {!hasChatStarted && (
           <div className="flex items-center gap-2">
             <TooltipIconButton
