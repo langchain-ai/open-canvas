@@ -83,7 +83,7 @@
     "langsmith": "^0.3.3",
     "lodash": "^4.17.21",
     "lucide-react": "^0.474.0",
-    "next": "14.2.10",
+    "next": "14.2.25",
     "nuqs": "^2.4.1",
     "pdf-parse": "^1.1.1",
     "react": "^18",
