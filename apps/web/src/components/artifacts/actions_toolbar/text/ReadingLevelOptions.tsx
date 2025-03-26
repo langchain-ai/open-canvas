@@ -8,6 +8,7 @@ import {
 import { ReadingLevelOptions as ReadingLevelOptionsType } from "@opencanvas/shared/types";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { GraphInput } from "@opencanvas/shared/types";
+import { motion } from "framer-motion";
 
 export interface ReadingLevelOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;
@@ -25,12 +26,23 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 items-center w-full">
+    <motion.div
+      initial={{ width: 0, opacity: 0 }}
+      animate={{ width: "auto", opacity: 1 }}
+      exit={{ width: 0, opacity: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+      className="flex flex-col gap-3 items-center w-full overflow-hidden"
+    >
       <TooltipIconButton
         tooltip="PhD"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("phd")}
       >
         <GraduationCap />
@@ -39,7 +51,8 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
         tooltip="College"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("college")}
       >
         <School />
@@ -48,7 +61,8 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
         tooltip="Teenager"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("teenager")}
       >
         <PersonStanding />
@@ -57,7 +71,8 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
         tooltip="Child"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("child")}
       >
         <Baby />
@@ -66,11 +81,12 @@ export function ReadingLevelOptions(props: ReadingLevelOptionsProps) {
         tooltip="Pirate"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("pirate")}
       >
         <Swords />
       </TooltipIconButton>
-    </div>
+    </motion.div>
   );
 }
