@@ -20,9 +20,9 @@ async function getCustomActionsFunc(
   const customActionsNamespace = ["custom_actions", userId];
   const actionsKey = "actions";
   const actions = await store.get(customActionsNamespace, actionsKey);
-  const customQuickAction = actions?.value[
-    inputs.customQuickActionId
-  ] as CustomQuickAction | undefined;
+  const customQuickAction = actions?.value[inputs.customQuickActionId] as
+    | CustomQuickAction
+    | undefined;
   if (!customQuickAction) {
     throw new Error(
       `No custom quick action found from ID ${inputs.customQuickActionId}`

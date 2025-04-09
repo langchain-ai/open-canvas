@@ -5,7 +5,7 @@ import { createClient, UserResponse } from "@supabase/supabase-js";
 const SECRET_KEY = process.env.AUTH_SECRET_KEY;
 
 const isContextDocumentNamespace = (namespace: string[]): boolean => {
-  return namespace.includes(CONTEXT_DOCUMENTS_NAMESPACE[0])
+  return namespace.includes(CONTEXT_DOCUMENTS_NAMESPACE[0]);
 };
 
 export const auth = new Auth()
@@ -29,7 +29,7 @@ export const auth = new Auth()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE;
     if (!supabaseUrl || !supabaseKey) {
-      console.log("SENDING 500")
+      console.log("SENDING 500");
       throw new HTTPException(555, {
         message:
           "SUPABASE_URL or SUPABASE_SERVICE_ROLE environment variables are not set",
@@ -111,7 +111,11 @@ export const auth = new Auth()
     const identity = user.identity;
     // Throw an error if their identity is undefined, or if the namespace does not include their identity and is not a context document namespace
     // this is due to the legacy namespacing of the context documents which do not include the user identity
-    if (!identity || (!value.namespace?.includes(identity) && !isContextDocumentNamespace(value.namespace ?? []))) {
+    if (
+      !identity ||
+      (!value.namespace?.includes(identity) &&
+        !isContextDocumentNamespace(value.namespace ?? []))
+    ) {
       throw new HTTPException(403, { message: "Not authorized" });
     }
   });

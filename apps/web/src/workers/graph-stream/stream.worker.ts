@@ -12,7 +12,9 @@ ctx.addEventListener("message", async (event: MessageEvent<StreamConfig>) => {
 
     const client = await createClient();
     const supabaseSession = createSupabaseClient();
-    const { data: { session }} = await supabaseSession.auth.getSession();
+    const {
+      data: { session },
+    } = await supabaseSession.auth.getSession();
 
     const stream = client.runs.stream(threadId, assistantId, {
       input: input as Record<string, unknown>,
