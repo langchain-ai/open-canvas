@@ -45,12 +45,12 @@ export const customAction = async (
 
   const [customQuickAction, reflections] = await Promise.all([
     getCustomActions(config.store, {
-      userId: config.configurable?.supabase_user_id,
+      userId: config.configurable?.user_id,
       customQuickActionId: state.customQuickActionId,
     }),
     getReflections(config.store, {
       assistantId: config.configurable?.assistant_id,
-      userId: config.configurable?.supabase_user_id,
+      userId: config.configurable?.user_id,
     }),
   ]);
 

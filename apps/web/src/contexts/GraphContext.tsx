@@ -62,6 +62,7 @@ import { useThreadContext } from "./ThreadProvider";
 import { useAssistantContext } from "./AssistantContext";
 import { StreamWorkerService } from "@/workers/graph-stream/streamWorker";
 import { useQueryState } from "nuqs";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 interface GraphData {
   runId: string | undefined;
@@ -90,6 +91,15 @@ interface GraphData {
   clearState: () => void;
   switchSelectedThread: (thread: Thread) => void;
   setUpdateRenderedArtifactRequired: Dispatch<SetStateAction<boolean>>;
+}
+
+async function getSession() {
+  const supabaseClient = createSupabaseClient();
+  const session = await supabaseClient.auth.getSession();
+  if (!session.data.session) {
+    throw new Error("Failed to access session.");
+  }
+  return session.data.session;
 }
 
 type GraphContentType = {
@@ -347,12 +357,14 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
     try {
       const workerService = new StreamWorkerService();
+      const session = await getSession();
       const stream = workerService.streamData({
         threadId: newThread.thread_id,
         assistantId: assistantsData.selectedAssistant.assistant_id,
         input,
         modelName: threadData.modelName,
         modelConfigs: threadData.modelConfigs,
+        session,
       });
 
       // Variables to keep track of content specific to this stream

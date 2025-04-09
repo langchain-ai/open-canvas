@@ -23,7 +23,7 @@ export const reflect = async (
 ): Promise<ReflectionGraphReturnType> => {
   const reflections = await getReflections(config.store, {
     assistantId: config.configurable?.assistant_id,
-    userId: config.configurable?.supabase_user_id,
+    userId: config.configurable?.user_id,
   });
 
   const generateReflectionTool = {
@@ -91,7 +91,7 @@ export const reflect = async (
 
   await setReflections(config.store, {
     assistantId: config.configurable?.assistant_id,
-    userId: config.configurable?.supabase_user_id,
+    userId: config.configurable?.user_id,
     reflections: newMemories,
   });
 

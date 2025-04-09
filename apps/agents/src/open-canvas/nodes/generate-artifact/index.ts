@@ -46,7 +46,7 @@ export const generateArtifact = async (
 
   const reflections = await getReflections(config.store, {
     assistantId: config.configurable?.assistant_id,
-    userId: config.configurable?.supabase_user_id,
+    userId: config.configurable?.user_id,
   });
 
   const formattedNewArtifactPrompt = formatNewArtifactPrompt(
