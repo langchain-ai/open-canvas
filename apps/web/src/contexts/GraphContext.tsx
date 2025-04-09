@@ -245,7 +245,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     if (isStreaming) return;
 
     try {
-      const client = createClient();
+      const client = await createClient();
       await client.threads.updateState(threadId, {
         values: {
           artifact: artifactToUpdate,

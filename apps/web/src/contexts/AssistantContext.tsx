@@ -110,7 +110,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const getAssistants = async (userId: string): Promise<void> => {
     setIsLoadingAllAssistants(true);
     try {
-      const client = createClient();
+      const client = await createClient();
       const response = await client.assistants.search({
         metadata: {
           user_id: userId,
@@ -134,7 +134,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const deleteAssistant = async (assistantId: string): Promise<boolean> => {
     setIsDeletingAssistant(true);
     try {
-      const client = createClient();
+      const client = await createClient();
       await client.assistants.delete(assistantId);
 
       if (selectedAssistant?.assistant_id === assistantId) {
@@ -167,7 +167,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   }: CreateCustomAssistantArgs): Promise<Assistant | undefined> => {
     setIsCreatingAssistant(true);
     try {
-      const client = createClient();
+      const client = await createClient();
       const { tools, systemPrompt, name, documents, ...metadata } =
         newAssistant;
       const createdAssistant = await client.assistants.create({
@@ -210,7 +210,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   }: EditCustomAssistantArgs): Promise<Assistant | undefined> => {
     setIsEditingAssistant(true);
     try {
-      const client = createClient();
+      const client = await createClient();
       const { tools, systemPrompt, name, documents, ...metadata } =
         editedAssistant;
       const response = await client.assistants.update(assistantId, {
@@ -308,7 +308,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       return;
     }
     setIsLoadingAllAssistants(true);
-    const client = createClient();
+    const client = await createClient();
     let userAssistants: Assistant[] = [];
 
     const assistantIdCookie = getCookie(ASSISTANT_ID_COOKIE);

@@ -43,24 +43,10 @@ export async function POST(req: NextRequest) {
     apiKey: process.env.LANGCHAIN_API_KEY,
   });
 
-  try {
-    const sharedRunURL = await shareRunWithRetry(lsClient, runId);
+  const sharedRunURL = await shareRunWithRetry(lsClient, runId);
 
-    return new NextResponse(JSON.stringify({ sharedRunURL }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error(
-      `Failed to share run with id ${runId} after ${MAX_RETRIES} attempts:\n`,
-      error
-    );
-    return new NextResponse(
-      JSON.stringify({ error: "Failed to share run after multiple attempts." }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
+  return new NextResponse(JSON.stringify({ sharedRunURL }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

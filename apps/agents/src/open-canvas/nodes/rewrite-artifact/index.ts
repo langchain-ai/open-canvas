@@ -12,7 +12,6 @@ import {
 } from "./utils.js";
 import {
   createContextDocumentMessages,
-  getFormattedReflections,
   getModelConfig,
   getModelFromConfig,
   isUsingO1MiniModel,
@@ -24,6 +23,7 @@ import {
   extractThinkingAndResponseTokens,
   isThinkingModel,
 } from "@opencanvas/shared/utils/thinking";
+import { getReflections } from "../../../stores/reflections.js";
 
 export const rewriteArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -33,7 +33,11 @@ export const rewriteArtifact = async (
   const smallModelWithConfig = (await getModelFromConfig(config)).withConfig({
     runName: "rewrite_artifact_model_call",
   });
-  const memoriesAsString = await getFormattedReflections(config);
+
+  const reflections = await getReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.supabase_user_id,
+  });
   const { currentArtifactContent, recentHumanMessage } = validateState(state);
 
   const artifactMetaToolCall = await optionallyUpdateArtifactMeta(
@@ -49,7 +53,7 @@ export const rewriteArtifact = async (
 
   const formattedPrompt = buildPrompt({
     artifactContent,
-    memoriesAsString,
+    reflections,
     isNewType,
     artifactMetaToolCall,
   });

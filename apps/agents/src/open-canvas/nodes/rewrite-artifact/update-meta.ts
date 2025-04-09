@@ -8,8 +8,8 @@ import {
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts.js";
 import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas.js";
-import { getFormattedReflections } from "../../../utils.js";
 import { z } from "zod";
+import { getReflections } from "../../../stores/reflections.js";
 
 export async function optionallyUpdateArtifactMeta(
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -29,7 +29,10 @@ export async function optionallyUpdateArtifactMeta(
     )
     .withConfig({ runName: "optionally_update_artifact_meta" });
 
-  const memoriesAsString = await getFormattedReflections(config);
+  const reflections = await getReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.supabase_user_id,
+  });
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)
@@ -42,7 +45,7 @@ export async function optionallyUpdateArtifactMeta(
     GET_TITLE_TYPE_REWRITE_ARTIFACT.replace(
       "{artifact}",
       formatArtifactContent(currentArtifactContent, true)
-    ).replace("{reflections}", memoriesAsString);
+    ).replace("{reflections}", reflections);
 
   const recentHumanMessage = state._messages.findLast(
     (message) => message.getType() === "human"

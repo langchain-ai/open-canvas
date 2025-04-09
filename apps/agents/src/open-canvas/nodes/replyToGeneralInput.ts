@@ -1,11 +1,8 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
-import { Reflections } from "@opencanvas/shared/types";
 import {
   createContextDocumentMessages,
-  ensureStoreInConfig,
   formatArtifactContentWithTemplate,
-  formatReflections,
   getModelFromConfig,
   isUsingO1MiniModel,
 } from "../../utils.js";
@@ -14,6 +11,7 @@ import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
 } from "../state.js";
+import { getReflections } from "../../stores/reflections.js";
 
 /**
  * Generate responses to questions. Does not generate artifacts.
@@ -39,20 +37,13 @@ You also have the following reflections on style guidelines and general memories
     ? getArtifactContent(state.artifact)
     : undefined;
 
-  const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.assistant_id;
-  if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");
-  }
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
-  const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections)
-    : "No reflections found.";
+  const reflections = await getReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.supabase_user_id,
+  });
 
   const formattedPrompt = prompt
-    .replace("{reflections}", memoriesAsString)
+    .replace("{reflections}", reflections)
     .replace(
       "{currentArtifactPrompt}",
       currentArtifactContent

@@ -109,27 +109,6 @@ export const ensureStoreInConfig = (
   return config.store;
 };
 
-export async function getFormattedReflections(
-  config: LangGraphRunnableConfig
-): Promise<string> {
-  if (!config.store) {
-    return "No reflections found.";
-  }
-  const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.assistant_id;
-  if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");
-  }
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
-  const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections)
-    : "No reflections found.";
-
-  return memoriesAsString;
-}
-
 export const formatArtifactContent = (
   content: ArtifactMarkdownV3 | ArtifactCodeV3,
   shortenContent?: boolean

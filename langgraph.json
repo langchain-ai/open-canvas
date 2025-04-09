@@ -10,5 +10,8 @@
     "summarizer": "./apps/agents/src/summarizer/index.ts:graph",
     "web_search": "./apps/agents/src/web-search/index.ts:graph"
   },
-  "env": ".env"
+  "env": ".env",
+  "auth": {
+    "path": "./apps/agents/src/auth/index.ts:auth"
+  }
 }

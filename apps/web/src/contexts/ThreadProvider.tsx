@@ -146,7 +146,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-    const client = createClient();
+    const client = await createClient();
     setCreateThreadLoading(true);
 
     try {
@@ -194,7 +194,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
 
     setIsUserThreadsLoading(true);
     try {
-      const client = createClient();
+      const client = await createClient();
 
       const userThreads = await client.threads.search({
         metadata: {
@@ -230,7 +230,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
       // threads to update UI.
       void createThread();
     }
-    const client = createClient();
+    const client = await createClient();
     try {
       await client.threads.delete(id);
     } catch (e) {
@@ -240,7 +240,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
 
   const getThread = async (id: string): Promise<Thread | undefined> => {
     try {
-      const client = createClient();
+      const client = await createClient();
       return client.threads.get(id);
     } catch (e) {
       console.error("Failed to get thread by ID.", id, e);

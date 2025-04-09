@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Client } from "@langchain/langgraph-sdk";
 import { LANGGRAPH_API_URL } from "@/constants";
 import { verifyUserAuthenticated } from "../../../../lib/supabase/verify_user_server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,25 +17,18 @@ export async function POST(req: NextRequest) {
 
   const { namespace, key } = await req.json();
 
+  const supabaseClient = createClient();
+  const jwtToken = (await supabaseClient.auth.getSession()).data.session
+    ?.access_token;
   const lgClient = new Client({
-    apiKey: process.env.LANGCHAIN_API_KEY,
     apiUrl: LANGGRAPH_API_URL,
+    defaultHeaders: { Authorization: `Bearer ${jwtToken}` },
   });
 
-  try {
-    const item = await lgClient.store.getItem(namespace, key);
+  const item = await lgClient.store.getItem(namespace, key);
 
-    return new NextResponse(JSON.stringify({ item }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (_) {
-    return new NextResponse(
-      JSON.stringify({ error: "Failed to share run after multiple attempts." }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
+  return new NextResponse(JSON.stringify({ item }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

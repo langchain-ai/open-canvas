@@ -1,5 +1,6 @@
 import { createClient } from "@/hooks/utils";
 import { StreamConfig } from "./streamWorker.types";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 // Since workers can't directly access the client SDK, you'll need to recreate/import necessary parts
 const ctx: Worker = self as any;
@@ -9,7 +10,9 @@ ctx.addEventListener("message", async (event: MessageEvent<StreamConfig>) => {
     const { threadId, assistantId, input, modelName, modelConfigs } =
       event.data;
 
-    const client = createClient();
+    const client = await createClient();
+    const supabaseSession = createSupabaseClient();
+    const { data: { session }} = await supabaseSession.auth.getSession();
 
     const stream = client.runs.stream(threadId, assistantId, {
       input: input as Record<string, unknown>,
@@ -18,6 +21,8 @@ ctx.addEventListener("message", async (event: MessageEvent<StreamConfig>) => {
         configurable: {
           customModelName: modelName,
           modelConfig: modelConfigs[modelName as keyof typeof modelConfigs],
+          supabase_session: session,
+          supabase_user_id: session?.user.id,
         },
       },
     });

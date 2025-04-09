@@ -28,6 +28,9 @@
     "prettier": "^3.3.3"
   },
   "resolutions": {
-    "@langchain/core": "^0.3.38"
+    "@langchain/core": "^0.3.38",
+    "@langchain/langgraph-api": "http://localhost:3123/18/@langchain/langgraph-api",
+    "@langchain/langgraph-cli": "http://localhost:3123/18/@langchain/langgraph-cli",
+    "@langchain/langgraph-sdk": "http://localhost:3123/18/@langchain/langgraph-sdk"
   }
 }

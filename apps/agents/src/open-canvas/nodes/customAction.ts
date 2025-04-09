@@ -8,14 +8,8 @@ import {
   ArtifactCodeV3,
   ArtifactMarkdownV3,
   ArtifactV3,
-  CustomQuickAction,
-  Reflections,
 } from "@opencanvas/shared/types";
-import {
-  ensureStoreInConfig,
-  formatReflections,
-  getModelFromConfig,
-} from "../../utils.js";
+import { getModelFromConfig } from "../../utils.js";
 import {
   CUSTOM_QUICK_ACTION_ARTIFACT_CONTENT_PROMPT,
   CUSTOM_QUICK_ACTION_ARTIFACT_PROMPT_PREFIX,
@@ -26,6 +20,8 @@ import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
 } from "../state.js";
+import { getReflections } from "../../stores/reflections.js";
+import { getCustomActions } from "../../stores/custom-actions.js";
 
 const formatMessages = (messages: BaseMessage[]): string =>
   messages
@@ -47,47 +43,26 @@ export const customAction = async (
     temperature: 0.5,
   });
 
-  const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.assistant_id;
-  const userId = config.configurable?.supabase_user_id;
-  if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");
-  }
-  if (!userId) {
-    throw new Error("`user.id` not found in configurable");
-  }
-  const customActionsNamespace = ["custom_actions", userId];
-  const actionsKey = "actions";
-
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-
-  const [customActionsItem, memories] = await Promise.all([
-    store.get(customActionsNamespace, actionsKey),
-    store.get(memoryNamespace, memoryKey),
+  const [customQuickAction, reflections] = await Promise.all([
+    getCustomActions(config.store, {
+      userId: config.configurable?.supabase_user_id,
+      customQuickActionId: state.customQuickActionId,
+    }),
+    getReflections(config.store, {
+      assistantId: config.configurable?.assistant_id,
+      userId: config.configurable?.supabase_user_id,
+    }),
   ]);
-  if (!customActionsItem?.value) {
-    throw new Error("No custom actions found.");
-  }
-  const customQuickAction = customActionsItem.value[
-    state.customQuickActionId
-  ] as CustomQuickAction | undefined;
-  if (!customQuickAction) {
-    throw new Error(
-      `No custom quick action found from ID ${state.customQuickActionId}`
-    );
-  }
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)
     : undefined;
 
   let formattedPrompt = `<custom-instructions>\n${customQuickAction.prompt}\n</custom-instructions>`;
-  if (customQuickAction.includeReflections && memories?.value) {
-    const memoriesAsString = formatReflections(memories.value as Reflections);
+  if (customQuickAction.includeReflections && reflections) {
     const reflectionsPrompt = REFLECTIONS_QUICK_ACTION_PROMPT.replace(
       "{reflections}",
-      memoriesAsString
+      reflections
     );
     formattedPrompt += `\n\n${reflectionsPrompt}`;
   }

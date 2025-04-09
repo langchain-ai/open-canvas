@@ -8,13 +8,8 @@ import {
   isArtifactMarkdownContent,
   getArtifactContent,
 } from "@opencanvas/shared/utils/artifacts";
-import { ArtifactV3, Reflections } from "@opencanvas/shared/types";
-import {
-  ensureStoreInConfig,
-  formatReflections,
-  getModelConfig,
-  getModelFromConfig,
-} from "../../utils.js";
+import { ArtifactV3 } from "@opencanvas/shared/types";
+import { getModelConfig, getModelFromConfig } from "../../utils.js";
 import {
   ADD_EMOJIS_TO_ARTIFACT_PROMPT,
   CHANGE_ARTIFACT_LANGUAGE_PROMPT,
@@ -27,6 +22,7 @@ import {
   OpenCanvasGraphReturnType,
 } from "../state.js";
 import { AIMessage } from "@langchain/core/messages";
+import { getReflections } from "src/stores/reflections.js";
 
 export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -35,17 +31,10 @@ export const rewriteArtifactTheme = async (
   const { modelName } = getModelConfig(config);
   const smallModel = await getModelFromConfig(config);
 
-  const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.assistant_id;
-  if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");
-  }
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
-  const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections)
-    : "No reflections found.";
+  const reflections = await getReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.supabase_user_id,
+  });
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)
@@ -117,7 +106,7 @@ export const rewriteArtifactTheme = async (
     throw new Error("No theme selected");
   }
 
-  formattedPrompt = formattedPrompt.replace("{reflections}", memoriesAsString);
+  formattedPrompt = formattedPrompt.replace("{reflections}", reflections);
 
   const newArtifactValues = await smallModel.invoke([
     { role: "user", content: formattedPrompt },
