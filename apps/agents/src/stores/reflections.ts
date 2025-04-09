@@ -1,7 +1,8 @@
 import { BaseStore } from "@langchain/langgraph";
-import { formatReflections } from "../utils";
+import { formatReflections } from "../utils.js";
 import { Reflections } from "@opencanvas/shared/types";
 import { traceable } from "langsmith/traceable";
+import { constructReflectionFields } from "@opencanvas/shared/stores/reflection";
 
 async function getReflectionsFunc(
   store: BaseStore | undefined,
@@ -22,9 +23,12 @@ async function getReflectionsFunc(
     throw new Error("`user_id` not found in configurable");
   }
 
-  const memoryNamespace = ["memories", userId, assistantId];
-  const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
+  const { namespace, key } = constructReflectionFields({
+    userId,
+    assistantId,
+  });
+
+  const memories = await store.get(namespace, key);
   const memoriesAsString = memories?.value
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
@@ -56,9 +60,11 @@ async function setReflectionsFunc(
     throw new Error("`user_id` not found in configurable");
   }
 
-  const memoryNamespace = ["memories", userId, assistantId];
-  const memoryKey = "reflection";
-  await store.put(memoryNamespace, memoryKey, inputs.reflections);
+  const { namespace, key } = constructReflectionFields({
+    userId,
+    assistantId,
+  });
+  await store.put(namespace, key, inputs.reflections);
 }
 
 export const setReflections = traceable(setReflectionsFunc, {

@@ -5,10 +5,21 @@ import {
 } from "@opencanvas/shared/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
-import { Item } from "@langchain/langgraph";
-import { CONTEXT_DOCUMENTS_NAMESPACE } from "@opencanvas/shared/constants";
 import { createClient } from "./utils";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { constructReflectionFields } from "@opencanvas/shared/stores/reflection";
+import { constructContextDocumentsFields } from "@opencanvas/shared/stores/context-documents";
+
+async function getUserId(): Promise<string | undefined> {
+  const supabaseClient = createSupabaseClient();
+  let userId: string | undefined;
+  try {
+    userId = (await supabaseClient.auth.getUser()).data.user?.id;
+  } catch (e) {
+    console.error("Failed to get user ID", e);
+  }
+  return userId;
+}
 
 export function useStore() {
   const { toast } = useToast();
@@ -22,13 +33,7 @@ export function useStore() {
     setIsLoadingReflections(true);
 
     const client = await createClient();
-    const supabaseClient = createSupabaseClient();
-    let userId: string | undefined;
-    try {
-      userId = (await supabaseClient.auth.getUser()).data.user?.id;
-    } catch (e) {
-      console.error("Failed to get user ID", e);
-    }
+    const userId = await getUserId();
     if (!userId) {
       toast({
         title: "Failed to get user ID",
@@ -37,13 +42,12 @@ export function useStore() {
       return;
     }
 
-    const reflectionsNamespace = ["memories", userId, assistantId];
-    const reflectionsKey = "reflection";
+    const { namespace, key } = constructReflectionFields({
+      userId,
+      assistantId,
+    });
 
-    const item = await client.store.getItem(
-      reflectionsNamespace,
-      reflectionsKey
-    );
+    const item = await client.store.getItem(namespace, key);
 
     if (!item?.value) {
       setIsLoadingReflections(false);
@@ -77,11 +81,21 @@ export function useStore() {
   const deleteReflections = async (assistantId: string): Promise<boolean> => {
     try {
       const client = await createClient();
+      const userId = await getUserId();
+      if (!userId) {
+        toast({
+          title: "Failed to get user ID",
+          description: "Please try again later.",
+        });
+        return false;
+      }
 
-      const reflectionsNamespace = ["memories", "userId", assistantId];
-      const reflectionsKey = "reflection";
+      const { namespace, key } = constructReflectionFields({
+        userId,
+        assistantId,
+      });
 
-      await client.store.deleteItem(reflectionsNamespace, reflectionsKey);
+      await client.store.deleteItem(namespace, key);
 
       setReflections(undefined);
       return true;
@@ -204,7 +218,6 @@ export function useStore() {
       );
 
       newValue[editedAction.id] = editedAction;
-
       await client.store.putItem(customActionsNamespace, actionsKey, newValue);
       return true;
     } catch (e) {
@@ -226,18 +239,13 @@ export function useStore() {
   }): Promise<void> => {
     try {
       const client = await createClient();
+      const { namespace, key } = constructContextDocumentsFields({
+        assistantId,
+      });
 
-      const contextDocKey = assistantId;
-
-      const value = {
+      await client.store.putItem(namespace, key, {
         documents,
-      };
-
-      await client.store.putItem(
-        CONTEXT_DOCUMENTS_NAMESPACE,
-        contextDocKey,
-        value
-      );
+      });
     } catch (e) {
       console.error(e);
       toast({
@@ -252,13 +260,11 @@ export function useStore() {
   ): Promise<ContextDocument[] | undefined> => {
     try {
       const client = await createClient();
+      const { namespace, key } = constructContextDocumentsFields({
+        assistantId,
+      });
 
-      const contextDocKey = assistantId;
-
-      const item = await client.store.getItem(
-        CONTEXT_DOCUMENTS_NAMESPACE,
-        contextDocKey
-      );
+      const item = await client.store.getItem(namespace, key);
       if (!item?.value?.documents) {
         return undefined;
       }
