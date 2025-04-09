@@ -22,19 +22,6 @@ const USER_PERMISSIONS = [
   "store:delete",
 ];
 
-const ADMIN_PERMISSIONS = [
-  ...USER_PERMISSIONS,
-  "crons:create",
-  "crons:read",
-  "crons:update",
-  "crons:delete",
-  "crons:search",
-];
-
-const apiKeyMatch = (apiKey: string) => {
-  return apiKey === process.env.LANGCHAIN_API_KEY;
-};
-
 const isContextDocumentNamespace = (namespace: string[]): boolean => {
   return namespace.includes(CONTEXT_DOCUMENTS_NAMESPACE[0]);
 };
@@ -42,16 +29,6 @@ const isContextDocumentNamespace = (namespace: string[]): boolean => {
 export const auth = new Auth()
   .authenticate(async (request) => {
     const authorization = request.headers.get("Authorization");
-    const apiKey = request.headers.get("X-API-KEY");
-    if (apiKey && apiKeyMatch(apiKey)) {
-      return {
-        is_authenticated: true,
-        display_name: "ADMIN",
-        identity: "ADMIN",
-        permissions: ADMIN_PERMISSIONS,
-        role: "admin",
-      };
-    }
 
     const exc = new HTTPException(401, {
       message: "Could not validate credentials",
@@ -97,20 +74,12 @@ export const auth = new Auth()
       role: "user",
     };
   })
-  .on("*", ({ permissions, user }) => {
-    if (user.role === "admin") {
-      return;
-    }
-
+  .on("*", ({ permissions }) => {
     if (!permissions?.length) {
       throw new HTTPException(403, { message: "Not authorized" });
     }
   })
   .on("assistants:create", ({ value, user, permissions }) => {
-    if (user.role === "admin") {
-      return;
-    }
-
     if (!permissions?.includes("assistants:write")) {
       throw new HTTPException(403, { message: "Not authorized" });
     }
@@ -119,17 +88,9 @@ export const auth = new Auth()
     value.metadata["user_id"] = user.identity;
   })
   .on("assistants:search", ({ user }) => {
-    if (user.role === "admin") {
-      return;
-    }
-
     return { user_id: user.identity };
   })
   .on(["threads", "assistants"], ({ action, value, user }) => {
-    if (user.role === "admin") {
-      return;
-    }
-
     const filters = { user_id: user.identity };
     if (
       action === "threads:create_run" ||
@@ -144,10 +105,6 @@ export const auth = new Auth()
     return filters;
   })
   .on("store", ({ value, user }) => {
-    if (user.role === "admin") {
-      return;
-    }
-
     const identity = user.identity;
     // Throw an error if their identity is undefined, or if the namespace does not include their identity and is not a context document namespace
     // this is due to the legacy namespacing of the context documents which do not include the user identity
