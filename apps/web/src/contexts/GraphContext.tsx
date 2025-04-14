@@ -277,18 +277,21 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const newThread = await threadData.createThread();
-    if (!newThread) {
-      toast({
-        title: "Error",
-        description: "Failed to create thread",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
+    let currentThreadId = threadData.threadId;
+    if (!currentThreadId) {
+      const newThread = await threadData.createThread();
+      if (!newThread) {
+        toast({
+          title: "Error",
+          description: "Failed to create thread",
+          variant: "destructive",
+          duration: 5000,
+        });
+        return;
+      }
+      currentThreadId = newThread.thread_id;
     }
 
-    threadData.setThreadId(newThread.thread_id);
 
     const messagesInput = {
       // `messages` contains the full, unfiltered list of messages
@@ -348,7 +351,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     try {
       const workerService = new StreamWorkerService();
       const stream = workerService.streamData({
-        threadId: newThread.thread_id,
+        threadId: currentThreadId,
         assistantId: assistantsData.selectedAssistant.assistant_id,
         input,
         modelName: threadData.modelName,
