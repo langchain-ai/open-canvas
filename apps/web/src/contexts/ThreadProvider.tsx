@@ -163,9 +163,11 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
           },
         },
       });
+
       setThreadId(thread.thread_id);
       // Fetch updated threads so the new thread is included.
-      await getUserThreads();
+      // Do not await since we do not want to block the UI.
+      getUserThreads().catch(console.error);
       return thread;
     } catch (e) {
       console.error("Failed to create thread", e);
