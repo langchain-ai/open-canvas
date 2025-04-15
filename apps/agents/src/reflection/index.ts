@@ -8,31 +8,23 @@ import {
   ReflectionGraphAnnotation,
   ReflectionGraphReturnType,
 } from "./state.js";
-import { Reflections } from "@opencanvas/shared/types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts.js";
 import { z } from "zod";
-import { ensureStoreInConfig, formatReflections } from "../utils.js";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
 } from "@opencanvas/shared/utils/artifacts";
+import { getReflections, setReflections } from "../stores/reflections.js";
+import { Reflections } from "@opencanvas/shared/types";
 
 export const reflect = async (
   state: typeof ReflectionGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<ReflectionGraphReturnType> => {
-  const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.open_canvas_assistant_id;
-  if (!assistantId) {
-    throw new Error("`open_canvas_assistant_id` not found in configurable");
-  }
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
-
-  const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections)
-    : "No reflections found.";
+  const reflections = await getReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.user_id,
+  });
 
   const generateReflectionTool = {
     name: "generate_reflections",
@@ -67,7 +59,7 @@ export const reflect = async (
   const formattedSystemPrompt = REFLECT_SYSTEM_PROMPT.replace(
     "{artifact}",
     artifactContent ?? "No artifact found."
-  ).replace("{reflections}", memoriesAsString);
+  ).replace("{reflections}", reflections);
 
   const formattedUserPrompt = REFLECT_USER_PROMPT.replace(
     "{conversation}",
@@ -92,12 +84,16 @@ export const reflect = async (
     throw new Error("Reflection tool call failed.");
   }
 
-  const newMemories = {
+  const newMemories: Reflections = {
     styleRules: reflectionToolCall.args.styleRules,
     content: reflectionToolCall.args.content,
   };
 
-  await store.put(memoryNamespace, memoryKey, newMemories);
+  await setReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.user_id,
+    reflections: newMemories,
+  });
 
   return {};
 };

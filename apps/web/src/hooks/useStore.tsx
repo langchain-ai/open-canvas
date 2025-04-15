@@ -5,8 +5,21 @@ import {
 } from "@opencanvas/shared/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
-import { Item } from "@langchain/langgraph";
-import { CONTEXT_DOCUMENTS_NAMESPACE } from "@opencanvas/shared/constants";
+import { createClient } from "./utils";
+import { createSupabaseClient } from "@/lib/supabase/client";
+import { constructReflectionFields } from "@opencanvas/shared/stores/reflection";
+import { constructContextDocumentsFields } from "@opencanvas/shared/stores/context-documents";
+
+async function getUserId(): Promise<string | undefined> {
+  const supabaseClient = createSupabaseClient();
+  let userId: string | undefined;
+  try {
+    userId = (await supabaseClient.auth.getUser()).data.user?.id;
+  } catch (e) {
+    console.error("Failed to get user ID", e);
+  }
+  return userId;
+}
 
 export function useStore() {
   const { toast } = useToast();
@@ -18,22 +31,23 @@ export function useStore() {
 
   const getReflections = async (assistantId: string): Promise<void> => {
     setIsLoadingReflections(true);
-    const res = await fetch("/api/store/get", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: ["memories", assistantId],
-        key: "reflection",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
 
-    if (!res.ok) {
+    const client = await createClient();
+    const userId = await getUserId();
+    if (!userId) {
+      toast({
+        title: "Failed to get user ID",
+        description: "Please try again later.",
+      });
       return;
     }
 
-    const { item } = await res.json();
+    const { namespace, key } = constructReflectionFields({
+      userId,
+      assistantId,
+    });
+
+    const item = await client.store.getItem(namespace, key);
 
     if (!item?.value) {
       setIsLoadingReflections(false);
@@ -65,31 +79,34 @@ export function useStore() {
   };
 
   const deleteReflections = async (assistantId: string): Promise<boolean> => {
-    const res = await fetch("/api/store/delete", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: ["memories", assistantId],
-        key: "reflection",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const client = await createClient();
+      const userId = await getUserId();
+      if (!userId) {
+        toast({
+          title: "Failed to get user ID",
+          description: "Please try again later.",
+        });
+        return false;
+      }
 
-    if (!res.ok) {
-      return false;
-    }
+      const { namespace, key } = constructReflectionFields({
+        userId,
+        assistantId,
+      });
 
-    const { success } = await res.json();
-    if (success) {
+      await client.store.deleteItem(namespace, key);
+
       setReflections(undefined);
-    } else {
+      return true;
+    } catch (e) {
+      console.error(e);
       toast({
         title: "Failed to delete reflections",
         description: "Please try again later.",
       });
+      return false;
     }
-    return success;
   };
 
   const getCustomQuickActions = async (
@@ -97,22 +114,14 @@ export function useStore() {
   ): Promise<CustomQuickAction[] | undefined> => {
     setIsLoadingQuickActions(true);
     try {
-      const res = await fetch("/api/store/get", {
-        method: "POST",
-        body: JSON.stringify({
-          namespace: ["custom_actions", userId],
-          key: "actions",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const client = await createClient();
+      const customActionsNamespace = ["custom_actions", userId];
+      const actionsKey = "actions";
+      const item = await client.store.getItem(
+        customActionsNamespace,
+        actionsKey
+      );
 
-      if (!res.ok) {
-        return undefined;
-      }
-
-      const { item } = await res.json();
       if (!item?.value) {
         return undefined;
       }
@@ -127,34 +136,33 @@ export function useStore() {
     rest: CustomQuickAction[],
     userId: string
   ): Promise<boolean> => {
-    const valuesWithoutDeleted = rest.reduce<Record<string, CustomQuickAction>>(
-      (acc, action) => {
+    try {
+      const valuesWithoutDeleted = rest.reduce<
+        Record<string, CustomQuickAction>
+      >((acc, action) => {
         if (action.id !== id) {
           acc[action.id] = action;
         }
         return acc;
-      },
-      {}
-    );
+      }, {});
 
-    const res = await fetch("/api/store/put", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: ["custom_actions", userId],
-        key: "actions",
-        value: valuesWithoutDeleted,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
+      const client = await createClient();
+      const customActionsNamespace = ["custom_actions", userId];
+      const actionsKey = "actions";
+      await client.store.putItem(
+        customActionsNamespace,
+        actionsKey,
+        valuesWithoutDeleted
+      );
+      return true;
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Failed to delete custom quick action",
+        description: "Please try again later.",
+      });
       return false;
     }
-
-    const { success } = await res.json();
-    return success;
   };
 
   const createCustomQuickAction = async (
@@ -162,33 +170,32 @@ export function useStore() {
     rest: CustomQuickAction[],
     userId: string
   ): Promise<boolean> => {
-    const newValue = rest.reduce<Record<string, CustomQuickAction>>(
-      (acc, action) => {
-        acc[action.id] = action;
-        return acc;
-      },
-      {}
-    );
+    try {
+      const client = await createClient();
 
-    newValue[newAction.id] = newAction;
-    const res = await fetch("/api/store/put", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: ["custom_actions", userId],
-        key: "actions",
-        value: newValue,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+      const customActionsNamespace = ["custom_actions", userId];
+      const actionsKey = "actions";
 
-    if (!res.ok) {
+      const newValue = rest.reduce<Record<string, CustomQuickAction>>(
+        (acc, action) => {
+          acc[action.id] = action;
+          return acc;
+        },
+        {}
+      );
+
+      newValue[newAction.id] = newAction;
+
+      await client.store.putItem(customActionsNamespace, actionsKey, newValue);
+      return true;
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Failed to create custom quick action",
+        description: "Please try again later.",
+      });
       return false;
     }
-
-    const { success } = await res.json();
-    return success;
   };
 
   const editCustomQuickAction = async (
@@ -196,33 +203,31 @@ export function useStore() {
     rest: CustomQuickAction[],
     userId: string
   ): Promise<boolean> => {
-    const newValue = rest.reduce<Record<string, CustomQuickAction>>(
-      (acc, action) => {
-        acc[action.id] = action;
-        return acc;
-      },
-      {}
-    );
+    try {
+      const client = await createClient();
 
-    newValue[editedAction.id] = editedAction;
-    const res = await fetch("/api/store/put", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: ["custom_actions", userId],
-        key: "actions",
-        value: newValue,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+      const customActionsNamespace = ["custom_actions", userId];
+      const actionsKey = "actions";
 
-    if (!res.ok) {
+      const newValue = rest.reduce<Record<string, CustomQuickAction>>(
+        (acc, action) => {
+          acc[action.id] = action;
+          return acc;
+        },
+        {}
+      );
+
+      newValue[editedAction.id] = editedAction;
+      await client.store.putItem(customActionsNamespace, actionsKey, newValue);
+      return true;
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Failed to edit custom quick action",
+        description: "Please try again later.",
+      });
       return false;
     }
-
-    const { success } = await res.json();
-    return success;
   };
 
   const putContextDocuments = async ({
@@ -233,59 +238,45 @@ export function useStore() {
     documents: ContextDocument[];
   }): Promise<void> => {
     try {
-      const res = await fetch("/api/store/put", {
-        method: "POST",
-        body: JSON.stringify({
-          namespace: CONTEXT_DOCUMENTS_NAMESPACE,
-          key: assistantId,
-          value: {
-            documents,
-          },
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const client = await createClient();
+      const { namespace, key } = constructContextDocumentsFields({
+        assistantId,
       });
 
-      if (!res.ok) {
-        throw new Error(
-          "Failed to put context documents" + res.statusText + res.status
-        );
-      }
+      await client.store.putItem(namespace, key, {
+        documents,
+      });
     } catch (e) {
-      console.error("Failed to put context documents.\n", e);
+      console.error(e);
+      toast({
+        title: "Failed to set context documents.",
+        description: "Please try again later.",
+      });
     }
   };
 
   const getContextDocuments = async (
     assistantId: string
   ): Promise<ContextDocument[] | undefined> => {
-    const res = await fetch("/api/store/get", {
-      method: "POST",
-      body: JSON.stringify({
-        namespace: CONTEXT_DOCUMENTS_NAMESPACE,
-        key: assistantId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const client = await createClient();
+      const { namespace, key } = constructContextDocumentsFields({
+        assistantId,
+      });
 
-    if (!res.ok) {
-      console.error(
-        "Failed to get context documents",
-        res.statusText,
-        res.status
-      );
-      return undefined;
+      const item = await client.store.getItem(namespace, key);
+      if (!item?.value?.documents) {
+        return undefined;
+      }
+
+      return item.value.documents;
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Failed to get context documents.",
+        description: "Please try again later.",
+      });
     }
-
-    const { item }: { item: Item | null } = await res.json();
-    if (!item?.value?.documents) {
-      return undefined;
-    }
-
-    return item?.value?.documents;
   };
 
   return {

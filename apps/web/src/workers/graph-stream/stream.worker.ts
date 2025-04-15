@@ -6,10 +6,10 @@ const ctx: Worker = self as any;
 
 ctx.addEventListener("message", async (event: MessageEvent<StreamConfig>) => {
   try {
-    const { threadId, assistantId, input, modelName, modelConfigs } =
+    const { threadId, assistantId, input, modelName, modelConfigs, session } =
       event.data;
 
-    const client = createClient();
+    const client = await createClient(session);
 
     const stream = client.runs.stream(threadId, assistantId, {
       input: input as Record<string, unknown>,
@@ -18,6 +18,8 @@ ctx.addEventListener("message", async (event: MessageEvent<StreamConfig>) => {
         configurable: {
           customModelName: modelName,
           modelConfig: modelConfigs[modelName as keyof typeof modelConfigs],
+          supabase_session: session,
+          supabase_user_id: session?.user.id,
         },
       },
     });

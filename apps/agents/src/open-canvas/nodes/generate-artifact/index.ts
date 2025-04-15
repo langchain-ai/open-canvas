@@ -1,6 +1,5 @@
 import {
   createContextDocumentMessages,
-  getFormattedReflections,
   getModelConfig,
   getModelFromConfig,
   isUsingO1MiniModel,
@@ -15,6 +14,7 @@ import {
 import { ARTIFACT_TOOL_SCHEMA } from "./schemas.js";
 import { createArtifactContent, formatNewArtifactPrompt } from "./utils.js";
 import { z } from "zod";
+import { getReflections } from "../../../stores/reflections.js";
 
 /**
  * Generate a new artifact based on the user's query.
@@ -44,9 +44,13 @@ export const generateArtifact = async (
     }
   );
 
-  const memoriesAsString = await getFormattedReflections(config);
+  const reflections = await getReflections(config.store, {
+    assistantId: config.configurable?.assistant_id,
+    userId: config.configurable?.user_id,
+  });
+
   const formattedNewArtifactPrompt = formatNewArtifactPrompt(
-    memoriesAsString,
+    reflections,
     modelName
   );
 

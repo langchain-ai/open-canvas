@@ -1,5 +1,6 @@
 import { ALL_MODEL_NAMES } from "@opencanvas/shared/models";
 import { CustomModelConfig, GraphInput } from "@opencanvas/shared/types";
+import { Session } from "@supabase/supabase-js";
 
 export interface StreamWorkerMessage {
   type: "chunk" | "done" | "error";
@@ -13,4 +14,5 @@ export interface StreamConfig {
   input: GraphInput;
   modelName: ALL_MODEL_NAMES;
   modelConfigs: Record<string, CustomModelConfig>;
+  session: Session;
 }

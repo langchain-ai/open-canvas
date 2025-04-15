@@ -18,15 +18,13 @@ import {
   MessageContentComplex,
   MessageFieldWithRole,
 } from "@langchain/core/messages";
-import {
-  CONTEXT_DOCUMENTS_NAMESPACE,
-  OC_WEB_SEARCH_RESULTS_MESSAGE_KEY,
-} from "@opencanvas/shared/constants";
+import { OC_WEB_SEARCH_RESULTS_MESSAGE_KEY } from "@opencanvas/shared/constants";
 import {
   TEMPERATURE_EXCLUDED_MODELS,
   LANGCHAIN_USER_ONLY_MODELS,
 } from "@opencanvas/shared/models";
 import { createClient, Session, User } from "@supabase/supabase-js";
+import { getContextDocuments } from "./stores/context-documents.js";
 
 export const formatReflections = (
   reflections: Reflections,
@@ -108,27 +106,6 @@ export const ensureStoreInConfig = (
   }
   return config.store;
 };
-
-export async function getFormattedReflections(
-  config: LangGraphRunnableConfig
-): Promise<string> {
-  if (!config.store) {
-    return "No reflections found.";
-  }
-  const store = ensureStoreInConfig(config);
-  const assistantId = config.configurable?.assistant_id;
-  if (!assistantId) {
-    throw new Error("`assistant_id` not found in configurable");
-  }
-  const memoryNamespace = ["memories", assistantId];
-  const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
-  const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections)
-    : "No reflections found.";
-
-  return memoriesAsString;
-}
 
 export const formatArtifactContent = (
   content: ArtifactMarkdownV3 | ArtifactCodeV3,
@@ -512,19 +489,6 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
-async function getContextDocuments(
-  config: LangGraphRunnableConfig
-): Promise<ContextDocument[]> {
-  const store = config.store;
-  const assistantId = config.configurable?.assistant_id;
-  if (!store || !assistantId) {
-    return [];
-  }
-
-  const result = await store.get(CONTEXT_DOCUMENTS_NAMESPACE, assistantId);
-  return result?.value?.documents || [];
-}
-
 export async function createContextDocumentMessages(
   config: LangGraphRunnableConfig,
   contextDocuments?: ContextDocument[]
@@ -533,7 +497,9 @@ export async function createContextDocumentMessages(
   const documents: ContextDocument[] = contextDocuments || [];
 
   if (!documents.length && config) {
-    const docs = await getContextDocuments(config);
+    const docs = await getContextDocuments(config.store, {
+      assistantId: config.configurable?.assistant_id,
+    });
     documents.push(...docs);
   }
 
