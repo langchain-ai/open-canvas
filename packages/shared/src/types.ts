@@ -54,6 +54,7 @@ export interface ArtifactToolResponse {
   title?: string;
   language?: string;
   type?: string;
+  isValidReact?: boolean;
 }
 
 export type RewriteArtifactMetaToolResponse =
@@ -66,6 +67,7 @@ export type RewriteArtifactMetaToolResponse =
       type: "code";
       title: string;
       language: ProgrammingLanguageOptions;
+      isValidReact?: boolean
     };
 
 export type LanguageOptions =

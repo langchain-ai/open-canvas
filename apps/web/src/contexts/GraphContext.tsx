@@ -831,6 +831,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                     type: artifactType,
                     title: prevCurrentContent.title,
                     language: artifactLanguage,
+                    isValidReact: isArtifactCodeContent(artifact) ? artifact.isValidReact : undefined
                   },
                   prevCurrentContent,
                   newArtifactIndex,
@@ -1154,6 +1155,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                     type: artifactType,
                     title: prevCurrentContent.title,
                     language: artifactLanguage,
+                    isValidReact: isArtifactCodeContent(artifact) ? artifact.isValidReact : undefined
                   },
                   prevCurrentContent,
                   newArtifactIndex,

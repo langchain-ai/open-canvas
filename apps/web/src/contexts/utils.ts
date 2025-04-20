@@ -94,6 +94,7 @@ export const createNewGeneratedArtifactFromTool = (
       title: artifactTool.title || "",
       code: artifactTool.artifact || "",
       language: artifactTool.language as ProgrammingLanguageOptions,
+      isValidReact: artifactTool.isValidReact
     };
   }
 };
@@ -272,6 +273,7 @@ export const updateRewrittenArtifact = ({
           index: currentIndex,
           language: artifactLanguage as ProgrammingLanguageOptions,
           code: newArtifactContent,
+          isValidReact: rewriteArtifactMeta.isValidReact
         },
       ];
     } else {
