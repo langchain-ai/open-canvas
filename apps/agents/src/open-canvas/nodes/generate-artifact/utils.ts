@@ -31,6 +31,7 @@ export const createArtifactContent = (
       title: toolCall?.title,
       code: toolCall?.artifact,
       language: toolCall?.language as ProgrammingLanguageOptions,
+      isValidReact: toolCall?.isValidReact
     };
   }
 

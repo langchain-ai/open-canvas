@@ -116,6 +116,7 @@ export interface ArtifactCodeV3 {
   title: string;
   language: ProgrammingLanguageOptions;
   code: string;
+  isValidReact?: boolean;
 }
 
 export interface ArtifactV3 {
