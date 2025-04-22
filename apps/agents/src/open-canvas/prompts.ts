@@ -1,4 +1,7 @@
-const DEFAULT_CODE_PROMPT_RULES = `- Do NOT include triple backticks when generating code. The code should be in plain text.`;
+const DEFAULT_CODE_PROMPT_RULES = `
+- If writing React code with style information, remember to put all CSS in a style element.
+- Do NOT include triple backticks when generating code. The code should be in plain text.
+`;
 
 const APP_CONTEXT = `
 <app-context>

@@ -30,7 +30,7 @@ export function CodePreviewer({ isExpanded, artifact }: CodePreviewerProps) {
         {isExpanded && (
           <LiveProvider noInline code={`${cleanedCode}`}>
             <LivePreview />
-            <LiveError className="text-red-800 bg-red-100 mt-2" />
+            <LiveError className="text-red-800 bg-red-100 rounded p-4" />
           </LiveProvider>
         )}
       </div>

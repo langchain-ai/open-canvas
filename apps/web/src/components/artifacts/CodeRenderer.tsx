@@ -67,18 +67,21 @@ const getLanguageExtension = (language: string) => {
   }
 };
 
+export interface ToggleCodePreviewProps {
+  isCodePreviewVisible: boolean;
+  setIsCodePreviewVisible: Dispatch<SetStateAction<boolean>>;
+  codePreviewDisabled: boolean;
+  isStreaming: boolean;
+}
+
 function ToggleCodePreview({
   isCodePreviewVisible,
   setIsCodePreviewVisible,
-  disabled,
-}: {
-  isCodePreviewVisible: boolean;
-  setIsCodePreviewVisible: Dispatch<SetStateAction<boolean>>;
-  disabled: boolean;
-}) {
-  const tooltipContent = disabled
-    ? "Code preview is only supported for valid React code"
-    : `${isCodePreviewVisible ? "Hide" : "Show"} code preview`;
+  codePreviewDisabled,
+}: ToggleCodePreviewProps) {
+  const tooltipContent = codePreviewDisabled
+      ? "Code preview is only supported for valid React code"
+      : `${isCodePreviewVisible ? "Hide" : "Show"} code preview`;
 
   return (
     <motion.div
@@ -91,6 +94,7 @@ function ToggleCodePreview({
         tooltip={tooltipContent}
         variant="outline"
         delayDuration={400}
+        disabled={codePreviewDisabled}
         onClick={() => setIsCodePreviewVisible((p) => !p)}
       >
         {isCodePreviewVisible ? (
@@ -120,6 +124,12 @@ export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
       setUpdateRenderedArtifactRequired(false);
     }
   }, [updateRenderedArtifactRequired]);
+
+  useEffect(() => {
+    if (isStreaming) {
+      setIsCodePreviewVisible(false);
+    }
+  }, [isStreaming]);
 
   if (!artifact) {
     return null;
@@ -162,11 +172,12 @@ export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
         {props.isHovering && (
           <div className="absolute flex gap-2 top-2 right-4 z-10">
             <CopyText currentArtifactContent={artifactContent} />
-            <ToggleCodePreview
+            {!isStreaming && <ToggleCodePreview
               isCodePreviewVisible={isCodePreviewVisible}
               setIsCodePreviewVisible={setIsCodePreviewVisible}
-              disabled={!artifactContent.isValidReact}
-            />
+              codePreviewDisabled={!artifactContent.isValidReact}
+              isStreaming={isStreaming}
+            />}
           </div>
         )}
         <CodeMirror
