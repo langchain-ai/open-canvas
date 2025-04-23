@@ -100,7 +100,8 @@ jobs:
       - name: Rename compiled script to .cjs
         run: mv ./dist/scripts/check-dev-server.js ./dist/scripts/check-dev-server.cjs
       - name: Create .env file for dev server check
-        run: touch .env
+        # .env needs to be in the root of the project
+        run: touch ../../.env
       - name: Run dev server check
         run: node ./dist/scripts/check-dev-server.cjs
         env:
