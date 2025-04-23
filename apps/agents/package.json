@@ -12,10 +12,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "npx @langchain/langgraph-cli dev --port 54367 --config ../../langgraph.json",
+    "dev": "yarn langgraphjs dev --port 54367 --config ../../langgraph.json --no-browser",
     "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
-    "format": "prettier --config .prettierrc --write \"src\"",
+    "format": "prettier --config .prettierrc --write \"src\" \"scripts\"",
+    "format:check": "prettier --config .prettierrc --check \"src\" \"scripts\"",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "postinstall": "yarn turbo build"
@@ -50,6 +51,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
+    "@langchain/langgraph-cli": "^0.0.27",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash": "^4.17.12",
     "@types/node": "^20",

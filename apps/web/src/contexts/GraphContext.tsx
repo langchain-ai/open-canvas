@@ -292,7 +292,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       currentThreadId = newThread.thread_id;
     }
 
-
     const messagesInput = {
       // `messages` contains the full, unfiltered list of messages
       messages: params.messages,

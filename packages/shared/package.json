@@ -28,6 +28,7 @@
     "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\"",
+    "format:check": "prettier --config .prettierrc --check \"src\"",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },
