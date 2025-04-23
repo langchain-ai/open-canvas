@@ -16,6 +16,7 @@
     "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\" \"scripts\"",
+    "format:check": "prettier --config .prettierrc --check \"src\" \"scripts\"",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "postinstall": "yarn turbo build"

@@ -12,6 +12,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --config .prettierrc --write \"src\"",
+    "format:check": "prettier --config .prettierrc --check \"src\"",
     "eval": "vitest run --config ls.vitest.config.ts",
     "eval:highlights": "yarn tsx evals/highlights.ts"
   },
