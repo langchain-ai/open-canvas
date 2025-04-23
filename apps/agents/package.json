@@ -12,7 +12,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "npx @langchain/langgraph-cli dev --port 54367 --config ../../langgraph.json",
+    "dev": "npx @langchain/langgraph-cli dev --port 54367 --config ../../langgraph.json --no-browser",
     "build": "yarn clean && tsc",
     "clean": "rm -rf ./dist .turbo || true",
     "format": "prettier --config .prettierrc --write \"src\" \"scripts\"",
