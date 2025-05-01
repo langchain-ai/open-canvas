@@ -110,6 +110,7 @@ export const createNewArtifactContent = ({
         currentArtifactContent
       ) as ProgrammingLanguageOptions,
       code: newContent,
+      isValidReact: artifactMetaToolCall.isValidReact
     };
   }
 

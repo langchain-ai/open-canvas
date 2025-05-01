@@ -112,6 +112,7 @@ export const rewriteCodeArtifactTheme = async (
     // Ensure the new artifact's language is updated, if necessary
     language: state.portLanguage || currentArtifactContent.language,
     code: artifactContentText,
+    isValidReact: currentArtifactContent.isValidReact
   };
 
   const newArtifact: ArtifactV3 = {

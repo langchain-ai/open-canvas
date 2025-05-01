@@ -22,5 +22,11 @@ export const OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA = z
       .describe(
         "The language of the code artifact. This should be populated with the programming language if the user is requesting code to be written, or 'other', in all other cases."
       ),
+    isValidReact: z
+      .boolean()
+      .optional()
+      .describe(
+        "Whether or not the generated code is valid React code. Only populate this field if generating code."
+    ),
   })
   .describe("Update the artifact meta information, if necessary.");

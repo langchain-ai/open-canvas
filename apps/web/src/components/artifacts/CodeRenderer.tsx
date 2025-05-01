@@ -1,5 +1,11 @@
 import { ArtifactCodeV3 } from "@opencanvas/shared/types";
-import React, { MutableRefObject, useEffect } from "react";
+import React, {
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { cpp } from "@codemirror/lang-cpp";
@@ -19,7 +25,10 @@ import { cn } from "@/lib/utils";
 import { CopyText } from "./components/CopyText";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { useGraphContext } from "@/contexts/GraphContext";
-
+import { motion } from "framer-motion";
+import { TooltipIconButton } from "../ui/assistant-ui/tooltip-icon-button";
+import { PanelRightOpen, PanelRightClose } from "lucide-react";
+import { CodePreviewer } from "./CodePreviewer";
 export interface CodeRendererProps {
   editorRef: MutableRefObject<EditorView | null>;
   isHovering: boolean;
@@ -58,6 +67,46 @@ const getLanguageExtension = (language: string) => {
   }
 };
 
+export interface ToggleCodePreviewProps {
+  isCodePreviewVisible: boolean;
+  setIsCodePreviewVisible: Dispatch<SetStateAction<boolean>>;
+  codePreviewDisabled: boolean;
+  isStreaming: boolean;
+}
+
+function ToggleCodePreview({
+  isCodePreviewVisible,
+  setIsCodePreviewVisible,
+  codePreviewDisabled,
+}: ToggleCodePreviewProps) {
+  const tooltipContent = codePreviewDisabled
+      ? "Code preview is only supported for valid React code"
+      : `${isCodePreviewVisible ? "Hide" : "Show"} code preview`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <TooltipIconButton
+        tooltip={tooltipContent}
+        variant="outline"
+        delayDuration={400}
+        disabled={codePreviewDisabled}
+        onClick={() => setIsCodePreviewVisible((p) => !p)}
+      >
+        {isCodePreviewVisible ? (
+          <PanelRightClose className="w-5 h-5 text-gray-600" />
+        ) : (
+          <PanelRightOpen className="w-5 h-5 text-gray-600" />
+        )}
+      </TooltipIconButton>
+    </motion.div>
+  );
+}
+
 export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
   const { graphData } = useGraphContext();
   const {
@@ -68,12 +117,19 @@ export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
     setArtifactContent,
     setUpdateRenderedArtifactRequired,
   } = graphData;
+  const [isCodePreviewVisible, setIsCodePreviewVisible] = useState(false);
 
   useEffect(() => {
     if (updateRenderedArtifactRequired) {
       setUpdateRenderedArtifactRequired(false);
     }
   }, [updateRenderedArtifactRequired]);
+
+  useEffect(() => {
+    if (isStreaming) {
+      setIsCodePreviewVisible(false);
+    }
+  }, [isStreaming]);
 
   if (!artifact) {
     return null;
@@ -89,7 +145,7 @@ export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
   const isEditable = !isStreaming;
 
   return (
-    <div className="relative">
+    <motion.div layout className="flex flex-row w-full overflow-hidden">
       <style jsx global>{`
         .pulse-code .cm-content {
           animation: codePulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -105,27 +161,48 @@ export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
           }
         }
       `}</style>
-      {props.isHovering && (
-        <div className="absolute top-0 right-4 z-10">
-          <CopyText currentArtifactContent={artifactContent} />
-        </div>
-      )}
-      <CodeMirror
-        editable={isEditable}
-        className={cn(
-          "w-full min-h-full",
-          styles.codeMirrorCustom,
-          isStreaming && !firstTokenReceived ? "pulse-code" : ""
-        )}
-        value={cleanContent(artifactContent.code)}
-        height="800px"
-        extensions={extensions}
-        onChange={(c) => setArtifactContent(artifactContent.index, c)}
-        onCreateEditor={(view) => {
-          props.editorRef.current = view;
+      <motion.div
+        layout
+        className="relative overflow-hidden"
+        animate={{
+          flex: isCodePreviewVisible ? 0.5 : 1,
         }}
-      />
-    </div>
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {props.isHovering && (
+          <div className="absolute flex gap-2 top-2 right-4 z-10">
+            <CopyText currentArtifactContent={artifactContent} />
+            {!isStreaming && <ToggleCodePreview
+              isCodePreviewVisible={isCodePreviewVisible}
+              setIsCodePreviewVisible={setIsCodePreviewVisible}
+              codePreviewDisabled={!artifactContent.isValidReact}
+              isStreaming={isStreaming}
+            />}
+          </div>
+        )}
+        <CodeMirror
+          editable={isEditable}
+          className={cn(
+            "w-full min-h-full",
+            styles.codeMirrorCustom,
+            isStreaming && !firstTokenReceived ? "pulse-code" : ""
+          )}
+          value={cleanContent(artifactContent.code)}
+          height="800px"
+          extensions={extensions}
+          onChange={(c) => setArtifactContent(artifactContent.index, c)}
+          onCreateEditor={(view) => {
+            props.editorRef.current = view;
+          }}
+        />
+      </motion.div>
+      {!isStreaming && artifactContent.isValidReact && (
+        <CodePreviewer
+          artifact={artifactContent}
+          isExpanded={isCodePreviewVisible}
+        />
+      )}
+    </motion.div>
   );
 }
 
