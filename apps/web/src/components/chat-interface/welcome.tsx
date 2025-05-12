@@ -8,33 +8,60 @@ import { ProgrammingLanguagesDropdown } from "../ui/programming-lang-dropdown";
 import { Button } from "../ui/button";
 
 const QUICK_START_PROMPTS_SEARCH = [
-  "Write a market analysis of AI chip manufacturers in 2025",
-  "Create a blog post about the latest climate change policies and their impact",
-  "Draft an investor update on renewable energy trends this quarter",
-  "Write a report on current cybersecurity threats in cloud computing",
-  "Analyze the latest developments in quantum computing for a tech newsletter",
-  "Create a summary of emerging medical breakthroughs in cancer treatment",
-  "Write about the impact of current interest rates on the housing market",
-  "Draft an article about breakthroughs in battery technology this year",
-  "Analyze current supply chain disruptions in semiconductor manufacturing",
-  "Write about how recent AI regulations affect business innovation",
+  "Analyze the market potential for AI-powered healthcare startups in 2024",
+  "Create a due diligence report template for early-stage tech investments",
+  "Draft an investment memo for a Series A SaaS company",
+  "Write a market analysis of the quantum computing startup ecosystem",
+  "Analyze the competitive landscape for fintech startups in emerging markets",
+  "Create a summary of recent trends in climate tech investments",
+  "Write about the impact of AI regulations on startup valuations",
+  "Draft a technology scouting report for enterprise software startups",
+  "Analyze the current state of biotech startup funding",
+  "Write about emerging opportunities in Web3 infrastructure",
 ];
 
 const QUICK_START_PROMPTS = [
-  "Write a bedtime story about a brave little robot",
-  "Create a function to calculate Fibonacci numbers in TypeScript",
-  "Draft a resignation letter for a position I've had for 2 years",
-  "Build a simple weather dashboard using React and Tailwind",
-  "Write a poem about artificial intelligence",
-  "Create a basic Express.js REST API with two endpoints",
-  "Draft a congratulatory speech for my sister's graduation",
-  "Build a command-line calculator in Python",
-  "Write instructions for making perfect scrambled eggs",
-  "Create a simple snake game using HTML canvas",
-  "Write me a TODO app in React",
-  "Explain why the sky is blue in a short essay",
-  "Help me draft an email to my professor Craig",
-  "Write a web scraping program in Python",
+  // Nordic/European Focus
+  "Identify startups in the Nordics that address CO2 emissions",
+  "Map the European quantum computing startup ecosystem",
+  "Analyze the growth of fintech startups in the Baltic region",
+  "List the top 10 climate tech startups in Scandinavia",
+  
+  // Investment Analysis
+  "Analyse the potential of quantum computing as part of an investment thesis",
+  "Create an investment memo for a Series A AI startup",
+  "Evaluate the market opportunity for robotic process automation",
+  "Assess the investment potential of Web3 infrastructure startups",
+  
+  // Due Diligence & Evaluation
+  "Analyse the attached pitch deck with regards to investment attractiveness",
+  "Conduct a technical due diligence on this AI startup",
+  "Review this startup's go-to-market strategy",
+  "Evaluate this company's competitive moat and defensibility",
+  
+  // Market Analysis
+  "Give me the market size for robotic arms",
+  "Analyze the TAM for enterprise AI solutions",
+  "Research the growth rate of the cybersecurity market",
+  "Map the competitive landscape in the biotech sector",
+  
+  // Technology Trends
+  "Make me a list of the hottest technology trends to watch",
+  "Identify emerging opportunities in AI infrastructure",
+  "Analyze the impact of new AI regulations on startups",
+  "Research breakthrough technologies in renewable energy",
+  
+  // Industry Deep Dives
+  "Create a market overview of the healthtech sector",
+  "Analyze the future of work and automation trends",
+  "Research the evolution of fintech in emerging markets",
+  "Map the landscape of enterprise SaaS startups",
+  
+  // Strategic Analysis
+  "Evaluate the potential of this startup's business model",
+  "Analyze the scalability of this B2B SaaS solution",
+  "Research the market readiness for this new technology",
+  "Assess the competitive advantages of this startup"
 ];
 
 function getRandomPrompts(prompts: string[], count: number = 4): string[] {
