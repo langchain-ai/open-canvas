@@ -284,9 +284,7 @@ export function TextRendererComponent(props: TextRendererProps) {
             onCompositionStartCapture={() => (isComposition.current = true)}
             onCompositionEndCapture={() => (isComposition.current = false)}
             onChange={onChange}
-            editable={
-              !isStreaming || props.isEditing || !manuallyUpdatingArtifact
-            }
+            editable={false}
             editor={editor}
             className={cn(
               isStreaming && !firstTokenReceived ? "pulse-text" : "",
