@@ -26,6 +26,8 @@ export interface ArtifactRendererProps {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   chatCollapsed: boolean;
   setChatCollapsed: (c: boolean) => void;
+  isCanvasPanelCollapsed: boolean;
+  setIsCanvasPanelCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface SelectionBox {
@@ -318,6 +320,8 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
         artifactUpdateFailed={artifactUpdateFailed}
         chatCollapsed={props.chatCollapsed}
         setChatCollapsed={props.setChatCollapsed}
+        isCanvasPanelCollapsed={props.isCanvasPanelCollapsed}
+        setIsCanvasPanelCollapsed={props.setIsCanvasPanelCollapsed}
       />
       <div
         ref={contentRef}
