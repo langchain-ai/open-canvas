@@ -100,7 +100,9 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
   return (
     <div className="flex flex-col gap-8 items-center justify-center w-full">
       <div className="flex flex-col gap-6">
-        <p className="text-gray-600 text-sm dark:text-gray-300">Start with a blank canvas</p>
+        <p className="text-gray-600 text-sm dark:text-gray-300">
+          Start with a blank canvas
+        </p>
         <div className="flex flex-row gap-1 items-center justify-center w-full">
           <Button
             variant="outline"
@@ -114,7 +116,9 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
         </div>
       </div>
       <div className="flex flex-col gap-6 mt-2 w-full">
-        <p className="text-gray-600 text-sm dark:text-gray-300">or with a message</p>
+        <p className="text-gray-600 text-sm dark:text-gray-300">
+          or with a message
+        </p>
         {props.composer}
         <QuickStartPrompts searchEnabled={props.searchEnabled} />
       </div>

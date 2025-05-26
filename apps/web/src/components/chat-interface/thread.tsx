@@ -98,7 +98,9 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           <ThreadHistory
             switchSelectedThreadCallback={switchSelectedThreadCallback}
           />
-          <TighterText className="text-xl dark:text-gray-300">Open Canvas</TighterText>
+          <TighterText className="text-xl dark:text-gray-300">
+            Open Canvas
+          </TighterText>
           {!hasChatStarted && (
             <ModelSelector
               modelName={modelName}
@@ -110,33 +112,33 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
           )}
         </div>
         <div className="flex items-center mx-3">
-        <ModeToggle/>
-        {hasChatStarted ? (
-          <div className="flex flex-row flex-1 gap-2 items-center justify-end">
-            <TooltipIconButton
-              tooltip="Collapse Chat"
-              variant="ghost"
-              className="w-8 h-8"
-              delayDuration={400}
-              onClick={() => props.setChatCollapsed(true)}
-            >
-              <PanelRightOpen className="text-gray-600 dark:text-gray-300" />
-            </TooltipIconButton>
-            <TooltipIconButton
-              tooltip="New chat"
-              variant="ghost"
-              className="w-8 h-8"
-              delayDuration={400}
-              onClick={handleNewSession}
-            >
-              <SquarePen className="text-gray-600 dark:text-gray-300" />
-            </TooltipIconButton>
-          </div>
-        ) : (
-          <div className="flex flex-row gap-2 items-center">
-            <ReflectionsDialog selectedAssistant={selectedAssistant} />
-          </div>
-        )}
+          <ModeToggle />
+          {hasChatStarted ? (
+            <div className="flex flex-row flex-1 gap-2 items-center justify-end">
+              <TooltipIconButton
+                tooltip="Collapse Chat"
+                variant="ghost"
+                className="w-8 h-8"
+                delayDuration={400}
+                onClick={() => props.setChatCollapsed(true)}
+              >
+                <PanelRightOpen className="text-gray-600 dark:text-gray-300" />
+              </TooltipIconButton>
+              <TooltipIconButton
+                tooltip="New chat"
+                variant="ghost"
+                className="w-8 h-8"
+                delayDuration={400}
+                onClick={handleNewSession}
+              >
+                <SquarePen className="text-gray-600 dark:text-gray-300" />
+              </TooltipIconButton>
+            </div>
+          ) : (
+            <div className="flex flex-row gap-2 items-center">
+              <ReflectionsDialog selectedAssistant={selectedAssistant} />
+            </div>
+          )}
         </div>
       </div>
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto scroll-smooth bg-inherit px-4 pt-8">

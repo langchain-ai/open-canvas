@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "@/components/ui/theme-providers";
 
-
 const inter = Inter({
   subsets: ["latin"],
 });
@@ -23,16 +22,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-screen" suppressHydrationWarning>
       <body className={cn("min-h-full", inter.className)}>
-      <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-      >
-        <NuqsAdapter>
-          {children}
-        </NuqsAdapter>
-      </ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </ThemeProvider>
       </body>
     </html>
   );

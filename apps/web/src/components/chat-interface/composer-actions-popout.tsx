@@ -102,7 +102,7 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
               className="size-7 flex-shrink-0 bg-blue-100 hover:bg-blue-100"
               onClick={() => setSearchEnabled((p) => !p)}
             >
-              <Globe/>
+              <Globe />
             </TooltipIconButton>
           )}
           {!isDefaultSelected && (
