@@ -80,7 +80,7 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
             key={`quick-start-prompt-${index}`}
             onClick={() => handleClick(prompt)}
             variant="outline"
-            className="min-h-[60px] w-full flex items-center justify-center p-6 whitespace-normal text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl"
+            className="min-h-[60px] w-full flex items-center justify-center p-6 whitespace-normal text-gray-500 dark:text-gray-300 hover:text-gray-700 transition-colors ease-in rounded-2xl"
           >
             <p className="text-center break-words text-sm font-normal">
               {prompt}
@@ -100,11 +100,11 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
   return (
     <div className="flex flex-col gap-8 items-center justify-center w-full">
       <div className="flex flex-col gap-6">
-        <p className="text-gray-600 text-sm">Start with a blank canvas</p>
+        <p className="text-gray-600 text-sm dark:text-gray-300">Start with a blank canvas</p>
         <div className="flex flex-row gap-1 items-center justify-center w-full">
           <Button
             variant="outline"
-            className="text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl flex items-center justify-center gap-2 w-[250px] h-[64px]"
+            className="text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl flex items-center justify-center gap-2 w-[250px] h-[64px] dark:text-gray-300"
             onClick={() => props.handleQuickStart("text")}
           >
             New Markdown
@@ -114,7 +114,7 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
         </div>
       </div>
       <div className="flex flex-col gap-6 mt-2 w-full">
-        <p className="text-gray-600 text-sm">or with a message</p>
+        <p className="text-gray-600 text-sm dark:text-gray-300">or with a message</p>
         {props.composer}
         <QuickStartPrompts searchEnabled={props.searchEnabled} />
       </div>

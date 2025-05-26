@@ -107,7 +107,7 @@ export function ReflectionsDialog(props: ReflectionsDialogProps) {
           className="w-fit h-fit p-2"
           onClick={() => setOpen(true)}
         >
-          <BrainCog className="w-6 h-6 text-gray-600" />
+          <BrainCog className="w-6 h-6 text-gray-600 dark:text-gray-300" />
         </TooltipIconButton>
       </DialogTrigger>
       <DialogContent className="max-w-xl p-8 bg-white rounded-lg shadow-xl">
