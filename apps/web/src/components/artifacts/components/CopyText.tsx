@@ -46,7 +46,7 @@ export function CopyText(props: CopyTextProps) {
           }
         }}
       >
-        <Copy className="w-5 h-5 text-gray-600" />
+        <Copy className="w-5 h-5 text-gray-600 dark:text-gray-300" />
       </TooltipIconButton>
     </motion.div>
   );

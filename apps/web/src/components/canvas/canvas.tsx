@@ -146,7 +146,7 @@ export function CanvasComponent() {
           defaultSize={25}
           minSize={15}
           maxSize={50}
-          className="transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right"
+          className="transition-all duration-700 h-screen mr-auto bg-gray-50/70 dark:bg-gray-950 shadow-inner-right"
           id="chat-panel-main"
           order={1}
         >

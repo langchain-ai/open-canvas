@@ -9,7 +9,7 @@ interface ArtifactTitleProps {
 export function ArtifactTitle(props: ArtifactTitleProps) {
   return (
     <div className="pl-[6px] pt-3 flex flex-col items-start justify-start ml-[6px] gap-1 max-w-1/2">
-      <h1 className="text-xl font-medium text-gray-600 line-clamp-1">
+      <h1 className="text-xl font-medium text-gray-600 line-clamp-1 dark:text-gray-300">
         {props.title}
       </h1>
       <span className="mt-auto">

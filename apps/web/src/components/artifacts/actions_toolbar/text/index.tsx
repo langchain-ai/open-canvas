@@ -109,7 +109,7 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
     <div
       ref={toolbarRef}
       className={cn(
-        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center bg-white",
+        "fixed bottom-4 right-4 transition-all duration-300 ease-in-out text-black flex flex-col items-center justify-center bg-white dark:bg-black dark:text-gray-300",
         isExpanded
           ? "w-fit-content min-h-fit rounded-3xl"
           : "w-12 h-12 rounded-full"
@@ -156,10 +156,10 @@ export function ActionsToolbar(props: ActionsToolbarProps) {
         >
           <MagicPencilSVG
             className={cn(
-              "w-[26px] h-[26px]",
+              "w-[26px] h-[26px] dark:text-gray-300",
               props.isTextSelected
                 ? "text-gray-400"
-                : "hover:text-gray-900 transition-colors"
+                : "hover:text-gray-900 hover:dark:text-gray-400 transition-colors"
             )}
           />
         </TooltipIconButton>

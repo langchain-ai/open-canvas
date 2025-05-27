@@ -18,6 +18,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Textarea } from "../ui/textarea";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 const cleanText = (text: string) => {
   return text.replaceAll("\\\n", "\n");
@@ -44,9 +45,9 @@ function ViewRawText({
         onClick={() => setIsRawView((p) => !p)}
       >
         {isRawView ? (
-          <EyeOff className="w-5 h-5 text-gray-600" />
+          <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         ) : (
-          <Eye className="w-5 h-5 text-gray-600" />
+          <Eye className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         )}
       </TooltipIconButton>
     </motion.div>
@@ -73,6 +74,7 @@ export function TextRendererComponent(props: TextRendererProps) {
   } = graphData;
 
   const [rawMarkdown, setRawMarkdown] = useState("");
+  const { resolvedTheme } = useTheme();
   const [isRawView, setIsRawView] = useState(false);
   const [manuallyUpdatingArtifact, setManuallyUpdatingArtifact] =
     useState(false);
@@ -278,7 +280,7 @@ export function TextRendererComponent(props: TextRendererProps) {
             }
           `}</style>
           <BlockNoteView
-            theme="light"
+            theme={resolvedTheme === "light" ? "light" : "dark"}
             formattingToolbar={false}
             slashMenu={false}
             onCompositionStartCapture={() => (isComposition.current = true)}
