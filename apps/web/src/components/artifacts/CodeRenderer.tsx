@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { CopyText } from "./components/CopyText";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { useGraphContext } from "@/contexts/GraphContext";
+import { useTheme } from "next-themes";
 
 export interface CodeRendererProps {
   editorRef: MutableRefObject<EditorView | null>;
@@ -60,6 +61,7 @@ const getLanguageExtension = (language: string) => {
 
 export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
   const { graphData } = useGraphContext();
+  const { resolvedTheme } = useTheme();
   const {
     artifact,
     isStreaming,
@@ -112,6 +114,7 @@ export function CodeRendererComponent(props: Readonly<CodeRendererProps>) {
       )}
       <CodeMirror
         editable={isEditable}
+        theme={resolvedTheme === "light" ? "light" : "dark"}
         className={cn(
           "w-full min-h-full",
           styles.codeMirrorCustom,

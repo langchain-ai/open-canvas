@@ -31,7 +31,7 @@ export function ArtifactHeader(props: ArtifactHeaderProps) {
             delayDuration={400}
             onClick={() => props.setChatCollapsed(false)}
           >
-            <PanelRightClose className="text-gray-600" />
+            <PanelRightClose className="text-gray-600 dark:text-gray-300" />
           </TooltipIconButton>
         )}
         <ArtifactTitle
