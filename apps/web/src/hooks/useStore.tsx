@@ -5,7 +5,7 @@ import {
 } from "@opencanvas/shared/types";
 import { useState } from "react";
 import { useToast } from "./use-toast";
-import { Item } from "@langchain/langgraph";
+import { Item } from "@langchain/langgraph-sdk";
 import { CONTEXT_DOCUMENTS_NAMESPACE } from "@opencanvas/shared/constants";
 
 export function useStore() {
