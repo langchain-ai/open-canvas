@@ -205,7 +205,7 @@ export const ComposerAddAttachment: FC<{ className?: string }> = ({
         tooltip="Add Attachment"
         variant="ghost"
       >
-        <PaperclipIcon />
+        <PaperclipIcon className="dark:hover:text-gray-600" />
       </TooltipIconButton>
     </ComposerPrimitive.AddAttachment>
   );

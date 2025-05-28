@@ -99,10 +99,10 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
             <TooltipIconButton
               tooltip="Web search"
               variant="ghost"
-              className="size-7 flex-shrink-0 bg-blue-100 hover:bg-blue-100"
+              className="size-7 flex-shrink-0 bg-blue-100 hover:bg-blue-100 "
               onClick={() => setSearchEnabled((p) => !p)}
             >
-              <Globe />
+              <Globe className="dark:hover:text-gray-600" />
             </TooltipIconButton>
           )}
           {!isDefaultSelected && (
@@ -136,7 +136,7 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
                   className="size-7 flex-shrink-0 hover:bg-blue-100 transition-colors ease-in-out"
                   onClick={() => setSearchEnabled((p) => !p)}
                 >
-                  <Globe />
+                  <Globe className="dark:hover:text-gray-600" />
                 </TooltipIconButton>
               )}
               {isDefaultSelected && (
