@@ -193,10 +193,10 @@ export function CustomQuickActions(props: CustomQuickActionsProps) {
         >
           <WandSparkles
             className={cn(
-              "w-[26px] h-[26px]",
+              "w-[26px] h-[26px] dark:text-gray-300",
               props.isTextSelected
                 ? "text-gray-400"
-                : "hover:text-gray-900 transition-colors"
+                : "hover:text-gray-900 hover:dark:text-gray-400 transition-colors"
             )}
           />
         </TooltipIconButton>
