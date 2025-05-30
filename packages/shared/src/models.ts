@@ -15,15 +15,75 @@ const AZURE_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 4096,
-        default: 4096,
-        current: 4096,
+        max: 4_096,
+        default: 4_096,
+        current: 4_096,
       },
     },
   },
 ];
 
 const OPENAI_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "gpt-4.1",
+    label: "GPT 4.1",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 32_768,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "gpt-4.1-mini",
+    label: "GPT 4.1 mini",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 32_768,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "o4-mini",
+    label: "o4 mini",
+    config: {
+      provider: "openai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 100_000,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
   {
     name: "gpt-4o",
     label: "GPT 4o",
@@ -37,9 +97,9 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
+        max: 16_384,
+        default: 4_096,
+        current: 4_096,
       },
     },
     isNew: false,
@@ -57,9 +117,9 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
+        max: 16_384,
+        default: 4_096,
+        current: 4_096,
       },
     },
     isNew: false,
@@ -77,12 +137,12 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
+        max: 16_384,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "o3-mini",
@@ -97,12 +157,12 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 100000,
-        default: 4096,
-        current: 4096,
+        max: 100_000,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "o1-mini",
@@ -117,12 +177,12 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 65536,
-        default: 4096,
-        current: 4096,
+        max: 65_536,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "o1",
@@ -137,12 +197,12 @@ const OPENAI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 100000,
-        default: 4096,
-        current: 4096,
+        max: 100_000,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
 ];
 
@@ -163,16 +223,56 @@ const OLLAMA_MODELS = [
       },
       maxTokens: {
         min: 1,
-        max: 2048,
-        default: 2048,
-        current: 2048,
+        max: 2_048,
+        default: 2_048,
+        current: 2_048,
       },
     },
-    isNew: true,
+    isNew: false,
   },
 ];
 
 const ANTHROPIC_MODELS = [
+  {
+    name: "claude-sonnet-4-0",
+    label: "Claude Sonnet 4",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 64_000,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "claude-opus-4-0",
+    label: "Claude Opus 4",
+    config: {
+      provider: "anthropic",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 32_000,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
   {
     name: "claude-3-7-sonnet-latest",
     label: "Claude 3.7 Sonnet",
@@ -186,12 +286,12 @@ const ANTHROPIC_MODELS = [
       },
       maxTokens: {
         min: 1,
-        max: 8192,
-        default: 4096,
-        current: 4096,
+        max: 8_192,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "claude-3-5-sonnet-latest",
@@ -206,12 +306,12 @@ const ANTHROPIC_MODELS = [
       },
       maxTokens: {
         min: 1,
-        max: 8192,
-        default: 4096,
-        current: 4096,
+        max: 8_192,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "claude-3-5-haiku-20241022",
@@ -226,9 +326,9 @@ const ANTHROPIC_MODELS = [
       },
       maxTokens: {
         min: 1,
-        max: 8192,
-        default: 4096,
-        current: 4096,
+        max: 8_192,
+        default: 4_096,
+        current: 4_096,
       },
     },
     isNew: false,
@@ -246,9 +346,9 @@ const ANTHROPIC_MODELS = [
       },
       maxTokens: {
         min: 1,
-        max: 4096,
-        default: 4096,
-        current: 4096,
+        max: 4_096,
+        default: 4_096,
+        current: 4_096,
       },
     },
     isNew: false,
@@ -269,12 +369,12 @@ const FIREWORKS_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
+        max: 16_384,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "accounts/fireworks/models/llama-v3p1-70b-instruct",
@@ -289,9 +389,9 @@ const FIREWORKS_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 16384,
-        default: 4096,
-        current: 4096,
+        max: 16_384,
+        default: 4_096,
+        current: 4_096,
       },
     },
     isNew: false,
@@ -309,12 +409,12 @@ const FIREWORKS_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 8000,
-        default: 4096,
-        current: 4096,
+        max: 8_000,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "accounts/fireworks/models/deepseek-r1",
@@ -329,12 +429,12 @@ const FIREWORKS_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 8000,
-        default: 4096,
-        current: 4096,
+        max: 8_000,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
 ];
 
@@ -352,16 +452,56 @@ const GROQ_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 8000,
-        default: 4096,
-        current: 4096,
+        max: 8_000,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
 ];
 
 const GEMINI_MODELS: ModelConfigurationParams[] = [
+  {
+    name: "gemini-2.5-flash-preview-05-20",
+    label: "Gemini 2.5 Flash (Preview)",
+    config: {
+      provider: "google-genai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 100_000,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
+  {
+    name: "gemini-2.5-pro-preview-05-06",
+    label: "Gemini 2.5 Pro (Preview)",
+    config: {
+      provider: "google-genai",
+      temperatureRange: {
+        min: 0,
+        max: 1,
+        default: 0.5,
+        current: 0.5,
+      },
+      maxTokens: {
+        min: 1,
+        max: 100_000,
+        default: 4_096,
+        current: 4_096,
+      },
+    },
+    isNew: true,
+  },
   {
     name: "gemini-1.5-flash",
     label: "Gemini 1.5 Flash",
@@ -375,9 +515,9 @@ const GEMINI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 8192,
-        default: 4096,
-        current: 4096,
+        max: 8_192,
+        default: 4_096,
+        current: 4_096,
       },
     },
     isNew: false,
@@ -395,12 +535,12 @@ const GEMINI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 1048576,
-        default: 4096,
-        current: 4096,
+        max: 1_048_576,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
   {
     name: "gemini-2.0-flash-thinking-exp-01-21",
@@ -415,12 +555,12 @@ const GEMINI_MODELS: ModelConfigurationParams[] = [
       },
       maxTokens: {
         min: 1,
-        max: 1048576,
-        default: 4096,
-        current: 4096,
+        max: 1_048_576,
+        default: 4_096,
+        current: 4_096,
       },
     },
-    isNew: true,
+    isNew: false,
   },
 ];
 
@@ -431,15 +571,21 @@ export const LANGCHAIN_USER_ONLY_MODELS = [
   "claude-3-5-sonnet-latest",
   "claude-3-7-sonnet-latest",
   "gemini-2.0-flash-thinking-exp-01-21",
+  "gemini-2.5-pro-preview-05-06",
+  "claude-sonnet-4-0",
+  "claude-opus-4-0",
+  "gpt-4.1",
 ];
 
 // Models which do NOT support the temperature parameter.
-export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o3-mini", "o1"];
+export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o3-mini", "o1", "o4-mini"];
 
 // Models which do NOT stream back tool calls.
 export const NON_STREAMING_TOOL_CALLING_MODELS = [
   "gemini-2.0-flash-exp",
   "gemini-1.5-flash",
+  "gemini-2.5-pro-preview-05-06",
+  "gemini-2.5-flash-preview-05-20",
 ];
 
 // Models which do NOT stream back text.
