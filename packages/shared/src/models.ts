@@ -578,7 +578,12 @@ export const LANGCHAIN_USER_ONLY_MODELS = [
 ];
 
 // Models which do NOT support the temperature parameter.
-export const TEMPERATURE_EXCLUDED_MODELS = ["o1-mini", "o3-mini", "o1", "o4-mini"];
+export const TEMPERATURE_EXCLUDED_MODELS = [
+  "o1-mini",
+  "o3-mini",
+  "o1",
+  "o4-mini",
+];
 
 // Models which do NOT stream back tool calls.
 export const NON_STREAMING_TOOL_CALLING_MODELS = [
