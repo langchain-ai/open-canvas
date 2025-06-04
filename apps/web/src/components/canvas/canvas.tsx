@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/resizable";
 import { CHAT_COLLAPSED_QUERY_PARAM } from "@/constants";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function CanvasComponent() {
   const { graphData } = useGraphContext();
@@ -37,6 +38,7 @@ export function CanvasComponent() {
   const [isEditing, setIsEditing] = useState(false);
   const [webSearchResultsOpen, setWebSearchResultsOpen] = useState(false);
   const [chatCollapsed, setChatCollapsed] = useState(false);
+  const [panelSize, setPanelSize] = useState(25);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -97,6 +99,8 @@ export function CanvasComponent() {
     setIsEditing(true);
   };
 
+  const mainPanelSize = chatCollapsed ? 95 : 100 - panelSize;
+
   return (
     <ResizablePanelGroup direction="horizontal" className="h-screen">
       {!chatStarted && (
@@ -141,20 +145,36 @@ export function CanvasComponent() {
           />
         </NoSSRWrapper>
       )}
-      {!chatCollapsed && chatStarted && (
+      {chatStarted && (
         <ResizablePanel
-          defaultSize={25}
-          minSize={15}
-          maxSize={50}
-          className="transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right"
+          defaultSize={chatCollapsed ? 5 : panelSize}
+          minSize={chatCollapsed ? 5 : 15}
+          maxSize={chatCollapsed ? 5 : 50}
+          className={cn(
+            "h-screen mr-auto bg-gray-50/70 shadow-inner-right transition-[width] duration-200 ease-in-out",
+            chatCollapsed && "!w-[60px]"
+          )}
           id="chat-panel-main"
           order={1}
+          onResize={(size) => {
+            if (!chatCollapsed) {
+              setPanelSize(size);
+            }
+          }}
+          style={{
+            width: chatCollapsed ? "60px" : undefined,
+            minWidth: chatCollapsed ? "60px" : undefined,
+            maxWidth: chatCollapsed ? "60px" : undefined,
+          }}
         >
           <NoSSRWrapper>
             <ContentComposerChatInterface
               chatCollapsed={chatCollapsed}
               setChatCollapsed={(c) => {
                 setChatCollapsed(c);
+                if (!c) {
+                  setPanelSize(25);
+                }
                 const queryParams = new URLSearchParams(
                   searchParams.toString()
                 );
@@ -197,9 +217,9 @@ export function CanvasComponent() {
 
       {chatStarted && (
         <>
-          <ResizableHandle />
+          <ResizableHandle className="transition-opacity duration-300" />
           <ResizablePanel
-            defaultSize={chatCollapsed ? 100 : 75}
+            defaultSize={mainPanelSize}
             maxSize={85}
             minSize={50}
             id="canvas-panel"
