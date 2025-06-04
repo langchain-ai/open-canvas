@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+---
+Please make only the necessary inline changes to accomplish this task without reformatting or displacing surrounding code. I need to keep my git diffs minimal.
+
+When editing, please use this format for your changes:
+1. Identify exact line numbers needing modification
+2. Show only the specific changes required (not entire functions)
+3. Keep existing indentation and formatting
+
+When making changes:
+- Do not reformat entire functions
+- Maintain existing indentation style
+- Do not adjust blank lines or spacing
+- Do not rearrange imports or declarations
