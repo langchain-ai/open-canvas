@@ -31,7 +31,6 @@ export function ArtifactVersionsMenu({
 
   const handleVersionSelect = (index: number) => {
     if (!isStreaming && index !== currentArtifactContent.index) {
-      // 清理文本選中狀態以避免版本間的狀態不同步
       setSelectedBlocks(undefined);
       setSelectedArtifact(index);
     }
@@ -64,7 +63,7 @@ export function ArtifactVersionsMenu({
     }
   };
 
-  // 按照 index 排序版本
+  // sort versions by index
   const sortedVersions = [...artifact.contents].sort((a, b) => a.index - b.index);
 
   return (
@@ -122,7 +121,7 @@ export function ArtifactVersionsMenu({
                 )}
               </div>
               
-              {/* 版本預覽 */}
+              {/* Version preview */}
               <div className="text-xs text-muted-foreground pl-6 mt-1 overflow-hidden" style={{ 
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -131,7 +130,7 @@ export function ArtifactVersionsMenu({
                 {getVersionPreview(version)}
               </div>
               
-              {/* 版本號 */}
+              {/* version number */}
               <div className="text-xs text-muted-foreground pl-6">
                 Version {version.index}
               </div>
