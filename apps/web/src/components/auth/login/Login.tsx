@@ -68,14 +68,7 @@ export function Login() {
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-zinc-900" />
         <div className="relative z-20 flex gap-1 items-center text-lg font-medium">
-          <NextImage
-            src="/lc_logo.jpg"
-            width={36}
-            height={36}
-            alt="LangChain Logo"
-            className="rounded-full"
-          />
-          Open Canvas
+          <span className="font-bold">LegalEase Africa</span>
         </div>
       </div>
       <div className="lg:p-8">

@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Open Canvas",
-  description: "Open Canvas Chat UX by LangChain",
+  title: "LegalEase Africa – Smart Legal Support for Startups",
+  description: "Affordable legal services for African startups and SMEs. Templates, compliance tools, and local legal experts—on subscription.",
 };
 
 export default function RootLayout({

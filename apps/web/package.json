@@ -1,5 +1,6 @@
 {
-  "name": "@opencanvas/web",
+  "name": "legalease-africa",
+  "description": "Localized subscription-based legal services for African startups and SMEs",
   "author": "Brace Sproul",
   "homepage": "https://opencanvas.langchain.com",
   "repository": "https://github.com/langchain-ai/open-canvas",
