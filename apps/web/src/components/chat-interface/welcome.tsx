@@ -8,33 +8,29 @@ import { ProgrammingLanguagesDropdown } from "../ui/programming-lang-dropdown";
 import { Button } from "../ui/button";
 
 const QUICK_START_PROMPTS_SEARCH = [
-  "Write a market analysis of AI chip manufacturers in 2025",
-  "Create a blog post about the latest climate change policies and their impact",
-  "Draft an investor update on renewable energy trends this quarter",
-  "Write a report on current cybersecurity threats in cloud computing",
-  "Analyze the latest developments in quantum computing for a tech newsletter",
-  "Create a summary of emerging medical breakthroughs in cancer treatment",
-  "Write about the impact of current interest rates on the housing market",
-  "Draft an article about breakthroughs in battery technology this year",
-  "Analyze current supply chain disruptions in semiconductor manufacturing",
-  "Write about how recent AI regulations affect business innovation",
+  "Recent updates to intellectual property law in Africa.",
+  "Compare business registration processes: Kenya vs. Nigeria.",
+  "Data privacy regulations for online businesses in Uganda.",
+  "Guidance on cross-border service agreements in East Africa.",
+  "Standard clauses for a SaaS (Software as a Service) agreement.",
+  "Legal requirements for foreign investment in Ghana.",
+  "Employee share option schemes for startups in South Africa.",
+  "Dispute resolution mechanisms for SMEs in Africa.",
+  "Key considerations for online content licensing.",
+  "Understanding tax obligations for digital services in Africa."
 ];
 
 const QUICK_START_PROMPTS = [
-  "Write a bedtime story about a brave little robot",
-  "Create a function to calculate Fibonacci numbers in TypeScript",
-  "Draft a resignation letter for a position I've had for 2 years",
-  "Build a simple weather dashboard using React and Tailwind",
-  "Write a poem about artificial intelligence",
-  "Create a basic Express.js REST API with two endpoints",
-  "Draft a congratulatory speech for my sister's graduation",
-  "Build a command-line calculator in Python",
-  "Write instructions for making perfect scrambled eggs",
-  "Create a simple snake game using HTML canvas",
-  "Write me a TODO app in React",
-  "Explain why the sky is blue in a short essay",
-  "Help me draft an email to my professor Craig",
-  "Write a web scraping program in Python",
+  "Draft a Non-Disclosure Agreement for a consultant.",
+  "What are the requirements for company registration in Kenya?",
+  "Generate a basic employment contract template for Nigeria.",
+  "Outline key terms for a website's Terms of Service.",
+  "Help me understand the process of trademark registration in South Africa.",
+  "Draft a simple loan agreement for a startup.",
+  "What are common legal pitfalls for new e-commerce businesses in Ghana?",
+  "Find a template for a Founder's Agreement.",
+  "Explain the difference between a shareholder and a director.",
+  "Draft a cease and desist letter for copyright infringement."
 ];
 
 function getRandomPrompts(prompts: string[], count: number = 4): string[] {
@@ -99,18 +95,18 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
 
   return (
     <div className="flex flex-col gap-8 items-center justify-center w-full">
-      <div className="flex flex-col gap-6">
-        <p className="text-gray-600 text-sm">Start with a blank canvas</p>
+      <div className="flex flex-col gap-6 items-center"> {/* Added items-center for the button */}
+        <p className="text-gray-600 text-sm">Start a new legal document or query</p>
         <div className="flex flex-row gap-1 items-center justify-center w-full">
           <Button
             variant="outline"
             className="text-gray-500 hover:text-gray-700 transition-colors ease-in rounded-2xl flex items-center justify-center gap-2 w-[250px] h-[64px]"
             onClick={() => props.handleQuickStart("text")}
           >
-            New Markdown
+            New Document
             <NotebookPen />
           </Button>
-          <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
+          {/* <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} /> */}
         </div>
       </div>
       <div className="flex flex-col gap-6 mt-2 w-full">
@@ -142,7 +138,7 @@ export const ThreadWelcome: FC<ThreadWelcomeProps> = (
             <span className="font-bold text-xl">LegalEase Africa</span>
           </Avatar>
           <TighterText className="mt-4 text-lg font-medium">
-            What would you like to write today?
+            How can we help with your legal needs today?
           </TighterText>
           <div className="mt-8 w-full">
             <QuickStartButtons
