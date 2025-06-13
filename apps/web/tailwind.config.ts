@@ -76,11 +76,11 @@ const config: Config = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
+				DEFAULT: '#0D1F2D',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
+				DEFAULT: '#2A9D8F',
   				foreground: 'hsl(var(--secondary-foreground))'
   			},
   			muted: {
@@ -88,7 +88,7 @@ const config: Config = {
   				foreground: 'hsl(var(--muted-foreground))'
   			},
   			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
+				DEFAULT: '#E9C46A',
   				foreground: 'hsl(var(--accent-foreground))'
   			},
   			destructive: {
@@ -118,19 +118,7 @@ const config: Config = {
   				'`"Courier New"`',
   				'`monospace`'
   			],
-  			sans: [
-  				'Inter',
-  				'-apple-system',
-  				'BlinkMacSystemFont',
-  				'Segoe UI',
-  				'Roboto',
-  				'Helvetica',
-  				'Arial',
-  				'sans-serif',
-  				'Apple Color Emoji',
-  				'Segoe UI Emoji',
-  				'Segoe UI Symbol'
-  			]
+			sans: ['Poppins', 'Inter', 'sans-serif']
   		},
   		letterSpacing: {
   			tighter: '-0.04em'

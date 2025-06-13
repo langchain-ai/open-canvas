@@ -139,8 +139,7 @@ export const ThreadWelcome: FC<ThreadWelcomeProps> = (
       <div className="flex items-center justify-center mt-16 w-full">
         <div className="text-center max-w-3xl w-full">
           <Avatar className="mx-auto">
-            <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
-            <AvatarFallback>LC</AvatarFallback>
+            <span className="font-bold text-xl">LegalEase Africa</span>
           </Avatar>
           <TighterText className="mt-4 text-lg font-medium">
             What would you like to write today?
