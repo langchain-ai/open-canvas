@@ -275,20 +275,6 @@ export const getModelConfig = (
     };
   }
 
-  if (customModelName.includes("gemini-")) {
-    let actualModelName = providerConfig.modelName;
-    if (extra?.isToolCalling && actualModelName.includes("thinking")) {
-      // Gemini thinking does not support tools.
-      actualModelName = "gemini-2.0-flash-exp";
-    }
-    return {
-      ...providerConfig,
-      modelName: actualModelName,
-      modelProvider: "google-genai",
-      apiKey: process.env.GOOGLE_API_KEY,
-    };
-  }
-
   if (customModelName.startsWith("ollama-")) {
     return {
       modelName: customModelName.replace("ollama-", ""),
