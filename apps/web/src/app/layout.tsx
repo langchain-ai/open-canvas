@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-screen">
+      <head>
+        <link rel="icon" href="/ClauseOS_AVATAR.png" type="image/png" />
+      </head>
       <body className={cn("min-h-full", inter.className)}>
         <NuqsAdapter>{children}</NuqsAdapter>
       </body>
