@@ -69,10 +69,10 @@ export function Login() {
         <div className="absolute inset-0 bg-zinc-900" />
         <div className="relative z-20 flex gap-1 items-center text-lg font-medium">
           <NextImage
-            src="/lc_logo.jpg"
+            src="/ClauseOS_AVATAR.jpeg"
             width={36}
             height={36}
-            alt="LangChain Logo"
+            alt="ClauseOS Avatar"
             className="rounded-full"
           />
           Open Canvas
