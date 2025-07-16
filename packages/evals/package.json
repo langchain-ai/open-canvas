@@ -14,7 +14,7 @@
     "lint:fix": "eslint src --fix"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.38",
+    "@langchain/core": "^0.3.57",
     "@langchain/openai": "^0.4.2",
     "@opencanvas/agents": "*",
     "langsmith": "^0.3.5",

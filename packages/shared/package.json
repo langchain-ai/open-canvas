@@ -49,6 +49,6 @@
     "typescript-eslint": "^8.8.1"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.38"
+    "@langchain/core": "^0.3.57"
   }
 }

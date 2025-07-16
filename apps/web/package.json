@@ -37,7 +37,7 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@langchain/community": "^0.3.28",
-    "@langchain/core": "^0.3.38",
+    "@langchain/core": "^0.3.57",
     "@langchain/langgraph-sdk": "^0.0.40",
     "@mendable/firecrawl-js": "1.10.1",
     "@nextjournal/lang-clojure": "^1.0.0",
