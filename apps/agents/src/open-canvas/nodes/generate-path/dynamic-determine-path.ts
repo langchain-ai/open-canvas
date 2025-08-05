@@ -70,7 +70,10 @@ async function dynamicDeterminePathFunc({
 
   const schema = z.object({
     route: z
-      .enum(["replyToGeneralInput", artifactRoute])
+      .enum(currentArtifactContent 
+        ? ["replyToGeneralInput", "replyToFollowupQuestion", artifactRoute]
+        : ["replyToGeneralInput", artifactRoute]
+      )
       .describe("The route to take based on the user's query."),
   });
 

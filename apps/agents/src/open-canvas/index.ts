@@ -9,6 +9,7 @@ import { rewriteArtifact } from "./nodes/rewrite-artifact/index.js";
 import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme.js";
 import { updateArtifact } from "./nodes/updateArtifact.js";
 import { replyToGeneralInput } from "./nodes/replyToGeneralInput.js";
+import { replyToFollowupQuestion } from "./nodes/replyToFollowupQuestion.js";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme.js";
 import { generateTitleNode } from "./nodes/generateTitle.js";
 import { updateHighlightedText } from "./nodes/updateHighlightedText.js";
@@ -111,6 +112,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge(START, "generatePath")
   // Nodes
   .addNode("replyToGeneralInput", replyToGeneralInput)
+  .addNode("replyToFollowupQuestion", replyToFollowupQuestion)
   .addNode("rewriteArtifact", rewriteArtifact)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
   .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
@@ -120,7 +122,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("customAction", customAction)
   .addNode("generateFollowup", generateFollowup)
   .addNode("cleanState", cleanState)
-  .addNode("reflect", reflectNode)
+  // .addNode("reflect", reflectNode)
   .addNode("generateTitle", generateTitleNode)
   .addNode("summarizer", summarizer)
   .addNode("webSearch", webSearchGraph)
@@ -131,11 +133,12 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "rewriteArtifactTheme",
     "rewriteCodeArtifactTheme",
     "replyToGeneralInput",
+    "replyToFollowupQuestion",
     "generateArtifact",
     "rewriteArtifact",
     "customAction",
     "updateHighlightedText",
-    "webSearch",
+    "webSearch", 
   ])
   // Edges
   .addEdge("generateArtifact", "generateFollowup")
@@ -148,9 +151,10 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("webSearch", "routePostWebSearch")
   // End edges
   .addEdge("replyToGeneralInput", "cleanState")
+  .addEdge("replyToFollowupQuestion", "cleanState")
   // Only reflect if an artifact was generated/updated.
-  .addEdge("generateFollowup", "reflect")
-  .addEdge("reflect", "cleanState")
+  // .addEdge("generateFollowup", "reflect")
+  // .addEdge("reflect", "cleanState")
   .addConditionalEdges("cleanState", conditionallyGenerateTitle, [
     END,
     "generateTitle",

@@ -26,6 +26,7 @@ export const generateArtifact = async (
   const { modelName } = getModelConfig(config, {
     isToolCalling: true,
   });
+
   const smallModel = await getModelFromConfig(config, {
     temperature: 0.5,
     isToolCalling: true,
@@ -45,6 +46,7 @@ export const generateArtifact = async (
   );
 
   const memoriesAsString = await getFormattedReflections(config);
+
   const formattedNewArtifactPrompt = formatNewArtifactPrompt(
     memoriesAsString,
     modelName
@@ -56,23 +58,33 @@ export const generateArtifact = async (
     : formattedNewArtifactPrompt;
 
   const contextDocumentMessages = await createContextDocumentMessages(config);
+
   const isO1MiniModel = isUsingO1MiniModel(config);
-  const response = await modelWithArtifactTool.invoke(
-    [
-      { role: isO1MiniModel ? "user" : "system", content: fullSystemPrompt },
-      ...contextDocumentMessages,
-      ...state._messages,
-    ],
-    { runName: "generate_artifact" }
-  );
-  const args = response.tool_calls?.[0].args as
+
+  const messagesToSend = [
+    { role: isO1MiniModel ? "user" : "system", content: fullSystemPrompt },
+    ...contextDocumentMessages,
+    ...state._messages,
+  ];
+
+  const response = await modelWithArtifactTool.invoke(messagesToSend, {
+    runName: "generate_artifact",
+  });
+
+  const args = response.tool_calls?.[0]?.args as
     | z.infer<typeof ARTIFACT_TOOL_SCHEMA>
     | undefined;
+
   if (!args) {
+    console.error(
+      "[ERROR] No args found in response. Full response:",
+      response
+    );
     throw new Error("No args found in response");
   }
 
   const newArtifactContent = createArtifactContent(args);
+
   const newArtifact: ArtifactV3 = {
     currentIndex: 1,
     contents: [newArtifactContent],
