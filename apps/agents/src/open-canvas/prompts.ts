@@ -471,3 +471,27 @@ Rules and guidelines:
 - Ensure you do not port over language specific modules. E.g if the code contains imports from Node's fs module, you must use the closest equivalent in {newLanguage}.
 ${DEFAULT_CODE_PROMPT_RULES}
 </rules-guidelines>`;
+
+export const REPLY_TO_WEB_SEARCH_PROMPT = `You are an AI assistant responding to a user's query using information found from web search results.
+
+The user asked: {userQuestion}
+
+Here are the web search results I found to help answer their question:
+<web-search-results>
+{webSearchResults}
+</web-search-results>
+
+You also have the following reflections on style guidelines and general memories/facts about the user to use when generating your response.
+<reflections>
+{reflections}
+</reflections>
+
+Please provide a comprehensive, helpful response that:
+- Directly addresses the user's question using the web search results
+- Synthesizes information from multiple sources when relevant
+- Maintains a conversational and friendly tone
+- Provides clear, accurate information
+- Cites sources when appropriate
+- Keeps the response focused and well-structured
+
+Your response should be informative and complete, as this is the primary way the user will receive information about their query.`;

@@ -38,6 +38,7 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -231,6 +232,71 @@ export function GraphProvider({ children }: { children: ReactNode }) {
 
   const searchOrCreateEffectRan = useRef(false);
   const currentWorkerService = useRef<StreamWorkerService | undefined>();
+
+  const switchSelectedThread = useCallback((thread: Thread) => {
+    setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
+    setChatStartedState(true);
+
+    // Set the thread ID in state. Then set in cookies so a new thread
+    // isn't created on page load if one already exists.
+    threadData.setThreadId(thread.thread_id);
+
+    // Set the model name and config
+    if (thread.metadata?.customModelName) {
+      threadData.setModelName(
+        thread.metadata.customModelName as ALL_MODEL_NAMES
+      );
+      threadData.setModelConfig(
+        thread.metadata.customModelName as ALL_MODEL_NAMES,
+        thread.metadata.modelConfig as CustomModelConfig
+      );
+    } else {
+      threadData.setModelName(DEFAULT_MODEL_NAME);
+      threadData.setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+    }
+
+    const castValues: {
+      artifact: ArtifactV3 | undefined;
+      messages: Record<string, any>[] | undefined;
+    } = {
+      artifact: undefined,
+      messages: (thread.values as Record<string, any>)?.messages || undefined,
+    };
+    const castThreadValues = thread.values as Record<string, any>;
+    if (castThreadValues?.artifact) {
+      if (isDeprecatedArtifactType(castThreadValues.artifact)) {
+        castValues.artifact = convertToArtifactV3(castThreadValues.artifact);
+      } else {
+        castValues.artifact = castThreadValues.artifact;
+      }
+    } else {
+      castValues.artifact = undefined;
+    }
+    lastSavedArtifact.current = castValues?.artifact;
+
+    if (!castValues?.messages?.length) {
+      setMessages([]);
+      setArtifact(castValues?.artifact);
+      return;
+    }
+    setArtifact(castValues?.artifact);
+    setMessages(
+      castValues.messages.map((msg: Record<string, any>) => {
+        if (msg.response_metadata?.langSmithRunURL) {
+          msg.tool_calls = msg.tool_calls ?? [];
+          msg.tool_calls.push({
+            name: "langsmith_tool_ui",
+            args: { sharedRunURL: msg.response_metadata.langSmithRunURL },
+            id: msg.response_metadata.langSmithRunURL
+              ?.split("https://smith.langchain.com/public/")[1]
+              .split("/")[0],
+          });
+        }
+        return msg as BaseMessage;
+      })
+    );
+  }, [threadData, setMessages, setArtifact, setUpdateRenderedArtifactRequired, setThreadSwitched]);
 
   // Cleanup effect to terminate any active workers when component unmounts
   useEffect(() => {
@@ -1406,70 +1472,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const switchSelectedThread = (thread: Thread) => {
-    setUpdateRenderedArtifactRequired(true);
-    setThreadSwitched(true);
-    setChatStarted(true);
 
-    // Set the thread ID in state. Then set in cookies so a new thread
-    // isn't created on page load if one already exists.
-    threadData.setThreadId(thread.thread_id);
-
-    // Set the model name and config
-    if (thread.metadata?.customModelName) {
-      threadData.setModelName(
-        thread.metadata.customModelName as ALL_MODEL_NAMES
-      );
-      threadData.setModelConfig(
-        thread.metadata.customModelName as ALL_MODEL_NAMES,
-        thread.metadata.modelConfig as CustomModelConfig
-      );
-    } else {
-      threadData.setModelName(DEFAULT_MODEL_NAME);
-      threadData.setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
-    }
-
-    const castValues: {
-      artifact: ArtifactV3 | undefined;
-      messages: Record<string, any>[] | undefined;
-    } = {
-      artifact: undefined,
-      messages: (thread.values as Record<string, any>)?.messages || undefined,
-    };
-    const castThreadValues = thread.values as Record<string, any>;
-    if (castThreadValues?.artifact) {
-      if (isDeprecatedArtifactType(castThreadValues.artifact)) {
-        castValues.artifact = convertToArtifactV3(castThreadValues.artifact);
-      } else {
-        castValues.artifact = castThreadValues.artifact;
-      }
-    } else {
-      castValues.artifact = undefined;
-    }
-    lastSavedArtifact.current = castValues?.artifact;
-
-    if (!castValues?.messages?.length) {
-      setMessages([]);
-      setArtifact(castValues?.artifact);
-      return;
-    }
-    setArtifact(castValues?.artifact);
-    setMessages(
-      castValues.messages.map((msg: Record<string, any>) => {
-        if (msg.response_metadata?.langSmithRunURL) {
-          msg.tool_calls = msg.tool_calls ?? [];
-          msg.tool_calls.push({
-            name: "langsmith_tool_ui",
-            args: { sharedRunURL: msg.response_metadata.langSmithRunURL },
-            id: msg.response_metadata.langSmithRunURL
-              ?.split("https://smith.langchain.com/public/")[1]
-              .split("/")[0],
-          });
-        }
-        return msg as BaseMessage;
-      })
-    );
-  };
 
   const setChatStarted = (started: boolean | ((prev: boolean) => boolean)) => {
     setChatStartedState(started);

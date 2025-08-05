@@ -10,6 +10,7 @@ import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme.js";
 import { updateArtifact } from "./nodes/updateArtifact.js";
 import { replyToGeneralInput } from "./nodes/replyToGeneralInput.js";
 import { replyToFollowupQuestion } from "./nodes/replyToFollowupQuestion.js";
+import { replyToWebSearch } from "./nodes/replyToWebSearch.js";
 import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme.js";
 import { generateTitleNode } from "./nodes/generateTitle.js";
 import { updateHighlightedText } from "./nodes/updateHighlightedText.js";
@@ -81,6 +82,7 @@ function routePostWebSearch(
 ): Send | Command {
   // If there is more than one artifact, then route to the "rewriteArtifact" node. Otherwise, generate the artifact.
   const includesArtifacts = state.artifact?.contents?.length > 1;
+  
   if (!state.webSearchResults?.length) {
     return new Send(
       includesArtifacts ? "rewriteArtifact" : "generateArtifact",
@@ -91,18 +93,11 @@ function routePostWebSearch(
     );
   }
 
-  // This message is used as a way to reference the web search results in future chats.
-  const webSearchResultsMessage = createAIMessageFromWebResults(
-    state.webSearchResults
-  );
-
-  return new Command({
-    goto: includesArtifacts ? "rewriteArtifact" : "generateArtifact",
-    update: {
-      webSearchEnabled: false,
-      messages: [webSearchResultsMessage],
-      _messages: [webSearchResultsMessage],
-    },
+  // When web search is enabled and we have results, route to replyToWebSearch
+  // This will generate a chat-only response without creating artifacts
+  return new Send("replyToWebSearch", {
+    ...state,
+    webSearchEnabled: false,
   });
 }
 
@@ -113,6 +108,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // Nodes
   .addNode("replyToGeneralInput", replyToGeneralInput)
   .addNode("replyToFollowupQuestion", replyToFollowupQuestion)
+  .addNode("replyToWebSearch", replyToWebSearch)
   .addNode("rewriteArtifact", rewriteArtifact)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
   .addNode("rewriteCodeArtifactTheme", rewriteCodeArtifactTheme)
@@ -134,6 +130,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
     "rewriteCodeArtifactTheme",
     "replyToGeneralInput",
     "replyToFollowupQuestion",
+    "replyToWebSearch",
     "generateArtifact",
     "rewriteArtifact",
     "customAction",
@@ -152,6 +149,7 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   // End edges
   .addEdge("replyToGeneralInput", "cleanState")
   .addEdge("replyToFollowupQuestion", "cleanState")
+  .addEdge("replyToWebSearch", "cleanState")
   // Only reflect if an artifact was generated/updated.
   // .addEdge("generateFollowup", "reflect")
   // .addEdge("reflect", "cleanState")
