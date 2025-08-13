@@ -8,33 +8,33 @@ import { ProgrammingLanguagesDropdown } from "../ui/programming-lang-dropdown";
 import { Button } from "../ui/button";
 
 const QUICK_START_PROMPTS_SEARCH = [
-  "Write a market analysis of AI chip manufacturers in 2025",
-  "Create a blog post about the latest climate change policies and their impact",
-  "Draft an investor update on renewable energy trends this quarter",
-  "Write a report on current cybersecurity threats in cloud computing",
-  "Analyze the latest developments in quantum computing for a tech newsletter",
-  "Create a summary of emerging medical breakthroughs in cancer treatment",
-  "Write about the impact of current interest rates on the housing market",
-  "Draft an article about breakthroughs in battery technology this year",
-  "Analyze current supply chain disruptions in semiconductor manufacturing",
-  "Write about how recent AI regulations affect business innovation",
+  "Summarize the patient's chronic conditions and current management plan",
+  "Review recent lab results and highlight any concerning trends",
+  "Create a medication reconciliation list with current dosages and frequencies",
+  "Analyze vaccination history and identify any overdue immunizations",
+  "Review family history for relevant hereditary conditions and risk factors",
+  "Summarize recent specialist visits and their recommendations",
+  "List allergies and adverse drug reactions with their severity levels",
+  "Review recent vital signs and note any significant changes",
+  "Analyze preventive care status and due dates for screenings",
+  "Summarize social history including lifestyle factors affecting health",
 ];
 
 const QUICK_START_PROMPTS = [
-  "Write a bedtime story about a brave little robot",
-  "Create a function to calculate Fibonacci numbers in TypeScript",
-  "Draft a resignation letter for a position I've had for 2 years",
-  "Build a simple weather dashboard using React and Tailwind",
-  "Write a poem about artificial intelligence",
-  "Create a basic Express.js REST API with two endpoints",
-  "Draft a congratulatory speech for my sister's graduation",
-  "Build a command-line calculator in Python",
-  "Write instructions for making perfect scrambled eggs",
-  "Create a simple snake game using HTML canvas",
-  "Write me a TODO app in React",
-  "Explain why the sky is blue in a short essay",
-  "Help me draft an email to my professor Craig",
-  "Write a web scraping program in Python",
+  "Create a SOAP note for today's follow-up visit",
+  "Draft a referral letter to a specialist with relevant history",
+  "Generate a patient education handout about diabetes management",
+  "Write a prescription refill review with adherence assessment",
+  "Create a care plan for managing hypertension",
+  "Draft a prior authorization letter for a medication",
+  "Write a summary of recent emergency department visits",
+  "Create a wellness plan focusing on preventive care",
+  "Draft instructions for home blood pressure monitoring",
+  "Write a clinical summary for insurance authorization",
+  "Create a nutrition plan for a diabetic patient",
+  "Summarize recent imaging results and recommendations",
+  "Draft a letter addressing work restrictions",
+  "Create a follow-up schedule for chronic condition monitoring",
 ];
 
 function getRandomPrompts(prompts: string[], count: number = 4): string[] {
@@ -93,13 +93,13 @@ const QuickStartPrompts = ({ searchEnabled }: QuickStartPromptsProps) => {
 };
 
 const QuickStartButtons = (props: QuickStartButtonsProps) => {
-  const handleLanguageSubmit = (language: ProgrammingLanguageOptions) => {
-    props.handleQuickStart("code", language);
-  };
+  // const handleLanguageSubmit = (language: ProgrammingLanguageOptions) => {
+  //   props.handleQuickStart("code", language);
+  // };
 
   return (
     <div className="flex flex-col gap-8 items-center justify-center w-full">
-      <div className="flex flex-col gap-6">
+      {/* <div className="flex flex-col gap-6">
         <p className="text-gray-600 text-sm">Start with a blank canvas</p>
         <div className="flex flex-row gap-1 items-center justify-center w-full">
           <Button
@@ -112,9 +112,9 @@ const QuickStartButtons = (props: QuickStartButtonsProps) => {
           </Button>
           <ProgrammingLanguagesDropdown handleSubmit={handleLanguageSubmit} />
         </div>
-      </div>
+      </div> */}
       <div className="flex flex-col gap-6 mt-2 w-full">
-        <p className="text-gray-600 text-sm">or with a message</p>
+        {/* <p className="text-gray-600 text-sm">or with a message</p> */}
         {props.composer}
         <QuickStartPrompts searchEnabled={props.searchEnabled} />
       </div>
@@ -138,9 +138,15 @@ export const ThreadWelcome: FC<ThreadWelcomeProps> = (
     <ThreadPrimitive.Empty>
       <div className="flex items-center justify-center mt-16 w-full">
         <div className="text-center max-w-3xl w-full">
-          <Avatar className="mx-auto">
-            <AvatarImage src="/lc_logo.jpg" alt="LangChain Logo" />
-            <AvatarFallback>LC</AvatarFallback>
+          <Avatar className="mx-auto w-64 h-64">
+            <AvatarImage
+              src="/credo_logo.gif"
+              width={128}
+              height={128}
+              alt="Credo Logo"
+              className="rounded-full object-cover"
+            />
+            <AvatarFallback>CC</AvatarFallback>
           </Avatar>
           <TighterText className="mt-4 text-lg font-medium">
             What would you like to write today?

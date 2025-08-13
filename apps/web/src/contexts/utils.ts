@@ -73,28 +73,31 @@ export const replaceOrInsertMessageChunk = (
 export const createNewGeneratedArtifactFromTool = (
   artifactTool: ArtifactToolResponse
 ): ArtifactMarkdownV3 | ArtifactCodeV3 | undefined => {
+  
   if (!artifactTool.type) {
-    console.error("Received new artifact without type");
     return;
   }
+  
   if (artifactTool.type === "text") {
-    return {
+    const textArtifact: ArtifactMarkdownV3 = {
       index: 1,
       type: "text",
       title: artifactTool.title || "",
       fullMarkdown: artifactTool.artifact || "",
     };
+    return textArtifact;
   } else {
     if (!artifactTool.language) {
-      console.error("Received new code artifact without language");
+      return;
     }
-    return {
+    const codeArtifact: ArtifactCodeV3 = {
       index: 1,
       type: "code",
       title: artifactTool.title || "",
       code: artifactTool.artifact || "",
       language: artifactTool.language as ProgrammingLanguageOptions,
     };
+    return codeArtifact;
   }
 };
 
@@ -357,40 +360,45 @@ export const convertToArtifactV3 = (oldArtifact: Artifact): ArtifactV3 => {
 };
 
 export function handleGenerateArtifactToolCallChunk(toolCallChunkArgs: string) {
+
   let newArtifactText: ArtifactToolResponse | undefined = undefined;
 
   // Attempt to parse the tool call chunk.
   try {
     newArtifactText = parsePartialJson(toolCallChunkArgs);
+    
     if (!newArtifactText) {
       throw new Error("Failed to parse new artifact text");
     }
+    
     newArtifactText = {
       ...newArtifactText,
       title: newArtifactText.title ?? "",
       type: newArtifactText.type ?? "",
     };
-  } catch (_) {
+  } catch (error) {
     return "continue";
   }
-
   if (
     newArtifactText.artifact &&
     (newArtifactText.type === "text" ||
       (newArtifactText.type === "code" && newArtifactText.language))
   ) {
     const content = createNewGeneratedArtifactFromTool(newArtifactText);
+    
     if (!content) {
       return undefined;
     }
+    
     if (content.type === "text") {
       content.fullMarkdown = cleanContent(content.fullMarkdown);
     }
 
-    return {
+    const finalArtifact = {
       currentIndex: 1,
       contents: [content],
     };
+    return finalArtifact;
   }
 }
 

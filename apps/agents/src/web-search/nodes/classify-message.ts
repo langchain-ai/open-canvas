@@ -1,6 +1,7 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import { WebSearchState } from "../state.js";
 import z from "zod";
+import { ChatOpenAI } from "@langchain/openai";
 
 const CLASSIFIER_PROMPT = `You're a helpful AI assistant tasked with classifying the user's latest message.
 The user has enabled web search for their conversation, however not all messages should be searched.
@@ -24,8 +25,15 @@ const classificationSchema = z
 export async function classifyMessage(
   state: WebSearchState
 ): Promise<Partial<WebSearchState>> {
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-latest",
+  // const model = new ChatAnthropic({
+  //   model: "gpt-4o-mini",
+  //   temperature: 0,
+  // }).withStructuredOutput(classificationSchema, {
+  //   name: "classify_message",
+  // });
+
+  const model = new ChatOpenAI({
+    model: "gpt-4o-mini",
     temperature: 0,
   }).withStructuredOutput(classificationSchema, {
     name: "classify_message",

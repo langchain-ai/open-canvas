@@ -38,6 +38,7 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -62,6 +63,20 @@ import { useThreadContext } from "./ThreadProvider";
 import { useAssistantContext } from "./AssistantContext";
 import { StreamWorkerService } from "@/workers/graph-stream/streamWorker";
 import { useQueryState } from "nuqs";
+
+/**
+ * Utility function to ensure proper spacing after periods when followed by asterisks (bullet points)
+ */
+const ensureProperSpacing = (
+  content: string,
+  followingText: string
+): string => {
+  // Check if content ends with period and following text (after trimming whitespace) starts with asterisk
+  if (content.endsWith(".") && followingText.trimStart().startsWith("*")) {
+    return content + "\n";
+  }
+  return content;
+};
 
 interface GraphData {
   runId: string | undefined;
@@ -119,7 +134,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const threadData = useThreadContext();
   const { toast } = useToast();
   const { shareRun } = useRuns();
-  const [chatStarted, setChatStarted] = useState(false);
+  const [chatStarted, setChatStartedState] = useState(false);
   const [messages, setMessages] = useState<BaseMessage[]>([]);
   const [artifact, setArtifact] = useState<ArtifactV3>();
   const [selectedBlocks, setSelectedBlocks] = useState<TextHighlight>();
@@ -205,9 +220,92 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       // We need to update
       debouncedAPIUpdate(artifact, threadData.threadId);
     }
-  }, [artifact, threadData.threadId]);
+  }, [
+    artifact,
+    debouncedAPIUpdate,
+    isStreaming,
+    messages.length,
+    threadData.threadId,
+    threadSwitched,
+    updateRenderedArtifactRequired,
+  ]);
 
   const searchOrCreateEffectRan = useRef(false);
+  const currentWorkerService = useRef<StreamWorkerService | undefined>();
+
+  const switchSelectedThread = useCallback((thread: Thread) => {
+    setUpdateRenderedArtifactRequired(true);
+    setThreadSwitched(true);
+    setChatStartedState(true);
+
+    // Set the thread ID in state. Then set in cookies so a new thread
+    // isn't created on page load if one already exists.
+    threadData.setThreadId(thread.thread_id);
+
+    // Set the model name and config
+    if (thread.metadata?.customModelName) {
+      threadData.setModelName(
+        thread.metadata.customModelName as ALL_MODEL_NAMES
+      );
+      threadData.setModelConfig(
+        thread.metadata.customModelName as ALL_MODEL_NAMES,
+        thread.metadata.modelConfig as CustomModelConfig
+      );
+    } else {
+      threadData.setModelName(DEFAULT_MODEL_NAME);
+      threadData.setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
+    }
+
+    const castValues: {
+      artifact: ArtifactV3 | undefined;
+      messages: Record<string, any>[] | undefined;
+    } = {
+      artifact: undefined,
+      messages: (thread.values as Record<string, any>)?.messages || undefined,
+    };
+    const castThreadValues = thread.values as Record<string, any>;
+    if (castThreadValues?.artifact) {
+      if (isDeprecatedArtifactType(castThreadValues.artifact)) {
+        castValues.artifact = convertToArtifactV3(castThreadValues.artifact);
+      } else {
+        castValues.artifact = castThreadValues.artifact;
+      }
+    } else {
+      castValues.artifact = undefined;
+    }
+    lastSavedArtifact.current = castValues?.artifact;
+
+    if (!castValues?.messages?.length) {
+      setMessages([]);
+      setArtifact(castValues?.artifact);
+      return;
+    }
+    setArtifact(castValues?.artifact);
+    setMessages(
+      castValues.messages.map((msg: Record<string, any>) => {
+        if (msg.response_metadata?.langSmithRunURL) {
+          msg.tool_calls = msg.tool_calls ?? [];
+          msg.tool_calls.push({
+            name: "langsmith_tool_ui",
+            args: { sharedRunURL: msg.response_metadata.langSmithRunURL },
+            id: msg.response_metadata.langSmithRunURL
+              ?.split("https://smith.langchain.com/public/")[1]
+              .split("/")[0],
+          });
+        }
+        return msg as BaseMessage;
+      })
+    );
+  }, [threadData, setMessages, setArtifact, setUpdateRenderedArtifactRequired, setThreadSwitched]);
+
+  // Cleanup effect to terminate any active workers when component unmounts
+  useEffect(() => {
+    return () => {
+      if (currentWorkerService.current) {
+        currentWorkerService.current.terminate();
+      }
+    };
+  }, []);
 
   // Attempt to load the thread if an ID is present in query params.
   useEffect(() => {
@@ -235,7 +333,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       // Failed to fetch thread. Remove from query params
       threadData.setThreadId(null);
     });
-  }, [threadData.threadId, userData.user]);
+  }, [switchSelectedThread, threadData, threadData.threadId, userData.user]);
 
   const updateArtifact = async (
     artifactToUpdate: ArtifactV3,
@@ -346,9 +444,11 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     let followupMessageId = "";
     // The ID of the message containing the thinking content.
     let thinkingMessageId = "";
+    let workerService: StreamWorkerService | undefined;
 
     try {
-      const workerService = new StreamWorkerService();
+      workerService = new StreamWorkerService();
+      currentWorkerService.current = workerService;
       const stream = workerService.streamData({
         threadId: currentThreadId,
         assistantId: assistantsData.selectedAssistant.assistant_id,
@@ -456,9 +556,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           if (event === "on_chat_model_stream") {
             // These are generating new messages to insert to the chat window.
             if (
-              ["generateFollowup", "replyToGeneralInput"].includes(
-                langgraphNode
-              )
+              [
+                "generateFollowup",
+                "replyToGeneralInput",
+                "replyToFollowupQuestion",
+                "replyToWebSearch",
+              ].includes(langgraphNode)
             ) {
               const message = extractStreamDataChunk(nodeChunk);
               if (!followupMessageId) {
@@ -484,7 +587,6 @@ export function GraphProvider({ children }: { children: ReactNode }) {
               ) {
                 generateArtifactToolCallStr += message.content;
               }
-
               // Process accumulated content with rate limiting
               const result = handleGenerateArtifactToolCallChunk(
                 generateArtifactToolCallStr
@@ -568,7 +670,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 updatedArtifactStartContent !== undefined &&
                 updatedArtifactRestContent !== undefined
               ) {
-                updatedArtifactStartContent += partialUpdatedContent;
+                // Apply spacing fix before adding to the content
+                const processedContent = ensureProperSpacing(
+                  partialUpdatedContent,
+                  updatedArtifactRestContent
+                );
+                updatedArtifactStartContent += processedContent;
               }
 
               const firstUpdateCopy = isFirstUpdate;
@@ -984,7 +1091,12 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 updatedArtifactStartContent !== undefined &&
                 updatedArtifactRestContent !== undefined
               ) {
-                updatedArtifactStartContent += partialUpdatedContent;
+                // Apply spacing fix before adding to the content
+                const processedContent = ensureProperSpacing(
+                  partialUpdatedContent,
+                  updatedArtifactRestContent
+                );
+                updatedArtifactStartContent += processedContent;
               }
 
               const firstUpdateCopy = isFirstUpdate;
@@ -1163,9 +1275,11 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (
-              ["generateFollowup", "replyToGeneralInput"].includes(
-                langgraphNode
-              ) &&
+              [
+                "generateFollowup",
+                "replyToGeneralInput",
+                "replyToFollowupQuestion",
+              ].includes(langgraphNode) &&
               !followupMessageId &&
               NON_STREAMING_TEXT_MODELS.some((m) => m === threadData.modelName)
             ) {
@@ -1254,14 +1368,27 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       lastSavedArtifact.current = artifact;
     } catch (e) {
       console.error("Failed to stream message", e);
+      // Ensure worker is terminated even on error
+      if (workerService) {
+        workerService.terminate();
+        currentWorkerService.current = undefined;
+      }
     } finally {
       setSelectedBlocks(undefined);
       setIsStreaming(false);
+      // Terminate the worker to prevent memory leaks
+      if (workerService) {
+        workerService.terminate();
+        currentWorkerService.current = undefined;
+      }
     }
 
     if (runId) {
       // Chain `.then` to not block the stream
       shareRun(runId).then(async (sharedRunURL) => {
+        if (!sharedRunURL) {
+          return;
+        }
         setMessages((prevMessages) => {
           const newMsgs = prevMessages.map((msg) => {
             if (
@@ -1297,6 +1424,35 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setArtifactContent = (index: number, content: string) => {
+    setArtifact((prev) => {
+      if (!prev) {
+        toast({
+          title: "Error",
+          description: "No artifact found",
+          variant: "destructive",
+          duration: 5000,
+        });
+        return prev;
+      }
+
+      const newArtifact = {
+        ...prev,
+        currentIndex: index,
+        contents: prev.contents.map((a) => {
+          if (a.index === index && a.type === "code") {
+            return {
+              ...a,
+              code: reverseCleanContent(content),
+            };
+          }
+          return a;
+        }),
+      };
+      return newArtifact;
+    });
+  };
+
   const setSelectedArtifact = (index: number) => {
     setUpdateRenderedArtifactRequired(true);
     setThreadSwitched(true);
@@ -1320,97 +1476,10 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const setArtifactContent = (index: number, content: string) => {
-    setArtifact((prev) => {
-      if (!prev) {
-        toast({
-          title: "Error",
-          description: "No artifact found",
-          variant: "destructive",
-          duration: 5000,
-        });
-        return prev;
-      }
-      const newArtifact = {
-        ...prev,
-        currentIndex: index,
-        contents: prev.contents.map((a) => {
-          if (a.index === index && a.type === "code") {
-            return {
-              ...a,
-              code: reverseCleanContent(content),
-            };
-          }
-          return a;
-        }),
-      };
-      return newArtifact;
-    });
-  };
 
-  const switchSelectedThread = (thread: Thread) => {
-    setUpdateRenderedArtifactRequired(true);
-    setThreadSwitched(true);
-    setChatStarted(true);
 
-    // Set the thread ID in state. Then set in cookies so a new thread
-    // isn't created on page load if one already exists.
-    threadData.setThreadId(thread.thread_id);
-
-    // Set the model name and config
-    if (thread.metadata?.customModelName) {
-      threadData.setModelName(
-        thread.metadata.customModelName as ALL_MODEL_NAMES
-      );
-      threadData.setModelConfig(
-        thread.metadata.customModelName as ALL_MODEL_NAMES,
-        thread.metadata.modelConfig as CustomModelConfig
-      );
-    } else {
-      threadData.setModelName(DEFAULT_MODEL_NAME);
-      threadData.setModelConfig(DEFAULT_MODEL_NAME, DEFAULT_MODEL_CONFIG);
-    }
-
-    const castValues: {
-      artifact: ArtifactV3 | undefined;
-      messages: Record<string, any>[] | undefined;
-    } = {
-      artifact: undefined,
-      messages: (thread.values as Record<string, any>)?.messages || undefined,
-    };
-    const castThreadValues = thread.values as Record<string, any>;
-    if (castThreadValues?.artifact) {
-      if (isDeprecatedArtifactType(castThreadValues.artifact)) {
-        castValues.artifact = convertToArtifactV3(castThreadValues.artifact);
-      } else {
-        castValues.artifact = castThreadValues.artifact;
-      }
-    } else {
-      castValues.artifact = undefined;
-    }
-    lastSavedArtifact.current = castValues?.artifact;
-
-    if (!castValues?.messages?.length) {
-      setMessages([]);
-      setArtifact(castValues?.artifact);
-      return;
-    }
-    setArtifact(castValues?.artifact);
-    setMessages(
-      castValues.messages.map((msg: Record<string, any>) => {
-        if (msg.response_metadata?.langSmithRunURL) {
-          msg.tool_calls = msg.tool_calls ?? [];
-          msg.tool_calls.push({
-            name: "langsmith_tool_ui",
-            args: { sharedRunURL: msg.response_metadata.langSmithRunURL },
-            id: msg.response_metadata.langSmithRunURL
-              ?.split("https://smith.langchain.com/public/")[1]
-              .split("/")[0],
-          });
-        }
-        return msg as BaseMessage;
-      })
-    );
+  const setChatStarted = (started: boolean | ((prev: boolean) => boolean)) => {
+    setChatStartedState(started);
   };
 
   const contextValue: GraphContentType = {

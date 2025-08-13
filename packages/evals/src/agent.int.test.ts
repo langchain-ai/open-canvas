@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 
 import { graph } from "@opencanvas/agents/dist/open-canvas/index";
-import { QUERY_ROUTING_DATA } from "./data/query_routing.js";
+import { QUERY_ROUTING_DATA, FOLLOWUP_QUESTION_DATA } from "./data/query_routing.js";
 import { CODEGEN_DATA } from "./data/codegen.js";
 
 ls.describe("query routing", () => {
@@ -23,6 +23,46 @@ ls.describe("query routing", () => {
       });
       ls.logOutputs(res);
       expect(res).toEqual(referenceOutputs);
+    }
+  );
+
+  ls.test(
+    "routes followup questions about artifacts to replyToFollowupQuestion",
+    {
+      inputs: FOLLOWUP_QUESTION_DATA.inputs,
+      referenceOutputs: FOLLOWUP_QUESTION_DATA.referenceOutputs,
+    },
+    async ({ inputs, referenceOutputs }) => {
+      const generatePathNode = graph.nodes.generatePath;
+      const res = await generatePathNode.invoke(inputs, {
+        configurable: {
+          customModelName: "gpt-4o-mini",
+        },
+      });
+      ls.logOutputs(res);
+      expect(res).toEqual(referenceOutputs);
+    }
+  );
+});
+
+ls.describe("followup questions", () => {
+  ls.test(
+    "replyToFollowupQuestion node provides helpful explanations",
+    {
+      inputs: FOLLOWUP_QUESTION_DATA.inputs,
+      referenceOutputs: {},
+    },
+    async ({ inputs }) => {
+      const replyToFollowupQuestionNode = graph.nodes.replyToFollowupQuestion;
+      const res = await replyToFollowupQuestionNode.invoke(inputs, {
+        configurable: {
+          customModelName: "gpt-4o-mini",
+        },
+      });
+      ls.logOutputs(res);
+      expect(res.messages).toBeDefined();
+      expect(res.messages.length).toBeGreaterThan(0);
+      expect(res.messages[0].content).toContain("BeautifulSoup");
     }
   );
 });
