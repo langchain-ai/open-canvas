@@ -39,8 +39,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const apiKey = process.env.LANGCHAIN_API_KEY;
+  if (!apiKey) {
+    // LangSmith not configured; return success with no URL so the client can gracefully skip
+    return new NextResponse(
+      JSON.stringify({ sharedRunURL: undefined, message: "LangSmith disabled" }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   const lsClient = new Client({
-    apiKey: process.env.LANGCHAIN_API_KEY,
+    apiKey,
   });
 
   try {

@@ -10,29 +10,29 @@ import { ComposerAttachments } from "../assistant-ui/attachment";
 import { ComposerActionsPopOut } from "./composer-actions-popout";
 
 const GENERIC_PLACEHOLDERS = [
-  "Share your big idea and let's write something amazing",
-  "Type your vision for the next great piece of content",
-  "Your masterpiece begins with this prompt",
-  "What would you like us to write about today?",
-  "Drop your content idea here and let's create",
-  "Your next great piece starts with this prompt",
-  "Share your story idea and watch it unfold",
-  "Let's write something incredible - start here",
-  "Your writing journey begins with this prompt",
-  "Turn your idea into content magic - start here",
+  "Start SOAP: chief complaint and HPI (onset, duration, severity)",
+  "Subjective: symptoms, ROS, meds, allergies",
+  "Objective: vitals, exam findings, key results",
+  "Assessment: working diagnosis and differentials",
+  "Plan: tests, medications, patient education, follow-up",
+  "HPI (OLDCARTS): onset, location, duration, character, triggers, severity",
+  "History: PMH, FHx, SHx, immunizations",
+  "List current medications and allergies with reactions",
+  "Physical exam by system (CV, Resp, Abd, Neuro)",
+  "Set follow-up and safety-net advice",
 ];
 
 const SEARCH_PLACEHOLDERS = [
-  "Share your topic - I'll add live data",
-  "Write about anything - I'll find sources",
-  "Your idea + fresh research = great content",
-  "Start here with real-time facts",
-  "Topic here for data-rich content",
-  "Create with current insights",
-  "Write now with live sources",
-  "Your story + fresh data",
-  "Ideas welcome - research ready",
-  "Start fresh with live facts",
+  "Enter CC/HPI; I'll suggest guideline-based differentials",
+  "Type assessment; I'll fetch current clinical guidelines",
+  "Plan meds? I'll check dosing and interactions",
+  "Outline plan; I'll add patient education resources",
+  "Suspected dx? I'll surface red flags to rule out",
+  "Exam summary; I'll suggest decision rules (Centor, Wells)",
+  "Key labs/imaging; I'll compare to reference ranges",
+  "Symptom summary; I'll add evidence-based pathways",
+  "Draft follow-up; I'll suggest interval and safety netting",
+  "Write SOAP; I'll attach reputable sources",
 ];
 
 const getRandomPlaceholder = (searchEnabled: boolean) => {

@@ -560,6 +560,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 "generateFollowup",
                 "replyToGeneralInput",
                 "replyToFollowupQuestion",
+                "replyToWebSearch",
               ].includes(langgraphNode)
             ) {
               const message = extractStreamDataChunk(nodeChunk);
@@ -1385,6 +1386,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
     if (runId) {
       // Chain `.then` to not block the stream
       shareRun(runId).then(async (sharedRunURL) => {
+        if (!sharedRunURL) {
+          return;
+        }
         setMessages((prevMessages) => {
           const newMsgs = prevMessages.map((msg) => {
             if (
