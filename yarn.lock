@@ -1078,22 +1078,22 @@
     zod "^3.22.3"
     zod-to-json-schema "^3.22.5"
 
-"@langchain/core@^0.3.38", "@langchain/core@^0.3.57":
-  version "0.3.38"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.38.tgz#e0675d978d5141c720d9a2e143550d4411afa3be"
-  integrity sha512-o7mowk/0oIsYsPxRAJ3TKX6OG674HqcaNRged0sxaTegLAMyZDBDRXEAt3qoe5UfkHnqXAggDLjNVDhpMwECmg==
+"@langchain/core@^0.3.71":
+  version "0.3.71"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.71.tgz#6aa33501d21a05873e0c6b29bc91a915f194bdcd"
+  integrity sha512-ejArFmm/lZ9je2rbMLpkFZnva8jkvDhFCn370WAAVP8akbPOLgDA+S2e5jvj+G/oHraOwmviY8EnxbPXXcDvfw==
   dependencies:
     "@cfworker/json-schema" "^4.0.2"
     ansi-styles "^5.0.0"
     camelcase "6"
     decamelize "1.2.0"
     js-tiktoken "^1.0.12"
-    langsmith ">=0.2.8 <0.4.0"
+    langsmith "^0.3.46"
     mustache "^4.2.0"
     p-queue "^6.6.2"
     p-retry "4"
     uuid "^10.0.0"
-    zod "^3.22.4"
+    zod "^3.25.32"
     zod-to-json-schema "^3.22.3"
 
 "@langchain/exa@^0.1.0":
@@ -1121,23 +1121,24 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.5"
 
-"@langchain/langgraph-api@0.0.27":
-  version "0.0.27"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-api/-/langgraph-api-0.0.27.tgz#b76e150be5861616d70cce79c0228d858814a0c8"
-  integrity sha512-ldO9buJB2krblnHAm4pwST8L01wUFLertKMpM78RSQl3WLb1ft+IIBrEvj3ToHwCrYsd7DdNY/su0GiAGIR3yA==
+"@langchain/langgraph-api@0.0.58":
+  version "0.0.58"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-api/-/langgraph-api-0.0.58.tgz#7e09c38964104fa28cc4d6d64ab34ee1880023cf"
+  integrity sha512-g1WE0fkO+ZLlXYlQZswXLZ5hWEzE6OYyzeaG/qGADppTJWBtB4Cb1qWSJWIrMQKzjjLPxAuv296490/NlO++6g==
   dependencies:
     "@babel/code-frame" "^7.26.2"
     "@hono/node-server" "^1.12.0"
     "@hono/zod-validator" "^0.2.2"
-    "@langchain/langgraph-ui" "0.0.27"
+    "@langchain/langgraph-ui" "0.0.58"
     "@types/json-schema" "^7.0.15"
     "@typescript/vfs" "^1.6.0"
     dedent "^1.5.3"
     dotenv "^16.4.7"
     exit-hook "^4.0.0"
     hono "^4.5.4"
-    langsmith "^0.2.15"
+    langsmith "^0.3.33"
     open "^10.1.0"
+    semver "^7.7.1"
     stacktrace-parser "^0.1.10"
     superjson "^2.2.2"
     tsx "^4.19.3"
@@ -1146,21 +1147,21 @@
     winston-console-format "^1.0.8"
     zod "^3.23.8"
 
-"@langchain/langgraph-checkpoint@~0.0.17":
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-checkpoint/-/langgraph-checkpoint-0.0.17.tgz#d0a8824eb0769567da54262adebe65db4ee6d58f"
-  integrity sha512-6b3CuVVYx+7x0uWLG+7YXz9j2iBa+tn2AXvkLxzEvaAsLE6Sij++8PPbS2BZzC+S/FPJdWsz6I5bsrqL0BYrCA==
+"@langchain/langgraph-checkpoint@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-checkpoint/-/langgraph-checkpoint-0.1.0.tgz#d2a8bd9eb831f47cfe8b74bc196004388a6083bb"
+  integrity sha512-7oY5b0VQSxcV3DgoHdXiCgBhEzml/ZjZfKNeuq6oZ3ggcdUICa/fzrIBbFju6gxPU8ly93s0OsjF4yURnHw70Q==
   dependencies:
     uuid "^10.0.0"
 
-"@langchain/langgraph-cli@^0.0.27":
-  version "0.0.27"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-cli/-/langgraph-cli-0.0.27.tgz#eab23910c4884d6d73f09ac777570be75cbdaa01"
-  integrity sha512-fHNXxuc123b7uOK0IaEe4BipCfUHLGi25cowJzy3cYCvMQSG8f53CarH14HDmItyhHphvs3mzyF1fAjl1n6OHQ==
+"@langchain/langgraph-cli@^0.0.58":
+  version "0.0.58"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-cli/-/langgraph-cli-0.0.58.tgz#318d78398499ef838da0cb129ba7dfc440c5f8af"
+  integrity sha512-WXACTDN6o3DYrv9vuGncyPOEmXQciFJqsmmj4hJu+7DeKkc0kmAd6n1pocmcjY8xBFUNnvYoDqaxnQVMg5GxFA==
   dependencies:
     "@babel/code-frame" "^7.26.2"
     "@commander-js/extra-typings" "^13.0.0"
-    "@langchain/langgraph-api" "0.0.27"
+    "@langchain/langgraph-api" "0.0.58"
     chokidar "^4.0.3"
     commander "^13.0.0"
     dedent "^1.5.3"
@@ -1168,8 +1169,9 @@
     execa "^9.5.2"
     exit-hook "^4.0.0"
     extract-zip "^2.0.1"
-    langsmith "^0.2.15"
+    langsmith "^0.3.33"
     open "^10.1.0"
+    package-manager-detector "^1.3.0"
     stacktrace-parser "^0.1.10"
     tar "^7.4.3"
     winston "^3.17.0"
@@ -1177,40 +1179,20 @@
     yaml "^2.7.0"
     zod "^3.23.8"
 
-"@langchain/langgraph-sdk@^0.0.40":
-  version "0.0.40"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.40.tgz#c270d23c992fb77c877fa379b79920c84c99d99b"
-  integrity sha512-zntl+Iaa4Ym1JChbsFvqL84bF2lkZqeRhGbDtOSsdwABBfr3KNiPBbCueGqLFQ9l0sA55bYUbMcMvh4zXpdygA==
+"@langchain/langgraph-sdk@^0.0.107", "@langchain/langgraph-sdk@~0.0.107":
+  version "0.0.107"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.107.tgz#f99f8a0afbfc8f8cbc79a72a9d519a241a8d86f3"
+  integrity sha512-2qzboDgYH8KJNz7q2Yzvj6H9i4iZUYfZnB7xY+Dkye6yvI+2m1fFIdpP/Ppu+eFvoIUAsbDHDF+wvR4F11kS3Q==
   dependencies:
     "@types/json-schema" "^7.0.15"
     p-queue "^6.6.2"
     p-retry "4"
     uuid "^9.0.0"
 
-"@langchain/langgraph-sdk@^0.0.78":
-  version "0.0.78"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.78.tgz#898fbd5d844e3b8a74341df89af008d878956766"
-  integrity sha512-skkUDmEhClWzlsr8jRaS1VpXVBISm5OFd0MUtS1jKRL5pn08K+IJRvHnlzgum9x7Dste9KXGcIGVoR7cNKJQrw==
-  dependencies:
-    "@types/json-schema" "^7.0.15"
-    p-queue "^6.6.2"
-    p-retry "4"
-    uuid "^9.0.0"
-
-"@langchain/langgraph-sdk@~0.0.32":
-  version "0.0.36"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.36.tgz#b375884552ae3f1c7bf68a0248104786754d04cd"
-  integrity sha512-KkAZM0uXBaMcD/dpGTBppOhbvNX6gz+Y1zFAC898OblegFkSvICrkd0oRQ5Ro/GWK/NAoDymnMUDXeZDdUkSuw==
-  dependencies:
-    "@types/json-schema" "^7.0.15"
-    p-queue "^6.6.2"
-    p-retry "4"
-    uuid "^9.0.0"
-
-"@langchain/langgraph-ui@0.0.27":
-  version "0.0.27"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph-ui/-/langgraph-ui-0.0.27.tgz#c29baee5b19f2e07cb518ce0af907700fb2c3ef8"
-  integrity sha512-rNFlx3uvU9a0KDTlLZWiceXjo94OHdzirg2TjfcBH3v4S3eI1r1ObQQ7Kjvn3FoHh8IYsPMa7HDmMBwIJe/hsg==
+"@langchain/langgraph-ui@0.0.58":
+  version "0.0.58"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-ui/-/langgraph-ui-0.0.58.tgz#77d17a2579c2a94e5def178b9b7f2ad660e72ecf"
+  integrity sha512-YenktF/6MUQ4jFFgNgKL160bbkt1RNlhxJLIs1erz7DT0gyT/Z+OSpYIKnZ8LJ7+Mutr0PIG+wzT6W+JDQHrfA==
   dependencies:
     "@commander-js/extra-typings" "^13.0.0"
     commander "^13.0.0"
@@ -1218,15 +1200,15 @@
     esbuild-plugin-tailwindcss "^2.0.1"
     zod "^3.23.8"
 
-"@langchain/langgraph@^0.2.73":
-  version "0.2.73"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph/-/langgraph-0.2.73.tgz#f7fe53386c5dea046e7f0e498908c2fc65ff6e87"
-  integrity sha512-vw+IXV2Q7x/QaykNj3VE/Ak3aPlst3spkpM6zYtqwGkQlhLZU4Lb8PHHPjqNNYHSdOTDj9x4jIRUPZArGHx9Aw==
+"@langchain/langgraph@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph/-/langgraph-0.4.4.tgz#36ce026e3a8cf7fc63a55bfd6159ba9799a6b115"
+  integrity sha512-ky/ObdX8PV/2GKnjyWoBzW7wBe8u0ZG6t0Dh8HR2mJLhjodMcKMJKHtc+xg/aS3l8bqx0Q8lgXfKCBy/eBXYjA==
   dependencies:
-    "@langchain/langgraph-checkpoint" "~0.0.17"
-    "@langchain/langgraph-sdk" "~0.0.32"
+    "@langchain/langgraph-checkpoint" "^0.1.0"
+    "@langchain/langgraph-sdk" "~0.0.107"
     uuid "^10.0.0"
-    zod "^3.23.8"
+    zod "^3.25.32"
 
 "@langchain/ollama@^0.2.0":
   version "0.2.0"
@@ -4048,11 +4030,6 @@ comma-separated-tokens@^2.0.0:
   resolved "https://registry.yarnpkg.com/comma-separated-tokens/-/comma-separated-tokens-2.0.3.tgz#4e89c9458acb61bc8fef19f4529973b2392839ee"
   integrity sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==
 
-commander@^10.0.1:
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.1.tgz#881ee46b4f77d1c1dccc5823433aa39b022cbe06"
-  integrity sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==
-
 commander@^13.0.0:
   version "13.1.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-13.1.0.tgz#776167db68c78f38dcce1f9b8d7b8b9a488abf46"
@@ -6477,35 +6454,10 @@ langchain@^0.3.27:
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"langsmith@>=0.2.8 <0.4.0", langsmith@^0.3.3, langsmith@^0.3.5:
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.3.5.tgz#9f31d7c500afab8dbf6255e807174e3806ada01b"
-  integrity sha512-ntXDsxMmV9wVBN4TO2szTjmw4u8+M1LKwkhG9IntMFZZn7HW4IVo9jFYhHBWtj/dwZI/8P7cs5VE8Yoa8mcwIg==
-  dependencies:
-    "@types/uuid" "^10.0.0"
-    chalk "^4.1.2"
-    console-table-printer "^2.12.1"
-    p-queue "^6.6.2"
-    p-retry "4"
-    semver "^7.6.3"
-    uuid "^10.0.0"
-
-langsmith@^0.2.15:
-  version "0.2.15"
-  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.2.15.tgz#0692a00fc310817cb9b5939488468c93d4ba2c9d"
-  integrity sha512-homtJU41iitqIZVuuLW7iarCzD4f39KcfP9RTBWav9jifhrsDa1Ez89Ejr+4qi72iuBu8Y5xykchsGVgiEZ93w==
-  dependencies:
-    "@types/uuid" "^10.0.0"
-    commander "^10.0.1"
-    p-queue "^6.6.2"
-    p-retry "4"
-    semver "^7.6.3"
-    uuid "^10.0.0"
-
-langsmith@^0.3.29:
-  version "0.3.29"
-  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.3.29.tgz#75b8df90b8a724f320ff0cdc784768117e17a922"
-  integrity sha512-JPF2B339qpYy9FyuY4Yz1aWYtgPlFc/a+VTj3L/JcFLHCiMP7+Ig8I9jO+o1QwVa+JU3iugL1RS0wwc+Glw0zA==
+"langsmith@>=0.2.8 <0.4.0", langsmith@^0.3.29, langsmith@^0.3.33, langsmith@^0.3.46, langsmith@^0.3.60:
+  version "0.3.60"
+  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.3.60.tgz#33e6e16dd3325c4d1f878c8c67bda67a1add9a91"
+  integrity sha512-OC0fdl1gCzU0vWlvcyCAy7IOv2mfxrV1sN3eYDxiCpuPO9olamG2TMpwcJTt7G8EX9KVn48JfBGFV6FtuUz3WA==
   dependencies:
     "@types/uuid" "^10.0.0"
     chalk "^4.1.2"
@@ -8090,6 +8042,11 @@ package-json-from-dist@^1.0.0:
   resolved "https://registry.yarnpkg.com/package-json-from-dist/-/package-json-from-dist-1.0.1.tgz#4f1471a010827a86f94cfd9b0727e36d267de505"
   integrity sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==
 
+package-manager-detector@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/package-manager-detector/-/package-manager-detector-1.3.0.tgz#b42d641c448826e03c2b354272456a771ce453c0"
+  integrity sha512-ZsEbbZORsyHuO00lY1kV3/t72yp6Ysay6Pd17ZAlNGuGwmWDLCJxFpRs0IzfXfj1o4icJOkUEioexFHzyPurSQ==
+
 parent-module@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/parent-module/-/parent-module-1.0.1.tgz#691d2709e78c79fae3a156622452d00762caaaa2"
@@ -9273,6 +9230,11 @@ semver@^7.3.7, semver@^7.5.4, semver@^7.6.0, semver@^7.6.3:
   version "7.7.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.1.tgz#abd5098d82b18c6c81f6074ff2647fd3e7220c9f"
   integrity sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==
+
+semver@^7.7.1:
+  version "7.7.2"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.2.tgz#67d99fdcd35cec21e6f8b87a7fd515a33f982b58"
+  integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
 
 set-function-length@^1.2.2:
   version "1.2.2"
@@ -10653,6 +10615,11 @@ zod@^3.22.3, zod@^3.22.4, zod@^3.23.8, zod@^3.24.1:
   version "3.24.1"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.1.tgz#27445c912738c8ad1e9de1bea0359fa44d9d35ee"
   integrity sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==
+
+zod@^3.25.32:
+  version "3.25.76"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
+  integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
 
 zustand@^5.0.3:
   version "5.0.3"

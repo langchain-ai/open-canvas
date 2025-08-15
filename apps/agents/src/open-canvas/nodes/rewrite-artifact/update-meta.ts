@@ -60,5 +60,7 @@ export async function optionallyUpdateArtifactMeta(
     recentHumanMessage,
   ]);
 
-  return optionallyUpdateArtifactResponse;
+  return optionallyUpdateArtifactResponse as z.infer<
+    typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA
+  >;
 }
