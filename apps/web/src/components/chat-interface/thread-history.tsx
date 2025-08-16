@@ -254,7 +254,7 @@ export function ThreadHistoryComponent(props: ThreadHistoryProps) {
         aria-describedby={undefined}
       >
         <SheetTitle>
-          <TighterText className="px-2 text-lg text-gray-600">
+          <TighterText className="px-2 text-lg text-gray-600 dark:text-gray-300">
             Chat History
           </TighterText>
         </SheetTitle>
