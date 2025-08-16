@@ -77,6 +77,7 @@ interface GraphData {
   artifactUpdateFailed: boolean;
   chatStarted: boolean;
   searchEnabled: boolean;
+  currentNode: string | undefined;
   setSearchEnabled: Dispatch<SetStateAction<boolean>>;
   setChatStarted: Dispatch<SetStateAction<boolean>>;
   setIsStreaming: Dispatch<SetStateAction<boolean>>;
@@ -142,6 +143,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [artifactUpdateFailed, setArtifactUpdateFailed] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
+  const [currentNode, setCurrentNode] = useState<string | undefined>(undefined);
 
   const [_, setWebSearchResultsId] = useQueryState(
     WEB_SEARCH_RESULTS_QUERY_PARAM
@@ -460,6 +462,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
                 langgraphNode
               )
             ) {
+              setCurrentNode(langgraphNode);
               const message = extractStreamDataChunk(nodeChunk);
               if (!followupMessageId) {
                 followupMessageId = message.id;
@@ -470,6 +473,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             }
 
             if (langgraphNode === "generateArtifact") {
+              setCurrentNode("generateArtifact");
               const message = extractStreamDataChunk(nodeChunk);
 
               // Accumulate content
@@ -1428,6 +1432,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
       chatStarted,
       artifactUpdateFailed,
       searchEnabled,
+      currentNode,
       setSearchEnabled,
       setChatStarted,
       setIsStreaming,

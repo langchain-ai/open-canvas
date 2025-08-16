@@ -149,19 +149,23 @@ export const Thread: FC<ThreadProps> = (props: ThreadProps) => {
             searchEnabled={props.searchEnabled}
           />
         )}
-        <ThreadPrimitive.Messages
-          components={{
-            UserMessage: UserMessage,
-            AssistantMessage: (prop) => (
-              <AssistantMessage
-                {...prop}
-                feedbackSubmitted={feedbackSubmitted}
-                setFeedbackSubmitted={setFeedbackSubmitted}
-                runId={runId}
-              />
-            ),
-          }}
-        />
+        <div className="flex justify-center">
+          <div className="w-full max-w-2xl">
+            <ThreadPrimitive.Messages
+              components={{
+                UserMessage: UserMessage,
+                AssistantMessage: (prop) => (
+                  <AssistantMessage
+                    {...prop}
+                    feedbackSubmitted={feedbackSubmitted}
+                    setFeedbackSubmitted={setFeedbackSubmitted}
+                    runId={runId}
+                  />
+                ),
+              }}
+            />
+          </div>
+        </div>
       </ThreadPrimitive.Viewport>
       <div className="mt-4 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4 px-4">
         <ThreadScrollToBottom />
