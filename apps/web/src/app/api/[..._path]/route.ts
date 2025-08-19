@@ -1,7 +1,5 @@
 import { LANGGRAPH_API_URL } from "../../../constants";
 import { NextRequest, NextResponse } from "next/server";
-import { Session, User } from "@supabase/supabase-js";
-import { verifyUserAuthenticated } from "../../../lib/supabase/verify_user_server";
 
 function getCorsHeaders() {
   return {
@@ -12,15 +10,11 @@ function getCorsHeaders() {
 }
 
 async function handleRequest(req: NextRequest, method: string) {
-  let session: Session | undefined;
-  let user: User | undefined;
+  let session: any | undefined;
+  let user: any | undefined;
   try {
-    const authRes = await verifyUserAuthenticated();
-    session = authRes?.session;
-    user = authRes?.user;
-    if (!session || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Replace with alternative authentication mechanism if needed
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   } catch (e) {
     console.error("Failed to fetch user", e);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -53,11 +47,6 @@ async function handleRequest(req: NextRequest, method: string) {
       if (typeof bodyText === "string" && bodyText.length > 0) {
         const parsedBody = JSON.parse(bodyText);
         parsedBody.config = parsedBody.config || {};
-        parsedBody.config.configurable = {
-          ...parsedBody.config.configurable,
-          supabase_session: session,
-          supabase_user_id: user.id,
-        };
         options.body = JSON.stringify(parsedBody);
       } else {
         options.body = bodyText;

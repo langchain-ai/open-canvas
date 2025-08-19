@@ -40,7 +40,7 @@ Open Canvas requires the following API keys and external services:
 
 #### Authentication
 
-- [Supabase](https://supabase.com/) account for authentication
+- Alternative authentication methods
 
 #### LangGraph Server
 
@@ -71,7 +71,7 @@ After installing dependencies, copy the `.env.example` file contents into `.env`
 cp .env.example .env
 ```
 
-Then, setup authentication with Supabase.
+Then, setup alternative authentication methods.
 
 ### Setup Authentication
 

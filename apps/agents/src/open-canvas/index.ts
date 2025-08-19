@@ -16,6 +16,8 @@ import { OpenCanvasGraphAnnotation } from "./state.js";
 import { summarizer } from "./nodes/summarizer.js";
 import { graph as webSearchGraph } from "../web-search/index.js";
 import { createAIMessageFromWebResults } from "../utils.js";
+import { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "../context-documents";
+import { ContextDocument } from "@opencanvas/shared/types";
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -35,22 +37,51 @@ const cleanState = (_: typeof OpenCanvasGraphAnnotation.State) => {
 
 // ~ 4 chars per token, max tokens of 75000. 75000 * 4 = 300000
 const CHARACTER_MAX = 300000;
+const FILE_COUNT_MAX = 3;
+const LOC_MAX = 150;
 
-function simpleTokenCalculator(
-  state: typeof OpenCanvasGraphAnnotation.State
-): "summarizer" | typeof END {
-  const totalChars = state._messages.reduce((acc, msg) => {
+async function countContextDocuments(
+  contextDocuments: ContextDocument[]
+): Promise<{ fileCount: number; loc: number }> {
+  let fileCount = 0;
+  let loc = 0;
+  for (const doc of contextDocuments) {
+    fileCount++;
+    if (doc.type === 'code') {
+      loc += countLines(doc.data);
+    } else {
+      loc += countWords(doc.data);
+    }
+  }
+  return { fileCount, loc };
+}
+
+function countLines(code: string): number {
+  return code.split('\n').length;
+}
+
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).length;
+}
+
+async function simpleTokenCalculator(
+  state: any
+): Promise<"summarizer" | typeof END> {
+  const totalChars = state._messages.reduce((acc: number, msg: any) => {
     if (typeof msg.content !== "string") {
-      const allContent = msg.content.flatMap((c) =>
+      const allContent = msg.content.flatMap((c: any) =>
         "text" in c ? (c.text as string) : []
       );
-      const totalChars = allContent.reduce((acc, c) => acc + c.length, 0);
+      const totalChars = allContent.reduce((acc: number, c: string) => acc + c.length, 0);
       return acc + totalChars;
     }
     return acc + msg.content.length;
   }, 0);
 
-  if (totalChars > CHARACTER_MAX) {
+  const contextDocuments = state.contextDocuments || [];
+  const { fileCount, loc } = await countContextDocuments(contextDocuments);
+
+  if (totalChars > CHARACTER_MAX || fileCount > FILE_COUNT_MAX || loc > LOC_MAX) {
     return "summarizer";
   }
   return END;
@@ -66,7 +97,7 @@ const conditionallyGenerateTitle = (
 ): "generateTitle" | "summarizer" | typeof END => {
   if (state.messages.length > 2) {
     // Do not generate if there are more than two messages (meaning it's not the first human-AI conversation)
-    return simpleTokenCalculator(state);
+    return simpleTokenCalculator(state as any);
   }
   return "generateTitle";
 };

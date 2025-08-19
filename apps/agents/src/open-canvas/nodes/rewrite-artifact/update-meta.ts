@@ -4,11 +4,11 @@ import {
   formatArtifactContent,
   getModelFromConfig,
   isUsingO1MiniModel,
+  getFormattedReflections,
 } from "../../../utils.js";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts.js";
 import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas.js";
-import { getFormattedReflections } from "../../../utils.js";
 import { z } from "zod";
 
 export async function optionallyUpdateArtifactMeta(

@@ -29,7 +29,7 @@ function isSummaryMessage(msg: unknown): boolean {
   if (
     "additional_kwargs" in msg &&
     (msg.additional_kwargs as Record<string, any>)?.[
-      OC_SUMMARIZED_MESSAGE_KEY
+    OC_SUMMARIZED_MESSAGE_KEY
     ] === true
   ) {
     return true;
@@ -38,7 +38,7 @@ function isSummaryMessage(msg: unknown): boolean {
   if (
     "kwargs" in msg &&
     (msg.kwargs as Record<string, any>)?.additional_kwargs?.[
-      OC_SUMMARIZED_MESSAGE_KEY
+    OC_SUMMARIZED_MESSAGE_KEY
     ] === true
   ) {
     return true;

@@ -44,7 +44,7 @@ Open Canvas requires the following API keys and external services:
 
 #### Authentication
 
-- [Supabase](https://supabase.com/) account for authentication
+- Alternative authentication methods
 
 #### LangGraph Server
 

@@ -11,7 +11,8 @@ import {
 import { Reflections } from "@opencanvas/shared/types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts.js";
 import { z } from "zod";
-import { ensureStoreInConfig, formatReflections } from "../utils.js";
+import { ensureStoreInConfig } from "../reflections/index";
+import { formatReflections } from "./reflection";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,

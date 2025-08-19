@@ -45,3 +45,5 @@ credentials.json
 
 # LangGraph API
 .langgraph_api
+
+.kilocode

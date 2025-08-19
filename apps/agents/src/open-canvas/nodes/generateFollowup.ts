@@ -1,5 +1,5 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getModelFromConfig } from "../../utils.js";
+import { getModelFromConfig } from "../../model-config.js";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
@@ -7,6 +7,7 @@ import {
 import { Reflections } from "@opencanvas/shared/types";
 import { ensureStoreInConfig, formatReflections } from "../../utils.js";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts.js";
+import { GENERATE_FOLLOWUP_TOOL_SCHEMA } from "./schemas.js";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
@@ -19,11 +20,15 @@ export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = await getModelFromConfig(config, {
+  const smallModelWithTool = (await getModelFromConfig(config, {
     maxTokens: 250,
     // We say tool calling is true here because that'll cause it to use a small model
     isToolCalling: true,
-  });
+  }))
+    .bindTools([GENERATE_FOLLOWUP_TOOL_SCHEMA], {
+      tool_choice: "generate_followup",
+    })
+    .withConfig({ runName: "generate_followup_model_call" });
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
@@ -34,9 +39,7 @@ export const generateFollowup = async (
   const memoryKey = "reflection";
   const memories = await store.get(memoryNamespace, memoryKey);
   const memoriesAsString = memories?.value
-    ? formatReflections(memories.value as Reflections, {
-        onlyContent: true,
-      })
+    ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
   const currentArtifactContent = state.artifact
@@ -62,7 +65,7 @@ export const generateFollowup = async (
     );
 
   // TODO: Include the chat history as well.
-  const response = await smallModel.invoke([
+  const response = await smallModelWithTool.invoke([
     { role: "user", content: formattedPrompt },
   ]);
 

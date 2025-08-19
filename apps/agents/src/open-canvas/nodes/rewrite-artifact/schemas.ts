@@ -24,3 +24,9 @@ export const OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA = z
       ),
   })
   .describe("Update the artifact meta information, if necessary.");
+
+export const REWRITE_ARTIFACT_TOOL_SCHEMA = z
+  .object({
+    content: z.string().describe("The rewritten artifact content."),
+  })
+  .describe("Rewrite the artifact content based on the user's request.");

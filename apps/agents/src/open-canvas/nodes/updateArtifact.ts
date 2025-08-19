@@ -7,49 +7,39 @@ import {
   ArtifactCodeV3,
   ArtifactV3,
   Reflections,
+  ContextDocument,
 } from "@opencanvas/shared/types";
 import {
-  createContextDocumentMessages,
+  createContextDocumentMessagesOpenAI,
   ensureStoreInConfig,
   formatReflections,
+  mapSearchResultToContextDocument,
+} from "../../utils";
+import {
   getModelConfig,
   getModelFromConfig,
   isUsingO1MiniModel,
-} from "../../utils.js";
+} from "../../model-config.js";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts.js";
+import { UPDATE_ARTIFACT_TOOL_SCHEMA } from "./schemas.js";
+import { z } from "zod";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
 } from "../state.js";
 
-/**
- * Update an existing artifact based on the user's query.
- */
 export const updateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
   const { modelProvider, modelName } = getModelConfig(config);
-  let smallModel: Awaited<ReturnType<typeof getModelFromConfig>>;
-  if (modelProvider.includes("openai") || modelName.includes("3-5-sonnet")) {
-    // Custom model is intelligent enough for updating artifacts
-    smallModel = await getModelFromConfig(config, {
-      temperature: 0,
-    });
-  } else {
-    // Custom model is not intelligent enough for updating artifacts
-    smallModel = await getModelFromConfig(
-      {
-        ...config,
-        configurable: {
-          customModelName: "gpt-4o",
-        },
-      },
-      {
-        temperature: 0,
-      }
-    );
-  }
+  const smallModelWithTool = (await getModelFromConfig(config, {
+    temperature: 0,
+  }))
+    .bindTools([UPDATE_ARTIFACT_TOOL_SCHEMA], {
+      tool_choice: "update_artifact",
+    })
+    .withConfig({ runName: "update_artifact_model_call" });
 
   const store = ensureStoreInConfig(config);
   const assistantId = config.configurable?.assistant_id;
@@ -58,7 +48,7 @@ export const updateArtifact = async (
   }
   const memoryNamespace = ["memories", assistantId];
   const memoryKey = "reflection";
-  const memories = await store.get(memoryNamespace, memoryKey);
+  const memories = store && (await store.get(memoryNamespace, memoryKey));
   const memoriesAsString = memories?.value
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
@@ -105,7 +95,7 @@ export const updateArtifact = async (
   )
     .replace("{beforeHighlight}", beforeHighlight)
     .replace("{afterHighlight}", afterHighlight)
-    .replace("{reflections}", memoriesAsString);
+    .replace("{reflections}", memoriesAsString || "");
 
   const recentHumanMessage = state._messages.findLast(
     (message) => message.getType() === "human"
@@ -114,13 +104,17 @@ export const updateArtifact = async (
     throw new Error("No recent human message found");
   }
 
-  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const contextDocuments = (state.webSearchResults || []).map(mapSearchResultToContextDocument);
+  const contextDocumentMessages = await createContextDocumentMessagesOpenAI(contextDocuments as ContextDocument[]);
+
   const isO1MiniModel = isUsingO1MiniModel(config);
-  const updatedArtifact = await smallModel.invoke([
+  const updatedArtifactResponse = await smallModelWithTool.invoke([
     { role: isO1MiniModel ? "user" : "system", content: formattedPrompt },
-    ...contextDocumentMessages,
+    ...(contextDocumentMessages as BaseMessageLike[]),
     recentHumanMessage,
   ]);
+
+  const updatedArtifactContent = (updatedArtifactResponse.tool_calls?.[0].args as z.infer<typeof UPDATE_ARTIFACT_TOOL_SCHEMA>).updatedContent;
 
   const entireTextBefore = currentArtifactContent.code.slice(
     0,
@@ -129,7 +123,7 @@ export const updateArtifact = async (
   const entireTextAfter = currentArtifactContent.code.slice(
     state.highlightedCode.endCharIndex
   );
-  const entireUpdatedContent = `${entireTextBefore}${updatedArtifact.content}${entireTextAfter}`;
+  const entireUpdatedContent = `${entireTextBefore}${updatedArtifactContent}${entireTextAfter}`;
 
   const newArtifactContent: ArtifactCodeV3 = {
     ...currentArtifactContent,

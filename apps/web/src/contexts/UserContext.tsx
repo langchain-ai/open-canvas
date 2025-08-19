@@ -1,55 +1,43 @@
-import { createSupabaseClient } from "@/lib/supabase/client";
-import { User } from "@supabase/supabase-js";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useState, useEffect, ReactNode, useContext } from "react";
 
 type UserContentType = {
-  getUser: () => Promise<User | undefined>;
-  user: User | undefined;
-  loading: boolean;
+  user: any | null;
+  reflections: any[];
+  customQuickActions: any[];
+  updateReflections: (newRefs: any[]) => void;
 };
 
 const UserContext = createContext<UserContentType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User>();
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any | null>(null);
+  const [reflections, setReflections] = useState<any[]>([]);
+  const [customQuickActions, setCustomQuickActions] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user || typeof window === "undefined") return;
-
-    getUser();
+    const stored = localStorage.getItem("oc_user_data");
+    if (stored) {
+      const data = JSON.parse(stored);
+      setUser(data.user);
+      setReflections(data.reflections || []);
+      setCustomQuickActions(data.customQuickActions || []);
+    } else {
+      const dummyUser = { id: "local-user", email: "local@local.com" };
+      setUser(dummyUser);
+      localStorage.setItem("oc_user_data", JSON.stringify({ user: dummyUser, reflections: [], customQuickActions: [] }));
+    }
   }, []);
 
-  async function getUser() {
-    if (user) {
-      setLoading(false);
-      return user;
-    }
-
-    const supabase = createSupabaseClient();
-
-    const {
-      data: { user: supabaseUser },
-    } = await supabase.auth.getUser();
-    setUser(supabaseUser || undefined);
-    setLoading(false);
-    return supabaseUser || undefined;
-  }
-
-  const contextValue: UserContentType = {
-    getUser,
-    user,
-    loading,
+  const updateReflections = (newRefs: any[]) => {
+    setReflections(newRefs);
+    const storedData = JSON.parse(localStorage.getItem("oc_user_data") || '{}');
+    localStorage.setItem("oc_user_data", JSON.stringify({ ...storedData, reflections: newRefs }));
   };
 
   return (
-    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, reflections, customQuickActions, updateReflections }}>
+      {children}
+    </UserContext.Provider>
   );
 }
 

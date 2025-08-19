@@ -8,7 +8,6 @@
     "lib": [
       "ES2021",
       "ES2022.Object",
-      "DOM",
       "es2023"
     ],
     "module": "NodeNext",
