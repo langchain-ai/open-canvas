@@ -1,23 +1,24 @@
 import { Command, END, Send, START, StateGraph } from "@langchain/langgraph";
 import { DEFAULT_INPUTS } from "@opencanvas/shared/constants";
-import { customAction } from "./nodes/customAction.js";
-import { generateArtifact } from "./nodes/generate-artifact/index.js";
-import { generateFollowup } from "./nodes/generateFollowup.js";
-import { generatePath } from "./nodes/generate-path/index.js";
-import { reflectNode } from "./nodes/reflect.js";
-import { rewriteArtifact } from "./nodes/rewrite-artifact/index.js";
-import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme.js";
-import { updateArtifact } from "./nodes/updateArtifact.js";
-import { replyToGeneralInput } from "./nodes/replyToGeneralInput.js";
-import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme.js";
-import { generateTitleNode } from "./nodes/generateTitle.js";
-import { updateHighlightedText } from "./nodes/updateHighlightedText.js";
-import { OpenCanvasGraphAnnotation } from "./state.js";
-import { summarizer } from "./nodes/summarizer.js";
-import { graph as webSearchGraph } from "../web-search/index.js";
-import { createAIMessageFromWebResults } from "../utils.js";
+import { customAction } from "./nodes/customAction";
+import { generateArtifact } from "./nodes/generate-artifact";
+import { generateFollowup } from "./nodes/generateFollowup";
+import { generatePath } from "./nodes/generate-path";
+import { reflectNode } from "./nodes/reflect";
+import { rewriteArtifactTheme } from "./nodes/rewriteArtifactTheme";
+import { updateArtifact } from "./nodes/updateArtifact";
+import { replyToGeneralInput } from "./nodes/replyToGeneralInput";
+import { rewriteCodeArtifactTheme } from "./nodes/rewriteCodeArtifactTheme";
+import { generateTitleNode } from "./nodes/generateTitle";
+import { updateHighlightedText } from "./nodes/updateHighlightedText";
+import { OpenCanvasGraphAnnotation } from "./state";
+import { summarizer } from "./nodes/summarizer";
+import { graph as webSearchGraph } from "../web-search";
+import { rewriteArtifact } from './nodes/rewrite-artifact';
+import { BaseMessage } from "@langchain/core/messages";
 import { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "../context-documents";
 import { ContextDocument } from "@opencanvas/shared/types";
+import { createAIMessageFromWebResults } from '../web-results';
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {
@@ -64,10 +65,8 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).length;
 }
 
-async function simpleTokenCalculator(
-  state: any
-): Promise<"summarizer" | typeof END> {
-  const totalChars = state._messages.reduce((acc: number, msg: any) => {
+async function shouldSummarize(state: typeof OpenCanvasGraphAnnotation.State): Promise<boolean> {
+  const totalChars = state._messages.reduce((acc: number, msg: BaseMessage) => {
     if (typeof msg.content !== "string") {
       const allContent = msg.content.flatMap((c: any) =>
         "text" in c ? (c.text as string) : []
@@ -81,26 +80,24 @@ async function simpleTokenCalculator(
   const contextDocuments = state.contextDocuments || [];
   const { fileCount, loc } = await countContextDocuments(contextDocuments);
 
-  if (totalChars > CHARACTER_MAX || fileCount > FILE_COUNT_MAX || loc > LOC_MAX) {
-    return "summarizer";
-  }
-  return END;
+  return totalChars > CHARACTER_MAX || fileCount > FILE_COUNT_MAX || loc > LOC_MAX;
 }
+
+// Update the conditional edge to use shouldSummarize
+const conditionallyGenerateTitle = async (
+  state: typeof OpenCanvasGraphAnnotation.State
+): Promise<"generateTitle" | "summarizer" | typeof END> => {
+  if (state.messages.length > 2) {
+    return (await shouldSummarize(state)) ? "summarizer" : END;
+  }
+  return "generateTitle";
+};
 
 /**
  * Conditionally route to the "generateTitle" node if there are only
  * two messages in the conversation. This node generates a concise title
  * for the conversation which is displayed in the thread history.
  */
-const conditionallyGenerateTitle = (
-  state: typeof OpenCanvasGraphAnnotation.State
-): "generateTitle" | "summarizer" | typeof END => {
-  if (state.messages.length > 2) {
-    // Do not generate if there are more than two messages (meaning it's not the first human-AI conversation)
-    return simpleTokenCalculator(state as any);
-  }
-  return "generateTitle";
-};
 
 /**
  * Updates state & routes the graph based on whether or not the web search
@@ -137,10 +134,8 @@ function routePostWebSearch(
 }
 
 const builder = new StateGraph(OpenCanvasGraphAnnotation)
-  // Start node & edge
   .addNode("generatePath", generatePath)
   .addEdge(START, "generatePath")
-  // Nodes
   .addNode("replyToGeneralInput", replyToGeneralInput)
   .addNode("rewriteArtifact", rewriteArtifact)
   .addNode("rewriteArtifactTheme", rewriteArtifactTheme)
@@ -156,19 +151,22 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addNode("summarizer", summarizer)
   .addNode("webSearch", webSearchGraph)
   .addNode("routePostWebSearch", routePostWebSearch)
-  // Initial router
-  .addConditionalEdges("generatePath", routeNode, [
-    "updateArtifact",
-    "rewriteArtifactTheme",
-    "rewriteCodeArtifactTheme",
-    "replyToGeneralInput",
-    "generateArtifact",
-    "rewriteArtifact",
-    "customAction",
-    "updateHighlightedText",
-    "webSearch",
-  ])
-  // Edges
+  .addConditionalEdges("generatePath", routeNode, (state) => {
+    const edges = [
+      "updateArtifact",
+      "rewriteArtifactTheme",
+      "rewriteCodeArtifactTheme",
+      "replyToGeneralInput",
+      "generateArtifact",
+      "rewriteArtifact",
+      "customAction",
+      "updateHighlightedText",
+    ];
+    if (state.webSearchEnabled) {
+      edges.push("webSearch");
+    }
+    return edges;
+  })
   .addEdge("generateArtifact", "generateFollowup")
   .addEdge("updateArtifact", "generateFollowup")
   .addEdge("updateHighlightedText", "generateFollowup")
@@ -177,16 +175,14 @@ const builder = new StateGraph(OpenCanvasGraphAnnotation)
   .addEdge("rewriteCodeArtifactTheme", "generateFollowup")
   .addEdge("customAction", "generateFollowup")
   .addEdge("webSearch", "routePostWebSearch")
-  // End edges
   .addEdge("replyToGeneralInput", "cleanState")
-  // Only reflect if an artifact was generated/updated.
   .addEdge("generateFollowup", "reflect")
   .addEdge("reflect", "cleanState")
-  .addConditionalEdges("cleanState", conditionallyGenerateTitle, [
-    END,
-    "generateTitle",
-    "summarizer",
-  ])
+  .addConditionalEdges("cleanState", conditionallyGenerateTitle, {
+    generateTitle: "generateTitle",
+    summarizer: "summarizer",
+    END: END,
+  })
   .addEdge("generateTitle", END)
   .addEdge("summarizer", END);
 

@@ -1,5 +1,4 @@
-export function customAction(config: any) {
-  // Updated to remove Supabase reference
+export function customAction(config: any): { userId: string | undefined } {
   const userId = config.configurable?.user_id;
-  // Rest of the function implementation
+  return { userId };
 }

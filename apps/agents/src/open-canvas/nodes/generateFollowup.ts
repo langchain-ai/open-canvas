@@ -13,16 +13,12 @@ import {
   OpenCanvasGraphReturnType,
 } from "../state.js";
 
-/**
- * Generate a followup message after generating or updating an artifact.
- */
 export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModelWithTool = (await getModelFromConfig(config, {
     maxTokens: 250,
-    // We say tool calling is true here because that'll cause it to use a small model
     isToolCalling: true,
   }))
     .bindTools([GENERATE_FOLLOWUP_TOOL_SCHEMA], {
@@ -38,7 +34,7 @@ export const generateFollowup = async (
   const memoryNamespace = ["memories", assistantId];
   const memoryKey = "reflection";
   const memories = await store.get(memoryNamespace, memoryKey);
-  const memoriesAsString = memories?.value
+  const memoriesAsString: string = memories?.value
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
@@ -64,7 +60,6 @@ export const generateFollowup = async (
         .join("\n\n")
     );
 
-  // TODO: Include the chat history as well.
   const response = await smallModelWithTool.invoke([
     { role: "user", content: formattedPrompt },
   ]);

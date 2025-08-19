@@ -13,7 +13,6 @@ export const getModelConfig = (
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) throw new Error("Model name is missing in config.");
 
-
   if (customModelName.startsWith("ollama-")) {
     return {
       modelName: customModelName.replace("ollama-", ""),

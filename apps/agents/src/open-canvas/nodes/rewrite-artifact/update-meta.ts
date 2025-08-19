@@ -3,31 +3,18 @@ import { OpenCanvasGraphAnnotation } from "../../state.js";
 import {
   formatArtifactContent,
   getModelFromConfig,
-  isUsingO1MiniModel,
-  getFormattedReflections,
 } from "../../../utils.js";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts.js";
 import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas.js";
 import { z } from "zod";
+import { getFormattedReflections } from "../../../reflection";
 
 export async function optionallyUpdateArtifactMeta(
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
-): Promise<z.infer<typeof OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA>> {
-  const toolCallingModel = (
-    await getModelFromConfig(config, {
-      isToolCalling: true,
-    })
-  )
-    .withStructuredOutput(
-      OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA,
-
-      {
-        name: "optionallyUpdateArtifactMeta",
-      }
-    )
-    .withConfig({ runName: "optionally_update_artifact_meta" });
+): Promise<any> {
+  const toolCallingModel = await getModelFromConfig(config);
 
   const memoriesAsString = await getFormattedReflections(config);
 
@@ -51,10 +38,9 @@ export async function optionallyUpdateArtifactMeta(
     throw new Error("No recent human message found");
   }
 
-  const isO1MiniModel = isUsingO1MiniModel(config);
   const optionallyUpdateArtifactResponse = await toolCallingModel.invoke([
     {
-      role: isO1MiniModel ? "user" : "system",
+      role: "system",
       content: optionallyUpdateArtifactMetaPrompt,
     },
     recentHumanMessage,

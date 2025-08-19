@@ -12,7 +12,6 @@ import { ArtifactV3, Reflections } from "@opencanvas/shared/types";
 import {
   ensureStoreInConfig,
   formatReflections,
-  getModelConfig,
   getModelFromConfig,
 } from "../../utils.js";
 import {
@@ -32,7 +31,7 @@ export const rewriteArtifactTheme = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName } = getModelConfig(config);
+  const { modelName } = config;
   const smallModel = await getModelFromConfig(config);
 
   const store = ensureStoreInConfig(config);
@@ -43,7 +42,7 @@ export const rewriteArtifactTheme = async (
   const memoryNamespace = ["memories", assistantId];
   const memoryKey = "reflection";
   const memories = await store.get(memoryNamespace, memoryKey);
-  const memoriesAsString = memories?.value
+  const memoriesAsString: string = memories?.value
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 

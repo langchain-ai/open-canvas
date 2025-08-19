@@ -1,1 +1,3 @@
-export { createAIMessageFromWebResults } from "./messages";
+export function createAIMessageFromWebResults(results: any[]) {
+  // implementation
+}

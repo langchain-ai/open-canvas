@@ -1,1 +1,2 @@
-export { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "./utils/contextDocs";
+import { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "./context-docs";
+export { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument };
