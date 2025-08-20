@@ -1,8 +1,10 @@
-import { convertPDFToText } from "./pdf-utils";
-import { decodeBase64ToUtf8 } from "./utils/base64";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { convertPDFToText } from "./lib/pdf";
+import { decodeBase64ToUtf8 } from "./lib/base64";
 import { ContextDocument, SearchResult } from "@opencanvas/shared/types";
 
 export async function createContextDocumentMessagesOpenAI(
+  _config: LangGraphRunnableConfig,
   documents: ContextDocument[]
 ) {
   const messagesPromises = documents.map(async (doc) => {

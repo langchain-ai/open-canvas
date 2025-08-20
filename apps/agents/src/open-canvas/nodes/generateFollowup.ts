@@ -1,5 +1,5 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getModelFromConfig } from "../../model-config.js";
+import { getModelFromConfigLocal as getModelFromConfig } from "../../lib/model-config.local";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,

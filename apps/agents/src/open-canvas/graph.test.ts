@@ -1,8 +1,13 @@
-const assert = require('assert');
-const { graph } = require('./index.ts');
+import { graph } from './index';
 
-console.log('Testing OpenCanvas Graph Router');
-assert(graph, 'Graph is not defined');
-console.log('Graph is defined');
+describe('OpenCanvas Graph', () => {
+  it('should be defined', () => {
+    expect(graph).toBeDefined();
+  });
 
-process.exit(0);
+  it('should have the correct configuration', () => {
+    expect(graph.config.runName).toBe('open_canvas');
+  });
+
+  // Add more tests for graph functionality
+});

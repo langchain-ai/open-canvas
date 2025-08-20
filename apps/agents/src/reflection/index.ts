@@ -1,4 +1,4 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { BaseMessage } from '@langchain/core/messages';
 import {
   type LangGraphRunnableConfig,
   StateGraph,
@@ -11,12 +11,26 @@ import {
 import { Reflections } from "@opencanvas/shared/types";
 import { REFLECT_SYSTEM_PROMPT, REFLECT_USER_PROMPT } from "./prompts.js";
 import { z } from "zod";
-import { ensureStoreInConfig } from "../reflections/index";
+import { ensureStoreInConfig } from "../lib/reflections";
 import { formatReflections } from "./reflection";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
 } from "@opencanvas/shared/utils/artifacts";
+import { getModelFromConfigLocal as getModelFromConfig } from "../lib/model-config.local";
+
+export const generateReflectionTool = {
+  name: "generate_reflections",
+  description: "Generate reflections based on the context provided.",
+  schema: z.object({
+    styleRules: z
+      .array(z.string())
+      .describe("The complete new list of style rules and guidelines."),
+    content: z
+      .array(z.string())
+      .describe("The complete new list of memories/facts about the user."),
+  }),
+};
 
 export const reflect = async (
   state: typeof ReflectionGraphAnnotation.State,
@@ -48,12 +62,7 @@ export const reflect = async (
     }),
   };
 
-  const model = new ChatAnthropic({
-    model: "claude-3-5-sonnet-20240620",
-    temperature: 0,
-  }).bindTools([generateReflectionTool], {
-    tool_choice: "generate_reflections",
-  });
+  const model = await getModelFromConfig(config);
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)
@@ -73,7 +82,7 @@ export const reflect = async (
   const formattedUserPrompt = REFLECT_USER_PROMPT.replace(
     "{conversation}",
     state.messages
-      .map((msg) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
+      .map((msg: BaseMessage) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
       .join("\n\n")
   );
 

@@ -9,11 +9,9 @@ import {
   getArtifactContent,
 } from "@opencanvas/shared/utils/artifacts";
 import { ArtifactV3, Reflections } from "@opencanvas/shared/types";
-import {
-  ensureStoreInConfig,
-  formatReflections,
-  getModelFromConfig,
-} from "../../utils.js";
+import { formatReflections } from "../../utils.js";
+import { getModelFromConfigLocal as getModelFromConfig } from "../../lib/model-config.local";
+import { ensureStoreInConfig } from "../../utils.js";
 import {
   ADD_EMOJIS_TO_ARTIFACT_PROMPT,
   CHANGE_ARTIFACT_LANGUAGE_PROMPT,

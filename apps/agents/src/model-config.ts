@@ -20,7 +20,10 @@ export const getModelConfig = (
     };
   }
 
-  // Default to LiteLLM proxy
+  if (!process.env.LITELLM_BASE_URL) {
+    throw new Error("LITELLM_BASE_URL is not set");
+  }
+
   return {
     modelName: customModelName,
     modelProvider: "openai",

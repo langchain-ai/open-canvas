@@ -1,3 +1,4 @@
+import { trace } from '@langfuse/langchain';
 import {
   ROUTE_QUERY_PROMPT,
   ROUTE_QUERY_OPTIONS_HAS_ARTIFACTS,
@@ -7,7 +8,7 @@ import {
 } from "../../prompts.js";
 import { OpenCanvasGraphAnnotation } from "../../state.js";
 import { formatArtifactContentWithTemplate } from "../../utils/artifact";
-import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../context-docs";
+import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../lib/context-docs";
 import { getModelFromConfig } from "../../model-config";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
@@ -84,7 +85,7 @@ async function dynamicDeterminePathFunc({
     }
   );
 
-  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const contextDocumentMessages = await createContextDocumentMessages(config, state._messages);
   const result = await modelWithTool.invoke([
     ...contextDocumentMessages,
     ...(newMessages.length ? newMessages : []),
@@ -94,7 +95,14 @@ async function dynamicDeterminePathFunc({
     },
   ]);
 
-  return result.tool_calls?.[0]?.args as z.infer<typeof schema> | undefined;
+  if (!result.tool_calls || result.tool_calls.length === 0) {
+    throw new Error("No tool calls found in the result");
+  }
+  const args = result.tool_calls[0].args;
+  if (!args) {
+    throw new Error("No args found in the tool call");
+  }
+  return args as z.infer<typeof schema>;
 }
 
 export const dynamicDeterminePath = trace(dynamicDeterminePathFunc, {

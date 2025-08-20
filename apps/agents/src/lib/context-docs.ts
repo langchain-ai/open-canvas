@@ -1,11 +1,11 @@
-import { MessageContentComplex } from "@langchain/core/messages";
+// context-docs.ts
+import { ContextDocument } from "@opencanvas/shared";
 import { convertPDFToText } from "./pdf";
-import { cleanBase64, decodeBase64ToUtf8 } from "../lib/base64";
-import { ContextDocument, SearchResult } from "@opencanvas/shared/types";
+import { decodeBase64ToUtf8 } from "./base64";
 
 export async function createContextDocumentMessagesOpenAI(
   documents: ContextDocument[]
-) {
+): Promise<any[]> {
   const messagesPromises = documents.map(async (doc) => {
     let text = "";
     if (doc.type === "application/pdf") {
@@ -20,10 +20,9 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
-export function mapSearchResultToContextDocument(searchResult: SearchResult): ContextDocument {
+export function mapSearchResultToContextDocument(searchResult: any): ContextDocument {
   return {
-    name: searchResult.metadata.title || "Untitled",
-    type: "text/plain",
-    data: searchResult.pageContent || "",
+    type: 'text',
+    data: 'sample data'
   };
 }

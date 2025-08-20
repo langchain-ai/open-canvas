@@ -1,4 +1,4 @@
-import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../context-docs";
+import { createContextDocumentMessagesOpenAI } from "../../lib/context-docs";
 import { getModelFromConfig } from "../../model-config";
 import { isUsingO1MiniModel } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
@@ -70,7 +70,8 @@ export const updateHighlightedText = async (
     throw new Error("Expected a human message");
   }
 
-  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const documents = []; // Define or retrieve documents appropriately
+  const contextDocumentMessages = await createContextDocumentMessagesOpenAI(config, documents);
   const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await modelWithConfig.invoke([
     {

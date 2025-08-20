@@ -17,9 +17,9 @@ import {
 } from "../../utils";
 import {
   getModelConfig,
-  getModelFromConfig,
+  getModelFromConfigLocal as getModelFromConfig,
   isUsingO1MiniModel,
-} from "../../model-config.js";
+} from "../../lib/model-config.local";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts.js";
 import { UPDATE_ARTIFACT_TOOL_SCHEMA } from "./schemas.js";
 import { z } from "zod";

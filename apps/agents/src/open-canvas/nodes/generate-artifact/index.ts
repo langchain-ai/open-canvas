@@ -1,8 +1,8 @@
-import { getFormattedReflections } from "../../../utils/reflections";
+import { getFormattedReflections } from "../../../lib/reflections";
 import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../context-docs";
-import { getModelConfig, getModelFromConfig } from "../../../model-config";
+import { getModelFromConfigLocal } from "../../../lib/model-config.local";
 import { isUsingO1MiniModel } from "../../../utils/model";
-import { ArtifactV3 } from "@opencanvas/shared/types";
+import { ArtifactV3 } from "@opencanvas/shared";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import {
   OpenCanvasGraphAnnotation,
@@ -19,14 +19,12 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName } = getModelConfig(config);
-    isToolCalling: true
-  },
-  });
-  const smallModel = await getModelFromConfig(config, {
+  const { modelName } = getModelFromConfigLocal();
+  const extra = {
     temperature: 0.5,
-    isToolCalling: true,
-  });
+    isToolCalling: true
+  };
+  const smallModel = await getModelFromConfigLocal();
 
   const modelWithArtifactTool = smallModel.bindTools(
     [
@@ -52,7 +50,10 @@ export const generateArtifact = async (
     ? `${userSystemPrompt}\n${formattedNewArtifactPrompt}`
     : formattedNewArtifactPrompt;
 
-  const contextDocumentMessages = await createContextDocumentMessages(config);
+  const contextDocumentMessages = await createContextDocumentMessages(
+    config,
+    state._messages
+  );
   const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await modelWithArtifactTool.invoke(
     [

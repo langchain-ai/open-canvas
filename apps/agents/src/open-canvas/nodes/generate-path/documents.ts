@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { convertPDFToText } from "../../pdf-utils";
-import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../context-docs";
+import { convertPDFToText } from "../../../lib/pdf";
+import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../lib/context-docs";
 import { getModelConfig } from "../../model-config";
 import { ContextDocument } from "@opencanvas/shared/types";
 import {
