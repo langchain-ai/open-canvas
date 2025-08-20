@@ -1,5 +1,5 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { initChatModel } from "langchain/chat_models/universal";
+import { ChatOpenAI } from "@langchain/openai";
 import { CustomModelConfig } from "@opencanvas/shared/types";
 
 export const getModelConfig = (
@@ -17,7 +17,6 @@ export const getModelConfig = (
     return {
       modelName: customModelName.replace("ollama-", ""),
       modelProvider: "ollama",
-      baseUrl: process.env.OLLAMA_API_URL || "http://host.docker.internal:11434",
     };
   }
 
@@ -36,19 +35,18 @@ export async function getModelFromConfig(
     maxTokens?: number;
     isToolCalling?: boolean;
   }
-): Promise<ReturnType<typeof initChatModel>> {
-  const { modelName, modelProvider, baseUrl } = getModelConfig(config);
+): Promise<ChatOpenAI> {
+  const { modelName } = getModelConfig(config);
   const { temperature = 0.5, maxTokens } = {
     temperature: config.configurable?.modelConfig?.temperatureRange.current,
     maxTokens: config.configurable?.modelConfig?.maxTokens.current,
     ...extra,
   };
 
-  return await initChatModel(modelName, {
-    modelProvider,
+  return new ChatOpenAI({
+    modelName,
     temperature,
     maxTokens,
-    baseUrl,
   });
 }
 

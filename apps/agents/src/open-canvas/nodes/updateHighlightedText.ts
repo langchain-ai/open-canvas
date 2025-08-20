@@ -1,14 +1,7 @@
-import {
-  createContextDocumentMessages,
-  getModelConfig,
-  getModelFromConfig,
-  isUsingO1MiniModel,
-} from "../../utils.js";
-import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
-import { AIMessageChunk } from "@langchain/core/messages";
-import { RunnableBinding } from "@langchain/core/runnables";
+import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../context-docs";
+import { getModelFromConfig } from "../../model-config";
+import { isUsingO1MiniModel } from "../../utils";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { ConfigurableChatModelCallOptions } from "langchain/chat_models/universal";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
@@ -45,35 +38,10 @@ export const updateHighlightedText = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelProvider, modelName } = getModelConfig(config);
-  let model: RunnableBinding<
-    BaseLanguageModelInput,
-    AIMessageChunk,
-    ConfigurableChatModelCallOptions
-  >;
-  if (modelProvider.includes("openai") || modelName.includes("3-5-sonnet")) {
-    // Custom model is intelligent enough for updating artifacts
-    model = (
-      await getModelFromConfig(config, {
-        temperature: 0,
-      })
-    ).withConfig({ runName: "update_highlighted_markdown" });
-  } else {
-    // Custom model is not intelligent enough for updating artifacts
-    model = (
-      await getModelFromConfig(
-        {
-          ...config,
-          configurable: {
-            customModelName: "gpt-4o",
-          },
-        },
-        {
-          temperature: 0,
-        }
-      )
-    ).withConfig({ runName: "update_highlighted_markdown" });
-  }
+  const model = await getModelFromConfig(config, {
+    temperature: 0,
+  });
+  const modelWithConfig = model.withConfig({ runName: "update_highlighted_markdown" });
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)
@@ -104,7 +72,7 @@ export const updateHighlightedText = async (
 
   const contextDocumentMessages = await createContextDocumentMessages(config);
   const isO1MiniModel = isUsingO1MiniModel(config);
-  const response = await model.invoke([
+  const response = await modelWithConfig.invoke([
     {
       role: isO1MiniModel ? "user" : "system",
       content: formattedPrompt,
@@ -116,7 +84,7 @@ export const updateHighlightedText = async (
 
   const newCurrIndex = state.artifact.contents.length + 1;
   const prevContent = state.artifact.contents.find(
-    (c) => c.index === state.artifact.currentIndex && c.type === "text"
+    (c: ArtifactMarkdownV3) => c.index === state.artifact.currentIndex && c.type === "text"
   ) as ArtifactMarkdownV3 | undefined;
   if (!prevContent) {
     throw new Error("Previous content not found");

@@ -21,7 +21,12 @@
     "useDefineForClassFields": true,
     "strictPropertyInitialization": false,
     "allowJs": true,
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@opencanvas/shared": ["../packages/shared/src/index.ts"],
+      "@opencanvas/shared/*": ["../packages/shared/src/*"],
+      "@opencanvas/shared/constants": ["../packages/shared/src/constants.ts"]
+    }
   },
   "include": [
     "src/"

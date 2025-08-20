@@ -6,16 +6,13 @@ import {
   NO_ARTIFACT_PROMPT,
 } from "../../prompts.js";
 import { OpenCanvasGraphAnnotation } from "../../state.js";
-import {
-  formatArtifactContentWithTemplate,
-  getModelFromConfig,
-  createContextDocumentMessages,
-} from "../../../utils.js";
+import { formatArtifactContentWithTemplate } from "../../utils/artifact";
+import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../context-docs";
+import { getModelFromConfig } from "../../model-config";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import z from "zod";
 import { BaseMessage } from "@langchain/core/messages";
-import { traceable } from "langsmith/traceable";
 
 interface DynamicDeterminePathParams {
   state: typeof OpenCanvasGraphAnnotation.State;
@@ -46,7 +43,7 @@ async function dynamicDeterminePathFunc({
       "{recentMessages}",
       state._messages
         .slice(-3)
-        .map((message) => `${message.getType()}: ${message.content}`)
+        .map((message: BaseMessage) => `${message.getType()}: ${message.content}`)
         .join("\n\n")
     )
     .replace(
@@ -100,6 +97,6 @@ async function dynamicDeterminePathFunc({
   return result.tool_calls?.[0]?.args as z.infer<typeof schema> | undefined;
 }
 
-export const dynamicDeterminePath = traceable(dynamicDeterminePathFunc, {
+export const dynamicDeterminePath = trace(dynamicDeterminePathFunc, {
   name: "dynamic_determine_path",
 });

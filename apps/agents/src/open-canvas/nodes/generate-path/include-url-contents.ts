@@ -1,7 +1,7 @@
 import { FireCrawlLoader } from "@langchain/community/document_loaders/web/firecrawl";
 import { HumanMessage } from "@langchain/core/messages";
 import { initChatModel } from "langchain/chat_models/universal";
-import { traceable } from "langsmith/traceable";
+import { trace } from '@langfuse/langchain';
 import z from "zod";
 
 const PROMPT = `You're an advanced AI assistant.
@@ -44,7 +44,7 @@ async function fetchUrlContentsFunc(
     pageContent: docs[0]?.pageContent || "",
   };
 }
-const fetchUrlContents = traceable(fetchUrlContentsFunc, {
+const fetchUrlContents = trace(fetchUrlContentsFunc, {
   name: "fetch_url_contents",
 });
 
@@ -93,7 +93,7 @@ async function includeURLContentsFunc(
       return undefined;
     }
 
-    const urlContents = await Promise.all(urls.map(fetchUrlContents));
+    const urlContents: { url: string; pageContent: string }[] = await Promise.all(urls.map(fetchUrlContents));
 
     let transformedPrompt = prompt;
     for (const { url, pageContent } of urlContents) {
@@ -115,6 +115,6 @@ async function includeURLContentsFunc(
   }
 }
 
-export const includeURLContents = traceable(includeURLContentsFunc, {
+export const includeURLContents = trace(includeURLContentsFunc, {
   name: "include_url_contents",
 });

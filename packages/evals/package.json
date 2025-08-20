@@ -16,8 +16,8 @@
   "dependencies": {
     "@langchain/core": "^0.3.38",
     "@opencanvas/agents": "*",
-    "zod": "^3.24.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",

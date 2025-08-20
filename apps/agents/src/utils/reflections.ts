@@ -7,6 +7,6 @@ export function formatReflections(reflections: any) {
   // implementation
 }
 
-export function getFormattedReflections(reflections: any) {
-  // implementation
+export function getFormattedReflections(reflections: any): string {
+  return "formatted reflections";
 }

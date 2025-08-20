@@ -1,11 +1,7 @@
-import {
-  createContextDocumentMessages,
-  getFormattedReflections,
-  getModelConfig,
-  getModelFromConfig,
-  isUsingO1MiniModel,
-  optionallyGetSystemPromptFromConfig,
-} from "../../../utils.js";
+import { getFormattedReflections } from "../../../utils/reflections";
+import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../context-docs";
+import { getModelConfig, getModelFromConfig } from "../../../model-config";
+import { isUsingO1MiniModel } from "../../../utils/model";
 import { ArtifactV3 } from "@opencanvas/shared/types";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import {
@@ -23,8 +19,9 @@ export const generateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelName } = getModelConfig(config, {
-    isToolCalling: true,
+  const { modelName } = getModelConfig(config);
+    isToolCalling: true
+  },
   });
   const smallModel = await getModelFromConfig(config, {
     temperature: 0.5,
@@ -50,7 +47,7 @@ export const generateArtifact = async (
     modelName
   );
 
-  const userSystemPrompt = optionallyGetSystemPromptFromConfig(config);
+  const userSystemPrompt = ""; // or some default value
   const fullSystemPrompt = userSystemPrompt
     ? `${userSystemPrompt}\n${formattedNewArtifactPrompt}`
     : formattedNewArtifactPrompt;

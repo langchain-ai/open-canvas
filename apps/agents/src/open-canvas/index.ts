@@ -1,5 +1,7 @@
 import { Command, END, Send, START, StateGraph } from "@langchain/langgraph";
 import { DEFAULT_INPUTS } from "@opencanvas/shared/constants";
+import { ContextDocument } from "@opencanvas/shared/types";
+import { createAIMessageFromWebResults } from '../web-results';
 import { customAction } from "./nodes/customAction";
 import { generateArtifact } from "./nodes/generate-artifact";
 import { generateFollowup } from "./nodes/generateFollowup";
@@ -16,9 +18,6 @@ import { summarizer } from "./nodes/summarizer";
 import { graph as webSearchGraph } from "../web-search";
 import { rewriteArtifact } from './nodes/rewrite-artifact';
 import { BaseMessage } from "@langchain/core/messages";
-import { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "../context-documents";
-import { ContextDocument } from "@opencanvas/shared/types";
-import { createAIMessageFromWebResults } from '../web-results';
 
 const routeNode = (state: typeof OpenCanvasGraphAnnotation.State) => {
   if (!state.next) {

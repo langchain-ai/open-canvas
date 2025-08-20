@@ -40,3 +40,7 @@ export function formatArtifactContent(
     return content.code;
   }
 }
+export function isUsingO1MiniModel(config: LangGraphRunnableConfig) {
+  const modelName = config.configurable?.customModelName || process.env.OLLAMA_MODEL || "ollama-llama3.1";
+  return modelName.includes("o1-mini");
+}

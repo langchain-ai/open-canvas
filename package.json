@@ -4,7 +4,10 @@
   "homepage": "https://opencanvas.langchain.com",
   "repository": "https://github.com/langchain-ai/open-canvas",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "build": "turbo build",
     "turbo:command": "turbo",
@@ -13,22 +16,56 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix"
   },
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "yarn@4.9.2",
   "devDependencies": {
-    "turbo": "latest",
-    "tsx": "^4.19.1",
-    "typescript": "^5",
-    "eslint": "^8.41.0",
-    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@browserbasehq/stagehand": "^2.4.3",
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/lint": "^6.8.5",
+    "@codemirror/search": "^6.5.11",
+    "@codemirror/view": "^6.38.1",
     "@eslint/eslintrc": "^3.1.0",
+    "@ibm-cloud/watsonx-ai": "^1.6.10",
+    "@langchain/anthropic": "0.0.4",
+    "@langchain/core": "^0.3.72",
+    "@langchain/exa": "^0.1.0",
+    "@langchain/openai": "^0.6.9",
+    "@tiptap/pm": "^3.2.0",
+    "@types/ffmpeg": "^1.0.7",
+    "@types/js-cookie": "^3.0.6",
+    "@types/next": "^9.0.0",
+    "@types/node": "^24.3.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "^19.1.10",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
+    "date-fns": "^4.1.0",
+    "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-no-instanceof": "^1.0.1",
     "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^3.3.3"
+    "exa-js": "^1.8.27",
+    "ibm-cloud-sdk-core": "^5.4.2",
+    "openai": "^5.13.1",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.1",
+    "turbo": "^2.5.6",
+    "typescript": "^5",
+    "uuid": "^11.1.0"
   },
   "resolutions": {
     "@langchain/core": "^0.3.38"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.3.53",
+    "@langchain/langgraph": "0.2.73",
+    "deepmerge": "^4.3.1",
+    "dotenv": "16.4.5",
+    "langchain": "^0.3.31",
+    "langfuse": "^3.38.4",
+    "langsmith": "^0.3.61",
+    "zod": "3.25.0"
   }
 }
