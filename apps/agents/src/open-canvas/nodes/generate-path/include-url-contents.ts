@@ -87,9 +87,8 @@ async function includeURLContentsFunc(
     const args = result.tool_calls?.[0].args as
       | z.infer<typeof schema>
       | undefined;
-    const shouldIncludeUrlContents = args?.shouldIncludeUrlContents;
 
-    if (!shouldIncludeUrlContents) {
+    if (!args?.shouldIncludeUrlContents) {
       return undefined;
     }
 

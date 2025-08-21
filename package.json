@@ -33,11 +33,13 @@
     "@playwright/test": "^1.44.1",
     "@tiptap/pm": "^3.2.0",
     "@types/ffmpeg": "^1.0.7",
+    "@types/jest": "^30.0.0",
     "@types/js-cookie": "^3.0.6",
     "@types/next": "^9.0.0",
     "@types/node": "^24.3.0",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19.1.10",
+    "@types/tailwindcss": "^3.1.0",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
@@ -66,6 +68,6 @@
     "dotenv": "16.4.5",
     "langchain": "^0.3.31",
     "langsmith": "^0.3.61",
-    "zod": "3.25.0"
+    "zod": "^3.24.1"
   }
 }

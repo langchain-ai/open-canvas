@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { convertPDFToText } from "../../../lib/pdf";
 import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../lib/context-docs";
-import { getModelConfig } from "../../model-config";
+import { getModelFromConfigLocal } from "../../../lib/model-config.local";
 import { ContextDocument } from "@opencanvas/shared/types";
 import {
   BaseMessage,
@@ -52,11 +52,12 @@ export async function fixMisFormattedContextDocMessage(
     return undefined;
   }
 
-  const { modelProvider } = getModelConfig(config);
+  const model = getModelFromConfigLocal();
+  const modelName = model.modelName;
   const newMsgId = uuidv4();
   let changesMade = false;
 
-  if (modelProvider === "openai") {
+  if (modelName.includes("openai")) {
     const newContentPromises = message.content.map(async (m) => {
       if (
         m.type === "document" &&
@@ -86,7 +87,7 @@ export async function fixMisFormattedContextDocMessage(
         new HumanMessage({ ...message, id: newMsgId, content: newContent }),
       ];
     }
-  } else if (modelProvider === "anthropic") {
+  } else if (modelName.includes("anthropic")) {
     const newContent = message.content.map((m) => {
       if (m.type === "application/pdf") {
         changesMade = true;
@@ -108,8 +109,8 @@ export async function fixMisFormattedContextDocMessage(
         new HumanMessage({ ...message, id: newMsgId, content: newContent }),
       ];
     }
-  } else if (modelProvider === "google-genai") {
-    const newContent = message.content.map((m: BaseMessage) => {
+  } else if (modelName.includes("google-genai") || modelName.includes("gemini")) {
+    const newContent = message.content.map((m: any) => {
       if (m.type === "document") {
         changesMade = true;
         // Anthropic format

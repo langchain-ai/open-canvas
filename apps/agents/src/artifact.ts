@@ -8,15 +8,17 @@ export const formatArtifactContent = (
   let artifactContent: string;
 
   if (isArtifactCodeContent(content)) {
-    artifactContent = shortenContent
-      ? content.code?.slice(0, 500)
-      : content.code;
+    const codeContent = content as ArtifactCodeV3;
+    artifactContent = shortenContent && codeContent.code ? codeContent.code.slice(0, 500) : codeContent.code ?? '';
   } else {
-    artifactContent = shortenContent
-      ? content.fullMarkdown?.slice(0, 500)
-      : content.fullMarkdown;
+    const markdownContent = content as ArtifactMarkdownV3;
+    artifactContent = shortenContent && markdownContent.fullMarkdown ? markdownContent.fullMarkdown.slice(0, 500) : markdownContent.fullMarkdown ?? '';
   }
-  return `Title: ${content.title}\nArtifact type: ${content.type}\nContent: ${artifactContent}`;
+
+  const title = 'title' in content ? content.title : '';
+  const type = 'type' in content ? content.type : '';
+
+  return `Title: ${title}\nArtifact type: ${type}\nContent: ${artifactContent}`;
 };
 
 export const formatArtifactContentWithTemplate = (

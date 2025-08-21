@@ -1,10 +1,12 @@
 // context-docs.ts
-import { ContextDocument } from "@opencanvas/shared";
+type LocalContextDoc = { name?: string; type: string; data: string };
+type LocalSearchResult = { metadata?: { title?: string; url?: string; author?: string; publishedDate?: string }, pageContent?: string };
+
 import { convertPDFToText } from "./pdf";
 import { decodeBase64ToUtf8 } from "./base64";
 
 export async function createContextDocumentMessagesOpenAI(
-  documents: ContextDocument[]
+  documents: LocalContextDoc[]
 ): Promise<any[]> {
   const messagesPromises = documents.map(async (doc) => {
     let text = "";
@@ -20,9 +22,9 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
-export function mapSearchResultToContextDocument(searchResult: any): ContextDocument {
+export function mapSearchResultToContextDocument(searchResult: LocalSearchResult): LocalContextDoc {
   return {
     type: 'text',
-    data: 'sample data'
+    data: searchResult?.pageContent || ''
   };
 }

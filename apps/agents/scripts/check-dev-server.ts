@@ -1,3 +1,4 @@
+import type { Buffer } from "buffer";
 import { spawn } from "child_process";
 import * as path from "path";
 
@@ -10,7 +11,7 @@ function checkDevServer(): Promise<void> {
   return new Promise((resolve, reject) => {
     console.log("Starting development server in apps/agents...");
 
-    const scriptDir = __dirname;
+    const scriptDir = path.dirname(import.meta.url.replace('file://', ''));
     const targetCwd = path.resolve(scriptDir, "..");
 
     const serverProcess = spawn("yarn", ["dev"], {
@@ -23,10 +24,10 @@ function checkDevServer(): Promise<void> {
     let output = "";
     let serverReady = false;
 
-    serverProcess.stdout.on("data", (data) => {
-      const message = data.toString();
-      output += message;
-      console.log(message);
+serverProcess.stdout.on("data", (data: Buffer) => {
+  const message = data.toString();
+  output += message;
+  console.log(message);
       const lowerCaseMessage = message.toLowerCase();
 
       if (
@@ -58,7 +59,7 @@ function checkDevServer(): Promise<void> {
       }
     });
 
-    serverProcess.stderr.on("data", (data) => {
+    serverProcess.stderr.on("data", (data: Buffer) => {
       const message = data.toString();
       output += message;
       console.error("stderr:", message); // Log stderr for debugging
@@ -75,12 +76,12 @@ function checkDevServer(): Promise<void> {
       }
     });
 
-    serverProcess.on("error", (error) => {
+    serverProcess.on("error", (error: Error) => {
       console.error("Failed to start server process:", error);
       errorDetected = true;
     });
 
-    serverProcess.on("close", (code) => {
+    serverProcess.on("close", (code: number | null) => {
       console.log(`Server process exited with code ${code}`);
       // If the process exits prematurely (and not killed by us), it might be an error
       // We will rely on the timeout check primarily, but this can be an indicator

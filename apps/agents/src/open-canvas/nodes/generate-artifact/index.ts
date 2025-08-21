@@ -1,8 +1,7 @@
 import { getFormattedReflections } from "../../../lib/reflections";
-import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../context-docs";
+import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../utils/contextDocs";
 import { getModelFromConfigLocal } from "../../../lib/model-config.local";
-import { isUsingO1MiniModel } from "../../../utils/model";
-import { ArtifactV3 } from "@opencanvas/shared";
+type ArtifactV3Local = any; // TODO: tighten later
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import {
   OpenCanvasGraphAnnotation,
@@ -20,10 +19,6 @@ export const generateArtifact = async (
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
   const { modelName } = getModelFromConfigLocal();
-  const extra = {
-    temperature: 0.5,
-    isToolCalling: true
-  };
   const smallModel = await getModelFromConfigLocal();
 
   const modelWithArtifactTool = smallModel.bindTools(
@@ -51,17 +46,14 @@ export const generateArtifact = async (
     : formattedNewArtifactPrompt;
 
   const contextDocumentMessages = await createContextDocumentMessages(
-    config,
     state._messages
   );
-  const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await modelWithArtifactTool.invoke(
     [
-      { role: isO1MiniModel ? "user" : "system", content: fullSystemPrompt },
+      { role: "system", content: fullSystemPrompt },
       ...contextDocumentMessages,
       ...state._messages,
-    ],
-    { runName: "generate_artifact" }
+    ]
   );
   const args = response.tool_calls?.[0].args as
     | z.infer<typeof ARTIFACT_TOOL_SCHEMA>
@@ -71,7 +63,7 @@ export const generateArtifact = async (
   }
 
   const newArtifactContent = createArtifactContent(args);
-  const newArtifact: ArtifactV3 = {
+  const newArtifact: ArtifactV3Local = {
     currentIndex: 1,
     contents: [newArtifactContent],
   };

@@ -18,9 +18,7 @@ import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas.js";
 export const validateState = (
   state: typeof OpenCanvasGraphAnnotation.State
 ) => {
-  const currentArtifactContent = state.artifact
-    ? getArtifactContent(state.artifact)
-    : undefined;
+  const currentArtifactContent = state.artifact?.current || state.artifact;
   if (!currentArtifactContent) {
     throw new Error("No artifact found");
   }
@@ -97,8 +95,11 @@ export const createNewArtifactContent = ({
   newContent,
 }: CreateNewArtifactContentArgs): ArtifactCodeV3 | ArtifactMarkdownV3 => {
   const baseContent = {
-    index: state.artifact.contents.length + 1,
     title: artifactMetaToolCall?.title || currentArtifactContent.title,
+  };
+  const wrappedBaseContent = {
+    index: state.artifact.contents.length + 1,
+    content: baseContent,
   };
 
   if (artifactType === "code") {

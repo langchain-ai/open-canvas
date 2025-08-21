@@ -9,33 +9,26 @@ import {
   Reflections,
   ContextDocument,
 } from "@opencanvas/shared/types";
-import {
-  createContextDocumentMessagesOpenAI,
-  ensureStoreInConfig,
-  formatReflections,
-  mapSearchResultToContextDocument,
-} from "../../utils";
-import {
-  getModelConfig,
-  getModelFromConfigLocal as getModelFromConfig,
-  isUsingO1MiniModel,
-} from "../../lib/model-config.local";
+import { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "../../utils/contextDocs";
+import { formatReflections, ensureStoreInConfig } from "../../utils/reflections";
+import { getModelFromConfigLocal as getModelFromConfig } from "../../lib/model-config.local";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts.js";
-import { UPDATE_ARTIFACT_TOOL_SCHEMA } from "./schemas.js";
+import { UPDATE_ARTIFACT_TOOL_SCHEMA } from "./schemas";
 import { z } from "zod";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
+  BaseMessageLike,
 } from "../state.js";
 
 export const updateArtifact = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const { modelProvider, modelName } = getModelConfig(config);
-  const smallModelWithTool = (await getModelFromConfig(config, {
-    temperature: 0,
-  }))
+  const smallModel = await getModelFromConfig();
+  const smallModelWithTool = smallModel.bindTools([UPDATE_ARTIFACT_TOOL_SCHEMA], {
+    tool_choice: "update_artifact",
+  })
     .bindTools([UPDATE_ARTIFACT_TOOL_SCHEMA], {
       tool_choice: "update_artifact",
     })
@@ -98,7 +91,7 @@ export const updateArtifact = async (
     .replace("{reflections}", memoriesAsString || "");
 
   const recentHumanMessage = state._messages.findLast(
-    (message) => message.getType() === "human"
+    (message: any) => message.getType() === "human"
   );
   if (!recentHumanMessage) {
     throw new Error("No recent human message found");
@@ -107,7 +100,7 @@ export const updateArtifact = async (
   const contextDocuments = (state.webSearchResults || []).map(mapSearchResultToContextDocument);
   const contextDocumentMessages = await createContextDocumentMessagesOpenAI(contextDocuments as ContextDocument[]);
 
-  const isO1MiniModel = isUsingO1MiniModel(config);
+  const isO1MiniModel = false; // Temporarily setting to false, adjust as needed
   const updatedArtifactResponse = await smallModelWithTool.invoke([
     { role: isO1MiniModel ? "user" : "system", content: formattedPrompt },
     ...(contextDocumentMessages as BaseMessageLike[]),

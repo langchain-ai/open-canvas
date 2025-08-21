@@ -49,20 +49,8 @@ export const reflect = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-  const generateReflectionTool = {
-    name: "generate_reflections",
-    description: "Generate reflections based on the context provided.",
-    schema: z.object({
-      styleRules: z
-        .array(z.string())
-        .describe("The complete new list of style rules and guidelines."),
-      content: z
-        .array(z.string())
-        .describe("The complete new list of memories/facts about the user."),
-    }),
-  };
 
-  const model = await getModelFromConfig(config);
+  const model = getModelFromConfig();
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)

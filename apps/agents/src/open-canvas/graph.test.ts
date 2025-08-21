@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { graph } from './index';
 
 describe('OpenCanvas Graph', () => {

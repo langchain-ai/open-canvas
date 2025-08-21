@@ -1,6 +1,6 @@
 interface Store {
   get: (namespace: string[], key: string) => Promise<any>;
-  // Add other methods as necessary
+  put: (namespace: string[], key: string, value: any) => Promise<void>;
 }
 
 export { Store };

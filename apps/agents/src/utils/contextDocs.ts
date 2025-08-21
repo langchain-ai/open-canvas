@@ -4,16 +4,18 @@ import { cleanBase64, decodeBase64ToUtf8 } from "../lib/base64";
 import { ContextDocument, SearchResult } from "@opencanvas/shared/types";
 
 export async function createContextDocumentMessagesOpenAI(
-  documents: ContextDocument[]
+  documents: any[]
 ) {
-  const messagesPromises = documents.map(async (doc) => {
+  const messagesPromises = documents.map(async (doc: any) => {
     let text = "";
-    if (doc.type === "application/pdf") {
-      text = await convertPDFToText(doc.data);
-    } else if (doc.type.startsWith("text/")) {
-      text = decodeBase64ToUtf8(doc.data);
-    } else if (doc.type === "text") {
-      text = doc.data;
+    if (doc?.type && doc?.data) {
+      if (doc.type === "application/pdf") {
+        text = await convertPDFToText(doc.data as string);
+      } else if (typeof doc.type === 'string' && doc.type.startsWith("text/")) {
+        text = decodeBase64ToUtf8(doc.data as string);
+      } else if (doc.type === "text") {
+        text = doc.data as string;
+      }
     }
     return { type: "text", text };
   });
@@ -24,6 +26,6 @@ export function mapSearchResultToContextDocument(searchResult: SearchResult): Co
   return {
     name: searchResult.metadata.title || "Untitled",
     type: "text/plain",
-    data: searchResult.pageContent || "",
+    data: searchResult.metadata.url || "",
   };
 }

@@ -51,7 +51,7 @@
     "@tsconfig/recommended": "^1.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
-    "@types/pdf-parse": "^1.1.4",
+    "@types/pdf-parse": "^1.1.5",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.12.2",
     "@typescript-eslint/parser": "^8.8.1",

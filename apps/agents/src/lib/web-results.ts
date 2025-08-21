@@ -1,4 +1,4 @@
 // web-results.ts
-export function createAIMessageFromWebResults(results: any[]) {
+export function __createAIMessageFromWebResults(results: any[]) {
   // implementation
 }

@@ -8,7 +8,9 @@ import {
   ArtifactV3,
   TextHighlight,
   SearchResult,
+  ContextDocument,
 } from "@opencanvas/shared/types";
+export { BaseMessage, BaseMessageLike };
 import {
   Annotation,
   MessagesAnnotation,
@@ -57,7 +59,7 @@ export const OpenCanvasGraphAnnotation = Annotation.Root({
    * and others which are NOT shown to the user.
    */
   _messages: Annotation<BaseMessage[], Messages>({
-    reducer: (state, update) => {
+    reducer: (state: BaseMessage[], update: Messages) => {
       const latestMsg = Array.isArray(update)
         ? update[update.length - 1]
         : update;

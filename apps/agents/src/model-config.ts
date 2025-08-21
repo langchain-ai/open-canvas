@@ -1,13 +1,14 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { CustomModelConfig } from "@opencanvas/shared/types";
+type LocalModelConfig = { temperatureRange?: { current?: number }, maxTokens?: { current?: number } } | undefined;
+
 
 export const getModelConfig = (
   config: LangGraphRunnableConfig
 ): {
   modelName: string;
   modelProvider: string;
-  modelConfig?: CustomModelConfig;
+  modelConfig?: LocalModelConfig;
   baseUrl?: string;
 } => {
   const customModelName = config.configurable?.customModelName as string;

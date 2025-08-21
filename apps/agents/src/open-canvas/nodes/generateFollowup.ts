@@ -1,11 +1,12 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
-import { getModelFromConfigLocal as getModelFromConfig } from "../../lib/model-config.local";
+import { getModelFromConfigLocal } from "../../lib/model-config.local";
 import {
   getArtifactContent,
   isArtifactMarkdownContent,
 } from "@opencanvas/shared/utils/artifacts";
 import { Reflections } from "@opencanvas/shared/types";
-import { ensureStoreInConfig, formatReflections } from "../../utils.js";
+import { ensureStoreInConfig } from "../../lib/reflections";
+import { formatReflections } from "../reflection";
 import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts.js";
 import { GENERATE_FOLLOWUP_TOOL_SCHEMA } from "./schemas.js";
 import {
@@ -17,10 +18,7 @@ export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModelWithTool = (await getModelFromConfig(config, {
-    maxTokens: 250,
-    isToolCalling: true,
-  }))
+  const smallModelWithTool = (await getModelFromConfigLocal())
     .bindTools([GENERATE_FOLLOWUP_TOOL_SCHEMA], {
       tool_choice: "generate_followup",
     })

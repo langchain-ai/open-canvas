@@ -2697,7 +2697,7 @@ __metadata:
     "@tsconfig/recommended": "npm:^1.0.3"
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^24.3.0"
-    "@types/pdf-parse": "npm:^1.1.4"
+    "@types/pdf-parse": "npm:^1.1.5"
     "@types/uuid": "npm:^10.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.12.2"
     "@typescript-eslint/parser": "npm:^8.8.1"
@@ -4740,7 +4740,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pdf-parse@npm:^1.1.4, @types/pdf-parse@npm:^1.1.5":
+"@types/pdf-parse@npm:^1.1.5":
   version: 1.1.5
   resolution: "@types/pdf-parse@npm:1.1.5"
   dependencies:
@@ -4802,6 +4802,15 @@ __metadata:
   version: 2.0.3
   resolution: "@types/stack-utils@npm:2.0.3"
   checksum: 10c0/1f4658385ae936330581bcb8aa3a066df03867d90281cdf89cc356d404bd6579be0f11902304e1f775d92df22c6dd761d4451c804b0a4fba973e06211e9bd77c
+  languageName: node
+  linkType: hard
+
+"@types/tailwindcss@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@types/tailwindcss@npm:3.1.0"
+  dependencies:
+    tailwindcss: "npm:*"
+  checksum: 10c0/7a258e7ce46060fd598669605dabbeef16cf5d13f36bcb1764255837e7b889a4fa6b39a9ffd1c70eed55e0892c5dac079574371cbc343515a2850a088717ab68
   languageName: node
   linkType: hard
 
@@ -12080,11 +12089,13 @@ __metadata:
     "@playwright/test": "npm:^1.44.1"
     "@tiptap/pm": "npm:^3.2.0"
     "@types/ffmpeg": "npm:^1.0.7"
+    "@types/jest": "npm:^30.0.0"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/next": "npm:^9.0.0"
     "@types/node": "npm:^24.3.0"
     "@types/pdf-parse": "npm:^1.1.5"
     "@types/react": "npm:^19.1.10"
+    "@types/tailwindcss": "npm:^3.1.0"
     "@types/uuid": "npm:^10.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^5.59.8"
     "@typescript-eslint/parser": "npm:^5.59.8"
@@ -12106,7 +12117,7 @@ __metadata:
     turbo: "npm:^2.5.6"
     typescript: "npm:^5"
     uuid: "npm:^11.1.0"
-    zod: "npm:3.25.0"
+    zod: "npm:^3.24.1"
   languageName: unknown
   linkType: soft
 
@@ -14454,7 +14465,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:4.1.12":
+"tailwindcss@npm:*, tailwindcss@npm:4.1.12":
   version: 4.1.12
   resolution: "tailwindcss@npm:4.1.12"
   checksum: 10c0/0e43375d8de91e1c97a60ed7855f1bf02d5cac61a909439afd54462604862ee71706d812c0447a639f2ef98051a8817840b3df6847c7a1ed015f7a910240ffef
@@ -15994,13 +16005,6 @@ __metadata:
   peerDependencies:
     zod: ^3.24.1
   checksum: 10c0/b907ab6d057100bd25a37e5545bf5f0efa5902cd84d3c3ec05c2e51541431a47bd9bf1e5e151a244273409b45f5986d55b26e5d207f98abc5200702f733eb368
-  languageName: node
-  linkType: hard
-
-"zod@npm:3.25.0":
-  version: 3.25.0
-  resolution: "zod@npm:3.25.0"
-  checksum: 10c0/0e8b60d4a4ec54ae857df9c2ca734c1a7926eb8e784d9c2c9b1c292f66332bdaa98c042b7846e6523f1f52ad6535197c25ba36456296be76c2c3b8102bc4ea75
   languageName: node
   linkType: hard
 
