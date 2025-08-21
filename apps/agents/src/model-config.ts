@@ -14,22 +14,23 @@ export const getModelConfig = (
   const customModelName = config.configurable?.customModelName as string;
   if (!customModelName) throw new Error("Model name is missing in config.");
 
+  if (customModelName.startsWith("litellm-")) {
+    return {
+      modelName: customModelName.replace("litellm-", ""),
+      modelProvider: "litellm",
+      baseUrl: process.env.LITELLM_BASE_URL || "http://litellm:8000/v1",
+    };
+  }
+
   if (customModelName.startsWith("ollama-")) {
     return {
       modelName: customModelName.replace("ollama-", ""),
       modelProvider: "ollama",
+      baseUrl: process.env.OLLAMA_BASE_URL || "http://ollama:11434/v1",
     };
   }
 
-  if (!process.env.LITELLM_BASE_URL) {
-    throw new Error("LITELLM_BASE_URL is not set");
-  }
-
-  return {
-    modelName: customModelName,
-    modelProvider: "openai",
-    baseUrl: process.env.LITELLM_BASE_URL,
-  };
+  throw new Error("Invalid model name prefix. Use 'litellm-' or 'ollama-'");
 };
 
 export async function getModelFromConfig(
@@ -52,9 +53,4 @@ export async function getModelFromConfig(
     temperature,
     maxTokens,
   });
-}
-
-export function isUsingO1MiniModel(config: LangGraphRunnableConfig) {
-  const { modelName } = getModelConfig(config);
-  return modelName.includes("o1-mini");
 }

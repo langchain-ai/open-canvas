@@ -3,9 +3,11 @@ import { convertPDFToText } from "./pdf";
 import { cleanBase64, decodeBase64ToUtf8 } from "../lib/base64";
 import { ContextDocument, SearchResult } from "@opencanvas/shared/types";
 
+import { AIMessage } from "@langchain/core/messages";
+
 export async function createContextDocumentMessagesOpenAI(
   documents: any[]
-) {
+): Promise<AIMessage[]> {
   const messagesPromises = documents.map(async (doc: any) => {
     let text = "";
     if (doc?.type && doc?.data) {
@@ -17,15 +19,15 @@ export async function createContextDocumentMessagesOpenAI(
         text = doc.data as string;
       }
     }
-    return { type: "text", text };
+    return new AIMessage(text);
   });
   return await Promise.all(messagesPromises);
 }
 
 export function mapSearchResultToContextDocument(searchResult: SearchResult): ContextDocument {
   return {
-    name: searchResult.metadata.title || "Untitled",
+    name: searchResult.metadata?.title || "Untitled",
     type: "text/plain",
-    data: searchResult.metadata.url || "",
+    data: searchResult.metadata?.url || "",
   };
 }

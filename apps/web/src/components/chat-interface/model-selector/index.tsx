@@ -137,6 +137,11 @@ export default function ModelSelector({
   );
 
   const allAllowedModels = ALL_MODELS.filter((model) => {
+    // Always allow models if LITELLM_BASE_URL is set
+    if (process.env.NEXT_PUBLIC_LITELLM_BASE_URL) {
+      return true;
+    }
+
     if (
       !isLangChainUser &&
       LANGCHAIN_USER_ONLY_MODELS.some((m) => m === model.name)

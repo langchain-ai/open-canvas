@@ -15,7 +15,6 @@ import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-but
 import { SyntaxHighlighter } from "@/components/ui/assistant-ui/syntax-highlighter";
 import { cn } from "@/lib/utils";
 
-import "katex/dist/katex.min.css";
 
 const MarkdownTextImpl = () => {
   return (
