@@ -1,7 +1,6 @@
 import { FireCrawlLoader } from "@langchain/community/document_loaders/web/firecrawl";
 import { HumanMessage } from "@langchain/core/messages";
 import { initChatModel } from "langchain/chat_models/universal";
-import { trace } from '@langfuse/langchain';
 import z from "zod";
 
 const PROMPT = `You're an advanced AI assistant.
@@ -44,9 +43,7 @@ async function fetchUrlContentsFunc(
     pageContent: docs[0]?.pageContent || "",
   };
 }
-const fetchUrlContents = trace(fetchUrlContentsFunc, {
-  name: "fetch_url_contents",
-});
+const fetchUrlContents = fetchUrlContentsFunc;
 
 /**
  * Runs if a URL is found in the input message.
@@ -114,6 +111,4 @@ async function includeURLContentsFunc(
   }
 }
 
-export const includeURLContents = trace(includeURLContentsFunc, {
-  name: "include_url_contents",
-});
+export const includeURLContents = includeURLContentsFunc;

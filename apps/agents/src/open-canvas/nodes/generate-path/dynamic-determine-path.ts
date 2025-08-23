@@ -1,4 +1,3 @@
-import { trace } from '@langfuse/langchain';
 import {
   ROUTE_QUERY_PROMPT,
   ROUTE_QUERY_OPTIONS_HAS_ARTIFACTS,
@@ -7,9 +6,8 @@ import {
   NO_ARTIFACT_PROMPT,
 } from "../../prompts.js";
 import { OpenCanvasGraphAnnotation } from "../../state.js";
-import { formatArtifactContentWithTemplate } from "../../utils/artifact";
 import { createContextDocumentMessagesOpenAI as createContextDocumentMessages } from "../../../lib/context-docs";
-import { getModelFromConfig } from "../../model-config";
+import { getModelFromConfigLocal } from "../../../lib/model-config.local";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import z from "zod";
@@ -50,10 +48,7 @@ async function dynamicDeterminePathFunc({
     .replace(
       "{currentArtifactPrompt}",
       currentArtifactContent
-        ? formatArtifactContentWithTemplate(
-            CURRENT_ARTIFACT_PROMPT,
-            currentArtifactContent
-          )
+        ? CURRENT_ARTIFACT_PROMPT
         : NO_ARTIFACT_PROMPT
     );
 
@@ -61,10 +56,7 @@ async function dynamicDeterminePathFunc({
     ? "rewriteArtifact"
     : "generateArtifact";
 
-  const model = await getModelFromConfig(config, {
-    temperature: 0,
-    isToolCalling: true,
-  });
+  const model = await getModelFromConfigLocal();
 
   const schema = z.object({
     route: z
@@ -85,7 +77,7 @@ async function dynamicDeterminePathFunc({
     }
   );
 
-  const contextDocumentMessages = await createContextDocumentMessages(config, state._messages);
+  const contextDocumentMessages = await createContextDocumentMessages(state._messages);
   const result = await modelWithTool.invoke([
     ...contextDocumentMessages,
     ...(newMessages.length ? newMessages : []),
@@ -105,6 +97,4 @@ async function dynamicDeterminePathFunc({
   return args as z.infer<typeof schema>;
 }
 
-export const dynamicDeterminePath = trace(dynamicDeterminePathFunc, {
-  name: "dynamic_determine_path",
-});
+export const dynamicDeterminePath = dynamicDeterminePathFunc;

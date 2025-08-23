@@ -40,15 +40,15 @@ export const isDeprecatedArtifactType = (
 
 export const getArtifactContent = (
   artifact: ArtifactV3
-): ArtifactCodeV3 | ArtifactMarkdownV3 => {
-  if (!artifact) {
-    throw new Error("No artifact found.");
+): ArtifactCodeV3 | ArtifactMarkdownV3 | null => {
+  if (!artifact || !artifact.contents) {
+    return null;
   }
   const currentContent = artifact.contents.find(
     (a) => a.index === artifact.currentIndex
   );
   if (!currentContent) {
-    return artifact.contents[artifact.contents.length - 1];
+    return artifact.contents[artifact.contents.length - 1] ?? null;
   }
   return currentContent;
 };

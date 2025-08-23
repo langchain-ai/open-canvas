@@ -26,11 +26,11 @@ export const createArtifactContent = (
 
   if (artifactType === "code") {
     return {
-      index: 1,
+      index: 0,
       type: "code",
-      title: toolCall?.title,
-      code: toolCall?.artifact,
-      language: toolCall?.language as ProgrammingLanguageOptions,
+      title: toolCall?.title || "",
+      code: toolCall?.artifact || "",
+      language: toolCall?.language as ProgrammingLanguageOptions || "typescript",
     };
   }
 

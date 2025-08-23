@@ -1,0 +1,1 @@
+export default () => <textarea data-testid="cm-editor" />;

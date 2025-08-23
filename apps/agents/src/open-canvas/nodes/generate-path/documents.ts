@@ -16,8 +16,7 @@ import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/constants";
  * them to a human message with the proper content format.
  */
 export async function convertContextDocumentToHumanMessage(
-  messages: BaseMessage[],
-  config: LangGraphRunnableConfig
+  messages: BaseMessage[]
 ): Promise<HumanMessage | undefined> {
   const lastMessage = messages[messages.length - 1];
   const documents = lastMessage?.additional_kwargs?.documents as
@@ -58,7 +57,7 @@ export async function fixMisFormattedContextDocMessage(
   let changesMade = false;
 
   if (modelName.includes("openai")) {
-    const newContentPromises = message.content.map(async (m) => {
+    const newContentPromises = message.content.map(async (m: any) => {
       if (
         m.type === "document" &&
         m.source.type === "base64" &&

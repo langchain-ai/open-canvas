@@ -6,8 +6,6 @@ import {
 } from "../../../utils.js";
 import { getArtifactContent } from "@opencanvas/shared/utils/artifacts";
 import { GET_TITLE_TYPE_REWRITE_ARTIFACT } from "../../prompts.js";
-import { OPTIONALLY_UPDATE_ARTIFACT_META_SCHEMA } from "./schemas.js";
-import { z } from "zod";
 import { getFormattedReflections } from "../../../reflection";
 
 export async function optionallyUpdateArtifactMeta(

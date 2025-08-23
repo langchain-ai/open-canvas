@@ -104,14 +104,14 @@ export interface CodeHighlight {
 }
 
 export interface ArtifactMarkdownV3 {
-  index: number;
+  index?: number;
   type: "text";
   title: string;
   fullMarkdown: string;
 }
 
 export interface ArtifactCodeV3 {
-  index: number;
+  index?: number;
   type: "code";
   title: string;
   language: ProgrammingLanguageOptions;
@@ -119,8 +119,8 @@ export interface ArtifactCodeV3 {
 }
 
 export interface ArtifactV3 {
-  currentIndex: number;
-  contents: (ArtifactMarkdownV3 | ArtifactCodeV3)[];
+  currentIndex?: number;
+  contents?: (ArtifactMarkdownV3 | ArtifactCodeV3)[];
 }
 
 export interface TextHighlight {

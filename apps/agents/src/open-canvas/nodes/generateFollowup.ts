@@ -1,18 +1,16 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { getModelFromConfigLocal } from "../../lib/model-config.local";
-import {
-  getArtifactContent,
-  isArtifactMarkdownContent,
-} from "@opencanvas/shared/utils/artifacts";
+import { getArtifactContent, isArtifactMarkdownContent } from "@opencanvas/shared/utils/artifacts";
 import { Reflections } from "@opencanvas/shared/types";
 import { ensureStoreInConfig } from "../../lib/reflections";
 import { formatReflections } from "../reflection";
-import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts.js";
-import { GENERATE_FOLLOWUP_TOOL_SCHEMA } from "./schemas.js";
+import { BaseMessage } from "@langchain/core/messages";
+import { FOLLOWUP_ARTIFACT_PROMPT } from "../prompts";
+import { GENERATE_FOLLOWUP_TOOL_SCHEMA } from "./schemas";
 import {
   OpenCanvasGraphAnnotation,
   OpenCanvasGraphReturnType,
-} from "../state.js";
+} from "../state";
 
 export const generateFollowup = async (
   state: typeof OpenCanvasGraphAnnotation.State,
@@ -54,7 +52,7 @@ export const generateFollowup = async (
     .replace(
       "{conversation}",
       state._messages
-        .map((msg) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
+        .map((msg: BaseMessage) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
         .join("\n\n")
     );
 
