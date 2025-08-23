@@ -8,6 +8,7 @@ import {
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { GraphInput } from "@opencanvas/shared/types";
 import { LanguageOptions } from "@opencanvas/shared/types";
+import { motion } from "framer-motion";
 
 export interface TranslateOptionsProps {
   streamMessage: (params: GraphInput) => Promise<void>;
@@ -25,12 +26,23 @@ export function TranslateOptions(props: TranslateOptionsProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 items-center w-full">
+    <motion.div
+      initial={{ width: 0, opacity: 0 }}
+      animate={{ width: "auto", opacity: 1 }}
+      exit={{ width: 0, opacity: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+      className="flex flex-col gap-3 items-center w-full overflow-hidden"
+    >
       <TooltipIconButton
         tooltip="English"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("english")}
       >
         <UsaFlag />
@@ -39,7 +51,8 @@ export function TranslateOptions(props: TranslateOptionsProps) {
         tooltip="Mandarin"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("mandarin")}
       >
         <ChinaFlag />
@@ -48,7 +61,8 @@ export function TranslateOptions(props: TranslateOptionsProps) {
         tooltip="Hindi"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("hindi")}
       >
         <IndiaFlag />
@@ -57,7 +71,8 @@ export function TranslateOptions(props: TranslateOptionsProps) {
         tooltip="Spanish"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("spanish")}
       >
         <SpanishFlag />
@@ -66,11 +81,12 @@ export function TranslateOptions(props: TranslateOptionsProps) {
         tooltip="French"
         variant="ghost"
         className="transition-colors w-[36px] h-[36px]"
-        delayDuration={400}
+        delayDuration={200}
+        side="left"
         onClick={async () => await handleSubmit("french")}
       >
         <FrenchFlag />
       </TooltipIconButton>
-    </div>
+    </motion.div>
   );
 }
