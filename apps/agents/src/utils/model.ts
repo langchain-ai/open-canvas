@@ -3,8 +3,13 @@ import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ArtifactMarkdownV3, ArtifactCodeV3 } from "@opencanvas/shared/types";
 import { isArtifactMarkdownContent } from "@opencanvas/shared/utils/artifacts";
 
-export function getModelFromConfig(config: LangGraphRunnableConfig & { temperature?: number; maxTokens?: number }) {
-  let modelName = config.configurable?.customModelName || process.env.OLLAMA_MODEL || "ollama-llama3.1";
+export function getModelFromConfig(
+  config: LangGraphRunnableConfig & { temperature?: number; maxTokens?: number }
+) {
+  let modelName =
+    config.configurable?.customModelName ||
+    process.env.OLLAMA_MODEL ||
+    "ollama-llama3.1";
 
   // Normalize model name for local-only usage
   if (modelName.startsWith("ollama-")) {
@@ -41,6 +46,9 @@ export function formatArtifactContent(
   }
 }
 export function isUsingO1MiniModel(config: LangGraphRunnableConfig) {
-  const modelName = config.configurable?.customModelName || process.env.OLLAMA_MODEL || "ollama-llama3.1";
+  const modelName =
+    config.configurable?.customModelName ||
+    process.env.OLLAMA_MODEL ||
+    "ollama-llama3.1";
   return modelName.includes("o1-mini");
 }

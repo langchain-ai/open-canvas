@@ -9,7 +9,7 @@ import {
   getArtifactContent,
 } from "@opencanvas/shared/utils/artifacts";
 import { ArtifactCodeV3, ArtifactV3 } from "@opencanvas/shared/types";
-import { getModelFromConfig } from "../../utils/model-config";
+import { getModelFromConfig } from "../../utils/model";
 import {
   ADD_COMMENTS_TO_CODE_ARTIFACT_PROMPT,
   ADD_LOGS_TO_CODE_ARTIFACT_PROMPT,

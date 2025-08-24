@@ -11,7 +11,7 @@ function checkDevServer(): Promise<void> {
   return new Promise((resolve, reject) => {
     console.log("Starting development server in apps/agents...");
 
-    const scriptDir = path.dirname(import.meta.url.replace('file://', ''));
+    const scriptDir = path.dirname(import.meta.url.replace("file://", ""));
     const targetCwd = path.resolve(scriptDir, "..");
 
     const serverProcess = spawn("yarn", ["dev"], {
@@ -20,14 +20,16 @@ function checkDevServer(): Promise<void> {
       stdio: "pipe",
     });
 
+    // No additional health check here
+
     let errorDetected = false;
     let output = "";
     let serverReady = false;
 
-serverProcess.stdout.on("data", (data: Buffer) => {
-  const message = data.toString();
-  output += message;
-  console.log(message);
+    serverProcess.stdout.on("data", (data: Buffer) => {
+      const message = data.toString();
+      output += message;
+      console.log(message);
       const lowerCaseMessage = message.toLowerCase();
 
       if (
@@ -37,6 +39,22 @@ serverProcess.stdout.on("data", (data: Buffer) => {
       ) {
         serverReady = true;
         console.log("Server ready message detected.");
+
+        // Additional check: Verify health endpoint
+        try {
+          const healthCheckUrl = "http://localhost:54367/api/healthz";
+          console.log(`Checking health endpoint: ${healthCheckUrl}`);
+          const response = await fetch(healthCheckUrl);
+          if (response.ok) {
+            console.log("Health check passed!");
+          } else {
+            console.error("Health check failed:", response.statusText);
+            errorDetected = true;
+          }
+        } catch (error) {
+          console.error("Failed to perform health check:", error);
+          errorDetected = true;
+        }
       }
 
       // Check for common error patterns in the output

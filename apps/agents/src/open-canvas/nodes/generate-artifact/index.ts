@@ -48,13 +48,11 @@ export const generateArtifact = async (
   const contextDocumentMessages = await createContextDocumentMessages(
     state._messages
   );
-  const response = await modelWithArtifactTool.invoke(
-    [
-      { role: "system", content: fullSystemPrompt },
-      ...contextDocumentMessages,
-      ...state._messages,
-    ]
-  );
+  const response = await modelWithArtifactTool.invoke([
+    { role: "system", content: fullSystemPrompt },
+    ...contextDocumentMessages,
+    ...state._messages,
+  ]);
   const args = response.tool_calls?.[0].args as
     | z.infer<typeof ARTIFACT_TOOL_SCHEMA>
     | undefined;

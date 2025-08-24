@@ -1,4 +1,4 @@
-import { createAIMessageFromWebResults } from '../lib/web-results';
+import { createAIMessageFromWebResults } from "../lib/web-results";
 import { OpenCanvasGraphAnnotation } from "./state";
 import { Send, Command } from "@langchain/langgraph";
 

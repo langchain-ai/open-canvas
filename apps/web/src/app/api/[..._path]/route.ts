@@ -10,6 +10,22 @@ function getCorsHeaders() {
 }
 
 async function handleRequest(req: NextRequest, method: string) {
+  const path = req.nextUrl.pathname.replace(/^\/?api\//, "");
+
+  // Health check endpoint
+  if (path === 'healthz') {
+    return NextResponse.json({
+      ok: true,
+      upstream: 'langgraph',
+      port: 54367
+    }, {
+      status: 200,
+      headers: {
+        ...getCorsHeaders(),
+      },
+    });
+  }
+
   let session: any | undefined;
   let user: any | undefined;
   try {

@@ -1,4 +1,4 @@
-import { Store } from '../types/store';
+import { Store } from "../types/store";
 
 // Implementation based on reflection/index.ts
 export function ensureStoreInConfig(config: any): Store {

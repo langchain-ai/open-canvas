@@ -1,4 +1,4 @@
-import { BaseMessage } from '@langchain/core/messages';
+import { BaseMessage } from "@langchain/core/messages";
 import {
   type LangGraphRunnableConfig,
   StateGraph,
@@ -49,7 +49,6 @@ export const reflect = async (
     ? formatReflections(memories.value as Reflections)
     : "No reflections found.";
 
-
   const model = getModelFromConfig();
 
   const currentArtifactContent = state.artifact
@@ -70,7 +69,10 @@ export const reflect = async (
   const formattedUserPrompt = REFLECT_USER_PROMPT.replace(
     "{conversation}",
     state.messages
-      .map((msg: BaseMessage) => `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`)
+      .map(
+        (msg: BaseMessage) =>
+          `<${msg.getType()}>\n${msg.content}\n</${msg.getType()}>`
+      )
       .join("\n\n")
   );
 

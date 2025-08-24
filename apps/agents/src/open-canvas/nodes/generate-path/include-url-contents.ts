@@ -89,7 +89,8 @@ async function includeURLContentsFunc(
       return undefined;
     }
 
-    const urlContents: { url: string; pageContent: string }[] = await Promise.all(urls.map(fetchUrlContents));
+    const urlContents: { url: string; pageContent: string }[] =
+      await Promise.all(urls.map(fetchUrlContents));
 
     let transformedPrompt = prompt;
     for (const { url, pageContent } of urlContents) {

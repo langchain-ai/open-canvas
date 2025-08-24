@@ -9,11 +9,17 @@ import {
   Reflections,
   ContextDocument,
 } from "@opencanvas/shared/types";
-import { createContextDocumentMessagesOpenAI, mapSearchResultToContextDocument } from "../../utils/contextDocs";
-import { formatReflections, ensureStoreInConfig } from "../../utils/reflections";
+import {
+  createContextDocumentMessagesOpenAI,
+  mapSearchResultToContextDocument,
+} from "../../utils/contextDocs";
+import {
+  formatReflections,
+  ensureStoreInConfig,
+} from "../../utils/reflections";
 import { getModelFromConfigLocal as getModelFromConfig } from "../../lib/model-config.local";
 import { UPDATE_HIGHLIGHTED_ARTIFACT_PROMPT } from "../prompts.js";
-import { UPDATE_ARTIFACT_TOOL_SCHEMA } from "./schemas";
+import { UPDATE_ARTIFACT_TOOL_SCHEMA } from "./updateArtifact/schemas";
 import { z } from "zod";
 import {
   OpenCanvasGraphAnnotation,
@@ -26,9 +32,10 @@ export const updateArtifact = async (
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
   const smallModel = await getModelFromConfig();
-  const smallModelWithTool = smallModel.bindTools([UPDATE_ARTIFACT_TOOL_SCHEMA], {
-    tool_choice: "update_artifact",
-  })
+  const smallModelWithTool = smallModel
+    .bindTools([UPDATE_ARTIFACT_TOOL_SCHEMA], {
+      tool_choice: "update_artifact",
+    })
     .bindTools([UPDATE_ARTIFACT_TOOL_SCHEMA], {
       tool_choice: "update_artifact",
     })
@@ -97,8 +104,12 @@ export const updateArtifact = async (
     throw new Error("No recent human message found");
   }
 
-  const contextDocuments = (state.webSearchResults || []).map(mapSearchResultToContextDocument);
-  const contextDocumentMessages = await createContextDocumentMessagesOpenAI(contextDocuments as ContextDocument[]);
+  const contextDocuments = (state.webSearchResults || []).map(
+    mapSearchResultToContextDocument
+  );
+  const contextDocumentMessages = await createContextDocumentMessagesOpenAI(
+    contextDocuments as ContextDocument[]
+  );
 
   const isO1MiniModel = false; // Temporarily setting to false, adjust as needed
   const updatedArtifactResponse = await smallModelWithTool.invoke([
@@ -107,7 +118,11 @@ export const updateArtifact = async (
     recentHumanMessage,
   ]);
 
-  const updatedArtifactContent = (updatedArtifactResponse.tool_calls?.[0].args as z.infer<typeof UPDATE_ARTIFACT_TOOL_SCHEMA>).updatedContent;
+  const updatedArtifactContent = (
+    updatedArtifactResponse.tool_calls?.[0].args as z.infer<
+      typeof UPDATE_ARTIFACT_TOOL_SCHEMA
+    >
+  ).updatedContent;
 
   const entireTextBefore = currentArtifactContent.code.slice(
     0,

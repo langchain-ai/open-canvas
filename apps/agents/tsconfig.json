@@ -1,5 +1,4 @@
 {
-  // "extends": "@tsconfig/recommended",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
@@ -12,6 +11,7 @@
     ],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "types": ["vitest", "node"],
     "esModuleInterop": true,
     "declaration": true,
     "noImplicitReturns": true,
@@ -22,14 +22,16 @@
     "strictPropertyInitialization": false,
     "allowJs": true,
     "strict": false,
+    "isolatedModules": true,
     "paths": {
-      "@opencanvas/shared": ["../packages/shared/src/index.ts"],
-      "@opencanvas/shared/*": ["../packages/shared/src/*"],
-      "@opencanvas/shared/constants": ["../packages/shared/src/constants.ts"]
+      "@opencanvas/shared": ["../../packages/shared/src/index.ts"],
+      "@opencanvas/shared/*": ["../../packages/shared/src/*"],
+      "@opencanvas/shared/constants": ["../../packages/shared/src/constants.ts"]
     }
   },
   "include": [
-    "src/"
+    "src/",
+    "../../packages/shared/src/**/*"
   ],
   "exclude": [
     "node_modules/",

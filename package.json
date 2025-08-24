@@ -14,7 +14,8 @@
     "format": "turbo format",
     "format:check": "turbo format:check",
     "lint": "turbo lint",
-    "lint:fix": "turbo lint:fix"
+    "lint:fix": "turbo lint:fix",
+    "smoke": "node scripts/smoke.mjs"
   },
   "packageManager": "yarn@4.9.2",
   "devDependencies": {
@@ -61,11 +62,12 @@
     "exa-js": "^1.8.27",
     "ibm-cloud-sdk-core": "^5.4.2",
     "openai": "^4.62.1",
-    "prettier": "^3.3.3",
+    "prettier": "^3.6.2",
     "tsx": "^4.19.1",
     "turbo": "^2.5.6",
     "typescript": "^5",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "resolutions": {
     "@langchain/core": "^0.3.38",
@@ -86,6 +88,7 @@
     "@langchain/community": "^0.3.53",
     "@langchain/langgraph": "0.2.73",
     "@lezer/highlight": "^1.2.1",
+    "@mendable/firecrawl-js": "^3.1.0",
     "deepmerge": "^4.3.1",
     "dotenv": "16.4.5",
     "langchain": "^0.3.31",

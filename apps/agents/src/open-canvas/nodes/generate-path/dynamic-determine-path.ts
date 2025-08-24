@@ -42,14 +42,14 @@ async function dynamicDeterminePathFunc({
       "{recentMessages}",
       state._messages
         .slice(-3)
-        .map((message: BaseMessage) => `${message.getType()}: ${message.content}`)
+        .map(
+          (message: BaseMessage) => `${message.getType()}: ${message.content}`
+        )
         .join("\n\n")
     )
     .replace(
       "{currentArtifactPrompt}",
-      currentArtifactContent
-        ? CURRENT_ARTIFACT_PROMPT
-        : NO_ARTIFACT_PROMPT
+      currentArtifactContent ? CURRENT_ARTIFACT_PROMPT : NO_ARTIFACT_PROMPT
     );
 
   const artifactRoute = currentArtifactContent
@@ -77,7 +77,9 @@ async function dynamicDeterminePathFunc({
     }
   );
 
-  const contextDocumentMessages = await createContextDocumentMessages(state._messages);
+  const contextDocumentMessages = await createContextDocumentMessages(
+    state._messages
+  );
   const result = await modelWithTool.invoke([
     ...contextDocumentMessages,
     ...(newMessages.length ? newMessages : []),

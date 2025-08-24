@@ -1,20 +1,20 @@
 // model-config.local.ts
-import { Model } from '../types/model';
+import { Model } from "../types/model";
 
 export function getModelFromConfigLocal(): Model {
   return {
-    modelName: 'local-model',
+    modelName: "local-model",
     invoke: async (messages: any[]): Promise<any> => {
       // Implement invoke logic here
-      throw new Error('Not implemented');
+      throw new Error("Not implemented");
     },
     bindTools: (): Model => {
       // Implement bindTools logic here
-      throw new Error('Not implemented');
+      throw new Error("Not implemented");
     },
     withConfig: (): Model => {
       // Implement withConfig logic here
-      throw new Error('Not implemented');
+      throw new Error("Not implemented");
     },
   };
 }

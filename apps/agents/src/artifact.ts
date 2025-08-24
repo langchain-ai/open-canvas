@@ -9,14 +9,20 @@ export const formatArtifactContent = (
 
   if (isArtifactCodeContent(content)) {
     const codeContent = content as ArtifactCodeV3;
-    artifactContent = shortenContent && codeContent.code ? codeContent.code.slice(0, 500) : codeContent.code ?? '';
+    artifactContent =
+      shortenContent && codeContent.code
+        ? codeContent.code.slice(0, 500)
+        : (codeContent.code ?? "");
   } else {
     const markdownContent = content as ArtifactMarkdownV3;
-    artifactContent = shortenContent && markdownContent.fullMarkdown ? markdownContent.fullMarkdown.slice(0, 500) : markdownContent.fullMarkdown ?? '';
+    artifactContent =
+      shortenContent && markdownContent.fullMarkdown
+        ? markdownContent.fullMarkdown.slice(0, 500)
+        : (markdownContent.fullMarkdown ?? "");
   }
 
-  const title = 'title' in content ? content.title : '';
-  const type = 'type' in content ? content.type : '';
+  const title = "title" in content ? content.title : "";
+  const type = "type" in content ? content.type : "";
 
   return `Title: ${title}\nArtifact type: ${type}\nContent: ${artifactContent}`;
 };

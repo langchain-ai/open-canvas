@@ -13,7 +13,7 @@ export async function createContextDocumentMessagesOpenAI(
     if (doc?.type && doc?.data) {
       if (doc.type === "application/pdf") {
         text = await convertPDFToText(doc.data as string);
-      } else if (typeof doc.type === 'string' && doc.type.startsWith("text/")) {
+      } else if (typeof doc.type === "string" && doc.type.startsWith("text/")) {
         text = decodeBase64ToUtf8(doc.data as string);
       } else if (doc.type === "text") {
         text = doc.data as string;
@@ -24,7 +24,9 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
-export function mapSearchResultToContextDocument(searchResult: SearchResult): ContextDocument {
+export function mapSearchResultToContextDocument(
+  searchResult: SearchResult
+): ContextDocument {
   return {
     name: searchResult.metadata?.title || "Untitled",
     type: "text/plain",

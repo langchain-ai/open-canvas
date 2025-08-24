@@ -111,6 +111,29 @@ On initial load, compilation may take a little bit of time.
 
 Then, open [localhost:3000](http://localhost:3000) with your browser and start interacting!
 
+### Health Check and Smoke Test
+
+To verify that the application is running correctly, you can perform a health check and smoke test:
+
+1. **Health Check**: With the development server running, execute the following command to check the health status:
+   ```bash
+   curl -sf http://localhost:3000/api/healthz
+   ```
+   You should receive a response like:
+   ```json
+   {
+     "ok": true,
+     "upstream": "langgraph",
+     "port": 54367
+   }
+   ```
+
+2. **Smoke Test**: To run the LangGraph smoke test, use the following command in the `apps/agents` directory:
+   ```bash
+   yarn test:smoke
+   ```
+   This will verify that the LangGraph 'open_canvas' graph compiles without errors.
+
 ## LLM Models
 
 Open Canvas is designed to be compatible with any LLM model. The current deployment has the following models configured:

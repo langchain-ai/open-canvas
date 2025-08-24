@@ -9,11 +9,11 @@ export function formatArtifactContent(
   content: ArtifactMarkdownV3 | ArtifactCodeV3,
   shortenContent?: boolean
 ): string {
-  if ('fullMarkdown' in content) {
+  if ("fullMarkdown" in content) {
     return content.fullMarkdown;
-  } else if ('code' in content) {
+  } else if ("code" in content) {
     return content.code;
   } else {
-    throw new Error('Unknown content type');
+    throw new Error("Unknown content type");
   }
 }

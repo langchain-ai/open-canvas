@@ -30,7 +30,8 @@ export const createArtifactContent = (
       type: "code",
       title: toolCall?.title || "",
       code: toolCall?.artifact || "",
-      language: toolCall?.language as ProgrammingLanguageOptions || "typescript",
+      language:
+        (toolCall?.language as ProgrammingLanguageOptions) || "typescript",
     };
   }
 

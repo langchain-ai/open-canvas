@@ -16,7 +16,8 @@ import { OC_HIDE_FROM_UI_KEY } from "@opencanvas/shared/constants";
  * them to a human message with the proper content format.
  */
 export async function convertContextDocumentToHumanMessage(
-  messages: BaseMessage[]
+  messages: BaseMessage[],
+  config: LangGraphRunnableConfig
 ): Promise<HumanMessage | undefined> {
   const lastMessage = messages[messages.length - 1];
   const documents = lastMessage?.additional_kwargs?.documents as
@@ -26,8 +27,7 @@ export async function convertContextDocumentToHumanMessage(
     return undefined;
   }
 
-  const contextMessages = await createContextDocumentMessages(
-    config,
+  const contextMessages = await createContextDocumentMessagesOpenAI(
     documents
   );
   return new HumanMessage({
@@ -108,7 +108,10 @@ export async function fixMisFormattedContextDocMessage(
         new HumanMessage({ ...message, id: newMsgId, content: newContent }),
       ];
     }
-  } else if (modelName.includes("google-genai") || modelName.includes("gemini")) {
+  } else if (
+    modelName.includes("google-genai") ||
+    modelName.includes("gemini")
+  ) {
     const newContent = message.content.map((m: any) => {
       if (m.type === "document") {
         changesMade = true;

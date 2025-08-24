@@ -118,7 +118,10 @@ export async function generatePath(
 
   // Check if any URLs are in the latest message. If true, determine if the contents should be included
   // inline in the prompt, and if so, scrape the contents and update the prompt.
-  const messageUrls = state._messages.length > 0 ? extractURLsFromLastMessage(state._messages) : [];
+  const messageUrls =
+    state._messages.length > 0
+      ? extractURLsFromLastMessage(state._messages)
+      : [];
   let updatedMessageWithContents: HumanMessage | undefined = undefined;
   if (messageUrls.length) {
     updatedMessageWithContents = await includeURLContents(

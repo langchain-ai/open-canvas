@@ -126,6 +126,39 @@ On initial load, compilation may take a little bit of time.
 
 Then, open [localhost:3000](http://localhost:3000) with your browser and start interacting!
 
+### Running Smoke Tests
+
+To verify that the application is functioning correctly, you can run the smoke tests using the following command from the root directory:
+
+```bash
+pnpm smoke
+```
+
+This will run the agents tests and optionally check the health endpoint if the Next dev server is running.
+
+## Local Backend Check
+
+To verify that your local backend is set up correctly, follow these steps:
+
+1. Start the LangGraph server:
+   ```bash
+   yarn --cwd apps/agents dev
+   ```
+2. In another terminal, start the web development server:
+   ```bash
+   yarn --cwd apps/web dev
+   ```
+3. Run the smoke test:
+   ```bash
+   yarn smoke
+   ```
+   This command runs the agents tests and performs a best-effort health check on the `/api/healthz` endpoint.
+
+4. For a deeper offline test, you can run:
+   ```bash
+   OPEN_CANVAS_SMOKE=1 yarn workspace @opencanvas/agents test
+   ```
+
 ## LLM Models
 
 Open Canvas is designed to be compatible with any LLM model. The current deployment has the following models configured:

@@ -1,5 +1,5 @@
 // Stubbing @opencanvas/shared module
-declare module '@opencanvas/shared/types' {
+declare module "@opencanvas/shared/types" {
   export interface ArtifactV3 {
     // Add common properties as needed
   }
@@ -25,13 +25,13 @@ declare module '@opencanvas/shared/types' {
   // Add other necessary types
 }
 
-declare module '@opencanvas/shared/utils/artifacts' {
+declare module "@opencanvas/shared/utils/artifacts" {
   export function isArtifactCodeContent(content: any): boolean;
   export function isArtifactMarkdownContent(content: any): boolean;
   // Add other necessary functions or types
 }
 
-declare module '@opencanvas/shared' {
+declare module "@opencanvas/shared" {
   export interface ContextDocument {
     // Add properties as needed
   }

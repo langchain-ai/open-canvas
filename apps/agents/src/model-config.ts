@@ -1,7 +1,11 @@
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-type LocalModelConfig = { temperatureRange?: { current?: number }, maxTokens?: { current?: number } } | undefined;
-
+type LocalModelConfig =
+  | {
+      temperatureRange?: { current?: number };
+      maxTokens?: { current?: number };
+    }
+  | undefined;
 
 export const getModelConfig = (
   config: LangGraphRunnableConfig

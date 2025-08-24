@@ -41,7 +41,9 @@ export const updateHighlightedText = async (
   const model = await getModelFromConfig(config, {
     temperature: 0,
   });
-  const modelWithConfig = model.withConfig({ runName: "update_highlighted_markdown" });
+  const modelWithConfig = model.withConfig({
+    runName: "update_highlighted_markdown",
+  });
 
   const currentArtifactContent = state.artifact
     ? getArtifactContent(state.artifact)
@@ -71,7 +73,10 @@ export const updateHighlightedText = async (
   }
 
   const documents = []; // Define or retrieve documents appropriately
-  const contextDocumentMessages = await createContextDocumentMessagesOpenAI(config, documents);
+  const contextDocumentMessages = await createContextDocumentMessagesOpenAI(
+    config,
+    documents
+  );
   const isO1MiniModel = isUsingO1MiniModel(config);
   const response = await modelWithConfig.invoke([
     {
@@ -85,7 +90,8 @@ export const updateHighlightedText = async (
 
   const newCurrIndex = state.artifact.contents.length + 1;
   const prevContent = state.artifact.contents.find(
-    (c: ArtifactMarkdownV3) => c.index === state.artifact.currentIndex && c.type === "text"
+    (c: ArtifactMarkdownV3) =>
+      c.index === state.artifact.currentIndex && c.type === "text"
   ) as ArtifactMarkdownV3 | undefined;
   if (!prevContent) {
     throw new Error("Previous content not found");

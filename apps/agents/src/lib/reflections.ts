@@ -1,5 +1,5 @@
 // reflections.ts
-import { Store } from '../types/store';
+import { Store } from "../types/store";
 
 export function ensureStoreInConfig(config: any): Store {
   return config.store as Store;

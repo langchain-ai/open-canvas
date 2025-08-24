@@ -1,6 +1,14 @@
 // context-docs.ts
 type LocalContextDoc = { name?: string; type: string; data: string };
-type LocalSearchResult = { metadata?: { title?: string; url?: string; author?: string; publishedDate?: string }, pageContent?: string };
+type LocalSearchResult = {
+  metadata?: {
+    title?: string;
+    url?: string;
+    author?: string;
+    publishedDate?: string;
+  };
+  pageContent?: string;
+};
 
 import { BaseMessage } from "@langchain/core/messages";
 
@@ -17,9 +25,11 @@ export async function createContextDocumentMessagesOpenAI(
   return await Promise.all(messagesPromises);
 }
 
-export function mapSearchResultToContextDocument(searchResult: LocalSearchResult): LocalContextDoc {
+export function mapSearchResultToContextDocument(
+  searchResult: LocalSearchResult
+): LocalContextDoc {
   return {
-    type: 'text',
-    data: searchResult?.pageContent || ''
+    type: "text",
+    data: searchResult?.pageContent || "",
   };
 }
