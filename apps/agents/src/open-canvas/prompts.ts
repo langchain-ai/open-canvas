@@ -486,12 +486,11 @@ You also have the following reflections on style guidelines and general memories
 {reflections}
 </reflections>
 
-Please provide a comprehensive, helpful response that:
+Please provide a short summary that:
 - Directly addresses the user's question using the web search results
-- Synthesizes information from multiple sources when relevant
+- Synthesizes the key points from the results in 3-6 concise sentences
 - Maintains a conversational and friendly tone
-- Provides clear, accurate information
-- Cites sources when appropriate
-- Keeps the response focused and well-structured
+- Is self-contained and actionable
+- Includes 1-3 source links inline at the end like: (1) (2)
 
-Your response should be informative and complete, as this is the primary way the user will receive information about their query.`;
+Your response should be brief and focused.`;

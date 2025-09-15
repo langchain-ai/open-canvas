@@ -14,13 +14,16 @@ import {
 } from "../state.js";
 
 /**
- * Generate responses to user queries using web search results without generating artifacts.
+ * Generate a short summary response using web search results without generating artifacts.
  */
 export const replyToWebSearch = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ): Promise<OpenCanvasGraphReturnType> => {
-  const smallModel = await getModelFromConfig(config);
+  const smallModel = await getModelFromConfig(config, {
+    temperature: 0.2,
+    maxTokens: 300,
+  });
 
   if (!state.webSearchResults?.length) {
     throw new Error("No web search results found for web search response");
