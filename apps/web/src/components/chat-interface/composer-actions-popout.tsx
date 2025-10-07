@@ -16,7 +16,7 @@ interface ComposerActionsPopOutProps {
 }
 
 export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [isAssistantSelectOpen, setIsAssistantSelectOpen] = useState(false);
   const [isMouseOver, setIsMouseOver] = useState(false);
   const {

@@ -159,6 +159,7 @@ export function ContentComposerChatInterfaceComponent(
           hasChatStarted={props.hasChatStarted}
           switchSelectedThreadCallback={props.switchSelectedThreadCallback}
           searchEnabled={searchEnabled}
+          chatCollapsed={props.chatCollapsed}
           setChatCollapsed={props.setChatCollapsed}
         />
       </AssistantRuntimeProvider>

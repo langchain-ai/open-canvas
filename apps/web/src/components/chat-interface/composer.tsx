@@ -80,10 +80,6 @@ export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
         </div>
 
         <div className="flex flex-row w-full items-center justify-start my-auto">
-          <ComposerActionsPopOut
-            userId={props.userId}
-            chatStarted={props.chatStarted}
-          />
           <ComposerPrimitive.Input
             autoFocus
             placeholder={placeholder}
@@ -112,6 +108,12 @@ export const Composer: FC<ComposerProps> = (props: ComposerProps) => {
               </TooltipIconButton>
             </ComposerPrimitive.Cancel>
           </ThreadPrimitive.If>
+        </div>
+        <div className="flex flex-row items-start justify-start pb-2 px-2 w-full">
+          <ComposerActionsPopOut
+            userId={props.userId}
+            chatStarted={props.chatStarted}
+          />
         </div>
       </ComposerPrimitive.Root>
     </DragAndDropWrapper>
