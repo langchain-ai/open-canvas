@@ -83,7 +83,7 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
       }}
     >
       <motion.div
-        className="rounded-full flex items-center h-8 justify-start px-2 py-5 bg-blue-50 overflow-hidden"
+        className="rounded-full flex items-center h-8 justify-start px-2 py-5 bg-blue-50 overflow-hidden dark:text-gray-700"
         variants={containerVariants}
         animate={isExpanded ? "expanded" : "collapsed"}
         initial="collapsed"
@@ -91,18 +91,18 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
         <div className="flex items-center gap-2">
           <CirclePlus
             className={cn(
-              "size-6 flex-shrink-0",
-              isExpanded && "opacity-60 transition-all ease-in-out"
+              "size-6 flex-shrink-0 dark:text-gray-700",
+              isExpanded && "opacity-60 transition-all ease-in-out "
             )}
           />
           {searchEnabled && (
             <TooltipIconButton
               tooltip="Web search"
               variant="ghost"
-              className="size-7 flex-shrink-0 bg-blue-100 hover:bg-blue-100"
+              className="size-7 flex-shrink-0 bg-blue-100 hover:bg-blue-100 "
               onClick={() => setSearchEnabled((p) => !p)}
             >
-              <Globe />
+              <Globe className="dark:hover:text-gray-600" />
             </TooltipIconButton>
           )}
           {!isDefaultSelected && (
@@ -136,7 +136,7 @@ export function ComposerActionsPopOut(props: ComposerActionsPopOutProps) {
                   className="size-7 flex-shrink-0 hover:bg-blue-100 transition-colors ease-in-out"
                   onClick={() => setSearchEnabled((p) => !p)}
                 >
-                  <Globe />
+                  <Globe className="dark:hover:text-gray-600" />
                 </TooltipIconButton>
               )}
               {isDefaultSelected && (

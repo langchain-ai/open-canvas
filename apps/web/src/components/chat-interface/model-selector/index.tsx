@@ -99,13 +99,13 @@ function CommandModelItem({
         />
       ) : (
         <button
-          className="ml-auto flex-shrink-0 flex size-6 items-center justify-center focus:outline-none focus:ring-0"
+          className="ml-auto flex-shrink-0 flex size-6 items-center justify-center focus:outline-none focus:ring-0 "
           onClick={(e) => {
             e.stopPropagation();
             setOpenConfigModelId(model.name);
           }}
         >
-          <GearIcon className="size-4" />
+          <GearIcon className="size-4 " />
         </button>
       )}
     </CommandItem>
@@ -223,7 +223,7 @@ export default function ModelSelector({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className="min-w-[180px] w-[250px] bg-transparent shadow-none focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600 h-9 px-3 py-2 text-sm focus:ring-1 focus:ring-ring"
+        className="min-w-[180px] w-[250px] bg-transparent shadow-none focus:outline-none cursor-pointer hover:bg-gray-100 rounded transition-colors border-none text-gray-600 dark:text-gray-300 hover:dark:text-gray-600 h-9 px-3 py-2 text-sm focus:ring-1 focus:ring-ring"
         asChild
       >
         <div className="flex items-center pr-2 truncate">
@@ -232,7 +232,7 @@ export default function ModelSelector({
             src={LLMIcon}
             width={14}
             height={14}
-            className="mr-2"
+            className="mr-2 "
           />
           <span className="flex flex-row items-center justify-start gap-2">
             {selectedModelLabel}
