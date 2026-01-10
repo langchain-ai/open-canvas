@@ -3,7 +3,7 @@ import { ArtifactTitle } from "./artifact-title";
 import { NavigateArtifactHistory } from "./navigate-artifact-history";
 import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@opencanvas/shared/types";
 import { Assistant } from "@langchain/langgraph-sdk";
-import { PanelRightClose } from "lucide-react";
+import { PanelLeftClose, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 
 interface ArtifactHeaderProps {
@@ -17,6 +17,8 @@ interface ArtifactHeaderProps {
   artifactUpdateFailed: boolean;
   chatCollapsed: boolean;
   setChatCollapsed: (c: boolean) => void;
+  isCanvasPanelCollapsed: boolean;
+  setIsCanvasPanelCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function ArtifactHeader(props: ArtifactHeaderProps) {
@@ -40,7 +42,24 @@ export function ArtifactHeader(props: ArtifactHeaderProps) {
           artifactUpdateFailed={props.artifactUpdateFailed}
         />
       </div>
-      <div className="flex gap-2 items-end mt-[10px] mr-[6px]">
+      <div className="flex gap-2 items-center mt-[10px] mr-[6px]">
+        <TooltipIconButton
+          tooltip={
+            props.isCanvasPanelCollapsed ? "Expand Canvas" : "Collapse Canvas"
+          }
+          variant="ghost"
+          className="ml-2 mb-1 w-8 h-8"
+          delayDuration={400}
+          onClick={() =>
+            props.setIsCanvasPanelCollapsed(!props.isCanvasPanelCollapsed)
+          }
+        >
+          {props.isCanvasPanelCollapsed ? (
+            <PanelRightOpen className="text-gray-600" />
+          ) : (
+            <PanelLeftClose className="text-gray-600" />
+          )}
+        </TooltipIconButton>
         <NavigateArtifactHistory
           isBackwardsDisabled={props.isBackwardsDisabled}
           isForwardDisabled={props.isForwardDisabled}
