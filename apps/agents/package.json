@@ -26,7 +26,7 @@
     "@ffmpeg/util": "^0.12.2",
     "@langchain/anthropic": "^0.3.21",
     "@langchain/community": "^0.3.45",
-    "@langchain/core": "^0.3.71",
+    "@langchain/core": "^0.3.80",
     "@langchain/exa": "^0.1.0",
     "@langchain/google-genai": "^0.2.10",
     "@langchain/groq": "^0.2.2",
