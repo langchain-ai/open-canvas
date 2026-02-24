@@ -5892,9 +5892,9 @@ highlightjs-vue@^1.0.0:
   integrity sha512-PDEfEF102G23vHmPhLyPboFCD+BkMGu+GuJe2d9/eH4FsCwvgBpnc9n0pGE+ffKdph38s6foEZiEjdgHdzp+IA==
 
 hono@^4.5.4:
-  version "4.7.7"
-  resolved "https://registry.yarnpkg.com/hono/-/hono-4.7.7.tgz#ad01a92a2a1b03c608ef42153c85c99c05c03bfe"
-  integrity sha512-2PCpQRbN87Crty8/L/7akZN3UyZIAopSoRxCwRbJgUuV1+MHNFHzYFxZTg4v/03cXUm+jce/qa2VSBZpKBm3Qw==
+  version "4.12.2"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-4.12.2.tgz#05c311c271b06685a0f229c484e3a2637d7d5f2a"
+  integrity sha512-gJnaDHXKDayjt8ue0n8Gs0A007yKXj4Xzb8+cNjZeYsSzzwKc0Lr+OZgYwVfB0pHfUs17EPoLvrOsEaJ9mj+Tg==
 
 html-url-attributes@^3.0.0:
   version "3.0.1"
