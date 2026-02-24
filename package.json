@@ -22,7 +22,7 @@
     "hono": ">=4.11.4",
     "linkifyjs": ">=4.3.2",
     "minimatch": ">=10.2.1",
-    "glob": ">=10.5.0"
+    "glob": ">=10.5.0 <11"
   },
   "devDependencies": {
     "turbo": "latest",
