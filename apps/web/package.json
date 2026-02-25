@@ -20,6 +20,7 @@
     "@assistant-ui/react": "^0.7.68",
     "@assistant-ui/react-markdown": "^0.7.2",
     "@assistant-ui/react-syntax-highlighter": "^0.7.2",
+    "@assistant-ui/react-ui": "^0.2.1",
     "@blocknote/core": "^0.17.1",
     "@blocknote/mantine": "^0.17.1",
     "@blocknote/react": "^0.17.1",
