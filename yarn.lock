@@ -6325,10 +6325,10 @@ langchain@^0.3.37:
     semver "^7.6.3"
     uuid "^10.0.0"
 
-langsmith@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.5.0.tgz#69d2fa04f5a87cd41a98d0d254999fdfdd80f30b"
-  integrity sha512-5U9Ar/wAu5vyTBBImvMLrM9sjynHzN703oLHScEqJaXWE6gm+uti0rWDryQZ6ObnuqSNa4IOUudYej9X6VNEwg==
+langsmith@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.5.1.tgz#e650f0f40794408879143bd3baba950fe01ca93f"
+  integrity sha512-v7s9h2Y9IM223IdDeexC8sQId8khZNsxYZugyoxxz8XMJ+4eGHxGPggwIXQpQQxl8/+luP7yfObP4saOZG0YWA==
   dependencies:
     "@types/uuid" "^10.0.0"
     chalk "^4.1.2"
