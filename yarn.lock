@@ -6334,10 +6334,10 @@ kuler@^2.0.0:
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-langchain@^1.2.3:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/langchain/-/langchain-1.2.3.tgz#66f64748d9ed1aff24903ad196cbe62280237dc5"
-  integrity sha512-3k986xJuqg4az53JxV5LnGlOzIXF1d9Kq6Y9s7XjitvzhpsbFuTDV5/kiF4cx3pkNGyw0mUXC4tLz9RxucO0hw==
+langchain@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/langchain/-/langchain-1.2.4.tgz#41276a2fa2d238e8f7fa77b39401eb054f8ff691"
+  integrity sha512-HIzAez/TP1kqaX08t9wkU+mwnkzXmLT+mWTPGpWXT+djB1UEGOYhqABv6F6QLm7R8jSRL6W3Sg3u18fWGkL+xQ==
   dependencies:
     "@langchain/langgraph" "^1.0.0"
     "@langchain/langgraph-checkpoint" "^1.0.0"
