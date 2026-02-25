@@ -42,7 +42,7 @@
     "exa-js": "^1.4.10",
     "framer-motion": "^11.11.9",
     "groq-sdk": "^0.13.0",
-    "langchain": "^0.3.37",
+    "langchain": "^1.2.3",
     "langsmith": "^0.5.0",
     "lodash": "^4.17.23",
     "pdf-parse": "^1.1.1",
