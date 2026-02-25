@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { LoginWithEmailInput } from "./Login";
 
 export async function login(input: LoginWithEmailInput) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const data = {
     email: input.email,

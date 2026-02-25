@@ -4,7 +4,7 @@ import { createClient } from "./server";
 export async function verifyUserAuthenticated(): Promise<
   { user: User; session: Session } | undefined
 > {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
