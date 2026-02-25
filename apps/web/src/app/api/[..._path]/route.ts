@@ -53,6 +53,10 @@ async function handleRequest(req: NextRequest, method: string) {
       if (typeof bodyText === "string" && bodyText.length > 0) {
         const parsedBody = JSON.parse(bodyText);
         parsedBody.config = parsedBody.config || {};
+        parsedBody.metadata = {
+          ...parsedBody.metadata,
+          supabase_user_id: user.id
+        }
         parsedBody.config.configurable = {
           ...parsedBody.config.configurable,
           supabase_session: session,
