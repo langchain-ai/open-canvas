@@ -18,8 +18,7 @@
     "format": "prettier --config .prettierrc --write \"src\" \"scripts\"",
     "format:check": "prettier --config .prettierrc --check \"src\" \"scripts\"",
     "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
-    "postinstall": "yarn turbo build"
+    "lint:fix": "eslint src --fix"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
