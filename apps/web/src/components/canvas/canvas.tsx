@@ -32,11 +32,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 export function CanvasComponent() {
   const { graphData } = useGraphContext();
   const { setModelName, setModelConfig } = useThreadContext();
-  const { setArtifact, chatStarted, setChatStarted } = graphData;
+  const { artifact, setArtifact, chatStarted, setChatStarted } = graphData;
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [webSearchResultsOpen, setWebSearchResultsOpen] = useState(false);
   const [chatCollapsed, setChatCollapsed] = useState(false);
+  const [isCanvasPanelCollapsed, setIsCanvasPanelCollapsed] = useState(false);
+
+  const currentArtifactContent = artifact?.contents[artifact.currentIndex - 1];
+  const currentArtifactType = currentArtifactContent?.type;
+
+  const shouldRenderCanvas =
+    chatStarted &&
+    !isCanvasPanelCollapsed &&
+    (currentArtifactType === "code" || currentArtifactType === "text");
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -143,9 +152,9 @@ export function CanvasComponent() {
       )}
       {!chatCollapsed && chatStarted && (
         <ResizablePanel
-          defaultSize={25}
-          minSize={15}
-          maxSize={50}
+          defaultSize={isCanvasPanelCollapsed ? 100 : 25}
+          minSize={isCanvasPanelCollapsed ? 100 : 15}
+          maxSize={isCanvasPanelCollapsed ? 100 : 50}
           className="transition-all duration-700 h-screen mr-auto bg-gray-50/70 shadow-inner-right"
           id="chat-panel-main"
           order={1}
@@ -195,7 +204,7 @@ export function CanvasComponent() {
         </ResizablePanel>
       )}
 
-      {chatStarted && (
+      {shouldRenderCanvas && (
         <>
           <ResizableHandle />
           <ResizablePanel
@@ -224,6 +233,8 @@ export function CanvasComponent() {
                 }}
                 setIsEditing={setIsEditing}
                 isEditing={isEditing}
+                isCanvasPanelCollapsed={isCanvasPanelCollapsed}
+                setIsCanvasPanelCollapsed={setIsCanvasPanelCollapsed}
               />
             </div>
             <WebSearchResults
