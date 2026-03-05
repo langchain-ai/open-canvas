@@ -318,6 +318,9 @@ function ArtifactRendererComponent(props: ArtifactRendererProps) {
         artifactUpdateFailed={artifactUpdateFailed}
         chatCollapsed={props.chatCollapsed}
         setChatCollapsed={props.setChatCollapsed}
+        artifact={artifact}
+        setSelectedBlocks={setSelectedBlocks}
+        isStreaming={isStreaming}
       />
       <div
         ref={contentRef}

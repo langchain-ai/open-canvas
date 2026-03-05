@@ -1,7 +1,8 @@
 import { ReflectionsDialog } from "../../reflections-dialog/ReflectionsDialog";
 import { ArtifactTitle } from "./artifact-title";
 import { NavigateArtifactHistory } from "./navigate-artifact-history";
-import { ArtifactCodeV3, ArtifactMarkdownV3 } from "@opencanvas/shared/types";
+import { ArtifactVersionsMenu } from "./artifact-versions-menu";
+import { ArtifactCodeV3, ArtifactMarkdownV3, ArtifactV3, TextHighlight } from "@opencanvas/shared/types";
 import { Assistant } from "@langchain/langgraph-sdk";
 import { PanelRightClose } from "lucide-react";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
@@ -17,12 +18,24 @@ interface ArtifactHeaderProps {
   artifactUpdateFailed: boolean;
   chatCollapsed: boolean;
   setChatCollapsed: (c: boolean) => void;
+  artifact: ArtifactV3;
+  setSelectedBlocks: (blocks: TextHighlight | undefined) => void;
+  isStreaming?: boolean;
 }
 
 export function ArtifactHeader(props: ArtifactHeaderProps) {
   return (
     <div className="flex flex-row items-center justify-between">
       <div className="flex flex-row items-center justify-center gap-2">
+        {/* Burger Menu for Artifact Versions */}
+        <ArtifactVersionsMenu
+          artifact={props.artifact}
+          currentArtifactContent={props.currentArtifactContent}
+          setSelectedArtifact={props.setSelectedArtifact}
+          setSelectedBlocks={props.setSelectedBlocks}
+          isStreaming={props.isStreaming}
+        />
+        
         {props.chatCollapsed && (
           <TooltipIconButton
             tooltip="Expand Chat"
